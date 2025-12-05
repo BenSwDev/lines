@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { I18nProvider } from "@/core/i18n/provider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
@@ -10,12 +11,14 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="he" dir="rtl" className="dark">
+    <html lang="he" dir="rtl" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
-        <I18nProvider>
-          {children}
-          <Toaster />
-        </I18nProvider>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <I18nProvider>
+            {children}
+            <Toaster />
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,21 +1,45 @@
-import React from "react";
-import { notFound } from "next/navigation";
-import { WorkspaceLayout } from "@/modules/workspace-shell";
-import { venuesService } from "@/modules/venues/services/venuesService";
+import { auth } from "@/core/auth/auth";
+import { getVenue } from "@/modules/venues/actions/getVenue";
+import { listVenues } from "@/modules/venues/actions/listVenues";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { redirect } from "next/navigation";
 
 export default async function VenueLayout({
   children,
-  params
+  params,
 }: {
   children: React.ReactNode;
   params: Promise<{ venueId: string }>;
 }) {
-  const { venueId } = await params;
-  const venue = await venuesService.getVenue(venueId);
+  const session = await auth();
 
-  if (!venue) {
-    notFound();
+  if (!session?.user) {
+    redirect("/auth/login");
   }
 
-  return <WorkspaceLayout venue={venue}>{children}</WorkspaceLayout>;
+  const { venueId } = await params;
+
+  const [venueResult, venuesResult] = await Promise.all([
+    getVenue(venueId),
+    listVenues(),
+  ]);
+
+  if (!venueResult.success || !venueResult.data) {
+    redirect("/dashboard");
+  }
+
+  const venues = venuesResult.success ? venuesResult.data || [] : [];
+
+  return (
+    <DashboardLayout
+      user={{
+        name: session.user.name || null,
+        email: session.user.email!,
+      }}
+      venues={venues}
+      currentVenue={venueResult.data}
+    >
+      {children}
+    </DashboardLayout>
+  );
 }

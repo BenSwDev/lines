@@ -24,9 +24,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Building2, Plus, LogOut, Settings, User, ChevronDown } from "lucide-react";
+import {
+  Building2,
+  Plus,
+  LogOut,
+  Settings,
+  User,
+  ChevronDown,
+  Info,
+  Calendar,
+  List,
+  Sliders,
+} from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import type { Venue } from "@prisma/client";
 
 type DashboardLayoutProps = {
@@ -41,9 +54,10 @@ type DashboardLayoutProps = {
 
 export function DashboardLayout({ children, user, venues, currentVenue }: DashboardLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full">
         {/* Sidebar */}
         <Sidebar>
@@ -60,48 +74,91 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
           </SidebarHeader>
 
           <SidebarContent>
-            {/* Current Venue / Venue Switcher */}
+            {/* Venue Switcher */}
             {currentVenue ? (
-              <SidebarGroup>
-                <SidebarGroupLabel>Venue נוכחי</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full justify-between">
-                        <span className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
-                          {currentVenue.name}
-                        </span>
-                        <ChevronDown className="h-4 w-4 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56">
-                      <DropdownMenuLabel>החלף Venue</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {venues.map((venue) => (
-                        <DropdownMenuItem
-                          key={venue.id}
-                          onClick={() => router.push(`/venues/${venue.id}/info`)}
-                          disabled={venue.id === currentVenue.id}
-                        >
-                          <Building2 className="ml-2 h-4 w-4" />
-                          {venue.name}
-                          {venue.id === currentVenue.id && (
-                            <Badge variant="outline" className="mr-auto">
-                              נוכחי
-                            </Badge>
-                          )}
+              <>
+                <SidebarGroup>
+                  <SidebarGroupLabel>Venue נוכחי</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between">
+                          <span className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            {currentVenue.name}
+                          </span>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuLabel>החלף Venue</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {venues.map((venue) => (
+                          <DropdownMenuItem
+                            key={venue.id}
+                            onClick={() => router.push(`/venues/${venue.id}/info`)}
+                            disabled={venue.id === currentVenue.id}
+                          >
+                            <Building2 className="ml-2 h-4 w-4" />
+                            {venue.name}
+                            {venue.id === currentVenue.id && (
+                              <Badge variant="outline" className="mr-auto">
+                                נוכחי
+                              </Badge>
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => router.push("/dashboard")}>
+                          <Plus className="ml-2 h-4 w-4" />
+                          כל המקומות
                         </DropdownMenuItem>
-                      ))}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => router.push("/dashboard")}>
-                        <Plus className="ml-2 h-4 w-4" />
-                        כל המקומות
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* Venue Navigation */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>ניווט</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/info")}>
+                          <Link href={`/venues/${currentVenue.id}/info`}>
+                            <Info className="h-4 w-4" />
+                            <span>מידע על המקום</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings")}>
+                          <Link href={`/venues/${currentVenue.id}/settings`}>
+                            <Sliders className="h-4 w-4" />
+                            <span>הגדרות</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/lines")}>
+                          <Link href={`/venues/${currentVenue.id}/lines`}>
+                            <List className="h-4 w-4" />
+                            <span>ליינים</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/calendar")}>
+                          <Link href={`/venues/${currentVenue.id}/calendar`}>
+                            <Calendar className="h-4 w-4" />
+                            <span>לוח שנה</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
             ) : (
               <SidebarGroup>
                 <SidebarGroupLabel>המקומות שלי</SidebarGroupLabel>
@@ -179,14 +236,20 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
         {/* Main Content */}
         <main className="flex-1">
           <div className="border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger />
-              {currentVenue && (
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">{currentVenue.name}</h2>
-                </div>
-              )}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                {currentVenue && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold">{currentVenue.name}</h2>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <LanguageSwitcher />
+              </div>
             </div>
           </div>
           <div className="p-6">{children}</div>

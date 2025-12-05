@@ -77,13 +77,27 @@
   }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* RTL Support */
+html[dir="rtl"] {
+  direction: rtl;
 }
 
-/* Custom scrollbar for dark theme */
+html[dir="rtl"] [data-sidebar] {
+  right: 0;
+  left: auto;
+}
+
+html[dir="rtl"] .ml-auto {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+
+html[dir="rtl"] .mr-auto {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -94,7 +108,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/30 rounded-md;
+  @apply rounded-md bg-muted-foreground/30;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -102,8 +116,10 @@
 }
 
 /* Smooth transitions */
-* {
-  @apply transition-colors duration-200;
+@layer utilities {
+  .transition-base {
+    @apply transition-colors duration-200;
+  }
 }
 
 /* Focus visible styles */

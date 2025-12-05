@@ -6,7 +6,7 @@ import { z } from "zod";
 const registerSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Name is required")
 });
 
 export async function register(input: unknown) {
@@ -18,7 +18,7 @@ export async function register(input: unknown) {
     if (existing) {
       return {
         success: false,
-        error: "User with this email already exists",
+        error: "User with this email already exists"
       };
     }
 
