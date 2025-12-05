@@ -100,7 +100,7 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
                 <CardContent className="relative z-10 flex items-center justify-between p-5">
                   <div className="flex items-center gap-4">
                     <div
-                      className="h-12 w-12 rounded-lg border-2 border-white/20 shadow-md"
+                      className="h-12 w-12 rounded-lg border-2 border-border/50 shadow-md"
                       style={{ backgroundColor: line.color }}
                     />
                     <div className="flex flex-col">
@@ -114,7 +114,7 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
                   </div>
                   <div className="flex items-center gap-3">
                     {occurrence.isActive ? (
-                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm">
+                      <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0 shadow-sm">
                         פעיל
                       </Badge>
                     ) : (

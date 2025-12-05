@@ -203,7 +203,7 @@ function MonthView({
                             e.stopPropagation();
                             onEventClick(event);
                           }}
-                          className="group/event relative cursor-pointer rounded-lg px-2.5 py-2 text-xs transition-all duration-200 hover:scale-[1.02] hover:shadow-md backdrop-blur-sm border border-transparent hover:border-white/20"
+                          className="group/event relative cursor-pointer rounded-lg px-2.5 py-2 text-xs transition-all duration-200 hover:scale-[1.02] hover:shadow-md backdrop-blur-sm border border-transparent hover:border-border/50"
                           style={{
                             background: `linear-gradient(135deg, ${event.color}25 0%, ${event.color}15 50%, ${event.color}08 100%)`,
                             borderLeft: `3px solid ${event.color}`
@@ -581,7 +581,7 @@ function DayView({
                                   {event.startTime} - {event.endTime}
                                 </span>
                                 {overnight && (
-                                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-sm text-xs">
+                                  <Badge className="bg-gradient-to-r from-primary/80 to-primary/60 text-primary-foreground border-0 shadow-sm text-xs">
                                     משמרת לילה (+1)
                                   </Badge>
                                 )}

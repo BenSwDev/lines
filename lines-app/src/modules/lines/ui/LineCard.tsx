@@ -80,7 +80,7 @@ export const LineCard = memo(function LineCard({
                 className="relative flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12"
                 style={{ backgroundColor: line.color }}
               >
-                <div className="h-6 w-6 rounded-full bg-white/20 backdrop-blur-sm" />
+                <div className="h-6 w-6 rounded-full bg-background/20 backdrop-blur-sm" />
               </div>
             </div>
 
@@ -155,7 +155,7 @@ export const LineCard = memo(function LineCard({
             {frequencyText}
           </Badge>
           {isHappeningNow && (
-            <Badge className="animate-pulse bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md border-0">
+            <Badge className="animate-pulse bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md border-0">
               {t("lines.happeningNow")}
             </Badge>
           )}

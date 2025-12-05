@@ -419,7 +419,7 @@ export function CreateLineDialog({
                       aria-label={`בחר צבע ${paletteColor}`}
                     >
                       {color === paletteColor && (
-                        <span className="text-white text-xs drop-shadow-lg">✓</span>
+                        <span className="text-primary-foreground text-xs drop-shadow-lg">✓</span>
                       )}
                     </button>
                   ))}

@@ -63,8 +63,8 @@ export default function RegisterPage() {
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       {/* Background gradients */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-purple-500/10 blur-[120px]" />
+        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
 
       <div className="w-full max-w-md space-y-6">
@@ -72,9 +72,9 @@ export default function RegisterPage() {
         <div className="text-center">
           <Link href="/" className="group inline-block">
             <div className="relative mx-auto mb-6">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <span className="text-3xl font-bold text-white">L</span>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <span className="text-3xl font-bold text-primary-foreground">L</span>
               </div>
             </div>
           </Link>
@@ -89,8 +89,8 @@ export default function RegisterPage() {
 
           <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-3 text-2xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-600">
-                <UserPlus className="h-5 w-5 text-white" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
+                <UserPlus className="h-5 w-5 text-primary-foreground" />
               </div>
               הרשמה
             </CardTitle>

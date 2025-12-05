@@ -31,8 +31,8 @@ export function VenueSettingsTab() {
 
           <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                <FileText className="h-5 w-5 text-white" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
+                <FileText className="h-5 w-5 text-primary-foreground" />
               </div>
               {t("settings.menus")}
             </CardTitle>
@@ -57,8 +57,8 @@ export function VenueSettingsTab() {
 
           <CardHeader className="relative z-10">
             <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-600">
-                <MapPin className="h-5 w-5 text-white" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/80 to-primary/60">
+                <MapPin className="h-5 w-5 text-primary-foreground" />
               </div>
               {t("settings.seating")}
             </CardTitle>

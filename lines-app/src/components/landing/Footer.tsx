@@ -13,12 +13,10 @@ export function Footer() {
           {/* About */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md">
+                <span className="text-primary-foreground font-bold text-sm">L</span>
               </div>
-              <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                אודות Lines
-              </h3>
+              <h3 className="text-lg font-bold text-foreground">אודות Lines</h3>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               מערכת ניהול אירועים חוזרים מתקדמת לעסקים. בנויה עם Next.js 15, Supabase ו-Prisma.

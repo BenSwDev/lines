@@ -14,8 +14,8 @@ export function Hero({ isAuthenticated }: HeroProps) {
     <section className="relative overflow-hidden">
       {/* Background gradients */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-blue-500/20 blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-purple-500/20 blur-[120px]" />
+        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[120px]" />
       </div>
 
       <div className="container mx-auto px-6 py-20 lg:py-32">
@@ -30,7 +30,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
           <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
             ניהול אירועים חוזרים
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
               בצורה פשוטה וחכמה
             </span>
           </h1>
@@ -74,8 +74,8 @@ export function Hero({ isAuthenticated }: HeroProps) {
               <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative z-10">
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <Calendar className="h-7 w-7 text-white" />
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Calendar className="h-7 w-7 text-primary-foreground" />
                 </div>
                 <h3 className="mb-3 text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                   ניהול אירועים חכם
@@ -88,11 +88,11 @@ export function Hero({ isAuthenticated }: HeroProps) {
 
             <div className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 p-8 transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20">
               {/* Decorative glow */}
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-purple-500/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative z-10">
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <Palette className="h-7 w-7 text-white" />
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary/80 to-primary/60 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Palette className="h-7 w-7 text-primary-foreground" />
                 </div>
                 <h3 className="mb-3 text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                   ארגון ויזואלי
@@ -105,11 +105,11 @@ export function Hero({ isAuthenticated }: HeroProps) {
 
             <div className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 p-8 transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20">
               {/* Decorative glow */}
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-pink-500/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
               <div className="relative z-10">
-                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-orange-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                  <Zap className="h-7 w-7 text-white" />
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary/60 to-primary/40 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Zap className="h-7 w-7 text-primary-foreground" />
                 </div>
                 <h3 className="mb-3 text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                   ממשק מהיר

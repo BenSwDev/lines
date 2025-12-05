@@ -38,7 +38,7 @@ export function VenueCardModern({ venue, onSelect, onDelete }: VenueCardModernPr
       <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
       {/* Decorative corner accent */}
-      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 blur-2xl transition-all duration-500 group-hover:scale-150" />
+      <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 blur-2xl transition-all duration-500 group-hover:scale-150" />
 
       {/* Animated border glow */}
       <div
@@ -54,9 +54,9 @@ export function VenueCardModern({ venue, onSelect, onDelete }: VenueCardModernPr
           <div className="flex items-center gap-4 flex-1">
             {/* Icon with animated glow */}
             <div className="relative">
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 blur-md opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <Building2 className="h-7 w-7 text-white drop-shadow-lg" />
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary to-primary/80 blur-md opacity-50 group-hover:opacity-75 transition-opacity duration-300" />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <Building2 className="h-7 w-7 text-primary-foreground drop-shadow-lg" />
               </div>
             </div>
 
@@ -104,8 +104,8 @@ export function VenueCardModern({ venue, onSelect, onDelete }: VenueCardModernPr
       <CardContent className="relative z-10 pt-0">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-green-500/20 blur-sm" />
-            <Badge className="relative bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md border-0">
+            <div className="absolute inset-0 rounded-full bg-primary/20 blur-sm" />
+            <Badge className="relative bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md border-0">
               פעיל
             </Badge>
           </div>

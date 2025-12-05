@@ -62,7 +62,7 @@ export function EventDetailPage({
           <ArrowLeft className="h-4 w-4" />
           חזרה {backContext === "calendar" ? "ללוח שנה" : "לליינים"}
         </Button>
-        <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white border-0 shadow-sm">
+        <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0 shadow-sm">
           אירוע {currentIndex + 1} מתוך {totalOccurrences}
         </Badge>
       </div>
@@ -80,7 +80,7 @@ export function EventDetailPage({
                 style={{ backgroundColor: line.color }}
               />
               <div
-                className="relative h-14 w-14 rounded-xl border-2 border-white/20 shadow-lg"
+                className="relative h-14 w-14 rounded-xl border-2 border-border/50 shadow-lg"
                 style={{ backgroundColor: line.color }}
               />
             </div>
@@ -104,16 +104,16 @@ export function EventDetailPage({
             <span className="font-bold">{title}</span>
             <div className="flex gap-2">
               {occurrence.isExpected ? (
-                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-sm">
+                <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0 shadow-sm">
                   מתוכנן
                 </Badge>
               ) : (
-                <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-sm">
+                <Badge className="bg-gradient-to-r from-primary/80 to-primary/60 text-primary-foreground border-0 shadow-sm">
                   ידני
                 </Badge>
               )}
               {occurrence.isActive ? (
-                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm">
+                <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0 shadow-sm">
                   פעיל
                 </Badge>
               ) : (

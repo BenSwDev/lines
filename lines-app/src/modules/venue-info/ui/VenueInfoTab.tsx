@@ -115,8 +115,8 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
 
         <CardHeader className="relative z-10">
           <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-              <Building2 className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
+              <Building2 className="h-5 w-5 text-primary-foreground" />
             </div>
             {t("venueInfo.venueName")}
           </CardTitle>
