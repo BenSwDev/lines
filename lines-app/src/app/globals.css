@@ -77,14 +77,31 @@
   }
 }
 
-/* RTL Support */
+/* RTL Support - Complete Fix */
 html[dir="rtl"] {
   direction: rtl;
 }
 
-html[dir="rtl"] [data-sidebar] {
+/* Sidebar RTL positioning */
+html[dir="rtl"] [data-sidebar][data-side="right"] {
   right: 0;
   left: auto;
+}
+
+html[dir="rtl"] [data-sidebar][data-side="left"] {
+  left: 0;
+  right: auto;
+}
+
+/* Icons and margins RTL */
+html[dir="rtl"] .ml-2 {
+  margin-right: 0.5rem !important;
+  margin-left: 0 !important;
+}
+
+html[dir="rtl"] .mr-2 {
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
 }
 
 html[dir="rtl"] .ml-auto {
@@ -95,6 +112,15 @@ html[dir="rtl"] .ml-auto {
 html[dir="rtl"] .mr-auto {
   margin-left: auto !important;
   margin-right: 0 !important;
+}
+
+/* Chevron/Arrow icons RTL */
+html[dir="rtl"] svg {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] [data-sidebar] svg {
+  transform: none;
 }
 
 /* Custom scrollbar */

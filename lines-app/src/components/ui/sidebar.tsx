@@ -35,6 +35,7 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  side: "left" | "right";
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -54,6 +55,7 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    side?: "left" | "right";
   }
 >(
   (
@@ -61,12 +63,13 @@ const SidebarProvider = React.forwardRef<
       defaultOpen = true,
       open: openProp,
       onOpenChange: setOpenProp,
+      side = "right",
       className,
       style,
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
@@ -120,9 +123,10 @@ const SidebarProvider = React.forwardRef<
         isMobile,
         openMobile,
         setOpenMobile,
-        toggleSidebar
+        toggleSidebar,
+        side,
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, side],
     );
 
     return (
@@ -162,7 +166,7 @@ const Sidebar = React.forwardRef<
 >(
   (
     {
-      side = "left",
+      side: sideProp,
       variant = "sidebar",
       collapsible = "offcanvas",
       className,
@@ -171,7 +175,8 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+    const { isMobile, state, openMobile, setOpenMobile, side: contextSide } = useSidebar();
+    const side = sideProp || contextSide;
 
     if (collapsible === "none") {
       return (

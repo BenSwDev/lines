@@ -57,7 +57,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
   const pathname = usePathname();
 
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider defaultOpen side="right">
       <div className="flex min-h-screen w-full">
         {/* Sidebar */}
         <Sidebar>
