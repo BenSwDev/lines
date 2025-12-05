@@ -4,6 +4,72 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.2.0] – 2025-12-05 (Supabase Integration + Landing Page)
+
+### 🎉 Major Release
+
+#### Added
+- **Supabase Database Integration**
+  - Connected Supabase PostgreSQL via Vercel marketplace integration
+  - Created 11 tables using Supabase MCP API (users, accounts, sessions, venues, venue_details, menus, zones, tables, lines, line_occurrences, verification_tokens)
+  - Auto-update triggers for all `updatedAt` columns
+  - Seed data with demo admin (`admin@lines.app`) + user (`demo@lines.app`) + sample venue
+  - Database scripts: `db:push`, `db:seed`, `db:test`, `db:studio`
+
+- **Landing Page Components**
+  - `Hero.tsx` - Hero section with conditional CTAs based on auth state
+  - `Header.tsx` - Navigation with language switcher + auth-aware buttons
+  - `Footer.tsx` - Quick links, contact info, copyright
+  - Gradient design (blue → purple)
+  - Feature highlights with glass-morphism cards
+
+- **New Routes**
+  - `/` - Public landing page
+  - `/dashboard` - Protected dashboard for authenticated users
+  - `/demo` - Public demo page (placeholder)
+
+- **Module Files**
+  - `modules/auth/schemas/authSchemas.ts` - Register/login validation
+  - `modules/auth/types.ts` - User types
+  - `modules/calendar/actions/getCalendarData.ts`
+  - `modules/calendar/schemas/calendarSchemas.ts`
+  - `modules/events/actions/` - getEventDetail, getNeighborEvents
+  - `modules/events/schemas/eventSchemas.ts`
+  - `modules/lines/actions/` - createLine, listLines
+  - `modules/venue-settings/actions/` - menuActions, zoneActions
+  - `modules/workspace-shell/types.ts`
+
+#### Changed
+- **Middleware**
+  - Public routes: `/`, `/demo`, `/auth/*`, `/api/auth`
+  - Protected routes: `/dashboard`, `/venues/*`, `/api/venues`
+  - Smart redirects based on auth state
+
+- **Prisma Schema**
+  - Datasource URL: `DATABASE_URL` → `POSTGRES_PRISMA_URL`
+
+- **Venues Service**
+  - Added `listUserVenues(userId)` for user-scoped queries
+  - Enhanced `deleteVenue(id, userId)` with ownership verification
+
+- **Package Scripts**
+  - Added `typecheck` script (required in quality gate)
+  - Added `postinstall` for automatic `prisma generate`
+  - DB scripts now use `dotenv` for env var loading
+
+#### Fixed
+- i18n provider type safety (`any` → `unknown`)
+- Button variant types in landing components
+- Prisma client generation workflow
+- Empty file restoration from git
+
+#### Documentation
+- Updated `FINAL_GRADE_REPORT.md` (grade: 93/100 → 97/100 A+)
+- Created `STRUCTURE_AUDIT.md`
+- Updated `README.md` with demo credentials and Supabase setup
+
+---
+
 ## [1.1.0] – 2025-12-05 (Enhanced MVP: Tailwind + i18n + Auth)
 
 **Major Upgrades**
