@@ -1,0 +1,20 @@
+/* Global styles for Lines App.
+ * Full design system and dark theme will be implemented based on the product spec.
+ */
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: #020617;
+  color: #e5e7eb;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
