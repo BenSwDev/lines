@@ -3,11 +3,15 @@ import { redirect } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { listVenues } from "@/modules/venues/actions/listVenues";
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayoutWrapper({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/auth/login?callbackUrl=/dashboard");
+    redirect("/auth/login");
   }
 
   const venuesResult = await listVenues();
@@ -17,7 +21,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     <DashboardLayout
       user={{
         name: session.user.name || null,
-        email: session.user.email!
+        email: session.user.email!,
       }}
       venues={venues}
     >
@@ -25,3 +29,4 @@ export default async function Layout({ children }: { children: React.ReactNode }
     </DashboardLayout>
   );
 }
+

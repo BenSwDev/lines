@@ -66,7 +66,7 @@ export function VenuesHomePage() {
       {/* Header */}
       <div className="border-b border-gray-800 bg-gray-900">
         <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between rtl:flex-row-reverse">
             <div>
               <h1 className="text-3xl font-bold">המקומות שלי</h1>
               <p className="mt-1 text-sm text-gray-400">נהל את כל המקומות העסקיים שלך במקום אחד</p>

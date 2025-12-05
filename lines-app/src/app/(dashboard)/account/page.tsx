@@ -10,7 +10,6 @@ export default async function Account() {
     redirect("/auth/login");
   }
 
-  // Get full user data from DB
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
   });
@@ -21,3 +20,4 @@ export default async function Account() {
 
   return <AccountPage user={user} />;
 }
+

@@ -22,7 +22,7 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between rtl:flex-row-reverse">
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
