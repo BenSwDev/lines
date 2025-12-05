@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal } from "@/shared/ui/Modal";
-import { Button } from "@/shared/ui/Button";
+import { Button } from "@/components/ui/button";
 import { deleteVenue } from "../actions/deleteVenue";
 import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
@@ -66,7 +66,13 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
           <Button type="button" variant="ghost" onClick={handleClose} disabled={isDeleting}>
             {t("common.cancel")}
           </Button>
-          <Button type="button" variant="danger" onClick={handleDelete} disabled={isDeleting}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            loading={isDeleting}
+          >
             {isDeleting ? t("venues.deleting") : t("venues.deleteButton")}
           </Button>
         </div>

@@ -81,7 +81,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
             {currentVenue ? (
               <>
                 <SidebarGroup>
-                  <SidebarGroupLabel>Venue נוכחי</SidebarGroupLabel>
+                  <SidebarGroupLabel>{t("workspace.currentVenue")}</SidebarGroupLabel>
                   <SidebarGroupContent>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -94,7 +94,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
-                        <DropdownMenuLabel>החלף Venue</DropdownMenuLabel>
+                        <DropdownMenuLabel>{t("workspace.switchVenue")}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {venues.map((venue) => (
                           <DropdownMenuItem
@@ -106,7 +106,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             {venue.name}
                             {venue.id === currentVenue.id && (
                               <Badge variant="outline" className="mr-auto">
-                                נוכחי
+                                {t("common.current")}
                               </Badge>
                             )}
                           </DropdownMenuItem>
@@ -114,7 +114,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => router.push("/dashboard")}>
                           <Plus className="ml-2 h-4 w-4" />
-                          כל המקומות
+                          {t("workspace.allVenues")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -123,7 +123,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
 
                 {/* Venue Navigation */}
                 <SidebarGroup>
-                  <SidebarGroupLabel>ניווט</SidebarGroupLabel>
+                  <SidebarGroupLabel>{t("workspace.navigation")}</SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       <SidebarMenuItem>
@@ -164,12 +164,12 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
               </>
             ) : (
               <SidebarGroup>
-                <SidebarGroupLabel>המקומות שלי</SidebarGroupLabel>
+                <SidebarGroupLabel>{t("workspace.myVenues")}</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {venues.length === 0 ? (
                       <div className="p-4 text-center text-sm text-muted-foreground">
-                        אין Venues עדיין
+                        {t("workspace.noVenuesYet")}
                       </div>
                     ) : (
                       venues.map((venue) => (
@@ -187,7 +187,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                       <SidebarMenuButton className="text-primary" asChild>
                         <Link href="/dashboard">
                           <Plus className="h-4 w-4" />
-                          <span>צור Venue חדש</span>
+                          <span>{t("workspace.createNewVenue")}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

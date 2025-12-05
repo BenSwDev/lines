@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useLocale } from "@/core/i18n/provider";
-import { Button } from "@/shared/ui/Button";
+import { Button } from "@/components/ui/button";
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useLocale();

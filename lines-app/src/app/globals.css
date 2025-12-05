@@ -180,6 +180,22 @@ html[dir="rtl"] .lucide-moon {
   }
 }
 
+/* Gradient animation */
+@keyframes gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
 /* Focus visible styles */
 *:focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;

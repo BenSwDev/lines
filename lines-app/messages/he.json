@@ -9,7 +9,10 @@
     "back": "חזרה",
     "next": "הבא",
     "previous": "הקודם",
-    "close": "סגור"
+    "close": "סגור",
+    "current": "נוכחי",
+    "logout": "יציאה",
+    "myAccount": "החשבון שלי"
   },
   "auth": {
     "login": "התחברות",
@@ -62,12 +65,21 @@
     "info": "פרטי מקום",
     "settings": "הגדרות מקום",
     "lines": "ליינים",
-    "calendar": "לוח שנה"
+    "calendar": "לוח שנה",
+    "currentVenue": "מקום נוכחי",
+    "switchVenue": "החלף מקום",
+    "allVenues": "כל המקומות",
+    "createNewVenue": "צור מקום חדש",
+    "myVenues": "המקומות שלי",
+    "noVenuesYet": "אין מקומות עדיין",
+    "navigation": "ניווט"
   },
   "lines": {
     "title": "ליינים",
-    "subtitle": "נהל את כל הליינים והאירועים שלך",
-    "newLine": "+ ליין חדש",
+    "subtitle": "נהל אירועים חוזרים עם לוחות זמנים וצבעים",
+    "newLine": "צור ליין חדש",
+    "line": "ליין",
+    "lines": "ליינים",
     "comingSoon": "ניהול ליינים יתווסף בגרסה הבאה",
     "backendReady": "Backend מלא מוכן, UI בהמשך"
   },

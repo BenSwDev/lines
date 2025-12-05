@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/shared/ui/Button";
+import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type HeaderProps = {
@@ -46,7 +46,7 @@ export function Header({ isAuthenticated }: HeaderProps) {
                 </Button>
               </Link>
               <Link href="/auth/register">
-                <Button variant="primary" size="sm">
+                <Button variant="default" size="sm">
                   הרשמה
                 </Button>
               </Link>
