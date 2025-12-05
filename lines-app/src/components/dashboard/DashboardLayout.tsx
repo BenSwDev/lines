@@ -213,16 +213,16 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                   <ChevronDown className="mr-auto h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 rtl:text-right">
                 <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/profile")}>
                   <User className="ml-2 h-4 w-4" />
                   פרופיל
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/account")}>
                   <Settings className="ml-2 h-4 w-4" />
-                  הגדרות
+                  חשבון
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

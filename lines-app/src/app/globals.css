@@ -184,3 +184,115 @@ html[dir="rtl"] .lucide-moon {
 *:focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }
+
+/* RTL Text Alignment - Force right-to-left for Hebrew */
+html[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] body {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Buttons - Text starts from right */
+html[dir="rtl"] button {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] button span {
+  direction: rtl;
+}
+
+/* RTL Dropdown Menus */
+html[dir="rtl"] [role="menu"],
+html[dir="rtl"] [role="menuitem"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Tabs */
+html[dir="rtl"] [role="tablist"] {
+  direction: rtl;
+}
+
+html[dir="rtl"] [role="tab"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Cards and Content */
+html[dir="rtl"] .card,
+html[dir="rtl"] [class*="Card"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Forms */
+html[dir="rtl"] form {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] label {
+  direction: rtl;
+  text-align: right;
+}
+
+html[dir="rtl"] input,
+html[dir="rtl"] textarea {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Lists */
+html[dir="rtl"] ul,
+html[dir="rtl"] ol {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Headings */
+html[dir="rtl"] h1,
+html[dir="rtl"] h2,
+html[dir="rtl"] h3,
+html[dir="rtl"] h4,
+html[dir="rtl"] h5,
+html[dir="rtl"] h6 {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Paragraphs */
+html[dir="rtl"] p {
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL Flex containers - reverse order */
+html[dir="rtl"] .flex {
+  direction: rtl;
+}
+
+/* RTL Grid - reverse column order */
+html[dir="rtl"] .grid {
+  direction: rtl;
+}
+
+/* LTR - Force left-to-right for English */
+html[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="ltr"] body {
+  direction: ltr;
+  text-align: left;
+}
+
+html[dir="ltr"] button {
+  direction: ltr;
+  text-align: left;
+}
