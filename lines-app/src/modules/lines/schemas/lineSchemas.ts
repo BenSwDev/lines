@@ -1,13 +1,23 @@
 import { z } from "zod";
 import { timeSchema, colorSchema, weekdaySchema, frequencySchema } from "@/core/validation";
 
+// Day schedule schema - allows different times and frequency per day
+const dayScheduleSchema = z.object({
+  day: weekdaySchema,
+  startTime: timeSchema,
+  endTime: timeSchema,
+  frequency: frequencySchema
+});
+
 export const createLineSchema = z.object({
   name: z.string().min(1, "validation.lineNameRequired"),
   days: z.array(weekdaySchema).min(1, "validation.daysRequired"),
-  startTime: timeSchema,
-  endTime: timeSchema,
-  frequency: frequencySchema,
+  startTime: timeSchema, // Legacy - kept for backward compatibility
+  endTime: timeSchema, // Legacy - kept for backward compatibility
+  frequency: frequencySchema, // Legacy - kept for backward compatibility
   color: colorSchema,
+  // New flexible structure - per-day schedules
+  daySchedules: z.array(dayScheduleSchema).optional(),
   // Optional occurrence data for initial creation
   selectedDates: z
     .array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "validation.dateFormat"))

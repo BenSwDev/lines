@@ -1,11 +1,12 @@
 "use server";
 
-import { lineRepository } from "@/core/db";
+import { lineRepository, lineOccurrenceRepository } from "@/core/db";
 import { createLineSchema } from "../schemas/lineSchemas";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/core/auth/session";
 import { lineScheduleService } from "../services/lineScheduleService";
 import { lineOccurrencesSyncService } from "../services/lineOccurrencesSyncService";
+import { checkMultipleCollisions, type TimeRange } from "@/core/validation";
 import type { OccurrenceInput } from "../services/lineOccurrencesSyncService";
 
 export async function createLine(venueId: string, input: unknown) {
@@ -29,29 +30,50 @@ export async function createLine(venueId: string, input: unknown) {
     });
 
     // Generate occurrences based on selected dates and manual dates
-    const occurrences: OccurrenceInput[] = [];
+    // Use daySchedules if provided, otherwise use legacy fields
+    const daySchedules =
+      validated.daySchedules ||
+      validated.days.map((day) => ({
+        day,
+        startTime: validated.startTime,
+        endTime: validated.endTime,
+        frequency: validated.frequency
+      }));
+
+    const occurrences: Array<OccurrenceInput & { startTime?: string; endTime?: string }> = [];
 
     // Add selected dates (from suggestions) - these are expected occurrences
     if (validated.selectedDates && validated.selectedDates.length > 0) {
       for (const date of validated.selectedDates) {
+        const dateObj = new Date(date);
+        const dayOfWeek = dateObj.getDay();
+        const schedule = daySchedules.find((s) => s.day === dayOfWeek);
+
         occurrences.push({
           date,
           isExpected: true,
-          isActive: true
+          isActive: true,
+          startTime: schedule?.startTime,
+          endTime: schedule?.endTime
         });
       }
     } else if (validated.frequency !== "variable") {
       // If no dates selected but frequency is not variable, generate suggestions automatically
-      const suggestions = lineScheduleService.generateSuggestions(
-        validated.days,
-        validated.frequency as "weekly" | "monthly" | "variable" | "oneTime"
-      );
-      for (const date of suggestions) {
-        occurrences.push({
-          date,
-          isExpected: true,
-          isActive: true
-        });
+      // Generate per day schedule
+      for (const schedule of daySchedules) {
+        const suggestions = lineScheduleService.generateSuggestions(
+          [schedule.day],
+          schedule.frequency as "weekly" | "monthly" | "variable" | "oneTime"
+        );
+        for (const date of suggestions) {
+          occurrences.push({
+            date,
+            isExpected: true,
+            isActive: true,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime
+          });
+        }
       }
     }
 
@@ -60,18 +82,53 @@ export async function createLine(venueId: string, input: unknown) {
       for (const date of validated.manualDates) {
         // Skip if already added from selected dates
         if (!occurrences.some((occ) => occ.date === date)) {
+          const dateObj = new Date(date);
+          const dayOfWeek = dateObj.getDay();
+          const schedule = daySchedules.find((s) => s.day === dayOfWeek);
+
           occurrences.push({
             date,
             isExpected: false,
-            isActive: true
+            isActive: true,
+            startTime: schedule?.startTime,
+            endTime: schedule?.endTime
           });
         }
       }
     }
 
+    // Check for collisions before creating occurrences
+    if (occurrences.length > 0) {
+      const existingOccurrences = await lineOccurrenceRepository.findByVenueId(venueId);
+      const existingRanges: TimeRange[] = existingOccurrences
+        .filter((occ) => occ.isActive)
+        .map((occ) => ({
+          date: occ.date,
+          startTime: occ.startTime,
+          endTime: occ.endTime
+        }));
+
+      const newRanges: TimeRange[] = occurrences
+        .filter((occ) => occ.startTime && occ.endTime)
+        .map((occ) => ({
+          date: occ.date,
+          startTime: occ.startTime!,
+          endTime: occ.endTime!
+        }));
+
+      const collisionResult = checkMultipleCollisions(newRanges, existingRanges);
+
+      if (collisionResult.hasCollision) {
+        return {
+          success: false,
+          error: `נמצאו התנגשויות עם ${collisionResult.conflictingRanges.length} אירועים קיימים. לא ניתן ליצור אירועים חופפים באותו זמן.`
+        };
+      }
+    }
+
     // Create occurrences if we have any
     if (occurrences.length > 0) {
-      await lineOccurrencesSyncService.syncOccurrences(line, occurrences);
+      await lineOccurrencesSyncService.syncOccurrencesWithSchedules(line, occurrences);
     }
 
     revalidatePath(`/venues/${venueId}/lines`);

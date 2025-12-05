@@ -1,11 +1,12 @@
 "use server";
 
-import { lineRepository } from "@/core/db";
+import { lineRepository, lineOccurrenceRepository } from "@/core/db";
 import { updateLineSchema } from "../schemas/lineSchemas";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/core/auth/session";
 import { lineScheduleService } from "../services/lineScheduleService";
 import { lineOccurrencesSyncService } from "../services/lineOccurrencesSyncService";
+import { checkMultipleCollisions, type TimeRange } from "@/core/validation";
 import type { OccurrenceInput } from "../services/lineOccurrencesSyncService";
 
 export async function updateLine(venueId: string, lineId: string, input: unknown) {
@@ -37,17 +38,33 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
       ...(validated.color && { color: validated.color })
     });
 
+    // Use daySchedules if provided, otherwise use legacy fields
+    const daySchedules =
+      validated.daySchedules ||
+      (validated.days || updatedLine.days).map((day) => ({
+        day,
+        startTime: validated.startTime || updatedLine.startTime,
+        endTime: validated.endTime || updatedLine.endTime,
+        frequency: validated.frequency || updatedLine.frequency
+      }));
+
     // If occurrence data provided, sync occurrences
     if (validated.selectedDates !== undefined || validated.manualDates !== undefined) {
-      const occurrences: OccurrenceInput[] = [];
+      const occurrences: Array<OccurrenceInput & { startTime?: string; endTime?: string }> = [];
 
       // Add selected dates (from suggestions) - these are expected occurrences
       if (validated.selectedDates && validated.selectedDates.length > 0) {
         for (const date of validated.selectedDates) {
+          const dateObj = new Date(date);
+          const dayOfWeek = dateObj.getDay();
+          const schedule = daySchedules.find((s) => s.day === dayOfWeek);
+
           occurrences.push({
             date,
             isExpected: true,
-            isActive: true
+            isActive: true,
+            startTime: schedule?.startTime,
+            endTime: schedule?.endTime
           });
         }
       }
@@ -57,20 +74,60 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
         for (const date of validated.manualDates) {
           // Skip if already added from selected dates
           if (!occurrences.some((occ) => occ.date === date)) {
+            const dateObj = new Date(date);
+            const dayOfWeek = dateObj.getDay();
+            const schedule = daySchedules.find((s) => s.day === dayOfWeek);
+
             occurrences.push({
               date,
               isExpected: false,
-              isActive: true
+              isActive: true,
+              startTime: schedule?.startTime,
+              endTime: schedule?.endTime
             });
           }
         }
       }
 
+      // Check for collisions before creating occurrences
+      if (occurrences.length > 0) {
+        const existingOccurrences = await lineOccurrenceRepository.findByVenueId(venueId);
+        const existingRanges: TimeRange[] = existingOccurrences
+          .filter((occ) => occ.isActive && occ.lineId !== lineId) // Exclude current line
+          .map((occ) => ({
+            date: occ.date,
+            startTime: occ.startTime,
+            endTime: occ.endTime
+          }));
+
+        const newRanges: TimeRange[] = occurrences
+          .filter((occ) => occ.startTime && occ.endTime)
+          .map((occ) => ({
+            date: occ.date,
+            startTime: occ.startTime!,
+            endTime: occ.endTime!
+          }));
+
+        const collisionResult = checkMultipleCollisions(newRanges, existingRanges);
+
+        if (collisionResult.hasCollision) {
+          return {
+            success: false,
+            error: `נמצאו התנגשויות עם ${collisionResult.conflictingRanges.length} אירועים קיימים. לא ניתן ליצור אירועים חופפים באותו זמן.`
+          };
+        }
+      }
+
       // Sync occurrences (this will delete existing and recreate)
-      await lineOccurrencesSyncService.syncOccurrences(updatedLine, occurrences);
-    } else if (validated.days || validated.frequency || validated.startTime || validated.endTime) {
+      await lineOccurrencesSyncService.syncOccurrencesWithSchedules(updatedLine, occurrences);
+    } else if (
+      validated.days ||
+      validated.frequency ||
+      validated.startTime ||
+      validated.endTime ||
+      validated.daySchedules
+    ) {
       // If schedule changed but no occurrence data, regenerate occurrences
-      const finalDays = validated.days || updatedLine.days;
       const finalFrequency = (validated.frequency || updatedLine.frequency) as
         | "weekly"
         | "monthly"
@@ -79,15 +136,54 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
 
       // Regenerate occurrences based on new schedule
       if (finalFrequency !== "variable") {
-        const suggestions = lineScheduleService.generateSuggestions(finalDays, finalFrequency);
-        const occurrences: OccurrenceInput[] = suggestions.map((date) => ({
-          date,
-          isExpected: true,
-          isActive: true
-        }));
+        // Generate per day schedule
+        const occurrences: Array<OccurrenceInput & { startTime?: string; endTime?: string }> = [];
+
+        for (const schedule of daySchedules) {
+          const suggestions = lineScheduleService.generateSuggestions(
+            [schedule.day],
+            schedule.frequency as "weekly" | "monthly" | "variable" | "oneTime"
+          );
+          for (const date of suggestions) {
+            occurrences.push({
+              date,
+              isExpected: true,
+              isActive: true,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime
+            });
+          }
+        }
 
         if (occurrences.length > 0) {
-          await lineOccurrencesSyncService.syncOccurrences(updatedLine, occurrences);
+          // Check for collisions
+          const existingOccurrences = await lineOccurrenceRepository.findByVenueId(venueId);
+          const existingRanges: TimeRange[] = existingOccurrences
+            .filter((occ) => occ.isActive && occ.lineId !== lineId)
+            .map((occ) => ({
+              date: occ.date,
+              startTime: occ.startTime,
+              endTime: occ.endTime
+            }));
+
+          const newRanges: TimeRange[] = occurrences
+            .filter((occ) => occ.startTime && occ.endTime)
+            .map((occ) => ({
+              date: occ.date,
+              startTime: occ.startTime!,
+              endTime: occ.endTime!
+            }));
+
+          const collisionResult = checkMultipleCollisions(newRanges, existingRanges);
+
+          if (collisionResult.hasCollision) {
+            return {
+              success: false,
+              error: `נמצאו התנגשויות עם ${collisionResult.conflictingRanges.length} אירועים קיימים. לא ניתן ליצור אירועים חופפים באותו זמן.`
+            };
+          }
+
+          await lineOccurrencesSyncService.syncOccurrencesWithSchedules(updatedLine, occurrences);
         }
       }
     }

@@ -71,6 +71,9 @@ export function validate<T>(schema: z.ZodSchema<T>, data: unknown): T {
   return schema.parse(data);
 }
 
+// Export collision detection
+export * from "./collisionDetection";
+
 /**
  * Safe validation helper that returns errors
  */

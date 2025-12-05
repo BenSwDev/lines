@@ -5,6 +5,8 @@ export interface OccurrenceInput {
   date: string;
   isExpected: boolean;
   isActive?: boolean;
+  startTime?: string; // Optional - if provided, use this instead of line's default
+  endTime?: string; // Optional - if provided, use this instead of line's default
 }
 
 export class LineOccurrencesSyncService {
@@ -24,8 +26,31 @@ export class LineOccurrencesSyncService {
       lineId: line.id,
       venueId: line.venueId,
       date: occ.date,
-      startTime: line.startTime,
-      endTime: line.endTime,
+      startTime: occ.startTime || line.startTime,
+      endTime: occ.endTime || line.endTime,
+      isExpected: occ.isExpected,
+      isActive: occ.isActive ?? true
+    }));
+
+    await lineOccurrenceRepository.createMany(createData);
+  }
+
+  /**
+   * Sync occurrences with per-occurrence schedules (new flexible structure)
+   */
+  async syncOccurrencesWithSchedules(line: Line, occurrences: OccurrenceInput[]): Promise<void> {
+    await lineOccurrenceRepository.deleteByLineId(line.id);
+
+    if (occurrences.length === 0) {
+      return;
+    }
+
+    const createData = occurrences.map((occ) => ({
+      lineId: line.id,
+      venueId: line.venueId,
+      date: occ.date,
+      startTime: occ.startTime || line.startTime,
+      endTime: occ.endTime || line.endTime,
       isExpected: occ.isExpected,
       isActive: occ.isActive ?? true
     }));
