@@ -9,6 +9,7 @@ Use this file to track changes by date and version. Every meaningful change must
 ### 🎉 Major Release
 
 #### Added
+
 - **Supabase Database Integration**
   - Connected Supabase PostgreSQL via Vercel marketplace integration
   - Created 11 tables using Supabase MCP API (users, accounts, sessions, venues, venue_details, menus, zones, tables, lines, line_occurrences, verification_tokens)
@@ -40,6 +41,7 @@ Use this file to track changes by date and version. Every meaningful change must
   - `modules/workspace-shell/types.ts`
 
 #### Changed
+
 - **Middleware**
   - Public routes: `/`, `/demo`, `/auth/*`, `/api/auth`
   - Protected routes: `/dashboard`, `/venues/*`, `/api/venues`
@@ -58,12 +60,14 @@ Use this file to track changes by date and version. Every meaningful change must
   - DB scripts now use `dotenv` for env var loading
 
 #### Fixed
+
 - i18n provider type safety (`any` → `unknown`)
 - Button variant types in landing components
 - Prisma client generation workflow
 - Empty file restoration from git
 
 #### Documentation
+
 - Updated `FINAL_GRADE_REPORT.md` (grade: 93/100 → 97/100 A+)
 - Created `STRUCTURE_AUDIT.md`
 - Updated `README.md` with demo credentials and Supabase setup
