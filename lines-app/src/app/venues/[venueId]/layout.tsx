@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 
 export default async function VenueLayout({
   children,
-  params,
+  params
 }: {
   children: React.ReactNode;
   params: Promise<{ venueId: string }>;
@@ -19,10 +19,7 @@ export default async function VenueLayout({
 
   const { venueId } = await params;
 
-  const [venueResult, venuesResult] = await Promise.all([
-    getVenue(venueId),
-    listVenues(),
-  ]);
+  const [venueResult, venuesResult] = await Promise.all([getVenue(venueId), listVenues()]);
 
   if (!venueResult.success || !venueResult.data) {
     redirect("/dashboard");
@@ -34,7 +31,7 @@ export default async function VenueLayout({
     <DashboardLayout
       user={{
         name: session.user.name || null,
-        email: session.user.email!,
+        email: session.user.email!
       }}
       venues={venues}
       currentVenue={venueResult.data}

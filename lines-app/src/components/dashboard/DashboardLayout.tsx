@@ -34,7 +34,7 @@ import {
   Info,
   Calendar,
   List,
-  Sliders,
+  Sliders
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";

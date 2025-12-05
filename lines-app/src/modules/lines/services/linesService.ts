@@ -1,5 +1,8 @@
 import { lineRepository } from "@/core/db";
-import { LINE_COLOR_PALETTE, MAX_COLORS_PER_VENUE } from "@/core/config/constants";
+import {
+  COLOR_PALETTE,
+  COLOR_PALETTE_SIZE,
+} from "@/core/config/constants";
 import { isOvernightShift } from "@/core/validation";
 
 export class LinesService {
@@ -9,7 +12,7 @@ export class LinesService {
   async getAvailableColors(venueId: string): Promise<string[]> {
     const usedColors = await lineRepository.findUsedColorsByVenueId(venueId);
 
-    return LINE_COLOR_PALETTE.filter((color) => {
+    return COLOR_PALETTE.filter((color) => {
       return !usedColors.includes(color);
     });
   }
@@ -53,7 +56,7 @@ export class LinesService {
    */
   async canCreateNewLine(venueId: string): Promise<boolean> {
     const count = await this.countLines(venueId);
-    return count < MAX_COLORS_PER_VENUE;
+    return count < COLOR_PALETTE_SIZE;
   }
 }
 

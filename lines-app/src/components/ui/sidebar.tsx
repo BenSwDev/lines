@@ -69,7 +69,7 @@ const SidebarProvider = React.forwardRef<
       children,
       ...props
     },
-    ref,
+    ref
   ) => {
     const isMobile = useIsMobile();
     const [openMobile, setOpenMobile] = React.useState(false);
@@ -124,9 +124,9 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
-        side,
+        side
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, side],
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, side]
     );
 
     return (
