@@ -4,15 +4,18 @@ import React, { useState } from "react";
 import { Modal } from "@/shared/ui/Modal";
 import { Button } from "@/shared/ui/Button";
 import { FormField, Input } from "@/shared/ui/FormField";
-import { createVenue } from "../actions/createVenue";
 
 export interface CreateVenueDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onCreate: (name: string) => Promise<void>;
 }
 
-export function CreateVenueDialog({ isOpen, onClose, onSuccess }: CreateVenueDialogProps) {
+export function CreateVenueDialog({
+  isOpen,
+  onClose,
+  onCreate,
+}: CreateVenueDialogProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,20 +23,20 @@ export function CreateVenueDialog({ isOpen, onClose, onSuccess }: CreateVenueDia
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!name.trim()) {
+      setError("שם המקום הוא שדה חובה");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      const result = await createVenue({ name });
-
-      if (result.success) {
-        setName("");
-        onSuccess();
-        onClose();
-      } else {
-        setError(result.error || "שגיאה ביצירת המקום");
-      }
-    } catch {
-      setError("שגיאה לא צפויה");
+      await onCreate(name.trim());
+      setName("");
+      setError("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "שגיאה ביצירת המקום");
     } finally {
       setIsSubmitting(false);
     }

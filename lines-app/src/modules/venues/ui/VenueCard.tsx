@@ -8,35 +8,58 @@ import type { Venue } from "@prisma/client";
 
 export interface VenueCardProps {
   venue: Venue;
-  onEnter: (venueId: string) => void;
-  onDelete: (venue: Venue) => void;
+  onSelect: () => void;
+  onDelete: () => void;
 }
 
-export function VenueCard({ venue, onEnter, onDelete }: VenueCardProps) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{venue.name}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          <p className="text-sm text-gray-400">נוצר ב: {formatDate(venue.createdAt)}</p>
+export function VenueCard({ venue, onSelect, onDelete }: VenueCardProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
-          <div className="flex gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => onEnter(venue.id)}
-              className="flex-1"
-            >
-              כניסה למקום
-            </Button>
-            <Button variant="danger" size="sm" onClick={() => onDelete(venue)}>
-              מחיקה
-            </Button>
-          </div>
+  const handleDelete = () => {
+    if (!showDeleteConfirm) {
+      setShowDeleteConfirm(true);
+      return;
+    }
+    onDelete();
+    setShowDeleteConfirm(false);
+  };
+
+  return (
+    <Card className="cursor-pointer transition-all hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20">
+      <div onClick={onSelect}>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>{venue.name}</span>
+            <span className="text-xs text-gray-500">🏢</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-xs text-gray-400">
+            נוצר ב-{formatDate(venue.createdAt)}
+          </p>
+        </CardContent>
+      </div>
+
+      <div className="border-t border-gray-800 px-6 pb-4">
+        <div className="flex gap-2 pt-3">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onSelect}
+            className="flex-1"
+          >
+            כניסה למקום →
+          </Button>
+          <Button
+            variant={showDeleteConfirm ? "danger" : "secondary"}
+            size="sm"
+            onClick={handleDelete}
+            onBlur={() => setShowDeleteConfirm(false)}
+          >
+            {showDeleteConfirm ? "✓ אישור" : "🗑️"}
+          </Button>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
