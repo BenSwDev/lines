@@ -69,6 +69,12 @@ export function CreateLineDialog({
   const [frequency, setFrequency] = useState("weekly");
   const [color, setColor] = useState<string>(COLOR_PALETTE[0]);
   const [error, setError] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestedDates, setSuggestedDates] = useState<string[]>([]);
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
+  const [showManualDates, setShowManualDates] = useState(false);
+  const [manualDate, setManualDate] = useState("");
+  const [manualDates, setManualDates] = useState<string[]>([]);
 
   // Load existing line data
   useEffect(() => {
@@ -83,11 +89,94 @@ export function CreateLineDialog({
   }, [existingLine]);
 
   const toggleDay = (dayValue: number) => {
-    setDays((prev) =>
-      prev.includes(dayValue)
+    setDays((prev) => {
+      const newDays = prev.includes(dayValue)
         ? prev.filter((d) => d !== dayValue)
-        : [...prev, dayValue].sort(),
-    );
+        : [...prev, dayValue].sort();
+      
+      // Regenerate suggestions when days change
+      if (newDays.length > 0) {
+        generateSuggestions(newDays, frequency);
+      } else {
+        setSuggestedDates([]);
+        setSelectedDates(new Set());
+      }
+      
+      return newDays;
+    });
+  };
+
+  const generateSuggestions = (selectedDays: number[], freq: string) => {
+    if (selectedDays.length === 0) return;
+
+    const suggestions: string[] = [];
+    const today = new Date();
+    const maxDate = new Date();
+    
+    // Set horizon based on frequency
+    if (freq === "weekly") {
+      maxDate.setMonth(today.getMonth() + 3); // 3 months
+    } else if (freq === "monthly") {
+      maxDate.setMonth(today.getMonth() + 6); // 6 months
+    } else {
+      maxDate.setMonth(today.getMonth() + 2); // 2 months for variable/oneTime
+    }
+
+    const current = new Date(today);
+    while (current <= maxDate) {
+      if (selectedDays.includes(current.getDay())) {
+        suggestions.push(current.toISOString().split("T")[0]);
+      }
+      current.setDate(current.getDate() + 1);
+    }
+
+    setSuggestedDates(suggestions);
+    // Select all by default
+    setSelectedDates(new Set(suggestions));
+    setShowSuggestions(true);
+  };
+
+  const toggleDate = (date: string) => {
+    setSelectedDates((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(date)) {
+        newSet.delete(date);
+      } else {
+        newSet.add(date);
+      }
+      return newSet;
+    });
+  };
+
+  const addManualDate = () => {
+    if (!manualDate) return;
+    
+    // Check if date matches selected days
+    const date = new Date(manualDate);
+    if (!days.includes(date.getDay())) {
+      toast({
+        title: "שגיאה",
+        description: "התאריך לא תואם את הימים שנבחרו",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (manualDates.includes(manualDate) || selectedDates.has(manualDate)) {
+      toast({
+        title: "שגיאה",
+        description: "התאריך כבר קיים",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setManualDates([...manualDates, manualDate].sort());
+    setManualDate("");
+  };
+
+  const removeManualDate = (date: string) => {
+    setManualDates(manualDates.filter((d) => d !== date));
   };
 
   const isOvernight = endTime <= startTime;
@@ -294,8 +383,113 @@ export function CreateLineDialog({
               </p>
             </div>
 
-            {/* TODO: Suggested dates */}
-            {/* TODO: Manual dates */}
+            {/* Suggested Dates */}
+            {days.length > 0 && (
+              <div className="space-y-3">
+                <Label>תאריכים מוצעים</Label>
+                {!showSuggestions ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => generateSuggestions(days, frequency)}
+                  >
+                    הצג תאריכים מוצעים
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="rounded-lg border bg-muted/50 p-3 text-sm">
+                      <p className="font-medium">
+                        {selectedDates.size} תאריכים נבחרו מתוך {suggestedDates.length}
+                      </p>
+                    </div>
+                    <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border p-2">
+                      {suggestedDates.slice(0, 20).map((date) => (
+                        <div
+                          key={date}
+                          className="flex items-center gap-2 rounded px-2 py-1 hover:bg-muted"
+                        >
+                          <Checkbox
+                            checked={selectedDates.has(date)}
+                            onCheckedChange={() => toggleDate(date)}
+                          />
+                          <span className="text-sm">
+                            {new Date(date).toLocaleDateString("he-IL", {
+                              weekday: "long",
+                              day: "numeric",
+                              month: "long",
+                            })}
+                          </span>
+                        </div>
+                      ))}
+                      {suggestedDates.length > 20 && (
+                        <p className="text-xs text-muted-foreground px-2 py-1">
+                          +{suggestedDates.length - 20} תאריכים נוספים
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Manual Dates */}
+            {days.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={showManualDates}
+                    onCheckedChange={(checked) => setShowManualDates(!!checked)}
+                  />
+                  <Label>הוסף תאריכים ידנית</Label>
+                </div>
+                {showManualDates && (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        type="date"
+                        value={manualDate}
+                        onChange={(e) => setManualDate(e.target.value)}
+                        min={new Date().toISOString().split("T")[0]}
+                      />
+                      <Button
+                        type="button"
+                        onClick={addManualDate}
+                        disabled={!manualDate}
+                      >
+                        הוסף
+                      </Button>
+                    </div>
+                    {manualDates.length > 0 && (
+                      <div className="space-y-1 rounded-lg border p-2">
+                        {manualDates.map((date) => (
+                          <div
+                            key={date}
+                            className="flex items-center justify-between rounded bg-muted px-2 py-1"
+                          >
+                            <span className="text-sm">
+                              {new Date(date).toLocaleDateString("he-IL", {
+                                weekday: "short",
+                                day: "numeric",
+                                month: "short",
+                              })}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeManualDate(date)}
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>

@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -16,12 +14,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
   Minimize2,
   Maximize2,
 } from "lucide-react";
 import { getCalendarData } from "../actions/getCalendarData";
 import { useToast } from "@/hooks/use-toast";
+import { CalendarGrid } from "./CalendarGrid";
 
 type CalendarView = "day" | "week" | "month" | "list";
 
@@ -70,11 +68,15 @@ export function CalendarTab() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-muted-foreground">טוען לוח שנה...</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-9 w-40 animate-pulse rounded-lg bg-muted"></div>
+          <div className="flex gap-2">
+            <div className="h-10 w-10 animate-pulse rounded-lg bg-muted"></div>
+            <div className="h-10 w-32 animate-pulse rounded-lg bg-muted"></div>
+          </div>
         </div>
+        <div className="h-[600px] animate-pulse rounded-lg bg-muted"></div>
       </div>
     );
   }
@@ -151,15 +153,30 @@ export function CalendarTab() {
         </div>
       </div>
 
-      {/* Calendar placeholder (will build simple version) */}
-      <Card className="min-h-[600px] p-6">
-        <div className="text-center text-muted-foreground">
-          <CalendarIcon className="mx-auto h-16 w-16 mb-4" />
-          <p className="text-lg font-medium">תצוגת {view === "month" ? "חודש" : view === "week" ? "שבוע" : view === "day" ? "יום" : "רשימה"}</p>
-          <p className="text-sm mt-2">Calendar component יתווסף בשלב הבא</p>
-          {compressed && <Badge className="mt-4">שעות מכווצות</Badge>}
-        </div>
-      </Card>
+      {/* Calendar Grid */}
+      <CalendarGrid
+        view={view === "list" ? "month" : view}
+        currentDate={currentDate}
+        events={
+          (data as { occurrences?: { id: string; lineId: string; title: string; date: string; startTime: string; endTime: string; line: { color: string } }[] })
+            ?.occurrences?.map((occ) => ({
+              id: occ.id,
+              lineId: occ.lineId,
+              title: occ.title || "",
+              date: occ.date,
+              startTime: occ.startTime,
+              endTime: occ.endTime,
+              color: occ.line?.color || "#3B82F6",
+              isActive: true,
+            })) || []
+        }
+        onEventClick={(event) =>
+          router.push(
+            `/venues/${venueId}/events/${event.lineId}/${event.id}?back=calendar&view=${view}&date=${currentDate}`,
+          )
+        }
+        compressed={compressed}
+      />
 
       {/* Legend */}
       <div>
