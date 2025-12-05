@@ -56,4 +56,3 @@ Returns previous + next occurrences
 ---
 
 **Last Updated:** 2025-12-05
-

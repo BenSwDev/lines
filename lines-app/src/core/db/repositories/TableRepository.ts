@@ -47,4 +47,3 @@ export class TableRepository {
 }
 
 export const tableRepository = new TableRepository();
-

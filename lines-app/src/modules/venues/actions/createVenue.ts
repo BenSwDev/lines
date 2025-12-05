@@ -4,6 +4,7 @@ import { venuesService } from "../services/venuesService";
 import { createVenueSchema } from "../schemas/venueSchemas";
 import { getCurrentUser } from "@/core/auth/session";
 import { revalidatePath } from "next/cache";
+import { withErrorHandling } from "@/core/http/errorHandler";
 
 export async function createVenue(input: { name: string }) {
   try {
@@ -13,14 +14,18 @@ export async function createVenue(input: { name: string }) {
     }
 
     const validated = createVenueSchema.parse(input);
-    const venue = await venuesService.createVenue(validated.name, user.id);
 
-    revalidatePath("/");
+    const result = await withErrorHandling(
+      () => venuesService.createVenue(validated.name, user.id!),
+      "Error creating venue"
+    );
 
-    return { success: true, data: venue };
+    if (result.success) {
+      revalidatePath("/");
+    }
+
+    return result;
   } catch (error) {
-    console.error("Error creating venue:", error);
-
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }

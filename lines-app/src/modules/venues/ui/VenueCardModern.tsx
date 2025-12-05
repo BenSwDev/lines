@@ -101,4 +101,3 @@ export function VenueCardModern({ venue, onSelect, onDelete }: VenueCardModernPr
     </Card>
   );
 }
-

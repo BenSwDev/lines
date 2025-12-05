@@ -3,23 +3,27 @@
 import { venueDetailsService } from "../services/venueDetailsService";
 import { updateVenueDetailsSchema } from "../schemas/venueDetailsSchemas";
 import { revalidatePath } from "next/cache";
+import { withErrorHandling } from "@/core/http/errorHandler";
 
 export async function updateVenueDetails(venueId: string, input: unknown) {
   try {
     const validated = updateVenueDetailsSchema.parse(input);
-    const details = await venueDetailsService.updateVenueDetails(venueId, validated);
 
-    revalidatePath(`/venues/${venueId}/info`);
+    const result = await withErrorHandling(
+      () => venueDetailsService.updateVenueDetails(venueId, validated),
+      "Error updating venue details"
+    );
 
-    return { success: true, data: details };
+    if (result.success) {
+      revalidatePath(`/venues/${venueId}/info`);
+    }
+
+    return result;
   } catch (error) {
-    console.error("Error updating venue details:", error);
-
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
 
-    return { success: false, error: "שגיאה בעדכון פרטי המקום" };
+    return { success: false, error: "errors.updatingDetails" };
   }
 }
-

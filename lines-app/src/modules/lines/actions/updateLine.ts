@@ -71,14 +71,15 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
     } else if (validated.days || validated.frequency || validated.startTime || validated.endTime) {
       // If schedule changed but no occurrence data, regenerate occurrences
       const finalDays = validated.days || updatedLine.days;
-      const finalFrequency = (validated.frequency || updatedLine.frequency) as "weekly" | "monthly" | "variable" | "oneTime";
+      const finalFrequency = (validated.frequency || updatedLine.frequency) as
+        | "weekly"
+        | "monthly"
+        | "variable"
+        | "oneTime";
 
       // Regenerate occurrences based on new schedule
       if (finalFrequency !== "variable") {
-        const suggestions = lineScheduleService.generateSuggestions(
-          finalDays,
-          finalFrequency
-        );
+        const suggestions = lineScheduleService.generateSuggestions(finalDays, finalFrequency);
         const occurrences: OccurrenceInput[] = suggestions.map((date) => ({
           date,
           isExpected: true,
@@ -97,8 +98,6 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
 
     return { success: true, data: updatedLine };
   } catch (error) {
-    console.error("Error updating line:", error);
-
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -106,4 +105,3 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
     return { success: false, error: "שגיאה בעדכון הליין" };
   }
 }
-

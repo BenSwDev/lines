@@ -10,11 +10,12 @@ type ProfilePageProps = {
 };
 
 export function ProfilePage({ user }: ProfilePageProps) {
-  const userInitials = user.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || user.email[0].toUpperCase();
+  const userInitials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || user.email[0].toUpperCase();
 
   return (
     <div className="container max-w-4xl py-8">
@@ -67,7 +68,7 @@ export function ProfilePage({ user }: ProfilePageProps) {
                 {new Date(user.createdAt).toLocaleDateString("he-IL", {
                   year: "numeric",
                   month: "long",
-                  day: "numeric",
+                  day: "numeric"
                 })}
               </p>
             </div>
@@ -77,5 +78,3 @@ export function ProfilePage({ user }: ProfilePageProps) {
     </div>
   );
 }
-
-

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { dateSchema } from "@/core/validation";
 
 export const calendarViewSchema = z.enum(["day", "week", "month", "list"], {
-  errorMap: () => ({ message: "תצוגת לוח שנה לא חוקית" })
+  errorMap: () => ({ message: "validation.calendarViewInvalid" })
 });
 
 export const calendarQuerySchema = z.object({
@@ -12,4 +12,3 @@ export const calendarQuerySchema = z.object({
 
 export type CalendarView = z.infer<typeof calendarViewSchema>;
 export type CalendarQuery = z.infer<typeof calendarQuerySchema>;
-

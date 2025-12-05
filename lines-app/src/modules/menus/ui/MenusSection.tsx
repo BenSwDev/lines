@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
       toast({
         title: "שגיאה",
         description: "נא למלא את כל השדות",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -57,7 +57,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
     setTimeout(() => {
       toast({
         title: "הצלחה",
-        description: `התפריט "${name}" הועלה בהצלחה`,
+        description: `התפריט "${name}" הועלה בהצלחה`
       });
       setIsCreateOpen(false);
       setName("");
@@ -78,9 +78,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">תפריטים</h2>
-          <p className="text-sm text-muted-foreground">
-            העלה וניהול תפריטים ומסמכים
-          </p>
+          <p className="text-sm text-muted-foreground">העלה וניהול תפריטים ומסמכים</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="ml-2 h-4 w-4" />
@@ -93,9 +91,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
           <CardContent className="py-12 text-center">
             <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 font-semibold">אין תפריטים</h3>
-            <p className="text-sm text-muted-foreground">
-              העלה את התפריט הראשון שלך
-            </p>
+            <p className="text-sm text-muted-foreground">העלה את התפריט הראשון שלך</p>
             <Button className="mt-4" onClick={() => setIsCreateOpen(true)}>
               <Upload className="ml-2 h-4 w-4" />
               העלה עכשיו
@@ -188,5 +184,3 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
     </div>
   );
 }
-
-

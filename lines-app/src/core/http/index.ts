@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { ZodError } from "zod";
+import { logger } from "@/core/logger";
 
 /**
  * HTTP utilities for API routes
@@ -52,15 +53,17 @@ export function errorResponse(
 
 /**
  * Handle Zod validation errors
+ * Note: Error messages in the error object may be translation keys (e.g., "validation.emailInvalid")
+ * These should be translated on the client side
  */
 export function validationErrorResponse(error: ZodError): NextResponse<ApiResponse> {
   return errorResponse(
-    "שגיאת ולידציה",
+    "errors.validation", // Translation key - will be translated on client
     400,
     "VALIDATION_ERROR",
     error.errors.map((err) => ({
       path: err.path.join("."),
-      message: err.message
+      message: err.message // May be a translation key
     }))
   );
 }
@@ -90,7 +93,7 @@ export function forbiddenResponse(message = "גישה נדחתה"): NextResponse
  * Generic error handler for API routes
  */
 export function handleApiError(error: unknown): NextResponse<ApiResponse> {
-  console.error("API Error:", error);
+  logger.error("API Error", error);
 
   if (error instanceof Error) {
     // Handle specific error types

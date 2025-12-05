@@ -12,4 +12,3 @@ export type AuthUser = {
   name: string | null;
   role: UserRole;
 };
-

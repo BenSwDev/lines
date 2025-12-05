@@ -15,16 +15,18 @@ export default async function ProfileRoute() {
 
   const [user, venues] = await Promise.all([
     prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: session.user.email }
     }),
-    getCurrentUser().then((u) => (u ? listVenues() : { success: false, data: [] })),
+    getCurrentUser().then(async (u) =>
+      u ? await listVenues() : { success: false as const, error: "Unauthorized" }
+    )
   ]);
 
   if (!user) {
     redirect("/auth/login");
   }
 
-  const venuesList = venues.success ? venues.data || [] : [];
+  const venuesList = venues.success && "data" in venues ? venues.data || [] : [];
 
   return (
     <DashboardLayout user={user} venues={venuesList}>
@@ -32,4 +34,3 @@ export default async function ProfileRoute() {
     </DashboardLayout>
   );
 }
-

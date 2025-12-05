@@ -24,4 +24,3 @@ export function AppShell({ children, header, sidebar, className = "" }: AppShell
     </div>
   );
 }
-

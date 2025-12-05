@@ -61,4 +61,3 @@ export function Textarea({ error, className = "", ...props }: TextareaProps) {
     />
   );
 }
-

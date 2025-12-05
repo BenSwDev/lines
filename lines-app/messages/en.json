@@ -126,7 +126,81 @@
     "generic": "An unexpected error occurred",
     "notFound": "Not found",
     "unauthorized": "Unauthorized",
-    "forbidden": "Access denied"
+    "forbidden": "Access denied",
+    "loadingVenues": "Error loading venues",
+    "creatingVenue": "Error creating venue",
+    "deletingVenue": "Error deleting venue",
+    "loadingLines": "Error loading lines",
+    "loadingLine": "Error loading line",
+    "lineNotFound": "Line not found",
+    "loadingCalendar": "Error loading calendar",
+    "savingData": "Error saving data",
+    "updatingDetails": "Error updating venue details",
+    "unexpected": "Unexpected error",
+    "validation": "Validation error"
+  },
+  "success": {
+    "detailsUpdated": "Details updated successfully",
+    "venueCreated": "Venue created successfully",
+    "venueDeleted": "Venue deleted successfully"
+  },
+  "venueInfo": {
+    "title": "Venue Information",
+    "subtitle": "Manage contact details and venue information",
+    "venueName": "Venue Name",
+    "venueNameReadOnly": "Venue name cannot be edited here",
+    "contactDetails": "Contact Details",
+    "phoneLabel": "Phone",
+    "phoneDescription": "Venue phone number for customer inquiries",
+    "emailLabel": "Email",
+    "emailDescription": "Venue email address",
+    "addressLabel": "Address",
+    "addressDescription": "Full address of the venue",
+    "phoneAriaLabel": "Phone number",
+    "emailAriaLabel": "Email address",
+    "addressAriaLabel": "Address",
+    "savingAriaLabel": "Saving changes",
+    "saveAriaLabel": "Save changes"
+  },
+  "lines": {
+    "days": "Days",
+    "edit": "Edit",
+    "viewLinePage": "View Line Page",
+    "linePage": "Line Page",
+    "viewEvents": "View Events",
+    "event": "Event",
+    "events": "Events",
+    "happeningNow": "Happening Now",
+    "updated": "Updated",
+    "nameRequired": "Line name is required",
+    "daysRequired": "At least one day must be selected",
+    "dateMismatch": "Date does not match selected days",
+    "dateExists": "Date already exists",
+    "creating": "Error creating line",
+    "updating": "Error updating line",
+    "created": "Line created successfully",
+    "updatedSuccess": "Line updated successfully"
+  },
+  "venues": {
+    "venue": "Venue",
+    "venues": "Venues"
+  },
+  "validation": {
+    "emailInvalid": "Invalid email address",
+    "passwordMinLength": "Password must contain at least 6 characters",
+    "nameRequired": "Name is required",
+    "lineNameRequired": "Line name is required",
+    "daysRequired": "At least one day must be selected",
+    "venueNameRequired": "Venue name is required",
+    "venueNameMaxLength": "Venue name is too long",
+    "phoneMinLength": "Phone number must contain at least 9 digits",
+    "timeFormat": "Invalid time format (required: HH:MM)",
+    "dateFormat": "Invalid date format (required: YYYY-MM-DD)",
+    "colorFormat": "Color must be in hex format (#RRGGBB)",
+    "frequencyInvalid": "Invalid frequency",
+    "calendarViewInvalid": "Invalid calendar view",
+    "zoneNameRequired": "Zone name is required",
+    "tableNameRequired": "Table name is required",
+    "menuNameRequired": "Menu name is required"
   }
 }
-

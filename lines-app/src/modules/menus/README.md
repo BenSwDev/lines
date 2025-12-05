@@ -12,7 +12,5 @@ Module for managing venue menus (file uploads).
 ```tsx
 import { MenusSection } from "@/modules/menus";
 
-<MenusSection venueId={venueId} menus={menus} onRefresh={loadMenus} />
+<MenusSection venueId={venueId} menus={menus} onRefresh={loadMenus} />;
 ```
-
-

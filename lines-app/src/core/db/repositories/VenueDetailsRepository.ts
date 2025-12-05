@@ -43,4 +43,3 @@ export class VenueDetailsRepository {
 }
 
 export const venueDetailsRepository = new VenueDetailsRepository();
-

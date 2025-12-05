@@ -1,16 +1,15 @@
 import { z } from "zod";
 
 export const registerSchema = z.object({
-  email: z.string().email("כתובת אימייל לא תקינה"),
-  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים"),
-  name: z.string().min(1, "שם הוא שדה חובה")
+  email: z.string().email("validation.emailInvalid"),
+  password: z.string().min(6, "validation.passwordMinLength"),
+  name: z.string().min(1, "validation.nameRequired")
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("כתובת אימייל לא תקינה"),
-  password: z.string().min(6, "סיסמה חייבת להכיל לפחות 6 תווים")
+  email: z.string().email("validation.emailInvalid"),
+  password: z.string().min(6, "validation.passwordMinLength")
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
-

@@ -1,8 +1,5 @@
 import { lineRepository } from "@/core/db";
-import {
-  COLOR_PALETTE,
-  COLOR_PALETTE_SIZE,
-} from "@/core/config/constants";
+import { COLOR_PALETTE, COLOR_PALETTE_SIZE } from "@/core/config/constants";
 import { isOvernightShift } from "@/core/validation";
 
 export class LinesService {

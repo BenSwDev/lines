@@ -4,15 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Clock,
-  MapPin,
-  Phone,
-} from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Phone } from "lucide-react";
 import type { Line, LineOccurrence } from "@prisma/client";
 
 type EventDetailPageProps = {
@@ -32,7 +24,7 @@ export function EventDetailPage({
   prevOccurrence,
   nextOccurrence,
   totalOccurrences,
-  currentIndex,
+  currentIndex
 }: EventDetailPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,17 +42,13 @@ export function EventDetailPage({
 
   const handlePrev = () => {
     if (prevOccurrence) {
-      router.push(
-        `/venues/${venueId}/events/${line.id}/${prevOccurrence.id}?back=${backContext}`,
-      );
+      router.push(`/venues/${venueId}/events/${line.id}/${prevOccurrence.id}?back=${backContext}`);
     }
   };
 
   const handleNext = () => {
     if (nextOccurrence) {
-      router.push(
-        `/venues/${venueId}/events/${line.id}/${nextOccurrence.id}?back=${backContext}`,
-      );
+      router.push(`/venues/${venueId}/events/${line.id}/${nextOccurrence.id}?back=${backContext}`);
     }
   };
 
@@ -90,8 +78,7 @@ export function EventDetailPage({
             <div>
               <CardTitle>{line.name}</CardTitle>
               <p className="text-sm text-muted-foreground">
-                {line.days.join(", ")} • {line.startTime}-{line.endTime} •{" "}
-                {line.frequency}
+                {line.days.join(", ")} • {line.startTime}-{line.endTime} • {line.frequency}
               </p>
             </div>
           </div>
@@ -164,9 +151,7 @@ export function EventDetailPage({
             <div className="flex items-start gap-2">
               <Phone className="mt-0.5 h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  איש קשר
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">איש קשר</p>
                 <p className="mt-1">{occurrence.contact}</p>
               </div>
             </div>
@@ -174,19 +159,13 @@ export function EventDetailPage({
           {!occurrence.subtitle &&
             !occurrence.description &&
             !occurrence.location &&
-            !occurrence.contact && (
-              <p className="text-center text-muted-foreground">—</p>
-            )}
+            !occurrence.contact && <p className="text-center text-muted-foreground">—</p>}
         </CardContent>
       </Card>
 
       {/* Navigation */}
       <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={handlePrev}
-          disabled={!prevOccurrence}
-        >
+        <Button variant="outline" onClick={handlePrev} disabled={!prevOccurrence}>
           <ChevronRight className="ml-2 h-4 w-4" />
           אירוע קודם
         </Button>
@@ -199,11 +178,7 @@ export function EventDetailPage({
                 ? "זהו האירוע האחרון"
                 : "זהו האירוע היחיד"}
         </div>
-        <Button
-          variant="outline"
-          onClick={handleNext}
-          disabled={!nextOccurrence}
-        >
+        <Button variant="outline" onClick={handleNext} disabled={!nextOccurrence}>
           אירוע הבא
           <ChevronLeft className="mr-2 h-4 w-4" />
         </Button>

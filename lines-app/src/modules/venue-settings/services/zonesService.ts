@@ -29,4 +29,3 @@ export class ZonesService {
 }
 
 export const zonesService = new ZonesService();
-

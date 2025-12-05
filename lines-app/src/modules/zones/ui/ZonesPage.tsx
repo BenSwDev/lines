@@ -42,9 +42,7 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
           <h1 className="text-3xl font-bold tracking-tight">
             {t("settings.seating")} - {venueName}
           </h1>
-          <p className="text-muted-foreground">
-            {t("settings.seatingDescription")}
-          </p>
+          <p className="text-muted-foreground">{t("settings.seatingDescription")}</p>
         </div>
       </div>
 
@@ -57,4 +55,3 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
     </div>
   );
 }
-

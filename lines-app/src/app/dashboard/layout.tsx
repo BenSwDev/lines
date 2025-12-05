@@ -11,7 +11,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   }
 
   const venuesResult = await listVenues();
-  const venues = venuesResult.success ? venuesResult.data || [] : [];
+  const venues = venuesResult.success && "data" in venuesResult ? venuesResult.data || [] : [];
 
   return (
     <DashboardLayout
@@ -25,4 +25,3 @@ export default async function Layout({ children }: { children: React.ReactNode }
     </DashboardLayout>
   );
 }
-

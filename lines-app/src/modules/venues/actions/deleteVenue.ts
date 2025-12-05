@@ -3,6 +3,7 @@
 import { venuesService } from "../services/venuesService";
 import { getCurrentUser } from "@/core/auth/session";
 import { revalidatePath } from "next/cache";
+import { withErrorHandling } from "@/core/http/errorHandler";
 
 export async function deleteVenue(id: string) {
   try {
@@ -11,18 +12,21 @@ export async function deleteVenue(id: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-    const venue = await venuesService.deleteVenue(id, user.id);
+    const result = await withErrorHandling(
+      () => venuesService.deleteVenue(id, user.id!),
+      "Error deleting venue"
+    );
 
-    revalidatePath("/");
+    if (result.success) {
+      revalidatePath("/");
+    }
 
-    return { success: true, data: venue };
+    return result;
   } catch (error) {
-    console.error("Error deleting venue:", error);
-
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
 
-    return { success: false, error: "שגיאה במחיקת המקום" };
+    return { success: false, error: "errors.deletingVenue" };
   }
 }

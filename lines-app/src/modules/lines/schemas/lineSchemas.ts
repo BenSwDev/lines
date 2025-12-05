@@ -2,21 +2,23 @@ import { z } from "zod";
 import { timeSchema, colorSchema, weekdaySchema, frequencySchema } from "@/core/validation";
 
 export const createLineSchema = z.object({
-  name: z.string().min(1, "שם הליין הוא שדה חובה"),
-  days: z.array(weekdaySchema).min(1, "יש לבחור לפחות יום אחד"),
+  name: z.string().min(1, "validation.lineNameRequired"),
+  days: z.array(weekdaySchema).min(1, "validation.daysRequired"),
   startTime: timeSchema,
   endTime: timeSchema,
   frequency: frequencySchema,
   color: colorSchema,
   // Optional occurrence data for initial creation
-  selectedDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
-  manualDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  selectedDates: z
+    .array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "validation.dateFormat"))
+    .optional(),
+  manualDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "validation.dateFormat")).optional()
 });
 
 export const updateLineSchema = createLineSchema.partial();
 
 export const occurrenceInputSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "validation.dateFormat"),
   isExpected: z.boolean(),
   isActive: z.boolean().optional()
 });
@@ -29,4 +31,3 @@ export type CreateLineInput = z.infer<typeof createLineSchema>;
 export type UpdateLineInput = z.infer<typeof updateLineSchema>;
 export type OccurrenceInput = z.infer<typeof occurrenceInputSchema>;
 export type SyncOccurrencesInput = z.infer<typeof syncOccurrencesSchema>;
-

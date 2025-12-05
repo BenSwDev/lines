@@ -10,6 +10,9 @@ import { Phone, Mail, MapPin, Building2, Loader2 } from "lucide-react";
 import { getVenueDetails } from "../actions/getVenueDetails";
 import { updateVenueDetails } from "../actions/updateVenueDetails";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/core/i18n/provider";
+import { sanitizeEmail, sanitizePhone, sanitizeText } from "@/core/security";
+import { translateError } from "@/utils/translateError";
 import type { Venue } from "@prisma/client";
 
 export interface VenueInfoTabProps {
@@ -18,6 +21,7 @@ export interface VenueInfoTabProps {
 
 export function VenueInfoTab({ venue }: VenueInfoTabProps) {
   const { toast } = useToast();
+  const { t } = useTranslations();
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
@@ -47,29 +51,35 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
     setIsSaving(true);
 
     try {
+      // Sanitize inputs before sending
+      const sanitizedPhone = phone.trim() ? sanitizePhone(phone.trim()) : null;
+      const sanitizedEmail = email.trim() ? sanitizeEmail(email.trim()) : null;
+      const sanitizedAddress = address.trim() ? sanitizeText(address.trim()) : null;
+
       const result = await updateVenueDetails(venue.id, {
-        phone: phone.trim() || null,
-        email: email.trim() || null,
-        address: address.trim() || null,
+        phone: sanitizedPhone,
+        email: sanitizedEmail,
+        address: sanitizedAddress
       });
 
       if (result.success) {
         toast({
-          title: "הצלחה",
-          description: "הפרטים עודכנו בהצלחה",
+          title: t("success.detailsUpdated"),
+          description: t("success.detailsUpdated")
         });
       } else {
+        const errorMsg = !result.success && "error" in result ? result.error : null;
         toast({
-          title: "שגיאה",
-          description: result.error || "שגיאה בשמירת הנתונים",
-          variant: "destructive",
+          title: t("errors.generic"),
+          description: errorMsg ? translateError(errorMsg, t) : t("errors.savingData"),
+          variant: "destructive"
         });
       }
     } catch (err) {
       toast({
-        title: "שגיאה",
-        description: err instanceof Error ? err.message : "שגיאה לא צפויה",
-        variant: "destructive",
+        title: t("errors.generic"),
+        description: err instanceof Error ? err.message : t("errors.unexpected"),
+        variant: "destructive"
       });
     } finally {
       setIsSaving(false);
@@ -92,10 +102,8 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">מידע על המקום</h1>
-        <p className="text-muted-foreground">
-          נהל את פרטי הקשר והמידע של המקום
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("venueInfo.title")}</h1>
+        <p className="text-muted-foreground">{t("venueInfo.subtitle")}</p>
       </div>
 
       {/* Venue Name Card (Read-only) */}
@@ -103,23 +111,21 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            שם המקום
+            {t("venueInfo.venueName")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border bg-muted px-4 py-3 text-lg font-medium">
             {venue.name}
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            שם המקום לא ניתן לעריכה מכאן
-          </p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("venueInfo.venueNameReadOnly")}</p>
         </CardContent>
       </Card>
 
       {/* Contact Details Card */}
       <Card>
         <CardHeader>
-          <CardTitle>פרטי קשר</CardTitle>
+          <CardTitle>{t("venueInfo.contactDetails")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -127,66 +133,73 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
-                טלפון
+                {t("venueInfo.phoneLabel")}
               </Label>
               <Input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="05X-XXXXXXX"
+                placeholder={t("venueInfo.phonePlaceholder")}
                 disabled={isSaving}
                 className="text-base"
+                aria-label={t("venueInfo.phoneAriaLabel")}
+                aria-required="false"
               />
-              <p className="text-xs text-muted-foreground">
-                מספר הטלפון של המקום לפניות לקוחות
-              </p>
+              <p className="text-xs text-muted-foreground">{t("venueInfo.phoneDescription")}</p>
             </div>
 
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                אימייל
+                {t("venueInfo.emailLabel")}
               </Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="email@example.com"
+                placeholder={t("venueInfo.emailPlaceholder")}
                 disabled={isSaving}
                 className="text-base"
+                aria-label={t("venueInfo.emailAriaLabel")}
+                aria-required="false"
               />
-              <p className="text-xs text-muted-foreground">
-                כתובת האימייל של המקום
-              </p>
+              <p className="text-xs text-muted-foreground">{t("venueInfo.emailDescription")}</p>
             </div>
 
             {/* Address */}
             <div className="space-y-2">
               <Label htmlFor="address" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                כתובת
+                {t("venueInfo.addressLabel")}
               </Label>
               <Textarea
                 id="address"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="רחוב, מספר, עיר"
+                placeholder={t("venueInfo.addressPlaceholder")}
                 rows={3}
                 disabled={isSaving}
                 className="text-base resize-none"
+                aria-label={t("venueInfo.addressAriaLabel")}
+                aria-required="false"
               />
-              <p className="text-xs text-muted-foreground">
-                הכתובת המלאה של המקום
-              </p>
+              <p className="text-xs text-muted-foreground">{t("venueInfo.addressDescription")}</p>
             </div>
 
             {/* Submit */}
-            <Button type="submit" disabled={isSaving} size="lg" className="w-full">
-              {isSaving && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
-              {isSaving ? "שומר..." : "שמור שינויים"}
+            <Button
+              type="submit"
+              disabled={isSaving}
+              size="lg"
+              className="w-full"
+              aria-label={isSaving ? t("venueInfo.savingAriaLabel") : t("venueInfo.saveAriaLabel")}
+              aria-busy={isSaving}
+            >
+              {isSaving && <Loader2 className="ml-2 h-4 w-4 animate-spin" aria-hidden="true" />}
+              {isSaving ? t("venueInfo.saving") : t("venueInfo.saveChanges")}
             </Button>
           </form>
         </CardContent>

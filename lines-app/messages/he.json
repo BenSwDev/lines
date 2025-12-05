@@ -126,7 +126,81 @@
     "generic": "אירעה שגיאה לא צפויה",
     "notFound": "לא נמצא",
     "unauthorized": "אין הרשאה",
-    "forbidden": "גישה נדחתה"
+    "forbidden": "גישה נדחתה",
+    "loadingVenues": "שגיאה בטעינת המקומות",
+    "creatingVenue": "שגיאה ביצירת המקום",
+    "deletingVenue": "שגיאה במחיקת המקום",
+    "loadingLines": "שגיאה בטעינת הליינים",
+    "loadingLine": "שגיאה בטעינת הליין",
+    "lineNotFound": "הליין לא נמצא",
+    "loadingCalendar": "שגיאה בטעינת הלוח",
+    "savingData": "שגיאה בשמירת הנתונים",
+    "updatingDetails": "שגיאה בעדכון פרטי המקום",
+    "unexpected": "שגיאה לא צפויה",
+    "validation": "שגיאת ולידציה"
+  },
+  "success": {
+    "detailsUpdated": "הפרטים עודכנו בהצלחה",
+    "venueCreated": "המקום נוצר בהצלחה",
+    "venueDeleted": "המקום נמחק בהצלחה"
+  },
+  "venueInfo": {
+    "title": "פרטי מקום",
+    "subtitle": "נהל את פרטי הקשר והמידע של המקום",
+    "venueName": "שם המקום",
+    "venueNameReadOnly": "שם המקום לא ניתן לעריכה מכאן",
+    "contactDetails": "פרטי קשר",
+    "phoneLabel": "טלפון",
+    "phoneDescription": "מספר הטלפון של המקום לפניות לקוחות",
+    "emailLabel": "אימייל",
+    "emailDescription": "כתובת האימייל של המקום",
+    "addressLabel": "כתובת",
+    "addressDescription": "הכתובת המלאה של המקום",
+    "phoneAriaLabel": "מספר טלפון",
+    "emailAriaLabel": "כתובת אימייל",
+    "addressAriaLabel": "כתובת",
+    "savingAriaLabel": "שומר שינויים",
+    "saveAriaLabel": "שמור שינויים"
+  },
+  "lines": {
+    "days": "ימים",
+    "edit": "עריכה",
+    "viewLinePage": "עמוד הליין",
+    "linePage": "עמוד הליין",
+    "viewEvents": "צפה באירועים",
+    "event": "אירוע",
+    "events": "אירועים",
+    "happeningNow": "מתקיים כעת",
+    "updated": "עודכן",
+    "nameRequired": "שם הליין הוא שדה חובה",
+    "daysRequired": "יש לבחור לפחות יום אחד",
+    "dateMismatch": "התאריך לא תואם את הימים שנבחרו",
+    "dateExists": "התאריך כבר קיים",
+    "creating": "שגיאה ביצירת הליין",
+    "updating": "שגיאה בעדכון הליין",
+    "created": "הליין נוצר בהצלחה",
+    "updatedSuccess": "הליין עודכן בהצלחה"
+  },
+  "venues": {
+    "venue": "מקום",
+    "venues": "מקומות"
+  },
+  "validation": {
+    "emailInvalid": "כתובת אימייל לא תקינה",
+    "passwordMinLength": "סיסמה חייבת להכיל לפחות 6 תווים",
+    "nameRequired": "שם הוא שדה חובה",
+    "lineNameRequired": "שם הליין הוא שדה חובה",
+    "daysRequired": "יש לבחור לפחות יום אחד",
+    "venueNameRequired": "שם המקום הוא שדה חובה",
+    "venueNameMaxLength": "שם המקום ארוך מדי",
+    "phoneMinLength": "מספר טלפון חייב להכיל לפחות 9 ספרות",
+    "timeFormat": "פורמט שעה לא תקין (נדרש HH:MM)",
+    "dateFormat": "פורמט תאריך לא תקין (נדרש YYYY-MM-DD)",
+    "colorFormat": "צבע חייב להיות בפורמט hex (#RRGGBB)",
+    "frequencyInvalid": "תדירות לא חוקית",
+    "calendarViewInvalid": "תצוגת לוח שנה לא חוקית",
+    "zoneNameRequired": "שם האזור הוא שדה חובה",
+    "tableNameRequired": "שם השולחן הוא שדה חובה",
+    "menuNameRequired": "שם התפריט הוא שדה חובה"
   }
 }
-

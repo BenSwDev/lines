@@ -46,4 +46,3 @@ export function TopBar({ title, logo, actions, backLink, className = "" }: TopBa
     </header>
   );
 }
-

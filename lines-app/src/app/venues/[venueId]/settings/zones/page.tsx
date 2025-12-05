@@ -16,10 +16,9 @@ export default async function VenueZonesPage({ params }: Props) {
   }
 
   const venueResult = await getVenue(venueId);
-  if (!venueResult.success || !venueResult.data) {
+  if (!venueResult.success || !("data" in venueResult) || !venueResult.data) {
     redirect("/dashboard");
   }
 
   return <ZonesPage venueId={venueId} venueName={venueResult.data.name} />;
 }
-

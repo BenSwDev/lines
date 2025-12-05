@@ -21,15 +21,16 @@ export function AccountPage({ user }: AccountPageProps) {
   const handlePasswordChange = async () => {
     toast({
       title: t("account.updatePasswordComingSoon"),
-      description: t("account.updatePasswordComingSoon"),
+      description: t("account.updatePasswordComingSoon")
     });
   };
 
-  const userInitials = user.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || user.email[0].toUpperCase();
+  const userInitials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || user.email[0].toUpperCase();
 
   return (
     <div className="space-y-6">
@@ -61,7 +62,9 @@ export function AccountPage({ user }: AccountPageProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">{t("profile.role")}</p>
-              <p className="text-base">{user.role === "admin" ? t("profile.roleAdmin") : t("profile.roleUser")}</p>
+              <p className="text-base">
+                {user.role === "admin" ? t("profile.roleAdmin") : t("profile.roleUser")}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -70,7 +73,7 @@ export function AccountPage({ user }: AccountPageProps) {
                 {new Date(user.createdAt).toLocaleDateString(locale === "he" ? "he-IL" : "en-US", {
                   year: "numeric",
                   month: "long",
-                  day: "numeric",
+                  day: "numeric"
                 })}
               </p>
             </div>
@@ -89,22 +92,12 @@ export function AccountPage({ user }: AccountPageProps) {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="current-password">{t("account.currentPassword")}</Label>
-            <Input
-              id="current-password"
-              type="password"
-              placeholder="••••••••"
-              disabled
-            />
+            <Input id="current-password" type="password" placeholder="••••••••" disabled />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="new-password">{t("account.newPassword")}</Label>
-            <Input
-              id="new-password"
-              type="password"
-              placeholder="••••••••"
-              disabled
-            />
+            <Input id="new-password" type="password" placeholder="••••••••" disabled />
           </div>
 
           <Button onClick={handlePasswordChange} disabled>

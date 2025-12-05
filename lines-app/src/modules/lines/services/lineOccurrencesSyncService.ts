@@ -81,4 +81,3 @@ export class LineOccurrencesSyncService {
 }
 
 export const lineOccurrencesSyncService = new LineOccurrencesSyncService();
-

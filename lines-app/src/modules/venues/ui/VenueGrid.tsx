@@ -48,4 +48,3 @@ export function VenueGrid({ venues, onSelect, onDelete, onCreate }: VenueGridPro
     </div>
   );
 }
-

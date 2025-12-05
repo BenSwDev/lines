@@ -3,7 +3,7 @@ import { LineDetailPage } from "@/modules/lines/ui/LineDetailPage";
 import { notFound } from "next/navigation";
 
 export default async function LineDetailRoute({
-  params,
+  params
 }: {
   params: Promise<{ venueId: string; lineId: string }>;
 }) {
@@ -17,13 +17,5 @@ export default async function LineDetailRoute({
 
   const occurrences = await lineOccurrenceRepository.findByLineId(lineId);
 
-  return (
-    <LineDetailPage
-      line={line}
-      occurrences={occurrences}
-      venueId={venueId}
-    />
-  );
+  return <LineDetailPage line={line} occurrences={occurrences} venueId={venueId} />;
 }
-
-

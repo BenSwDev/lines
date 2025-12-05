@@ -3,7 +3,7 @@ import { EventDetailPage } from "@/modules/events/ui/EventDetailPage";
 import { notFound } from "next/navigation";
 
 export default async function EventDetailRoute({
-  params,
+  params
 }: {
   params: Promise<{ venueId: string; lineId: string; occurrenceId: string }>;
 }) {
@@ -12,7 +12,7 @@ export default async function EventDetailRoute({
   const [line, occurrence, allOccurrences] = await Promise.all([
     lineRepository.findById(lineId),
     lineOccurrenceRepository.findById(occurrenceId),
-    lineOccurrenceRepository.findByLineId(lineId),
+    lineOccurrenceRepository.findByLineId(lineId)
   ]);
 
   if (!line || !occurrence || line.venueId !== venueId) {
@@ -20,9 +20,7 @@ export default async function EventDetailRoute({
   }
 
   // Sort occurrences by date
-  const sorted = allOccurrences.sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
+  const sorted = allOccurrences.sort((a, b) => a.date.localeCompare(b.date));
 
   const currentIndex = sorted.findIndex((o) => o.id === occurrenceId);
   const prevOccurrence = sorted[currentIndex - 1] || null;
@@ -40,5 +38,3 @@ export default async function EventDetailRoute({
     />
   );
 }
-
-

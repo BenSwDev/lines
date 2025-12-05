@@ -12,4 +12,3 @@ Key principles (summary):
 - Every release must update `docs/CHANGELOG.md`, `docs/ROADMAP.md`, and `docs/DEPLOYMENT_GUIDE.md`.
 
 This file exists to anchor those rules within the `lines-app` repository. For full details, always read and follow the original document under `information/`.
-

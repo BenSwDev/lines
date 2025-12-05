@@ -16,10 +16,9 @@ export default async function VenueMenusPage({ params }: Props) {
   }
 
   const venueResult = await getVenue(venueId);
-  if (!venueResult.success || !venueResult.data) {
+  if (!venueResult.success || !("data" in venueResult) || !venueResult.data) {
     redirect("/dashboard");
   }
 
   return <MenusPage venueId={venueId} venueName={venueResult.data.name} />;
 }
-

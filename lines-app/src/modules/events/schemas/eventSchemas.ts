@@ -10,4 +10,3 @@ export const updateOccurrenceSchema = z.object({
 });
 
 export type UpdateOccurrenceInput = z.infer<typeof updateOccurrenceSchema>;
-

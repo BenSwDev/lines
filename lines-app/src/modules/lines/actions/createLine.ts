@@ -79,8 +79,6 @@ export async function createLine(venueId: string, input: unknown) {
 
     return { success: true, data: line };
   } catch (error) {
-    console.error("Error creating line:", error);
-
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -88,4 +86,3 @@ export async function createLine(venueId: string, input: unknown) {
     return { success: false, error: "שגיאה ביצירת הליין" };
   }
 }
-

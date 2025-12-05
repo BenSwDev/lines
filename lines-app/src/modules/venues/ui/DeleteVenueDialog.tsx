@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Modal } from "@/shared/ui/Modal";
 import { Button } from "@/shared/ui/Button";
 import { deleteVenue } from "../actions/deleteVenue";
+import { useTranslations } from "@/core/i18n/provider";
+import { translateError } from "@/utils/translateError";
 import type { Venue } from "@prisma/client";
 
 export interface DeleteVenueDialogProps {
@@ -14,6 +16,7 @@ export interface DeleteVenueDialogProps {
 }
 
 export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteVenueDialogProps) {
+  const { t } = useTranslations();
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -30,10 +33,11 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
         onSuccess();
         onClose();
       } else {
-        setError(result.error || "שגיאה במחיקת המקום");
+        const errorMsg = !result.success && "error" in result ? result.error : null;
+        setError(errorMsg ? translateError(errorMsg, t) : t("errors.deletingVenue"));
       }
     } catch {
-      setError("שגיאה לא צפויה");
+      setError(t("errors.unexpected"));
     } finally {
       setIsDeleting(false);
     }
@@ -45,16 +49,11 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="מחיקת מקום" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t("venues.deleteDialogTitle")} size="md">
       <div className="space-y-4">
         <div className="space-y-2">
-          <p className="text-gray-200">
-            האם אתה בטוח שברצונך למחוק את <strong>&quot;{venue?.name}&quot;</strong>?
-          </p>
-          <p className="text-sm text-yellow-500">
-            ⚠️ כל הנתונים הקשורים למקום זה יימחקו לצמיתות (ליינים, אירועים, תפריטים, אזורים
-            ושולחנות).
-          </p>
+          <p className="text-gray-200">{t("venues.deleteConfirm", { name: venue?.name || "" })}</p>
+          <p className="text-sm text-yellow-500">⚠️ {t("venues.deleteWarning")}</p>
         </div>
 
         {error && (
@@ -65,10 +64,10 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
 
         <div className="flex gap-3 justify-end pt-4">
           <Button type="button" variant="ghost" onClick={handleClose} disabled={isDeleting}>
-            ביטול
+            {t("common.cancel")}
           </Button>
           <Button type="button" variant="danger" onClick={handleDelete} disabled={isDeleting}>
-            {isDeleting ? "מוחק..." : "מחק לצמיתות"}
+            {isDeleting ? t("venues.deleting") : t("venues.deleteButton")}
           </Button>
         </div>
       </div>

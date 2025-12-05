@@ -219,4 +219,3 @@ src/modules/venues/
 ---
 
 **Last Updated:** 2025-12-05
-

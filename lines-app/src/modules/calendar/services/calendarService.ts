@@ -5,7 +5,7 @@ export class CalendarService {
   async getVenueCalendarData(venueId: string) {
     // Load occurrences with line relationships
     const occurrences = await lineOccurrenceRepository.findByVenueId(venueId);
-    
+
     // Load all lines for the legend
     const lines = await lineRepository.findByVenueId(venueId);
 
@@ -47,4 +47,3 @@ export class CalendarService {
 }
 
 export const calendarService = new CalendarService();
-

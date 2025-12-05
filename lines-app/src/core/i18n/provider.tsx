@@ -42,6 +42,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = (key: string, params?: Record<string, string>): string => {
+    // If key looks like a translation key (contains dots), try to translate it
+    // Otherwise, return as-is (for backward compatibility)
+    if (!key.includes(".")) {
+      return key;
+    }
+
     const keys = key.split(".");
     let value: unknown = translations;
 

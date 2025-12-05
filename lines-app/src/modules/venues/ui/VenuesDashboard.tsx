@@ -11,10 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import type { Venue } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/core/i18n/provider";
+import { translateError } from "@/utils/translateError";
 
 export function VenuesDashboard() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useTranslations();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -23,12 +26,13 @@ export function VenuesDashboard() {
     setIsLoading(true);
     const result = await listVenues();
 
-    if (result.success) {
+    if (result.success && "data" in result) {
       setVenues(result.data || []);
     } else {
+      const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
-        title: "שגיאה",
-        description: result.error || "שגיאה בטעינת המקומות",
+        title: t("errors.generic"),
+        description: errorMsg ? translateError(errorMsg, t) : t("errors.loadingVenues"),
         variant: "destructive"
       });
     }
@@ -43,19 +47,20 @@ export function VenuesDashboard() {
   const handleCreate = async (name: string) => {
     const result = await createVenue({ name });
 
-    if (result.success && result.data) {
-      setVenues((prev) => [result.data!, ...prev]);
+    if (result.success && "data" in result && result.data) {
+      setVenues((prev) => [result.data, ...prev]);
       setIsCreateOpen(false);
       toast({
-        title: "הצלחה!",
-        description: `המקום "${name}" נוצר בהצלחה`
+        title: t("success.venueCreated"),
+        description: t("success.venueCreated")
       });
       // Auto-navigate to new venue
       router.push(`/venues/${result.data.id}/info`);
     } else {
+      const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
-        title: "שגיאה",
-        description: result.error || "שגיאה ביצירת המקום",
+        title: t("errors.generic"),
+        description: errorMsg ? translateError(errorMsg, t) : t("errors.creatingVenue"),
         variant: "destructive"
       });
     }
@@ -67,13 +72,14 @@ export function VenuesDashboard() {
     if (result.success) {
       setVenues((prev) => prev.filter((v) => v.id !== id));
       toast({
-        title: "הצלחה",
-        description: "המקום נמחק בהצלחה"
+        title: t("success.venueDeleted"),
+        description: t("success.venueDeleted")
       });
     } else {
+      const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
-        title: "שגיאה",
-        description: result.error || "שגיאה במחיקת המקום",
+        title: t("errors.generic"),
+        description: errorMsg ? translateError(errorMsg, t) : t("errors.deletingVenue"),
         variant: "destructive"
       });
     }

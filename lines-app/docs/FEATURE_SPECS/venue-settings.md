@@ -76,4 +76,3 @@ Based on `information/lines-mvp-information-v1.md` sections 5.3, 5.4, 6.4, 6.5.
 ---
 
 **Last Updated:** 2025-12-05
-

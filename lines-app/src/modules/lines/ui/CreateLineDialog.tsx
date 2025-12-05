@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,13 +17,15 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { List, Clock, Palette } from "lucide-react";
+import { List, Clock } from "lucide-react";
 import { createLine } from "../actions/createLine";
 import { updateLine } from "../actions/updateLine";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/core/i18n/provider";
+import { translateError } from "@/utils/translateError";
 import { COLOR_PALETTE } from "@/core/config/constants";
 import type { Line } from "@prisma/client";
 
@@ -42,14 +44,14 @@ const DAYS_OF_WEEK = [
   { value: 3, label: "רביעי" },
   { value: 4, label: "חמישי" },
   { value: 5, label: "שישי" },
-  { value: 6, label: "שבת" },
+  { value: 6, label: "שבת" }
 ];
 
 const FREQUENCIES = [
   { value: "weekly", label: "שבועי" },
   { value: "monthly", label: "חודשי" },
   { value: "variable", label: "משתנה" },
-  { value: "oneTime", label: "חד פעמי" },
+  { value: "oneTime", label: "חד פעמי" }
 ];
 
 export function CreateLineDialog({
@@ -57,8 +59,9 @@ export function CreateLineDialog({
   onClose,
   venueId,
   onSuccess,
-  existingLine,
+  existingLine
 }: CreateLineDialogProps) {
+  const { t } = useTranslations();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -109,7 +112,7 @@ export function CreateLineDialog({
       const newDays = prev.includes(dayValue)
         ? prev.filter((d) => d !== dayValue)
         : [...prev, dayValue].sort();
-      
+
       // Regenerate suggestions when days change
       if (newDays.length > 0) {
         generateSuggestions(newDays, frequency);
@@ -117,7 +120,7 @@ export function CreateLineDialog({
         setSuggestedDates([]);
         setSelectedDates(new Set());
       }
-      
+
       return newDays;
     });
   };
@@ -128,7 +131,7 @@ export function CreateLineDialog({
     const suggestions: string[] = [];
     const today = new Date();
     const maxDate = new Date();
-    
+
     // Set horizon based on frequency
     if (freq === "weekly") {
       maxDate.setMonth(today.getMonth() + 3); // 3 months
@@ -170,23 +173,23 @@ export function CreateLineDialog({
 
   const addManualDate = () => {
     if (!manualDate) return;
-    
+
     // Check if date matches selected days
     const date = new Date(manualDate);
     if (!days.includes(date.getDay())) {
       toast({
-        title: "שגיאה",
-        description: "התאריך לא תואם את הימים שנבחרו",
-        variant: "destructive",
+        title: t("errors.generic"),
+        description: t("lines.dateMismatch"),
+        variant: "destructive"
       });
       return;
     }
 
     if (manualDates.includes(manualDate) || selectedDates.has(manualDate)) {
       toast({
-        title: "שגיאה",
-        description: "התאריך כבר קיים",
-        variant: "destructive",
+        title: t("errors.generic"),
+        description: t("lines.dateExists"),
+        variant: "destructive"
       });
       return;
     }
@@ -206,12 +209,12 @@ export function CreateLineDialog({
     setError("");
 
     if (!name.trim()) {
-      setError("שם הליין הוא שדה חובה");
+      setError(t("lines.nameRequired"));
       return;
     }
 
     if (days.length === 0) {
-      setError("יש לבחור לפחות יום אחד");
+      setError(t("lines.daysRequired"));
       return;
     }
 
@@ -232,7 +235,7 @@ export function CreateLineDialog({
             frequency,
             color,
             selectedDates: selectedDatesArray.length > 0 ? selectedDatesArray : undefined,
-            manualDates: allManualDates.length > 0 ? allManualDates : undefined,
+            manualDates: allManualDates.length > 0 ? allManualDates : undefined
           })
         : await createLine(venueId, {
             name: name.trim(),
@@ -242,26 +245,28 @@ export function CreateLineDialog({
             frequency,
             color,
             selectedDates: selectedDatesArray.length > 0 ? selectedDatesArray : undefined,
-            manualDates: allManualDates.length > 0 ? allManualDates : undefined,
+            manualDates: allManualDates.length > 0 ? allManualDates : undefined
           });
 
       if (result.success) {
         toast({
-          title: "הצלחה!",
-          description: existingLine
-            ? `הליין "${name}" עודכן בהצלחה`
-            : `הליין "${name}" נוצר בהצלחה`,
+          title: t("success.detailsUpdated"),
+          description: existingLine ? t("lines.updatedSuccess") : t("lines.created")
         });
         handleClose();
         onSuccess();
       } else {
+        const errorMsg = !result.success && "error" in result ? result.error : null;
         setError(
-          result.error ||
-            (existingLine ? "שגיאה בעדכון הליין" : "שגיאה ביצירת הליין")
+          errorMsg
+            ? translateError(errorMsg, t)
+            : existingLine
+              ? t("lines.updating")
+              : t("lines.creating")
         );
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "שגיאה לא צפויה");
+      setError(err instanceof Error ? err.message : t("errors.unexpected"));
     } finally {
       setIsSubmitting(false);
     }
@@ -295,12 +300,8 @@ export function CreateLineDialog({
               <List className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <DialogTitle>
-                {existingLine ? "עריכת ליין" : "יצירת ליין חדש"}
-              </DialogTitle>
-              <DialogDescription>
-                הגדר לוח זמנים, ימים וצבע לאירועים חוזרים
-              </DialogDescription>
+              <DialogTitle>{existingLine ? "עריכת ליין" : "יצירת ליין חדש"}</DialogTitle>
+              <DialogDescription>הגדר לוח זמנים, ימים וצבע לאירועים חוזרים</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -337,10 +338,7 @@ export function CreateLineDialog({
                       onCheckedChange={() => toggleDay(day.value)}
                       disabled={isSubmitting}
                     />
-                    <label
-                      htmlFor={`day-${day.value}`}
-                      className="mt-1 text-xs cursor-pointer"
-                    >
+                    <label htmlFor={`day-${day.value}`} className="mt-1 text-xs cursor-pointer">
                       {day.label}
                     </label>
                   </div>
@@ -401,35 +399,32 @@ export function CreateLineDialog({
               </Select>
             </div>
 
-            {/* Color Picker */}
-            <div className="space-y-3">
-              <Label>
-                <Palette className="ml-1 inline h-4 w-4" />
-                צבע ייחודי
-              </Label>
-              <div className="grid grid-cols-5 gap-3">
-                {COLOR_PALETTE.map((paletteColor) => (
-                  <button
-                    key={paletteColor}
-                    type="button"
-                    onClick={() => setColor(paletteColor)}
-                    disabled={isSubmitting}
-                    className={`h-12 rounded-lg border-2 transition-all ${
-                      color === paletteColor
-                        ? "border-primary ring-2 ring-primary ring-offset-2"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                    style={{ backgroundColor: paletteColor }}
-                  >
-                    {color === paletteColor && (
-                      <span className="text-white text-xl">✓</span>
-                    )}
-                  </button>
-                ))}
+            {/* Color Picker - Compact */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">צבע</Label>
+              <div className="flex items-center gap-2">
+                <div className="grid grid-cols-5 gap-1.5 flex-1">
+                  {COLOR_PALETTE.map((paletteColor) => (
+                    <button
+                      key={paletteColor}
+                      type="button"
+                      onClick={() => setColor(paletteColor)}
+                      disabled={isSubmitting}
+                      className={`h-8 rounded-md border transition-all ${
+                        color === paletteColor
+                          ? "border-primary ring-1 ring-primary scale-105"
+                          : "border-border/50 hover:border-primary/30 hover:scale-105"
+                      }`}
+                      style={{ backgroundColor: paletteColor }}
+                      aria-label={`בחר צבע ${paletteColor}`}
+                    >
+                      {color === paletteColor && (
+                        <span className="text-white text-xs drop-shadow-lg">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                נבחר: {color} ({COLOR_PALETTE.indexOf(color) + 1}/15)
-              </p>
             </div>
 
             {/* Suggested Dates */}
@@ -466,7 +461,7 @@ export function CreateLineDialog({
                             {new Date(date).toLocaleDateString("he-IL", {
                               weekday: "long",
                               day: "numeric",
-                              month: "long",
+                              month: "long"
                             })}
                           </span>
                         </div>
@@ -507,11 +502,7 @@ export function CreateLineDialog({
                           return `${year}-${month}-${day}`;
                         })()}
                       />
-                      <Button
-                        type="button"
-                        onClick={addManualDate}
-                        disabled={!manualDate}
-                      >
+                      <Button type="button" onClick={addManualDate} disabled={!manualDate}>
                         הוסף
                       </Button>
                     </div>
@@ -526,7 +517,7 @@ export function CreateLineDialog({
                               {new Date(date).toLocaleDateString("he-IL", {
                                 weekday: "short",
                                 day: "numeric",
-                                month: "short",
+                                month: "short"
                               })}
                             </span>
                             <Button
@@ -548,12 +539,7 @@ export function CreateLineDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               ביטול
             </Button>
             <Button type="submit" disabled={isSubmitting || !name.trim() || days.length === 0}>
@@ -565,4 +551,3 @@ export function CreateLineDialog({
     </Dialog>
   );
 }
-

@@ -42,9 +42,7 @@ export function MenusPage({ venueId, venueName }: MenusPageProps) {
           <h1 className="text-3xl font-bold tracking-tight">
             {t("settings.menus")} - {venueName}
           </h1>
-          <p className="text-muted-foreground">
-            {t("settings.menusDescription")}
-          </p>
+          <p className="text-muted-foreground">{t("settings.menusDescription")}</p>
         </div>
       </div>
 
@@ -57,4 +55,3 @@ export function MenusPage({ venueId, venueName }: MenusPageProps) {
     </div>
   );
 }
-

@@ -16,4 +16,3 @@ That file is the **source of truth** for:
 - UX and design guidelines
 
 When developing or reviewing features, always read from the original document in `information/` to avoid divergence. This stub exists so AI assistants can discover the spec via the `docs/specs/` folder.
-

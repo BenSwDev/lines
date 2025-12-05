@@ -48,4 +48,3 @@ export function SidebarNav({ items, title, onNavigate }: SidebarNavProps) {
     </nav>
   );
 }
-

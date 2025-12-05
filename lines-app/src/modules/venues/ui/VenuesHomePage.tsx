@@ -8,10 +8,13 @@ import { listVenues } from "../actions/listVenues";
 import { createVenue } from "../actions/createVenue";
 import { deleteVenue } from "../actions/deleteVenue";
 import { Button } from "@/shared/ui/Button";
+import { useTranslations } from "@/core/i18n/provider";
+import { translateError } from "@/utils/translateError";
 import type { Venue } from "@prisma/client";
 
 export function VenuesHomePage() {
   const router = useRouter();
+  const { t } = useTranslations();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -22,28 +25,31 @@ export function VenuesHomePage() {
     setError(null);
     const result = await listVenues();
 
-    if (result.success) {
+    if (result.success && "data" in result) {
       setVenues(result.data || []);
     } else {
-      setError(result.error || "שגיאה בטעינת המקומות");
+      const errorMsg = !result.success && "error" in result ? result.error : null;
+      setError(errorMsg ? translateError(errorMsg, t) : t("errors.loadingVenues"));
     }
     setIsLoading(false);
   };
 
   useEffect(() => {
     loadVenues();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCreate = async (name: string) => {
     const result = await createVenue({ name });
 
-    if (result.success && result.data) {
-      setVenues((prev) => [result.data!, ...prev]);
+    if (result.success && "data" in result && result.data) {
+      setVenues((prev) => [result.data, ...prev]);
       setIsCreateOpen(false);
       // Auto-navigate to new venue
       router.push(`/venues/${result.data.id}/info`);
     } else {
-      setError(result.error || "שגיאה ביצירת המקום");
+      const errorMsg = !result.success && "error" in result ? result.error : null;
+      setError(errorMsg ? translateError(errorMsg, t) : t("errors.creatingVenue"));
     }
   };
 
@@ -53,7 +59,8 @@ export function VenuesHomePage() {
     if (result.success) {
       setVenues((prev) => prev.filter((v) => v.id !== id));
     } else {
-      setError(result.error || "שגיאה במחיקת המקום");
+      const errorMsg = !result.success && "error" in result ? result.error : null;
+      setError(errorMsg ? translateError(errorMsg, t) : t("errors.deletingVenue"));
     }
   };
 
@@ -108,7 +115,7 @@ export function VenuesHomePage() {
           <div>
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm text-gray-400">
-                {venues.length} {venues.length === 1 ? "מקום" : "מקומות"}
+                {venues.length} {venues.length === 1 ? t("venues.venue") : t("venues.venues")}
               </p>
             </div>
             <VenueList venues={venues} onSelect={handleSelectVenue} onDelete={handleDelete} />

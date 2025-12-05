@@ -1,19 +1,17 @@
 "use server";
 
 import { venuesService } from "../services/venuesService";
+import { withErrorHandlingNullable } from "@/core/http/errorHandler";
 
 export async function getVenue(id: string) {
-  try {
-    const venue = await venuesService.getVenue(id);
+  const result = await withErrorHandlingNullable(
+    () => venuesService.getVenue(id),
+    "Error getting venue"
+  );
 
-    if (!venue) {
-      return { success: false, error: "המקום לא נמצא" };
-    }
-
-    return { success: true, data: venue };
-  } catch (error) {
-    console.error("Error getting venue:", error);
-    return { success: false, error: "שגיאה בטעינת המקום" };
+  if (result.success && !result.data) {
+    return { success: false, error: "המקום לא נמצא" };
   }
-}
 
+  return result;
+}

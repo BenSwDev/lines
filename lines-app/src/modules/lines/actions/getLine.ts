@@ -1,23 +1,21 @@
 "use server";
 
 import { lineRepository } from "@/core/db";
+import { withErrorHandlingNullable } from "@/core/http/errorHandler";
 
 export async function getLine(venueId: string, lineId: string) {
-  try {
-    const line = await lineRepository.findById(lineId);
-    
-    if (!line) {
-      return { success: false, error: "הליין לא נמצא" };
-    }
+  const result = await withErrorHandlingNullable(
+    () => lineRepository.findById(lineId),
+    "Error getting line"
+  );
 
-    if (line.venueId !== venueId) {
-      return { success: false, error: "Unauthorized" };
-    }
-
-    return { success: true, data: line };
-  } catch (error) {
-    console.error("Error getting line:", error);
-    return { success: false, error: "שגיאה בטעינת הליין" };
+  if (result.success && !result.data) {
+    return { success: false, error: "errors.lineNotFound" };
   }
-}
 
+  if (result.success && result.data && result.data.venueId !== venueId) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  return result;
+}

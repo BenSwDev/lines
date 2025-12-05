@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,7 +56,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
     // TODO: Implement API call
     toast({
       title: "הצלחה",
-      description: `האזור "${zoneName}" נוצר`,
+      description: `האזור "${zoneName}" נוצר`
     });
     setIsCreateZoneOpen(false);
     setZoneName("");
@@ -70,7 +70,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
     // TODO: Implement API call
     toast({
       title: "הצלחה",
-      description: `השולחן "${tableName}" נוסף`,
+      description: `השולחן "${tableName}" נוסף`
     });
     setIsCreateTableOpen(false);
     setTableName("");
@@ -80,9 +80,8 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
 
   const totalTables = zones.reduce((sum, zone) => sum + zone.tables.length, 0);
   const totalSeats = zones.reduce(
-    (sum, zone) =>
-      sum + zone.tables.reduce((s, t) => s + (t.seats || 0), 0),
-    0,
+    (sum, zone) => sum + zone.tables.reduce((s, t) => s + (t.seats || 0), 0),
+    0
   );
 
   return (
@@ -90,9 +89,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">אזורים ושולחנות</h2>
-          <p className="text-sm text-muted-foreground">
-            ניהול אזורי הישיבה והשולחנות
-          </p>
+          <p className="text-sm text-muted-foreground">ניהול אזורי הישיבה והשולחנות</p>
         </div>
         <Button onClick={() => setIsCreateZoneOpen(true)}>
           <Plus className="ml-2 h-4 w-4" />
@@ -142,9 +139,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
           <CardContent className="py-12 text-center">
             <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 font-semibold">אין אזורים</h3>
-            <p className="text-sm text-muted-foreground">
-              צור את האזור הראשון שלך
-            </p>
+            <p className="text-sm text-muted-foreground">צור את האזור הראשון שלך</p>
             <Button className="mt-4" onClick={() => setIsCreateZoneOpen(true)}>
               <Plus className="ml-2 h-4 w-4" />
               צור אזור
@@ -158,16 +153,12 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="h-8 w-8 rounded-lg"
-                      style={{ backgroundColor: zone.color }}
-                    />
+                    <div className="h-8 w-8 rounded-lg" style={{ backgroundColor: zone.color }} />
                     <div>
                       <span>{zone.name}</span>
                       <p className="text-sm font-normal text-muted-foreground">
                         {zone.tables.length} שולחנות •{" "}
-                        {zone.tables.reduce((s, t) => s + (t.seats || 0), 0)}{" "}
-                        מקומות
+                        {zone.tables.reduce((s, t) => s + (t.seats || 0), 0)} מקומות
                       </p>
                     </div>
                   </div>
@@ -252,11 +243,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
             </div>
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsCreateZoneOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setIsCreateZoneOpen(false)}>
                 ביטול
               </Button>
               <Button type="submit" disabled={!zoneName.trim()}>
@@ -301,11 +288,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
             </div>
 
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsCreateTableOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setIsCreateTableOpen(false)}>
                 ביטול
               </Button>
               <Button type="submit" disabled={!tableName.trim()}>
@@ -318,5 +301,3 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
     </div>
   );
 }
-
-

@@ -56,3 +56,38 @@ export function toISODate(date: Date | string): string {
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Add weeks to a date
+ */
+export function addWeeks(date: Date | string, weeks: number): Date {
+  return addDays(date, weeks * 7);
+}
+
+/**
+ * Get start of week for Hebrew calendar (Saturday = 6)
+ * In Hebrew calendar, week starts on Saturday
+ */
+export function getStartOfWeek(date: Date | string): Date {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = Sunday, 6 = Saturday
+
+  // Calculate days to subtract to get to Saturday (start of Hebrew week)
+  // If day is Saturday (6), subtract 0
+  // If day is Sunday (0), subtract 1 to get Saturday
+  // If day is Monday (1), subtract 2, etc.
+  const daysToSubtract = day === 6 ? 0 : (day + 1) % 7;
+
+  const startOfWeek = new Date(d);
+  startOfWeek.setDate(d.getDate() - daysToSubtract);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  return startOfWeek;
+}
+
+/**
+ * Get today's date as YYYY-MM-DD using local timezone
+ */
+export function getTodayISODate(): string {
+  return toISODate(new Date());
+}

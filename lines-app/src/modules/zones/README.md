@@ -12,7 +12,5 @@ Module for managing venue seating zones and tables.
 ```tsx
 import { ZonesSection } from "@/modules/zones";
 
-<ZonesSection venueId={venueId} zones={zones} onRefresh={loadZones} />
+<ZonesSection venueId={venueId} zones={zones} onRefresh={loadZones} />;
 ```
-
-

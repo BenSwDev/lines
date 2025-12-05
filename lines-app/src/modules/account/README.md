@@ -12,7 +12,5 @@ Module for managing user account settings.
 ```tsx
 import { AccountPage } from "@/modules/account";
 
-<AccountPage user={user} />
+<AccountPage user={user} />;
 ```
-
-

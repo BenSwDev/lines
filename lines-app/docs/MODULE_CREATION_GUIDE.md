@@ -21,4 +21,3 @@ Explain, step by step, how to create a new feature module in `src/modules/<featu
 4. Update `docs/FEATURE_SPECS/<feature>.md`, `docs/API_REFERENCE.md` (if APIs change), and `docs/CHANGELOG.md`.
 
 See `information/PROJECT_DOCUMENTATION_OVERVIEW.md` for the full documentation rules. This file must be expanded with concrete examples as modules are implemented.
-

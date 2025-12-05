@@ -3,28 +3,30 @@
 import { zonesService } from "../services/zonesService";
 import { createZoneSchema } from "../schemas/zonesSchemas";
 import { revalidatePath } from "next/cache";
+import { withErrorHandling } from "@/core/http/errorHandler";
 
 export async function listZones(venueId: string) {
-  try {
-    const zones = await zonesService.listZones(venueId);
-    return { success: true, data: zones };
-  } catch (error) {
-    console.error("Error listing zones:", error);
-    return { success: false, error: "שגיאה בטעינת האזורים" };
-  }
+  return withErrorHandling(() => zonesService.listZones(venueId), "Error listing zones");
 }
 
 export async function createZone(venueId: string, input: unknown) {
   try {
     const validated = createZoneSchema.parse(input);
-    const zone = await zonesService.createZone(venueId, validated);
 
-    revalidatePath(`/venues/${venueId}/settings`);
+    const result = await withErrorHandling(
+      () => zonesService.createZone(venueId, validated),
+      "Error creating zone"
+    );
 
-    return { success: true, data: zone };
+    if (result.success) {
+      revalidatePath(`/venues/${venueId}/settings`);
+    }
+
+    return result;
   } catch (error) {
-    console.error("Error creating zone:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
     return { success: false, error: "שגיאה ביצירת האזור" };
   }
 }
-

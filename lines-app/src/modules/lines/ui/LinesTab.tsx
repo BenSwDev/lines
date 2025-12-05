@@ -5,10 +5,14 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { LineCard } from "./LineCard";
 import { CreateLineDialog } from "./CreateLineDialog";
 import { Button } from "@/components/ui/button";
+import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, List } from "lucide-react";
 import { listLines } from "../actions/listLines";
 import { getLine } from "../actions/getLine";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/core/i18n/provider";
+import { translateError } from "@/utils/translateError";
 import type { Line } from "@prisma/client";
 
 export function LinesTab() {
@@ -16,6 +20,7 @@ export function LinesTab() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { t } = useTranslations();
   const venueId = params.venueId as string;
 
   const [lines, setLines] = useState<Line[]>([]);
@@ -27,12 +32,13 @@ export function LinesTab() {
     setIsLoading(true);
     const result = await listLines(venueId);
 
-    if (result.success) {
+    if (result.success && "data" in result) {
       setLines(result.data || []);
     } else {
+      const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
-        title: "שגיאה",
-        description: result.error || "שגיאה בטעינת הליינים",
+        title: t("errors.generic"),
+        description: errorMsg ? translateError(errorMsg, t) : t("errors.loadingLines"),
         variant: "destructive"
       });
     }
@@ -66,13 +72,14 @@ export function LinesTab() {
 
   const handleEditLine = async (lineId: string) => {
     const result = await getLine(venueId, lineId);
-    if (result.success && result.data) {
+    if (result.success && "data" in result && result.data) {
       setEditingLine(result.data);
       setIsCreateOpen(true);
     } else {
+      const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
-        title: "שגיאה",
-        description: result.error || "שגיאה בטעינת הליין",
+        title: t("errors.generic"),
+        description: errorMsg ? translateError(errorMsg, t) : t("errors.loadingLine"),
         variant: "destructive"
       });
     }
@@ -83,14 +90,14 @@ export function LinesTab() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-9 w-32 animate-pulse rounded-lg bg-muted"></div>
-            <div className="h-5 w-64 animate-pulse rounded bg-muted"></div>
+            <Skeleton className="h-9 w-32" />
+            <Skeleton className="h-5 w-64" />
           </div>
-          <div className="h-10 w-32 animate-pulse rounded-lg bg-muted"></div>
+          <Skeleton className="h-10 w-32" />
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-64 animate-pulse rounded-lg bg-muted"></div>
+            <SkeletonCard key={i} className="h-64" />
           ))}
         </div>
       </div>
@@ -130,23 +137,16 @@ export function LinesTab() {
 
       {/* Lines Grid or Empty */}
       {lines.length === 0 ? (
-        <div className="flex min-h-[400px] items-center justify-center">
-          <div className="max-w-md space-y-6 rounded-lg border border-dashed p-12 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-              <List className="h-10 w-10 text-primary" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-semibold">אין ליינים עדיין</h3>
-              <p className="text-muted-foreground">
-                צור את הליין הראשון שלך כדי להתחיל לנהל אירועים חוזרים
-              </p>
-            </div>
-            <Button size="lg" onClick={() => setIsCreateOpen(true)}>
-              <Plus className="ml-2 h-5 w-5" />
-              צור ליין ראשון
-            </Button>
-          </div>
-        </div>
+        <EmptyState
+          icon={List}
+          title="אין ליינים עדיין"
+          description="צור את הליין הראשון שלך כדי להתחיל לנהל אירועים חוזרים"
+          action={{
+            label: "צור ליין ראשון",
+            onClick: () => setIsCreateOpen(true)
+          }}
+          className="min-h-[400px]"
+        />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {lines.map((line) => (

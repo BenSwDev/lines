@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createMenuSchema = z.object({
-  name: z.string().min(1, "שם התפריט הוא שדה חובה"),
+  name: z.string().min(1, "validation.menuNameRequired"),
   fileName: z.string(),
   fileType: z.string(),
   fileSize: z.number(),
@@ -18,4 +18,3 @@ export const updateMenuSchema = z.object({
 
 export type CreateMenuInput = z.infer<typeof createMenuSchema>;
 export type UpdateMenuInput = z.infer<typeof updateMenuSchema>;
-

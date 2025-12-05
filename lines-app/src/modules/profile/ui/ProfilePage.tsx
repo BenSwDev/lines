@@ -12,11 +12,12 @@ type ProfilePageProps = {
 
 export function ProfilePage({ user }: ProfilePageProps) {
   const { t, locale } = useTranslations();
-  const userInitials = user.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || user.email[0].toUpperCase();
+  const userInitials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || user.email[0].toUpperCase();
 
   return (
     <div className="space-y-6">
@@ -60,7 +61,9 @@ export function ProfilePage({ user }: ProfilePageProps) {
 
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">{t("profile.role")}</p>
-              <p className="text-base">{user.role === "admin" ? t("profile.roleAdmin") : t("profile.roleUser")}</p>
+              <p className="text-base">
+                {user.role === "admin" ? t("profile.roleAdmin") : t("profile.roleUser")}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -69,7 +72,7 @@ export function ProfilePage({ user }: ProfilePageProps) {
                 {new Date(user.createdAt).toLocaleDateString(locale === "he" ? "he-IL" : "en-US", {
                   year: "numeric",
                   month: "long",
-                  day: "numeric",
+                  day: "numeric"
                 })}
               </p>
             </div>
@@ -79,5 +82,3 @@ export function ProfilePage({ user }: ProfilePageProps) {
     </div>
   );
 }
-
-

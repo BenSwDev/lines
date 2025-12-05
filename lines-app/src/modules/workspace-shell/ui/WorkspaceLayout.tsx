@@ -52,4 +52,3 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
     </div>
   );
 }
-

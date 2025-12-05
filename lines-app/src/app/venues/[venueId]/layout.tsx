@@ -21,11 +21,11 @@ export default async function VenueLayout({
 
   const [venueResult, venuesResult] = await Promise.all([getVenue(venueId), listVenues()]);
 
-  if (!venueResult.success || !venueResult.data) {
+  if (!venueResult.success || !("data" in venueResult) || !venueResult.data) {
     redirect("/dashboard");
   }
 
-  const venues = venuesResult.success ? venuesResult.data || [] : [];
+  const venues = venuesResult.success && "data" in venuesResult ? venuesResult.data || [] : [];
 
   return (
     <DashboardLayout

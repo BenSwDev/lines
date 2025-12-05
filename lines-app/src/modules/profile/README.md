@@ -12,7 +12,5 @@ Module for displaying user profile information.
 ```tsx
 import { ProfilePage } from "@/modules/profile";
 
-<ProfilePage user={user} />
+<ProfilePage user={user} />;
 ```
-
-

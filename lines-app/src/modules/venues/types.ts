@@ -3,4 +3,3 @@
 export interface VenuePlaceholder {
   id: string;
 }
-
