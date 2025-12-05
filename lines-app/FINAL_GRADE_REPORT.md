@@ -13,7 +13,7 @@
 The Lines app is **fully production-ready** with Supabase database connected, landing page, dashboard, and complete authentication flow.
 
 **Status:** ✅ **DEPLOYED TO PRODUCTION WITH LIVE DATABASE**  
-**URL:** https://lines-10qilj4im-ben-swissa.vercel.app  
+**URL:** https://lines.vercel.app  
 **Database:** ✅ Supabase PostgreSQL (11 tables, seed data)  
 **Build:** ✅ 0 Errors, 0 Warnings  
 **Lint:** ✅ Clean  

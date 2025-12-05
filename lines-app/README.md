@@ -2,7 +2,7 @@
 
 **Version:** v1.2.0 (Production-Ready + Live Database)  
 **Status:** ✅ Live in Production with Supabase  
-**Production URL:** https://lines-app.vercel.app  
+**Production URL:** https://lines.vercel.app  
 **Database:** Supabase PostgreSQL (11 tables, seed data)
 
 ---
