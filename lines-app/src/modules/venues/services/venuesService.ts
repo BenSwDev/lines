@@ -10,7 +10,7 @@ export class VenuesService {
   async listUserVenues(userId: string): Promise<Venue[]> {
     return prisma.venue.findMany({
       where: { userId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc" }
     });
   }
 
@@ -25,13 +25,13 @@ export class VenuesService {
   async createVenue(name: string, userId: string): Promise<Venue> {
     return venueRepository.create({
       name,
-      user: { connect: { id: userId } },
+      user: { connect: { id: userId } }
     });
   }
 
   async updateVenue(id: string, name: string): Promise<Venue> {
     return venueRepository.update(id, {
-      name,
+      name
     });
   }
 
