@@ -1,11 +1,17 @@
 "use server";
 
 import { venuesService } from "../services/venuesService";
+import { getCurrentUser } from "@/core/auth/session";
 import { revalidatePath } from "next/cache";
 
 export async function deleteVenue(id: string) {
   try {
-    const venue = await venuesService.deleteVenue(id);
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const venue = await venuesService.deleteVenue(id, user.id);
 
     revalidatePath("/");
 

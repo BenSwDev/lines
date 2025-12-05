@@ -12,7 +12,13 @@ import {
 export async function GET() {
   try {
     const user = await getCurrentUser();
-    const venues = await venuesService.listVenues(user?.id);
+    if (!user?.id) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
+    const venues = await venuesService.listUserVenues(user.id);
     return successResponse(venues);
   } catch (error) {
     return handleApiError(error);

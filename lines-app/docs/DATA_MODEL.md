@@ -229,4 +229,42 @@ Venue
 ---
 
 **Last Updated:** 2025-12-05  
-**Status:** Fully defined, ready for Prisma implementation
+**Version:** v1.1.0  
+**Status:** Implemented with Auth models
+
+---
+
+## Authentication Models (v1.1.0+)
+
+### User
+
+| Field         | Type     | Nullable | Description                       |
+| ------------- | -------- | -------- | --------------------------------- |
+| id            | String   | No       | Unique identifier (cuid)          |
+| email         | String   | No       | Email (unique)                    |
+| password      | String   | Yes      | Bcrypt hashed password            |
+| name          | String   | Yes      | Display name                      |
+| role          | String   | No       | "user" or "admin" (default: user) |
+| emailVerified | DateTime | Yes      | Email verification timestamp      |
+| image         | String   | Yes      | Profile image URL                 |
+| createdAt     | DateTime | No       | Creation timestamp                |
+| updatedAt     | DateTime | No       | Last update timestamp             |
+
+**Relationships:**
+
+- Has many `Venue` (1:N) - user owns venues
+- Has many `Account` (1:N) - OAuth accounts
+- Has many `Session` (1:N) - active sessions
+
+### Account, Session, VerificationToken
+
+NextAuth.js standard models for OAuth and session management.
+
+---
+
+**Updated Venue Model:**
+
+- Added `userId` field - venues now belong to users
+- Cascade delete when user is deleted
+
+---

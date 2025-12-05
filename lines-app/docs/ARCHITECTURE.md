@@ -1,15 +1,17 @@
 # Lines App - System Architecture
 
 **Last Updated:** 2025-12-05  
-**Version:** v0.1.0 (Initial Scaffold) → v1.0.0 (MVP Ready)
+**Version:** v1.1.0 (Production-Ready with Auth + Tailwind)
 
 ---
 
 ## Technology Stack
 
 - **Frontend:** Next.js 15 (App Router), React 19, TypeScript (strict mode)
+- **Styling:** Tailwind CSS v3, shadcn/ui components ready
 - **Backend:** Next.js API Routes + Server Actions
 - **Database:** PostgreSQL via Prisma ORM
+- **Authentication:** NextAuth.js v5 (Auth.js) with Prisma adapter
 - **Deployment:** Vercel
 - **Package Manager:** pnpm
 - **Testing:** Vitest (unit/integration), Playwright (e2e)
