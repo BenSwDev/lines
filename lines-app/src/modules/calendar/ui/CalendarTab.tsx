@@ -96,10 +96,11 @@ export function CalendarTab() {
                 prev.setDate(prev.getDate() - 1);
                 setCurrentDate(prev.toISOString().split("T")[0]);
               }}
+              className="rtl:order-3 ltr:order-1"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4 rtl:rotate-180" />
             </Button>
-            <span className="min-w-[150px] text-center font-medium">
+            <span className="min-w-[150px] text-center font-medium order-2">
               {new Date(currentDate).toLocaleDateString("he-IL", {
                 month: "long",
                 year: "numeric",
@@ -113,8 +114,9 @@ export function CalendarTab() {
                 next.setDate(next.getDate() + 1);
                 setCurrentDate(next.toISOString().split("T")[0]);
               }}
+              className="rtl:order-1 ltr:order-3"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
             </Button>
             <Button
               variant="outline"

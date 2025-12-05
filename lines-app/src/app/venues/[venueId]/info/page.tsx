@@ -3,7 +3,11 @@ import { VenueInfoTab } from "@/modules/venue-info";
 import { venuesService } from "@/modules/venues/services/venuesService";
 import { notFound } from "next/navigation";
 
-export default async function VenueInfoPage({ params }: { params: Promise<{ venueId: string }> }) {
+export default async function VenueInfoPage({
+  params,
+}: {
+  params: Promise<{ venueId: string }>;
+}) {
   const { venueId } = await params;
   const venue = await venuesService.getVenue(venueId);
 
