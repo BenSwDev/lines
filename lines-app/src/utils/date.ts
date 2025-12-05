@@ -48,5 +48,11 @@ export function addMonths(date: Date | string, months: number): Date {
 }
 
 export function toISODate(date: Date | string): string {
-  return new Date(date).toISOString().split("T")[0];
+  const d = new Date(date);
+  // Use local date to avoid timezone issues
+  // Format as YYYY-MM-DD using local timezone
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

@@ -81,6 +81,24 @@
 
 ---
 
+### 8. **תיקון יצירת תאריכים - האירועים נוצרים ביום הלא נכון**
+**Problem:** כאשר ליין מוגדר ליום שלישי, האירועים נוצרים ביום שני במקום יום שלישי.
+
+**Root Cause:** השימוש ב-`toISOString()` מחזיר תאריך ב-UTC, מה שגורם לשינוי יום בגלל timezone.
+
+**Solution:**
+- ✅ תיקנתי את `toISODate` להשתמש בתאריך מקומי במקום UTC
+- ✅ תיקנתי את `CreateLineDialog` להשתמש בתאריך מקומי ליצירת התאריכים
+- ✅ תיקנתי את `min` attribute של date input להשתמש בתאריך מקומי
+
+**Files Modified:**
+- `src/utils/date.ts` - תיקון `toISODate` function
+- `src/modules/lines/ui/CreateLineDialog.tsx` - תיקון יצירת תאריכים מוצעים
+
+**Status:** ✅ **COMPLETED**
+
+---
+
 ## ✅ COMPLETION STATUS
 
 All critical fixes have been completed and verified:

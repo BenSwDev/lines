@@ -608,3 +608,4 @@ This section defines the **logical route hierarchy** and views; it is intentiona
 This is the **source of truth** for the production implementation based on the `Lines-MVP` behavior. Future versions of this document should extend this spec with backend concerns, roles/permissions, and multi‑user flows as those become relevant.
 
 
+

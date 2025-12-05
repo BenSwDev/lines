@@ -141,7 +141,11 @@ export function CreateLineDialog({
     const current = new Date(today);
     while (current <= maxDate) {
       if (selectedDays.includes(current.getDay())) {
-        suggestions.push(current.toISOString().split("T")[0]);
+        // Use local date format to avoid timezone issues
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, "0");
+        const day = String(current.getDate()).padStart(2, "0");
+        suggestions.push(`${year}-${month}-${day}`);
       }
       current.setDate(current.getDate() + 1);
     }
@@ -495,7 +499,13 @@ export function CreateLineDialog({
                         type="date"
                         value={manualDate}
                         onChange={(e) => setManualDate(e.target.value)}
-                        min={new Date().toISOString().split("T")[0]}
+                        min={(() => {
+                          const today = new Date();
+                          const year = today.getFullYear();
+                          const month = String(today.getMonth() + 1).padStart(2, "0");
+                          const day = String(today.getDate()).padStart(2, "0");
+                          return `${year}-${month}-${day}`;
+                        })()}
                       />
                       <Button
                         type="button"
