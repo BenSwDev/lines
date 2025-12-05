@@ -1,7 +1,7 @@
-// 2025-12-05 – Lines App – Prisma Schema (Stub)
+// 2025-12-05 – Lines App – Prisma Schema
 //
-// This file will define the database schema based on docs/DATA_MODEL.md,
-// which is derived from information/lines-mvp-information-v1.md.
+// Complete database schema based on docs/DATA_MODEL.md
+// Derived from information/lines-mvp-information-v1.md
 
 datasource db {
   provider = "postgresql"
@@ -10,6 +10,151 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+}
+
+// ============================================================================
+// VENUE & DETAILS
+// ============================================================================
+
+model Venue {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  details      VenueDetails?
+  menus        Menu[]
+  zones        Zone[]
+  lines        Line[]
+  occurrences  LineOccurrence[]
+
+  @@map("venues")
+}
+
+model VenueDetails {
+  id      String  @id @default(cuid())
+  venueId String  @unique
+  phone   String?
+  email   String?
+  address String?
+
+  // Relationships
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@map("venue_details")
+}
+
+// ============================================================================
+// MENUS
+// ============================================================================
+
+model Menu {
+  id         String   @id @default(cuid())
+  venueId    String
+  name       String
+  fileName   String
+  fileType   String
+  fileSize   Int
+  fileData   String?  @db.Text
+  uploadedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relationships
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
+  @@map("menus")
+}
+
+// ============================================================================
+// SEATING: ZONES & TABLES
+// ============================================================================
+
+model Zone {
+  id          String   @id @default(cuid())
+  venueId     String
+  name        String
+  color       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  venue  Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  tables Table[]
+
+  @@index([venueId])
+  @@map("zones")
+}
+
+model Table {
+  id        String   @id @default(cuid())
+  zoneId    String
+  name      String
+  seats     Int?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  zone Zone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@index([zoneId])
+  @@map("tables")
+}
+
+// ============================================================================
+// LINES & OCCURRENCES
+// ============================================================================
+
+model Line {
+  id        String   @id @default(cuid())
+  venueId   String
+  name      String
+  days      Int[]
+  startTime String
+  endTime   String
+  frequency String   // Enum: weekly, monthly, variable, oneTime
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  venue       Venue            @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  occurrences LineOccurrence[]
+
+  @@index([venueId])
+  @@index([venueId, color])
+  @@map("lines")
+}
+
+model LineOccurrence {
+  id          String   @id @default(cuid())
+  lineId      String
+  venueId     String
+  date        String
+  startTime   String
+  endTime     String
+  isExpected  Boolean  @default(true)
+  isActive    Boolean  @default(true)
+  title       String?
+  subtitle    String?
+  description String?  @db.Text
+  location    String?
+  contact     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  line  Line  @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@unique([lineId, date])
+  @@index([venueId])
+  @@index([lineId])
+  @@index([date])
+  @@map("line_occurrences")
 }
 
 

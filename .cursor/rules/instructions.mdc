@@ -1,0 +1,55 @@
+---
+alwaysApply: true
+---
+Project: lines-app (Next.js 15 App Router, pnpm, Vercel, Prisma)
+
+Always treat these documents as absolute source of truth:
+- information/lines-mvp-information-v1.md
+- information/PROJECT_STRUCTURE_GUIDE.md
+- information/PROJECT_DOCUMENTATION_OVERVIEW.md
+- information/DOCUMENTATION_MAINTENANCE_RULES.md
+- lines-app/docs/* (ARCHITECTURE, DATA_MODEL, SYSTEM_REQUIREMENTS, API_REFERENCE, ROADMAP, QA_PLAN, TEST_MATRIX, CHANGELOG, etc.)
+
+Architecture rules:
+- Use modular, feature-first structure:
+  - src/app/: routing only (layouts, pages, API handlers). No business logic.
+  - src/modules/<feature>/: ui/, actions/, services/, schemas/, types.ts, index.ts, README.md.
+  - src/core/: db/, integrations/, auth/, security/, validation/, config/.
+  - src/shared/: ui/, layout/ – reusable UI primitives and layouts.
+  - src/utils/: generic helpers only (no domain-specific logic).
+- Modules must not import each other directly; shared logic goes through core/ or shared/.
+- All external providers (Prisma, etc.) live under src/core/integrations/.
+- Each feature defines its own Zod schemas and local types, and must have a module README.
+
+Workflow for EVERY task:
+1) Understanding & planning
+   - Read relevant docs (lines-mvp-information-v1, PROJECT_STRUCTURE_GUIDE, MODULE docs).
+   - Summarize understanding.
+   - Create a TODO list (with todo_write) before changing code.
+2) Implementation
+   - Edit only the correct module(s) and layers (ui/actions/services/schemas/types).
+   - Keep src/app thin; delegate to modules.
+3) Documentation & tests (MANDATORY)
+   - Update all relevant docs according to DOCUMENTATION_MAINTENANCE_RULES:
+     - FEATURE_SPECS/<feature>.md
+     - DATA_MODEL.md (if DB / data changes)
+     - API_REFERENCE.md (if endpoints/routes change)
+     - CHANGELOG.md (for any meaningful change)
+     - ROADMAP.md / TASKS_BREAKDOWN.md / QA_PLAN.md / TEST_MATRIX.md when appropriate.
+   - Add/update tests (unit/integration/e2e) under tests/ and record them in docs/TEST_MATRIX.md.
+4) Quality gate
+   - Ensure code follows TypeScript strict mode and project ESLint/Prettier rules.
+   - Run (or assume the user will run) in lines-app:
+     - pnpm lint
+     - pnpm test
+     - pnpm build
+   - Fix any issues before considering the task complete.
+5) Finalization
+   - Propose a single, meaningful commit message (feat:/fix:/chore:/refactor:) describing the change.
+   - Assume that pushing to main triggers CI and Vercel deployment; code must always be production-ready.
+
+General behavior:
+- Always design for long-term maintainability, modularity, and scalability.
+- Never put business logic in src/app.
+- Never bypass the docs/tests update steps.
+- When in doubt about behavior, prefer the spec in information/lines-mvp-information-v1.md over existing code.

@@ -1,20 +1,106 @@
-2025-12-05 – Lines App – API Reference (Stub)
+# Lines App - API Reference
+
+**Last Updated:** 2025-12-05
 
 ---
 
-## Purpose
+## Venues
 
-Document all HTTP and RPC-style APIs exposed by the app (Next.js route handlers and server actions).
+### `GET /api/venues`
+List all venues
 
-Planned areas:
+**Response:**
+```json
+{
+  "success": true,
+  "data": [{ "id": "...", "name": "...", "createdAt": "...", "updatedAt": "..." }]
+}
+```
 
-- Venues APIs
-- VenueDetails APIs
-- Menus APIs
-- Zones & Tables APIs
-- Lines & Occurrences APIs
-- Calendar data APIs
+### `POST /api/venues`
+Create new venue
 
-This file must be updated whenever an endpoint, route, or server action contract changes, as defined in `information/PROJECT_DOCUMENTATION_OVERVIEW.md` and `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
+**Request:** `{ "name": "שם מקום" }`  
+**Response:** Venue object
 
+### `GET /api/venues/[venueId]`
+Get single venue
 
+### `DELETE /api/venues/[venueId]`
+Delete venue (cascades to all related data)
+
+---
+
+## Venue Details
+
+### `GET /api/venues/[venueId]/details`
+Get venue contact details
+
+### `PUT /api/venues/[venueId]/details`
+Update venue details
+
+**Request:**
+```json
+{
+  "phone": "050-1234567",
+  "email": "info@example.com",
+  "address": "כתובת מלאה"
+}
+```
+
+---
+
+## Menus (Stub - Full Implementation in v1.1)
+
+### `GET /api/venues/[venueId]/menus`
+### `POST /api/venues/[venueId]/menus`
+### `PUT /api/venues/[venueId]/menus/[menuId]`
+### `DELETE /api/venues/[venueId]/menus/[menuId]`
+
+---
+
+## Zones & Tables (Stub - Full Implementation in v1.1)
+
+### `GET /api/venues/[venueId]/zones`
+### `POST /api/venues/[venueId]/zones`
+### `POST /api/venues/[venueId]/zones/[zoneId]/tables`
+
+---
+
+## Lines (Stub - Full Implementation in v1.1)
+
+### `GET /api/venues/[venueId]/lines`
+### `POST /api/venues/[venueId]/lines`
+### `PUT /api/venues/[venueId]/lines/[lineId]`
+### `POST /api/venues/[venueId]/lines/[lineId]/occurrences`
+
+---
+
+## Events & Calendar (Stub - Full Implementation in v1.1)
+
+### `GET /api/venues/[venueId]/events/[lineId]/[occurrenceId]`
+### `GET /api/venues/[venueId]/calendar`
+
+---
+
+## Error Responses
+
+All endpoints return errors in this format:
+```json
+{
+  "success": false,
+  "error": {
+    "message": "הודעת שגיאה",
+    "code": "ERROR_CODE",
+    "details": {}
+  }
+}
+```
+
+**Common Status Codes:**
+- 400: Validation error
+- 401: Unauthorized
+- 403: Forbidden
+- 404: Not found
+- 409: Duplicate/Conflict
+- 500: Server error

@@ -25,8 +25,13 @@ Run from the `lines-app` directory:
 
 ## Vercel Deployment (High Level)
 
-1. Create a new project in Vercel pointing to this repository.
+1. Create a new project in Vercel pointing to this repository and the `lines-app` subdirectory.
 2. Configure environment variables (e.g., `DATABASE_URL`).
 3. Ensure the build command is `pnpm build` and install uses `pnpm`.
-4. Trigger a deployment (from main branch or manual via Vercel UI/CLI).
+4. Push to the `main` branch – Vercel will automatically build and deploy.
+
+### Current Production URL
+
+- `https://lines-10qilj4im-ben-swissa.vercel.app`
+
 

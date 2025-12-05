@@ -1,6 +1,15 @@
-// Prisma client will be initialized here when the schema is defined.
-// This stub exists to satisfy the project structure guide.
+import { PrismaClient } from "@prisma/client";
 
-export {};
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
 
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  });
 
+if (process.env.NODE_ENV !== "production") {
+  globalForPrisma.prisma = prisma;
+}
