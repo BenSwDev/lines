@@ -6,17 +6,20 @@ import { z } from "zod";
 const registerSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  name: z.string().min(1, "Name is required")
+  name: z.string().min(1, "Name is required"),
 });
 
-export async function registerUser(input: unknown) {
+export async function register(input: unknown) {
   try {
     const validated = registerSchema.parse(input);
 
     // Check if user exists
     const existing = await authService.getUserByEmail(validated.email);
     if (existing) {
-      return { success: false, error: "User with this email already exists" };
+      return {
+        success: false,
+        error: "User with this email already exists",
+      };
     }
 
     const user = await authService.createUser(validated);
@@ -32,3 +35,5 @@ export async function registerUser(input: unknown) {
     return { success: false, error: "Registration failed" };
   }
 }
+
+export { register as registerUser };

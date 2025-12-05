@@ -1,15 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/Card";
-import { Button } from "@/shared/ui/Button";
-import { FormField, Input } from "@/shared/ui/FormField";
-import { registerUser } from "@/modules/auth/actions/register";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { UserPlus, ArrowRight } from "lucide-react";
+import { register } from "@/modules/auth/actions/register";
 
 export default function RegisterPage() {
   const router = useRouter();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,81 +33,131 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const result = await registerUser({ name, email, password });
+      const result = await register({ name, email, password });
 
       if (result.success) {
-        router.push("/auth/login?registered=true");
+        // Auto-login after successful registration
+        const signInResult = await signIn("credentials", {
+          email,
+          password,
+          redirect: false
+        });
+
+        if (signInResult?.ok) {
+          router.push("/dashboard");
+          router.refresh();
+        } else {
+          router.push("/auth/login");
+        }
       } else {
-        setError(result.error || "ההרשמה נכשלה");
+        setError(result.error || "שגיאה בהרשמה");
       }
     } catch {
-      setError("אירעה שגיאה");
+      setError("שגיאה בהרשמה");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Lines - הרשמה</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <FormField label="שם" required>
-              <Input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="השם שלך"
-                required
-                disabled={isLoading}
-              />
-            </FormField>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="text-center">
+          <Link href="/" className="inline-block">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600">
+              <span className="text-2xl font-bold text-white">L</span>
+            </div>
+          </Link>
+          <h1 className="text-2xl font-bold">הצטרף ל-Lines</h1>
+          <p className="text-muted-foreground">צור חשבון חדש והתחל לנהל אירועים</p>
+        </div>
 
-            <FormField label="אימייל" required>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                required
-                disabled={isLoading}
-              />
-            </FormField>
+        {/* Register Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              הרשמה
+            </CardTitle>
+            <CardDescription>מלא את הפרטים כדי ליצור חשבון חדש</CardDescription>
+          </CardHeader>
 
-            <FormField label="סיסמה" required>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                disabled={isLoading}
-                minLength={6}
-              />
-            </FormField>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              {error && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
 
-            {error && (
-              <div className="p-3 bg-destructive/20 border border-destructive rounded text-sm text-destructive-foreground">
-                {error}
+              <div className="space-y-2">
+                <Label htmlFor="name">שם מלא</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="השם שלך"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
               </div>
-            )}
 
-            <Button type="submit" variant="primary" className="w-full" disabled={isLoading}>
-              {isLoading ? "נרשם..." : "הירשם"}
-            </Button>
+              <div className="space-y-2">
+                <Label htmlFor="email">אימייל</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">סיסמה</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                  required
+                  minLength={6}
+                />
+                <p className="text-xs text-muted-foreground">לפחות 6 תווים</p>
+              </div>
+            </CardContent>
+
+            <CardFooter className="flex-col gap-4">
+              <Button type="submit" className="w-full" disabled={isLoading} size="lg">
+                {isLoading ? "נרשם..." : "הרשמה"}
+                {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+              </Button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                כבר יש לך חשבון?{" "}
+                <Link
+                  href="/auth/login"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  התחבר כאן
+                </Link>
+              </p>
+            </CardFooter>
           </form>
+        </Card>
 
-          <div className="mt-4 text-center text-sm text-muted-foreground">
-            כבר יש לך חשבון?{" "}
-            <Link href="/auth/login" className="text-primary hover:underline">
-              התחבר
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="text-center">
+          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+            ← חזרה לדף הבית
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

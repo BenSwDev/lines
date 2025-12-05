@@ -1,21 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
-import { Modal } from "@/shared/ui/Modal";
-import { Button } from "@/shared/ui/Button";
-import { FormField, Input } from "@/shared/ui/FormField";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Building2 } from "lucide-react";
 
-export interface CreateVenueDialogProps {
+export type CreateVenueDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (name: string) => Promise<void>;
-}
+};
 
-export function CreateVenueDialog({
-  isOpen,
-  onClose,
-  onCreate,
-}: CreateVenueDialogProps) {
+export function CreateVenueDialog({ isOpen, onClose, onCreate }: CreateVenueDialogProps) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +40,7 @@ export function CreateVenueDialog({
       await onCreate(name.trim());
       setName("");
       setError("");
+      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה ביצירת המקום");
     } finally {
@@ -43,34 +49,55 @@ export function CreateVenueDialog({
   };
 
   const handleClose = () => {
-    setName("");
-    setError("");
-    onClose();
+    if (!isSubmitting) {
+      setName("");
+      setError("");
+      onClose();
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="יצירת מקום חדש" size="md">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField label="שם המקום" required error={error}>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="הכנס שם מקום..."
-            error={!!error}
-            disabled={isSubmitting}
-            autoFocus
-          />
-        </FormField>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Building2 className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle>יצירת מקום חדש</DialogTitle>
+              <DialogDescription>הזן את שם המקום העסקי שלך</DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
 
-        <div className="flex gap-3 justify-end pt-4">
-          <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>
-            ביטול
-          </Button>
-          <Button type="submit" variant="primary" disabled={isSubmitting || !name.trim()}>
-            {isSubmitting ? "שומר..." : "יצירה"}
-          </Button>
-        </div>
-      </form>
-    </Modal>
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">שם המקום *</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder='לדוגמה: "קפה העיר"'
+                disabled={isSubmitting}
+                autoFocus
+                className={error ? "border-destructive" : ""}
+              />
+              {error && <p className="text-sm text-destructive">{error}</p>}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+              ביטול
+            </Button>
+            <Button type="submit" disabled={isSubmitting || !name.trim()}>
+              {isSubmitting ? "יוצר..." : "יצירה"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

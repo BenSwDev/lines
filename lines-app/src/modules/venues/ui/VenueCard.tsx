@@ -34,20 +34,13 @@ export function VenueCard({ venue, onSelect, onDelete }: VenueCardProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4 text-xs text-gray-400">
-            נוצר ב-{formatDate(venue.createdAt)}
-          </p>
+          <p className="mb-4 text-xs text-gray-400">נוצר ב-{formatDate(venue.createdAt)}</p>
         </CardContent>
       </div>
 
       <div className="border-t border-gray-800 px-6 pb-4">
         <div className="flex gap-2 pt-3">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={onSelect}
-            className="flex-1"
-          >
+          <Button variant="primary" size="sm" onClick={onSelect} className="flex-1">
             כניסה למקום →
           </Button>
           <Button

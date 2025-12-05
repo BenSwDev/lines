@@ -69,15 +69,9 @@ export function VenuesHomePage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">המקומות שלי</h1>
-              <p className="mt-1 text-sm text-gray-400">
-                נהל את כל המקומות העסקיים שלך במקום אחד
-              </p>
+              <p className="mt-1 text-sm text-gray-400">נהל את כל המקומות העסקיים שלך במקום אחד</p>
             </div>
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={() => setIsCreateOpen(true)}
-            >
+            <Button variant="primary" size="lg" onClick={() => setIsCreateOpen(true)}>
               + צור מקום חדש
             </Button>
           </div>
@@ -104,14 +98,8 @@ export function VenuesHomePage() {
             <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-12 text-center">
               <div className="mb-4 text-6xl">🏢</div>
               <h2 className="mb-2 text-2xl font-semibold">אין מקומות עדיין</h2>
-              <p className="mb-6 text-gray-400">
-                התחל על ידי יצירת המקום העסקי הראשון שלך
-              </p>
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={() => setIsCreateOpen(true)}
-              >
+              <p className="mb-6 text-gray-400">התחל על ידי יצירת המקום העסקי הראשון שלך</p>
+              <Button variant="primary" size="lg" onClick={() => setIsCreateOpen(true)}>
                 + צור מקום ראשון
               </Button>
             </div>
@@ -123,11 +111,7 @@ export function VenuesHomePage() {
                 {venues.length} {venues.length === 1 ? "מקום" : "מקומות"}
               </p>
             </div>
-            <VenueList
-              venues={venues}
-              onSelect={handleSelectVenue}
-              onDelete={handleDelete}
-            />
+            <VenueList venues={venues} onSelect={handleSelectVenue} onDelete={handleDelete} />
           </div>
         )}
       </div>
