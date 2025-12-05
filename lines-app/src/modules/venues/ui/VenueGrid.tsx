@@ -36,14 +36,22 @@ export function VenueGrid({ venues, onSelect, onDelete, onCreate }: VenueGridPro
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {venues.map((venue) => (
-        <VenueCardModern
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {venues.map((venue, index) => (
+        <div
           key={venue.id}
-          venue={venue}
-          onSelect={() => onSelect(venue.id)}
-          onDelete={() => onDelete(venue.id)}
-        />
+          className="animate-in fade-in slide-in-from-bottom-4"
+          style={{
+            animationDelay: `${index * 50}ms`,
+            animationFillMode: "both"
+          }}
+        >
+          <VenueCardModern
+            venue={venue}
+            onSelect={() => onSelect(venue.id)}
+            onDelete={() => onDelete(venue.id)}
+          />
+        </div>
       ))}
     </div>
   );

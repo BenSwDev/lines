@@ -148,15 +148,23 @@ export function LinesTab() {
           className="min-h-[400px]"
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {lines.map((line) => (
-            <LineCard
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {lines.map((line, index) => (
+            <div
               key={line.id}
-              line={line}
-              onEdit={() => handleEditLine(line.id)}
-              onViewEvents={() => handleViewEvents(line.id)}
-              onViewLine={() => handleViewLine(line.id)}
-            />
+              className="animate-in fade-in slide-in-from-bottom-4"
+              style={{
+                animationDelay: `${index * 50}ms`,
+                animationFillMode: "both"
+              }}
+            >
+              <LineCard
+                line={line}
+                onEdit={() => handleEditLine(line.id)}
+                onViewEvents={() => handleViewEvents(line.id)}
+                onViewLine={() => handleViewLine(line.id)}
+              />
+            </div>
           ))}
         </div>
       )}

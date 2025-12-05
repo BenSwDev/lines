@@ -9,7 +9,10 @@
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
-    "close": "Close"
+    "close": "Close",
+    "current": "Current",
+    "logout": "Logout",
+    "myAccount": "My Account"
   },
   "auth": {
     "login": "Login",
@@ -62,7 +65,14 @@
     "info": "Venue Info",
     "settings": "Venue Settings",
     "lines": "Lines",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "currentVenue": "Current Venue",
+    "switchVenue": "Switch Venue",
+    "allVenues": "All Venues",
+    "createNewVenue": "Create New Venue",
+    "myVenues": "My Venues",
+    "noVenuesYet": "No venues yet",
+    "navigation": "Navigation"
   },
   "lines": {
     "title": "Lines",

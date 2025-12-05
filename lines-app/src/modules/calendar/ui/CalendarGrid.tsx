@@ -121,11 +121,14 @@ function MonthView({
   const weekdayLabels = ["ש", "ו", "ה", "ד", "ג", "ב", "א"];
 
   return (
-    <div className="space-y-2">
-      {/* Header - Hebrew weekdays in RTL order */}
-      <div className="grid grid-cols-7 gap-2">
+    <div className="space-y-3">
+      {/* Header - Hebrew weekdays with beautiful styling */}
+      <div className="grid grid-cols-7 gap-3 mb-4">
         {weekdayLabels.map((day) => (
-          <div key={day} className="text-center text-sm font-semibold text-muted-foreground">
+          <div
+            key={day}
+            className="text-center text-sm font-bold text-muted-foreground/70 uppercase tracking-wider py-2 rounded-lg bg-gradient-to-b from-muted/30 to-transparent"
+          >
             {day}
           </div>
         ))}
@@ -133,7 +136,7 @@ function MonthView({
 
       {/* Weeks */}
       {weeks.map((week, weekIdx) => (
-        <div key={weekIdx} className="grid grid-cols-7 gap-2">
+        <div key={weekIdx} className="grid grid-cols-7 gap-3">
           {week.map((day, dayIdx) => {
             const dayEvents = getEventsForDay(day);
             const today = isTodayDate(day);
@@ -143,25 +146,56 @@ function MonthView({
               <Card
                 key={dayIdx}
                 className={cn(
-                  "min-h-[120px] p-2 transition-all",
-                  isOtherMonth && "bg-muted/20 opacity-50",
-                  today && !isOtherMonth && "border-2 border-primary bg-primary/5",
-                  day &&
-                    dayEvents.length > 0 &&
-                    "hover:border-primary/50 hover:shadow-sm cursor-pointer"
+                  "group relative min-h-[140px] p-3 transition-all duration-300 overflow-hidden",
+                  "border-2 hover:border-primary/30 hover:shadow-lg hover:scale-[1.02]",
+                  isOtherMonth && "bg-muted/10 opacity-40 border-muted/30",
+                  today &&
+                    !isOtherMonth &&
+                    "border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-md ring-2 ring-primary/20",
+                  !today &&
+                    !isOtherMonth &&
+                    "bg-gradient-to-br from-background to-muted/20 border-border/50",
+                  day && dayEvents.length > 0 && "cursor-pointer hover:shadow-xl"
                 )}
               >
+                {/* Decorative corner accent for today */}
+                {today && !isOtherMonth && (
+                  <div className="absolute top-0 left-0 h-12 w-12 bg-gradient-to-br from-primary/20 to-transparent rounded-br-full" />
+                )}
+
+                {/* Hover glow effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 rounded-lg" />
+
                 {day && (
                   <>
-                    <div
-                      className={cn(
-                        "mb-2 text-sm font-semibold",
-                        today && "text-primary font-bold"
+                    <div className="relative z-10 flex items-center justify-between mb-3">
+                      <div
+                        className={cn(
+                          "flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition-all duration-300",
+                          today
+                            ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg scale-110"
+                            : "bg-muted/50 text-foreground group-hover:bg-primary/10 group-hover:scale-110"
+                        )}
+                      >
+                        {day}
+                      </div>
+                      {dayEvents.length > 0 && (
+                        <div className="flex -space-x-1">
+                          {dayEvents.slice(0, 3).map((event) => (
+                            <div
+                              key={event.id}
+                              className="h-2 w-2 rounded-full border-2 border-background shadow-sm"
+                              style={{ backgroundColor: event.color }}
+                            />
+                          ))}
+                          {dayEvents.length > 3 && (
+                            <div className="h-2 w-2 rounded-full bg-muted-foreground/30 border-2 border-background" />
+                          )}
+                        </div>
                       )}
-                    >
-                      {day}
                     </div>
-                    <div className="space-y-1">
+
+                    <div className="relative z-10 space-y-1.5">
                       {dayEvents.slice(0, 3).map((event) => (
                         <div
                           key={event.id}
@@ -169,32 +203,42 @@ function MonthView({
                             e.stopPropagation();
                             onEventClick(event);
                           }}
-                          className="group cursor-pointer rounded px-2 py-1 text-xs transition-all hover:opacity-90 hover:shadow-sm"
+                          className="group/event relative cursor-pointer rounded-lg px-2.5 py-2 text-xs transition-all duration-200 hover:scale-[1.02] hover:shadow-md backdrop-blur-sm border border-transparent hover:border-white/20"
                           style={{
-                            backgroundColor: `${event.color}20`,
-                            borderRight: `3px solid ${event.color}`
+                            background: `linear-gradient(135deg, ${event.color}25 0%, ${event.color}15 50%, ${event.color}08 100%)`,
+                            borderLeft: `3px solid ${event.color}`
                           }}
                         >
-                          <div className="flex items-center gap-1">
-                            <span
-                              className="inline-block h-2 w-2 rounded-full flex-shrink-0"
+                          {/* Event glow on hover */}
+                          <div
+                            className="absolute inset-0 rounded-lg opacity-0 group-hover/event:opacity-100 transition-opacity duration-200 blur-sm"
+                            style={{ backgroundColor: event.color }}
+                          />
+
+                          <div className="relative z-10 flex items-center gap-2">
+                            <div
+                              className="h-2.5 w-2.5 rounded-full shadow-sm flex-shrink-0"
                               style={{ backgroundColor: event.color }}
                             />
-                            <span className="font-medium truncate">{event.startTime}</span>
+                            <span className="font-semibold text-foreground flex-1 truncate">
+                              {event.startTime}
+                            </span>
                             {event.isOvernight && (
-                              <span className="text-[10px] text-muted-foreground">(+1)</span>
+                              <span className="text-[10px] text-muted-foreground bg-muted/50 px-1 rounded">
+                                +1
+                              </span>
                             )}
                           </div>
                           {event.title && (
-                            <div className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                            <div className="relative z-10 mt-1 truncate text-[10px] font-medium text-muted-foreground">
                               {event.title}
                             </div>
                           )}
                         </div>
                       ))}
                       {dayEvents.length > 3 && (
-                        <div className="text-xs text-muted-foreground font-medium pt-1">
-                          +{dayEvents.length - 3} עוד
+                        <div className="pt-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors cursor-pointer">
+                          +{dayEvents.length - 3} עוד אירועים
                         </div>
                       )}
                     </div>
@@ -283,10 +327,10 @@ function WeekView({
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg border">
-      <div className="grid min-w-[800px] grid-cols-8 gap-px bg-border">
+    <div className="overflow-x-auto rounded-xl border-2 border-border/50 shadow-lg bg-gradient-to-br from-background to-muted/10">
+      <div className="grid min-w-[800px] grid-cols-8 gap-0.5 bg-gradient-to-br from-muted/20 to-muted/10 p-0.5">
         {/* Header */}
-        <div className="bg-card p-2 font-medium text-sm" />
+        <div className="bg-gradient-to-br from-muted/30 to-muted/10 p-3 font-bold text-sm text-muted-foreground/70 uppercase tracking-wider" />
         {days.map((d) => {
           const dayDateStr = toISODate(d);
           const isTodayDate = isToday(d);
@@ -294,14 +338,26 @@ function WeekView({
             <div
               key={dayDateStr}
               className={cn(
-                "bg-card p-2 text-center text-sm",
-                isTodayDate && "bg-primary/10 font-bold"
+                "relative p-3 text-center text-sm transition-all duration-300",
+                isTodayDate
+                  ? "bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 font-bold shadow-md ring-2 ring-primary/30"
+                  : "bg-card/80 backdrop-blur-sm hover:bg-card"
               )}
             >
-              <div className="font-semibold">
+              {isTodayDate && (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
+              )}
+              <div
+                className={cn("relative z-10 font-semibold mb-1", isTodayDate && "text-primary")}
+              >
                 {d.toLocaleDateString("he-IL", { weekday: "short" })}
               </div>
-              <div className={cn("text-muted-foreground", isTodayDate && "text-primary font-bold")}>
+              <div
+                className={cn(
+                  "relative z-10 text-lg font-bold",
+                  isTodayDate ? "text-primary" : "text-muted-foreground"
+                )}
+              >
                 {d.getDate()}
               </div>
             </div>
@@ -310,43 +366,58 @@ function WeekView({
 
         {/* Hours rows */}
         {hours.map((hour) => (
-          <div key={hour} className="col-span-8 grid grid-cols-8 gap-px">
-            <div className="bg-card p-2 text-xs text-muted-foreground font-medium border-r">
+          <div key={hour} className="col-span-8 grid grid-cols-8 gap-0.5">
+            <div className="bg-gradient-to-br from-muted/20 to-muted/10 p-3 text-xs font-bold text-muted-foreground/70 border-r border-border/30">
               {String(hour).padStart(2, "0")}:00
             </div>
             {days.map((d) => {
               const dayDateStr = toISODate(d);
               const hourEvents = getEventsForDayHour(d, hour);
+              const isTodayDate = isToday(d);
               return (
                 <div
                   key={`${dayDateStr}-${hour}`}
-                  className="bg-card p-1 min-h-[60px] border-r last:border-r-0"
+                  className={cn(
+                    "group relative min-h-[60px] p-1.5 border-r border-border/30 last:border-r-0 transition-all duration-200 hover:bg-card/80 backdrop-blur-sm",
+                    isTodayDate && "bg-gradient-to-br from-primary/10 to-primary/5"
+                  )}
                 >
-                  {hourEvents.map((event) => {
-                    const [startH] = event.startTime.split(":").map(Number);
-                    const isEventStart = startH === hour;
+                  {isTodayDate && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
+                  )}
+                  <div className="relative z-10 space-y-1">
+                    {hourEvents.map((event) => {
+                      const [startH] = event.startTime.split(":").map(Number);
+                      const isEventStart = startH === hour;
 
-                    return (
-                      <div
-                        key={event.id}
-                        onClick={() => onEventClick(event)}
-                        className={cn(
-                          "cursor-pointer rounded px-2 py-1 text-xs transition-all hover:opacity-90 hover:shadow-sm mb-1",
-                          !isEventStart && "opacity-70"
-                        )}
-                        style={{
-                          backgroundColor: `${event.color}40`,
-                          borderRight: `3px solid ${event.color}`
-                        }}
-                      >
-                        {isEventStart && (
-                          <div className="font-medium truncate">
-                            {event.title || `${event.startTime}-${event.endTime}`}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div
+                          key={event.id}
+                          onClick={() => onEventClick(event)}
+                          className={cn(
+                            "group/event relative cursor-pointer rounded-lg px-2.5 py-1.5 text-xs transition-all duration-200 hover:scale-[1.02] hover:shadow-md backdrop-blur-sm border border-transparent hover:border-white/20",
+                            !isEventStart && "opacity-70"
+                          )}
+                          style={{
+                            background: `linear-gradient(135deg, ${event.color}25 0%, ${event.color}15 50%, ${event.color}08 100%)`,
+                            borderLeft: `3px solid ${event.color}`
+                          }}
+                        >
+                          {/* Event glow on hover */}
+                          <div
+                            className="absolute inset-0 rounded-lg opacity-0 group-hover/event:opacity-100 transition-opacity duration-200 blur-sm"
+                            style={{ backgroundColor: event.color }}
+                          />
+
+                          {isEventStart && (
+                            <div className="relative z-10 font-semibold truncate text-foreground">
+                              {event.title || `${event.startTime}-${event.endTime}`}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
@@ -441,17 +512,31 @@ function DayView({
           <Card
             key={hour}
             className={cn(
-              "transition-all hover:shadow-sm",
-              hourEvents.length > 0 && "hover:border-primary/50"
+              "group relative overflow-hidden border-2 transition-all duration-300",
+              "bg-gradient-to-br from-background to-muted/10",
+              hourEvents.length > 0
+                ? "hover:border-primary/50 hover:shadow-xl hover:scale-[1.01]"
+                : "border-border/30 hover:border-border/50"
             )}
           >
-            <div className="flex gap-4 p-4">
-              <div className="w-16 shrink-0 text-right text-sm font-semibold text-muted-foreground">
-                {String(hour).padStart(2, "0")}:00
+            {/* Decorative gradient overlay */}
+            {hourEvents.length > 0 && (
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            )}
+
+            <div className="relative z-10 flex gap-4 p-5">
+              <div className="relative w-20 shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg" />
+                <div className="relative text-center py-2">
+                  <div className="text-lg font-bold text-primary">
+                    {String(hour).padStart(2, "0")}
+                  </div>
+                  <div className="text-xs text-muted-foreground font-medium">:00</div>
+                </div>
               </div>
               <div className="flex-1 space-y-3">
                 {hourEvents.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">—</div>
+                  <div className="text-sm text-muted-foreground/50 italic py-2">—</div>
                 ) : (
                   hourEvents.map((event) => {
                     const overnight = isOvernightShift(event.startTime, event.endTime);
@@ -459,27 +544,44 @@ function DayView({
                       <div
                         key={event.id}
                         onClick={() => onEventClick(event)}
-                        className="group cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                        className="group/event relative cursor-pointer rounded-xl border-2 p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm border-transparent hover:border-white/20 overflow-hidden"
                         style={{
+                          background: `linear-gradient(135deg, ${event.color}20 0%, ${event.color}10 50%, ${event.color}05 100%)`,
                           borderRightColor: event.color,
                           borderRightWidth: 4
                         }}
                       >
-                        <div className="flex items-start justify-between gap-4">
+                        {/* Event glow on hover */}
+                        <div
+                          className="absolute inset-0 rounded-xl opacity-0 group-hover/event:opacity-100 transition-opacity duration-300 blur-xl"
+                          style={{ backgroundColor: event.color }}
+                        />
+
+                        <div className="relative z-10 flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <div
-                                className="h-3 w-3 rounded-full shrink-0"
-                                style={{ backgroundColor: event.color }}
-                              />
-                              <h3 className="font-bold text-lg">{event.title || "אירוע"}</h3>
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="relative">
+                                <div
+                                  className="absolute inset-0 rounded-full blur-md opacity-50"
+                                  style={{ backgroundColor: event.color }}
+                                />
+                                <div
+                                  className="relative h-4 w-4 rounded-full shrink-0 shadow-lg"
+                                  style={{ backgroundColor: event.color }}
+                                />
+                              </div>
+                              <h3 className="font-bold text-xl text-foreground">
+                                {event.title || "אירוע"}
+                              </h3>
                             </div>
-                            <div className="text-sm text-muted-foreground space-y-1">
-                              <div>
-                                <span className="font-medium">זמן:</span> {event.startTime} -{" "}
-                                {event.endTime}
+                            <div className="text-sm text-muted-foreground space-y-1.5 mr-7">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">זמן:</span>
+                                <span className="font-medium">
+                                  {event.startTime} - {event.endTime}
+                                </span>
                                 {overnight && (
-                                  <Badge variant="outline" className="mr-2 text-xs">
+                                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-sm text-xs">
                                     משמרת לילה (+1)
                                   </Badge>
                                 )}
@@ -487,7 +589,11 @@ function DayView({
                             </div>
                           </div>
                           <div className="shrink-0">
-                            {!event.isActive && <Badge variant="secondary">בוטל</Badge>}
+                            {!event.isActive && (
+                              <Badge variant="secondary" className="shadow-sm">
+                                בוטל
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
