@@ -40,6 +40,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslations } from "@/core/i18n/provider";
 import type { Venue } from "@prisma/client";
 
 type DashboardLayoutProps = {
@@ -55,9 +56,11 @@ type DashboardLayoutProps = {
 export function DashboardLayout({ children, user, venues, currentVenue }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { dir } = useTranslations();
+  const sidebarSide = dir === "rtl" ? "right" : "left";
 
   return (
-    <SidebarProvider defaultOpen side="right">
+    <SidebarProvider defaultOpen side={sidebarSide}>
       <div className="flex min-h-screen w-full">
         {/* Sidebar */}
         <Sidebar>

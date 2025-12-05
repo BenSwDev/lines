@@ -77,12 +77,18 @@
   }
 }
 
-/* RTL Support - Complete Fix */
+/* RTL Support - Complete Fix for both RTL and LTR */
+
+/* RTL Direction */
 html[dir="rtl"] {
   direction: rtl;
 }
 
-/* Sidebar RTL positioning */
+html[dir="ltr"] {
+  direction: ltr;
+}
+
+/* Sidebar positioning - works for both RTL and LTR */
 html[dir="rtl"] [data-sidebar][data-side="right"] {
   right: 0;
   left: auto;
@@ -93,7 +99,17 @@ html[dir="rtl"] [data-sidebar][data-side="left"] {
   right: auto;
 }
 
-/* Icons and margins RTL */
+html[dir="ltr"] [data-sidebar][data-side="left"] {
+  left: 0;
+  right: auto;
+}
+
+html[dir="ltr"] [data-sidebar][data-side="right"] {
+  right: 0;
+  left: auto;
+}
+
+/* Icons and margins - RTL */
 html[dir="rtl"] .ml-2 {
   margin-right: 0.5rem !important;
   margin-left: 0 !important;
@@ -101,6 +117,16 @@ html[dir="rtl"] .ml-2 {
 
 html[dir="rtl"] .mr-2 {
   margin-left: 0.5rem !important;
+  margin-right: 0 !important;
+}
+
+html[dir="rtl"] .ml-4 {
+  margin-right: 1rem !important;
+  margin-left: 0 !important;
+}
+
+html[dir="rtl"] .mr-4 {
+  margin-left: 1rem !important;
   margin-right: 0 !important;
 }
 
@@ -114,12 +140,18 @@ html[dir="rtl"] .mr-auto {
   margin-right: 0 !important;
 }
 
-/* Chevron/Arrow icons RTL */
-html[dir="rtl"] svg {
+/* Icons flip in RTL */
+html[dir="rtl"] .lucide {
   transform: scaleX(-1);
 }
 
-html[dir="rtl"] [data-sidebar] svg {
+/* Don't flip these specific icons */
+html[dir="rtl"] .lucide-building-2,
+html[dir="rtl"] .lucide-user,
+html[dir="rtl"] .lucide-settings,
+html[dir="rtl"] .lucide-calendar,
+html[dir="rtl"] .lucide-sun,
+html[dir="rtl"] .lucide-moon {
   transform: none;
 }
 
