@@ -18,3 +18,4 @@ export const updateMenuSchema = z.object({
 
 export type CreateMenuInput = z.infer<typeof createMenuSchema>;
 export type UpdateMenuInput = z.infer<typeof updateMenuSchema>;
+

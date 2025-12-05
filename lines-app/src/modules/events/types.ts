@@ -15,3 +15,4 @@ export type EventWithLine = LineOccurrence & {
     frequency: string;
   };
 };
+

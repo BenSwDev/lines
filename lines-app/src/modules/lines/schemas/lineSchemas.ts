@@ -26,3 +26,4 @@ export type CreateLineInput = z.infer<typeof createLineSchema>;
 export type UpdateLineInput = z.infer<typeof updateLineSchema>;
 export type OccurrenceInput = z.infer<typeof occurrenceInputSchema>;
 export type SyncOccurrencesInput = z.infer<typeof syncOccurrencesSchema>;
+

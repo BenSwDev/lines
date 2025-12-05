@@ -22,3 +22,4 @@ export async function updateVenueDetails(venueId: string, input: unknown) {
     return { success: false, error: "שגיאה בעדכון פרטי המקום" };
   }
 }
+

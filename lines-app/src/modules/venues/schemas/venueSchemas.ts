@@ -14,3 +14,4 @@ export const updateVenueSchema = z.object({
 
 export type CreateVenueInput = z.infer<typeof createVenueSchema>;
 export type UpdateVenueInput = z.infer<typeof updateVenueSchema>;
+

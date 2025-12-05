@@ -11,3 +11,4 @@ export async function getVenueDetails(venueId: string) {
     return { success: false, error: "שגיאה בטעינת פרטי המקום" };
   }
 }
+

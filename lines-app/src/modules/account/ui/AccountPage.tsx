@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/core/i18n/provider";
 import type { User as UserType } from "@prisma/client";
 
 type AccountPageProps = {
@@ -15,11 +16,12 @@ type AccountPageProps = {
 
 export function AccountPage({ user }: AccountPageProps) {
   const { toast } = useToast();
+  const { t, locale } = useTranslations();
 
   const handlePasswordChange = async () => {
     toast({
-      title: "פונקציונליות זו תזמין בקרוב",
-      description: "שינוי סיסמה יהיה זמין בגרסה הבאה",
+      title: t("account.updatePasswordComingSoon"),
+      description: t("account.updatePasswordComingSoon"),
     });
   };
 
@@ -33,8 +35,8 @@ export function AccountPage({ user }: AccountPageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">החשבון שלי</h1>
-        <p className="text-muted-foreground">נהל את הגדרות החשבון שלך</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("account.title")}</h1>
+        <p className="text-muted-foreground">{t("account.subtitle")}</p>
       </div>
 
       {/* Account Info Card */}
@@ -42,7 +44,7 @@ export function AccountPage({ user }: AccountPageProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            מידע על החשבון
+            {t("account.accountInfo")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -58,14 +60,14 @@ export function AccountPage({ user }: AccountPageProps) {
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">תפקיד</p>
-              <p className="text-base">{user.role === "admin" ? "מנהל" : "משתמש"}</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("profile.role")}</p>
+              <p className="text-base">{user.role === "admin" ? t("profile.roleAdmin") : t("profile.roleUser")}</p>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">תאריך הצטרפות</p>
+              <p className="text-sm font-medium text-muted-foreground">{t("profile.joinedDate")}</p>
               <p className="text-base">
-                {new Date(user.createdAt).toLocaleDateString("he-IL", {
+                {new Date(user.createdAt).toLocaleDateString(locale === "he" ? "he-IL" : "en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -81,12 +83,12 @@ export function AccountPage({ user }: AccountPageProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />
-            אבטחה
+            {t("account.security")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="current-password">סיסמה נוכחית</Label>
+            <Label htmlFor="current-password">{t("account.currentPassword")}</Label>
             <Input
               id="current-password"
               type="password"
@@ -96,7 +98,7 @@ export function AccountPage({ user }: AccountPageProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-password">סיסמה חדשה</Label>
+            <Label htmlFor="new-password">{t("account.newPassword")}</Label>
             <Input
               id="new-password"
               type="password"
@@ -106,7 +108,7 @@ export function AccountPage({ user }: AccountPageProps) {
           </div>
 
           <Button onClick={handlePasswordChange} disabled>
-            עדכן סיסמה (בקרוב)
+            {t("account.updatePassword")} ({t("common.loading")})
           </Button>
         </CardContent>
       </Card>

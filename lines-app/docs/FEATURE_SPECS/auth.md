@@ -97,3 +97,4 @@ All venue operations now require authenticated user:
 ---
 
 **Last Updated:** 2025-12-05
+

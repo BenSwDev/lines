@@ -12,3 +12,4 @@ export const calendarQuerySchema = z.object({
 
 export type CalendarView = z.infer<typeof calendarViewSchema>;
 export type CalendarQuery = z.infer<typeof calendarQuerySchema>;
+

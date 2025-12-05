@@ -27,3 +27,4 @@ export async function createZone(venueId: string, input: unknown) {
     return { success: false, error: "שגיאה ביצירת האזור" };
   }
 }
+

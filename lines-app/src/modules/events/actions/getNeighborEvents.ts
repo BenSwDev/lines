@@ -11,3 +11,4 @@ export async function getNeighborEvents(lineId: string, currentDate: string) {
     return { success: false, error: "שגיאה בטעינת אירועים סמוכים" };
   }
 }
+

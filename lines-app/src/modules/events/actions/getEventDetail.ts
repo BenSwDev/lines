@@ -16,3 +16,4 @@ export async function getEventDetail(occurrenceId: string) {
     return { success: false, error: "שגיאה בטעינת פרטי האירוע" };
   }
 }
+

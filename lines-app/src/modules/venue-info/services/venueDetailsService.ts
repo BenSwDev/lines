@@ -18,3 +18,4 @@ export class VenueDetailsService {
 }
 
 export const venueDetailsService = new VenueDetailsService();
+

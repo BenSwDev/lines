@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { getCurrentUser } from "@/core/auth/session";
 import { listVenues } from "@/modules/venues/actions/listVenues";
 
-export default async function DashboardProfile() {
+export default async function ProfileRoute() {
   const session = await auth();
 
   if (!session?.user?.email) {

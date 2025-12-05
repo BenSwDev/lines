@@ -16,3 +16,4 @@ export async function getVenue(id: string) {
     return { success: false, error: "שגיאה בטעינת המקום" };
   }
 }
+

@@ -37,3 +37,4 @@ export async function createLine(venueId: string, input: unknown) {
     return { success: false, error: "שגיאה ביצירת הליין" };
   }
 }
+

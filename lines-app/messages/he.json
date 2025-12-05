@@ -78,10 +78,49 @@
   },
   "settings": {
     "title": "הגדרות מקום",
+    "subtitle": "נהל תפריטים, אזורי ישיבה ושולחנות",
     "menus": "תפריטים",
+    "menusDescription": "העלה וניהול תפריטים ומסמכים",
     "menusComingSoon": "ניהול תפריטים יתווסף בגרסה הבאה",
     "seating": "אזורים ושולחנות",
+    "seatingDescription": "ניהול אזורי הישיבה והשולחנות",
     "seatingComingSoon": "ניהול אזורים ושולחנות יתווסף בגרסה הבאה"
+  },
+  "profile": {
+    "title": "פרופיל",
+    "subtitle": "צפה במידע האישי שלך",
+    "personalInfo": "פרטים אישיים",
+    "fullName": "שם מלא",
+    "email": "אימייל",
+    "role": "תפקיד",
+    "roleAdmin": "מנהל",
+    "roleUser": "משתמש",
+    "joinedDate": "תאריך הצטרפות"
+  },
+  "account": {
+    "title": "חשבון",
+    "subtitle": "נהל את הגדרות החשבון שלך",
+    "accountInfo": "מידע על החשבון",
+    "security": "אבטחה",
+    "currentPassword": "סיסמה נוכחית",
+    "newPassword": "סיסמה חדשה",
+    "updatePassword": "עדכן סיסמה",
+    "updatePasswordComingSoon": "שינוי סיסמה יהיה זמין בגרסה הבאה"
+  },
+  "common": {
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "עריכה",
+    "create": "יצירה",
+    "back": "חזרה",
+    "next": "הבא",
+    "previous": "הקודם",
+    "close": "סגור",
+    "open": "פתח",
+    "myAccount": "החשבון שלי",
+    "logout": "יציאה"
   },
   "errors": {
     "generic": "אירעה שגיאה לא צפויה",
@@ -90,3 +129,4 @@
     "forbidden": "גישה נדחתה"
   }
 }
+

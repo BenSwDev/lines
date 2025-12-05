@@ -78,10 +78,49 @@
   },
   "settings": {
     "title": "Venue Settings",
+    "subtitle": "Manage menus, seating areas and tables",
     "menus": "Menus",
+    "menusDescription": "Upload and manage menus and documents",
     "menusComingSoon": "Menu management will be added in the next version",
     "seating": "Zones & Tables",
+    "seatingDescription": "Manage seating areas and tables",
     "seatingComingSoon": "Seating management will be added in the next version"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "View your personal information",
+    "personalInfo": "Personal Details",
+    "fullName": "Full Name",
+    "email": "Email",
+    "role": "Role",
+    "roleAdmin": "Admin",
+    "roleUser": "User",
+    "joinedDate": "Joined Date"
+  },
+  "account": {
+    "title": "Account",
+    "subtitle": "Manage your account settings",
+    "accountInfo": "Account Information",
+    "security": "Security",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "updatePassword": "Update Password",
+    "updatePasswordComingSoon": "Password change will be available in the next version"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "myAccount": "My Account",
+    "logout": "Logout"
   },
   "errors": {
     "generic": "An unexpected error occurred",
@@ -90,3 +129,4 @@
     "forbidden": "Access denied"
   }
 }
+

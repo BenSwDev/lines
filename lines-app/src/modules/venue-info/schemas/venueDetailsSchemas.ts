@@ -8,3 +8,4 @@ export const updateVenueDetailsSchema = z.object({
 });
 
 export type UpdateVenueDetailsInput = z.infer<typeof updateVenueDetailsSchema>;
+

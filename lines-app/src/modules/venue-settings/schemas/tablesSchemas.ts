@@ -14,3 +14,4 @@ export const updateTableSchema = z.object({
 
 export type CreateTableInput = z.infer<typeof createTableSchema>;
 export type UpdateTableInput = z.infer<typeof updateTableSchema>;
+

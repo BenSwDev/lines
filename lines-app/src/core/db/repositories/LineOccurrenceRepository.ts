@@ -100,3 +100,4 @@ export class LineOccurrenceRepository {
 }
 
 export const lineOccurrenceRepository = new LineOccurrenceRepository();
+

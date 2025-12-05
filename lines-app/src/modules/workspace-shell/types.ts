@@ -6,3 +6,4 @@ export type WorkspaceLayoutProps = {
   venue: Venue;
   children: React.ReactNode;
 };
+

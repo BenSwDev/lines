@@ -15,3 +15,4 @@ export const updateZoneSchema = z.object({
 
 export type CreateZoneInput = z.infer<typeof createZoneSchema>;
 export type UpdateZoneInput = z.infer<typeof updateZoneSchema>;
+

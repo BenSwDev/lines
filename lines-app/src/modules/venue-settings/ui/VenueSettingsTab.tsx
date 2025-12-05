@@ -1,68 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { MenusSection } from "@/modules/menus";
-import { ZonesSection } from "@/modules/zones";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, MapPin } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, MapPin, ArrowRight } from "lucide-react";
+import { useTranslations } from "@/core/i18n/provider";
 
 export function VenueSettingsTab() {
   const params = useParams();
+  const router = useRouter();
+  const { t } = useTranslations();
   const venueId = params.venueId as string;
-
-  const [menus, setMenus] = useState<unknown[]>([]);
-  const [zones, setZones] = useState<unknown[]>([]);
-
-  const loadData = () => {
-    // TODO: Load actual data
-    setMenus([]);
-    setZones([]);
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [venueId]);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">הגדרות המקום</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t("settings.title")}</h1>
         <p className="text-muted-foreground">
-          נהל תפריטים, אזורי ישיבה ושולחנות
+          {t("settings.subtitle")}
         </p>
       </div>
 
-      <Tabs defaultValue="menus" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="menus" className="gap-2">
-            <FileText className="h-4 w-4" />
-            תפריטים
-          </TabsTrigger>
-          <TabsTrigger value="zones" className="gap-2">
-            <MapPin className="h-4 w-4" />
-            אזורים ושולחנות
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="cursor-pointer transition-colors hover:bg-accent" onClick={() => router.push(`/venues/${venueId}/settings/menus`)}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              {t("settings.menus")}
+            </CardTitle>
+            <CardDescription>
+              {t("settings.menusDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="ghost" className="w-full justify-between">
+              {t("common.open")}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="menus" className="mt-6">
-          <MenusSection
-            venueId={venueId}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            menus={menus as any}
-            onRefresh={loadData}
-          />
-        </TabsContent>
-
-        <TabsContent value="zones" className="mt-6">
-          <ZonesSection
-            venueId={venueId}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            zones={zones as any}
-            onRefresh={loadData}
-          />
-        </TabsContent>
-      </Tabs>
+        <Card className="cursor-pointer transition-colors hover:bg-accent" onClick={() => router.push(`/venues/${venueId}/settings/zones`)}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              {t("settings.seating")}
+            </CardTitle>
+            <CardDescription>
+              {t("settings.seatingDescription")}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="ghost" className="w-full justify-between">
+              {t("common.open")}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -7,3 +7,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   ...authConfig
 });
+

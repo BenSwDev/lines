@@ -56,7 +56,7 @@ type DashboardLayoutProps = {
 export function DashboardLayout({ children, user, venues, currentVenue }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { dir } = useTranslations();
+  const { dir, t } = useTranslations();
   const sidebarSide = dir === "rtl" ? "right" : "left";
 
   return (
@@ -214,21 +214,21 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rtl:text-right">
-                <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
+                <DropdownMenuItem onClick={() => router.push("/profile")}>
                   <User className="ml-2 h-4 w-4" />
-                  פרופיל
+                  {t("profile.title")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/dashboard/account")}>
+                <DropdownMenuItem onClick={() => router.push("/account")}>
                   <Settings className="ml-2 h-4 w-4" />
-                  חשבון
+                  {t("account.title")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/api/auth/signout">
                     <LogOut className="ml-2 h-4 w-4" />
-                    יציאה
+                    {t("common.logout")}
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

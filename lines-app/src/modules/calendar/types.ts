@@ -11,3 +11,4 @@ export type CalendarBounds = {
   minHour: number;
   maxHour: number;
 };
+
