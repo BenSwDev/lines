@@ -58,26 +58,35 @@ export function EventDetailPage({
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={handleBack}>
-          <ArrowLeft className="ml-2 h-4 w-4" />
+        <Button variant="outline" onClick={handleBack} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
           חזרה {backContext === "calendar" ? "ללוח שנה" : "לליינים"}
         </Button>
-        <Badge variant="outline">
+        <Badge className="bg-gradient-to-r from-primary to-primary/80 text-white border-0 shadow-sm">
           אירוע {currentIndex + 1} מתוך {totalOccurrences}
         </Badge>
       </div>
 
       {/* Line Context */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div
-              className="h-12 w-12 rounded-lg border-2"
-              style={{ backgroundColor: line.color }}
-            />
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+        {/* Decorative glow */}
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+        <CardHeader className="relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div
+                className="absolute inset-0 rounded-xl blur-md opacity-50"
+                style={{ backgroundColor: line.color }}
+              />
+              <div
+                className="relative h-14 w-14 rounded-xl border-2 border-white/20 shadow-lg"
+                style={{ backgroundColor: line.color }}
+              />
+            </div>
             <div>
-              <CardTitle>{line.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <CardTitle className="text-2xl">{line.name}</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
                 {line.days.join(", ")} • {line.startTime}-{line.endTime} • {line.frequency}
               </p>
             </div>
@@ -86,44 +95,68 @@ export function EventDetailPage({
       </Card>
 
       {/* Event Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>{title}</span>
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+        {/* Decorative glow */}
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center justify-between text-2xl">
+            <span className="font-bold">{title}</span>
             <div className="flex gap-2">
               {occurrence.isExpected ? (
-                <Badge variant="secondary">מתוכנן</Badge>
+                <Badge className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-0 shadow-sm">
+                  מתוכנן
+                </Badge>
               ) : (
-                <Badge>ידני</Badge>
+                <Badge className="bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0 shadow-sm">
+                  ידני
+                </Badge>
               )}
               {occurrence.isActive ? (
-                <Badge className="bg-green-600">פעיל</Badge>
+                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm">
+                  פעיל
+                </Badge>
               ) : (
-                <Badge variant="destructive">בוטל</Badge>
+                <Badge variant="destructive" className="shadow-sm">
+                  בוטל
+                </Badge>
               )}
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{occurrence.date}</span>
+        <CardContent className="relative z-10 space-y-4">
+          <div className="flex items-center gap-6 rounded-lg bg-muted/30 p-4 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Calendar className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">תאריך</p>
+                <p className="font-semibold">{occurrence.date}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>
-                {occurrence.startTime} - {occurrence.endTime}
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Clock className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">שעות</p>
+                <p className="font-semibold">
+                  {occurrence.startTime} - {occurrence.endTime}
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Details Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>פרטים</CardTitle>
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+        {/* Decorative glow */}
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-xl">פרטים</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {occurrence.subtitle && (

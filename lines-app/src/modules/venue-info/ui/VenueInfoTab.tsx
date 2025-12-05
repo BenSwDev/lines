@@ -101,31 +101,41 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">{t("venueInfo.title")}</h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+          {t("venueInfo.title")}
+        </h1>
         <p className="text-muted-foreground">{t("venueInfo.subtitle")}</p>
       </div>
 
       {/* Venue Name Card (Read-only) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+        {/* Decorative glow */}
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+              <Building2 className="h-5 w-5 text-white" />
+            </div>
             {t("venueInfo.venueName")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border bg-muted px-4 py-3 text-lg font-medium">
+        <CardContent className="relative z-10">
+          <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 py-4 text-xl font-bold text-foreground shadow-sm">
             {venue.name}
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">{t("venueInfo.venueNameReadOnly")}</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("venueInfo.venueNameReadOnly")}</p>
         </CardContent>
       </Card>
 
       {/* Contact Details Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("venueInfo.contactDetails")}</CardTitle>
+      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+        {/* Decorative glow */}
+        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+        <CardHeader className="relative z-10">
+          <CardTitle className="text-xl">{t("venueInfo.contactDetails")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

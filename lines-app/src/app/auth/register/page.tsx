@@ -60,27 +60,43 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+      {/* Background gradients */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute left-1/4 top-0 h-[500px] w-[500px] rounded-full bg-blue-500/10 blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 h-[500px] w-[500px] rounded-full bg-purple-500/10 blur-[120px]" />
+      </div>
+
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <Link href="/" className="inline-block">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600">
-              <span className="text-2xl font-bold text-white">L</span>
+          <Link href="/" className="group inline-block">
+            <div className="relative mx-auto mb-6">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-600/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                <span className="text-3xl font-bold text-white">L</span>
+              </div>
             </div>
           </Link>
-          <h1 className="text-2xl font-bold">הצטרף ל-Lines</h1>
+          <h1 className="mb-2 text-3xl font-bold tracking-tight">הצטרף ל-Lines</h1>
           <p className="text-muted-foreground">צור חשבון חדש והתחל לנהל אירועים</p>
         </div>
 
         {/* Register Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
+        <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-xl">
+          {/* Decorative glow */}
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+
+          <CardHeader className="relative z-10">
+            <CardTitle className="flex items-center gap-3 text-2xl">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-600">
+                <UserPlus className="h-5 w-5 text-white" />
+              </div>
               הרשמה
             </CardTitle>
-            <CardDescription>מלא את הפרטים כדי ליצור חשבון חדש</CardDescription>
+            <CardDescription className="text-base">
+              מלא את הפרטים כדי ליצור חשבון חדש
+            </CardDescription>
           </CardHeader>
 
           <form onSubmit={handleSubmit}>

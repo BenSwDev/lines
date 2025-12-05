@@ -68,35 +68,56 @@ export function Hero({ isAuthenticated }: HeroProps) {
           </div>
 
           {/* Feature Highlights */}
-          <div className="mt-24 grid gap-8 md:grid-cols-3">
-            <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
-                <Calendar className="h-6 w-6 text-primary" />
+          <div className="mt-24 grid gap-6 md:grid-cols-3">
+            <div className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 p-8 transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20">
+              {/* Decorative glow */}
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Calendar className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="mb-3 text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                  ניהול אירועים חכם
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  צור אירועים חוזרים עם כללי תדירות גמישים - שבועי, חודשי, או מותאם אישית
+                </p>
               </div>
-              <h3 className="mb-2 text-xl font-semibold">ניהול אירועים חכם</h3>
-              <p className="text-sm text-muted-foreground">
-                צור אירועים חוזרים עם כללי תדירות גמישים - שבועי, חודשי, או מותאם אישית
-              </p>
             </div>
 
-            <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
-                <Palette className="h-6 w-6 text-primary" />
+            <div className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 p-8 transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20">
+              {/* Decorative glow */}
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-purple-500/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Palette className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="mb-3 text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                  ארגון ויזואלי
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  15 צבעים ייחודיים לכל ליין, תצוגת לוח שנה אינטואיטיבית וסינון מתקדם
+                </p>
               </div>
-              <h3 className="mb-2 text-xl font-semibold">ארגון ויזואלי</h3>
-              <p className="text-sm text-muted-foreground">
-                15 צבעים ייחודיים לכל ליין, תצוגת לוח שנה אינטואיטיבית וסינון מתקדם
-              </p>
             </div>
 
-            <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
-                <Zap className="h-6 w-6 text-primary" />
+            <div className="group relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 p-8 transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/20">
+              {/* Decorative glow */}
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-pink-500/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+              <div className="relative z-10">
+                <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-orange-600 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <Zap className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="mb-3 text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-300">
+                  ממשק מהיר
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  בנוי על Next.js 15 עם תמיכה מלאה בעברית ו-RTL, מהיר ורספונסיבי
+                </p>
               </div>
-              <h3 className="mb-2 text-xl font-semibold">ממשק מהיר</h3>
-              <p className="text-sm text-muted-foreground">
-                בנוי על Next.js 15 עם תמיכה מלאה בעברית ו-RTL, מהיר ורספונסיבי
-              </p>
             </div>
           </div>
         </div>

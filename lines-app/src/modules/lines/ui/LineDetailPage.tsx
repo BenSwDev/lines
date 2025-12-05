@@ -29,17 +29,23 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
             variant="outline"
             size="icon"
             onClick={() => router.push(`/venues/${venueId}/lines`)}
+            className="h-10 w-10"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{line.name}</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              {line.name}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
               {daysText} • {line.startTime}-{line.endTime}
             </p>
           </div>
         </div>
-        <Button onClick={() => router.push(`/venues/${venueId}/lines?edit=${line.id}`)}>
+        <Button
+          onClick={() => router.push(`/venues/${venueId}/lines?edit=${line.id}`)}
+          className="bg-gradient-to-r from-primary to-primary/90 shadow-md hover:shadow-lg"
+        >
           <Edit className="ml-2 h-4 w-4" />
           עריכה
         </Button>
@@ -47,20 +53,26 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
 
       {/* Metadata */}
       <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <p className="text-sm text-muted-foreground">אירועים</p>
+        <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+          {/* Decorative glow */}
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-xl" />
+
+          <CardHeader className="relative z-10 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">אירועים</p>
           </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{occurrences.length}</p>
+          <CardContent className="relative z-10">
+            <p className="text-3xl font-bold text-foreground">{occurrences.length}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <p className="text-sm text-muted-foreground">תדירות</p>
+        <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
+          {/* Decorative glow */}
+          <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-xl" />
+
+          <CardHeader className="relative z-10 pb-2">
+            <p className="text-sm font-medium text-muted-foreground">תדירות</p>
           </CardHeader>
-          <CardContent>
-            <p className="text-lg font-semibold">{line.frequency}</p>
+          <CardContent className="relative z-10">
+            <p className="text-xl font-bold text-foreground">{line.frequency}</p>
           </CardContent>
         </Card>
       </div>
@@ -79,25 +91,38 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
             {occurrences.map((occurrence) => (
               <Card
                 key={occurrence.id}
-                className="cursor-pointer transition-all hover:border-primary/50"
+                className="group relative cursor-pointer overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 transition-all duration-300 hover:scale-[1.01] hover:border-primary/50 hover:shadow-xl"
                 onClick={() => router.push(`/venues/${venueId}/events/${line.id}/${occurrence.id}`)}
               >
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
+                {/* Decorative glow on hover */}
+                <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+                <CardContent className="relative z-10 flex items-center justify-between p-5">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="h-12 w-12 rounded-lg border-2 border-white/20 shadow-md"
+                      style={{ backgroundColor: line.color }}
+                    />
                     <div className="flex flex-col">
-                      <span className="font-semibold">{occurrence.title || occurrence.date}</span>
+                      <span className="font-bold text-lg">
+                        {occurrence.title || occurrence.date}
+                      </span>
                       <span className="text-sm text-muted-foreground">
                         {occurrence.date} • {occurrence.startTime}-{occurrence.endTime}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {occurrence.isActive ? (
-                      <Badge variant="default">פעיל</Badge>
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm">
+                        פעיל
+                      </Badge>
                     ) : (
-                      <Badge variant="secondary">בוטל</Badge>
+                      <Badge variant="secondary" className="shadow-sm">
+                        בוטל
+                      </Badge>
                     )}
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
                   </div>
                 </CardContent>
               </Card>

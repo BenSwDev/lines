@@ -4,33 +4,55 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-gray-800 bg-gray-950 py-12">
-      <div className="container mx-auto px-6">
+    <footer className="relative border-t border-border/50 bg-gradient-to-br from-background via-background to-muted/20 py-12">
+      {/* Decorative gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
+
+      <div className="container relative mx-auto px-6">
         <div className="grid gap-8 md:grid-cols-3">
           {/* About */}
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">אודות Lines</h3>
-            <p className="text-sm text-gray-400">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">L</span>
+              </div>
+              <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                אודות Lines
+              </h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
               מערכת ניהול אירועים חוזרים מתקדמת לעסקים. בנויה עם Next.js 15, Supabase ו-Prisma.
             </p>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">קישורים מהירים</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">קישורים מהירים</h3>
+            <ul className="space-y-3">
               <li>
-                <Link href="/demo" className="transition-colors hover:text-white">
+                <Link
+                  href="/demo"
+                  className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+                >
+                  <span className="h-1 w-1 rounded-full bg-primary/0 group-hover:bg-primary transition-all duration-200" />
                   הדמיה
                 </Link>
               </li>
               <li>
-                <Link href="/auth/register" className="transition-colors hover:text-white">
+                <Link
+                  href="/auth/register"
+                  className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+                >
+                  <span className="h-1 w-1 rounded-full bg-primary/0 group-hover:bg-primary transition-all duration-200" />
                   הרשמה
                 </Link>
               </li>
               <li>
-                <Link href="/auth/login" className="transition-colors hover:text-white">
+                <Link
+                  href="/auth/login"
+                  className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+                >
+                  <span className="h-1 w-1 rounded-full bg-primary/0 group-hover:bg-primary transition-all duration-200" />
                   התחברות
                 </Link>
               </li>
@@ -38,11 +60,15 @@ export function Footer() {
           </div>
 
           {/* Contact */}
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">יצירת קשר</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">יצירת קשר</h3>
+            <ul className="space-y-3">
               <li>
-                <a href="mailto:info@lines.app" className="transition-colors hover:text-white">
+                <a
+                  href="mailto:info@lines.app"
+                  className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+                >
+                  <span className="h-1 w-1 rounded-full bg-primary/0 group-hover:bg-primary transition-all duration-200" />
                   info@lines.app
                 </a>
               </li>
@@ -51,8 +77,9 @@ export function Footer() {
                   href="https://github.com/BenSwDev/lines"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-white"
+                  className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >
+                  <span className="h-1 w-1 rounded-full bg-primary/0 group-hover:bg-primary transition-all duration-200" />
                   GitHub
                 </a>
               </li>
@@ -61,8 +88,10 @@ export function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-          <p>© {currentYear} Lines App. All rights reserved.</p>
+        <div className="mt-8 border-t border-border/50 pt-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            © {currentYear} Lines App. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
