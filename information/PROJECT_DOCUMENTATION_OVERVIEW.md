@@ -326,4 +326,11 @@ Operations	CI_CD_PIPELINE.md	Build pipeline documentation	Required
 Operations	CHANGELOG.md	Version history	Required
 Operations	.ENV.EXAMPLE	Environment variables	Required
 
+⸻
+
+🤖 AI System Specification (Cursor)
+- Canonical source: `/cursor-ai-system/setup.md`.
+- Supporting folders: `/cursor-ai-system/agents`, `/cursor-ai-system/workflows`, `/cursor-ai-system/rules`, `/cursor-ai-system/prompts`, `/cursor-ai-system/documentation-sync`.
+- Cursor does not auto-read these files; explicitly instruct it to load from `setup.md` when recreating agents/workflows/shortcuts.
+
 
