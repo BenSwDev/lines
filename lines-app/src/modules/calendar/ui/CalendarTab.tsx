@@ -84,7 +84,7 @@ export function CalendarTab() {
   return (
     <div className="space-y-6">
       {/* Toolbar */}
-      <div className="flex items-center justify-between rtl:flex-row-reverse">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold tracking-tight">לוח שנה</h1>
           <div className="flex items-center gap-2">
@@ -127,7 +127,7 @@ export function CalendarTab() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 rtl:flex-row-reverse">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { MenusSection } from "./MenusSection";
-import { ZonesSection } from "./ZonesSection";
+import { MenusSection } from "@/modules/menus";
+import { ZonesSection } from "@/modules/zones";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, MapPin } from "lucide-react";
 

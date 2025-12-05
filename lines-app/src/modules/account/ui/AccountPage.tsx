@@ -30,9 +30,9 @@ export function AccountPage({ user }: AccountPageProps) {
     .toUpperCase() || user.email[0].toUpperCase();
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
+      <div>
         <h1 className="text-3xl font-bold tracking-tight">החשבון שלי</h1>
         <p className="text-muted-foreground">נהל את הגדרות החשבון שלך</p>
       </div>
@@ -56,13 +56,13 @@ export function AccountPage({ user }: AccountPageProps) {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">תפקיד</p>
               <p className="text-base">{user.role === "admin" ? "מנהל" : "משתמש"}</p>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">תאריך הצטרפות</p>
               <p className="text-base">
                 {new Date(user.createdAt).toLocaleDateString("he-IL", {
@@ -77,7 +77,7 @@ export function AccountPage({ user }: AccountPageProps) {
       </Card>
 
       {/* Security Card */}
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" />

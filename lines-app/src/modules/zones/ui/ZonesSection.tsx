@@ -87,7 +87,7 @@ export function ZonesSection({ zones, onRefresh }: ZonesSectionProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rtl:flex-row-reverse">
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">אזורים ושולחנות</h2>
           <p className="text-sm text-muted-foreground">

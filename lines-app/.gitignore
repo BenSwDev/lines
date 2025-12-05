@@ -12,4 +12,3 @@ coverage
 pnpm-lock.yaml
 
 
-.env*.local

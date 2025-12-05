@@ -216,11 +216,11 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
               <DropdownMenuContent align="end" className="w-56 rtl:text-right">
                 <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/profile")}>
+                <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
                   <User className="ml-2 h-4 w-4" />
                   פרופיל
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/account")}>
+                <DropdownMenuItem onClick={() => router.push("/dashboard/account")}>
                   <Settings className="ml-2 h-4 w-4" />
                   חשבון
                 </DropdownMenuItem>
