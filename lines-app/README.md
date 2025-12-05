@@ -1,8 +1,9 @@
 # Lines App - Venue Management System
 
-**Version:** v1.1.0 (Production-Ready)  
-**Status:** ✅ Live in Production  
-**Production URL:** https://lines-10qilj4im-ben-swissa.vercel.app
+**Version:** v1.2.0 (Production-Ready + Live Database)  
+**Status:** ✅ Live in Production with Supabase  
+**Production URL:** https://lines-app.vercel.app  
+**Database:** Supabase PostgreSQL (11 tables, seed data)
 
 ---
 
