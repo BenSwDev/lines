@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { List, Clock, Palette } from "lucide-react";
 import { createLine } from "../actions/createLine";
+import { updateLine } from "../actions/updateLine";
 import { useToast } from "@/hooks/use-toast";
 import { COLOR_PALETTE } from "@/core/config/constants";
 import type { Line } from "@prisma/client";
@@ -76,7 +77,7 @@ export function CreateLineDialog({
   const [manualDate, setManualDate] = useState("");
   const [manualDates, setManualDates] = useState<string[]>([]);
 
-  // Load existing line data
+  // Load existing line data or reset form
   useEffect(() => {
     if (existingLine) {
       setName(existingLine.name || "");
@@ -85,8 +86,23 @@ export function CreateLineDialog({
       setEndTime(existingLine.endTime || "22:00");
       setFrequency(existingLine.frequency || "weekly");
       setColor(existingLine.color || COLOR_PALETTE[0]);
+    } else if (!isOpen) {
+      // Reset form when dialog closes and no existing line
+      setName("");
+      setDays([]);
+      setStartTime("18:00");
+      setEndTime("22:00");
+      setFrequency("weekly");
+      setColor(COLOR_PALETTE[0]);
+      setError("");
+      setShowSuggestions(false);
+      setSuggestedDates([]);
+      setSelectedDates(new Set());
+      setShowManualDates(false);
+      setManualDate("");
+      setManualDates([]);
     }
-  }, [existingLine]);
+  }, [existingLine, isOpen]);
 
   const toggleDay = (dayValue: number) => {
     setDays((prev) => {
@@ -198,24 +214,47 @@ export function CreateLineDialog({
     setIsSubmitting(true);
 
     try {
-      const result = await createLine(venueId, {
-        name: name.trim(),
-        days,
-        startTime,
-        endTime,
-        frequency,
-        color,
-      });
+      // Prepare occurrence data
+      const selectedDatesArray = Array.from(selectedDates);
+      const allManualDates = manualDates.filter((date) => !selectedDates.has(date)); // Exclude duplicates
+
+      // Use updateLine if editing, createLine if creating
+      const result = existingLine
+        ? await updateLine(venueId, existingLine.id, {
+            name: name.trim(),
+            days,
+            startTime,
+            endTime,
+            frequency,
+            color,
+            selectedDates: selectedDatesArray.length > 0 ? selectedDatesArray : undefined,
+            manualDates: allManualDates.length > 0 ? allManualDates : undefined,
+          })
+        : await createLine(venueId, {
+            name: name.trim(),
+            days,
+            startTime,
+            endTime,
+            frequency,
+            color,
+            selectedDates: selectedDatesArray.length > 0 ? selectedDatesArray : undefined,
+            manualDates: allManualDates.length > 0 ? allManualDates : undefined,
+          });
 
       if (result.success) {
         toast({
           title: "הצלחה!",
-          description: `הליין "${name}" נוצר בהצלחה`,
+          description: existingLine
+            ? `הליין "${name}" עודכן בהצלחה`
+            : `הליין "${name}" נוצר בהצלחה`,
         });
         handleClose();
         onSuccess();
       } else {
-        setError(result.error || "שגיאה ביצירת הליין");
+        setError(
+          result.error ||
+            (existingLine ? "שגיאה בעדכון הליין" : "שגיאה ביצירת הליין")
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "שגיאה לא צפויה");
@@ -233,6 +272,12 @@ export function CreateLineDialog({
       setFrequency("weekly");
       setColor(COLOR_PALETTE[0]);
       setError("");
+      setShowSuggestions(false);
+      setSuggestedDates([]);
+      setSelectedDates(new Set());
+      setShowManualDates(false);
+      setManualDate("");
+      setManualDates([]);
       onClose();
     }
   };

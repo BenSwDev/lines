@@ -1,14 +1,28 @@
-import { lineOccurrenceRepository } from "@/core/db";
+import { lineOccurrenceRepository, lineRepository } from "@/core/db";
 import { isOvernightShift } from "@/core/validation";
 
 export class CalendarService {
   async getVenueCalendarData(venueId: string) {
+    // Load occurrences with line relationships
     const occurrences = await lineOccurrenceRepository.findByVenueId(venueId);
+    
+    // Load all lines for the legend
+    const lines = await lineRepository.findByVenueId(venueId);
 
-    return occurrences.map((occ) => ({
+    // Map occurrences with overnight flag
+    const mappedOccurrences = occurrences.map((occ) => ({
       ...occ,
       isOvernight: isOvernightShift(occ.startTime, occ.endTime)
     }));
+
+    return {
+      occurrences: mappedOccurrences,
+      lines: lines.map((line) => ({
+        id: line.id,
+        name: line.name,
+        color: line.color
+      }))
+    };
   }
 
   /**

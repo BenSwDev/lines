@@ -1,24 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { LineCard } from "./LineCard";
 import { CreateLineDialog } from "./CreateLineDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, List } from "lucide-react";
 import { listLines } from "../actions/listLines";
+import { getLine } from "../actions/getLine";
 import { useToast } from "@/hooks/use-toast";
 import type { Line } from "@prisma/client";
 
 export function LinesTab() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const venueId = params.venueId as string;
 
   const [lines, setLines] = useState<Line[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingLine, setEditingLine] = useState<Line | null>(null);
 
   const loadLines = async () => {
     setIsLoading(true);
@@ -41,6 +44,17 @@ export function LinesTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId]);
 
+  // Handle edit query parameter
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (editId) {
+      handleEditLine(editId);
+      // Remove query param from URL
+      router.replace(`/venues/${venueId}/lines`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleViewLine = (lineId: string) => {
     router.push(`/venues/${venueId}/lines/${lineId}`);
   };
@@ -48,6 +62,20 @@ export function LinesTab() {
   const handleViewEvents = (lineId: string) => {
     // Navigate to first event of this line
     router.push(`/venues/${venueId}/lines/${lineId}#events`);
+  };
+
+  const handleEditLine = async (lineId: string) => {
+    const result = await getLine(venueId, lineId);
+    if (result.success && result.data) {
+      setEditingLine(result.data);
+      setIsCreateOpen(true);
+    } else {
+      toast({
+        title: "שגיאה",
+        description: result.error || "שגיאה בטעינת הליין",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {
@@ -125,7 +153,7 @@ export function LinesTab() {
             <LineCard
               key={line.id}
               line={line}
-              onEdit={() => setIsCreateOpen(true)} // TODO: Edit with data
+              onEdit={() => handleEditLine(line.id)}
               onViewEvents={() => handleViewEvents(line.id)}
               onViewLine={() => handleViewLine(line.id)}
             />
@@ -133,12 +161,19 @@ export function LinesTab() {
         </div>
       )}
 
-      {/* Create Dialog */}
+      {/* Create/Edit Dialog */}
       <CreateLineDialog
         isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        onClose={() => {
+          setIsCreateOpen(false);
+          setEditingLine(null);
+        }}
         venueId={venueId}
-        onSuccess={loadLines}
+        onSuccess={() => {
+          loadLines();
+          setEditingLine(null);
+        }}
+        existingLine={editingLine}
       />
     </div>
   );

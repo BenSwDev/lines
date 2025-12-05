@@ -7,7 +7,10 @@ export const createLineSchema = z.object({
   startTime: timeSchema,
   endTime: timeSchema,
   frequency: frequencySchema,
-  color: colorSchema
+  color: colorSchema,
+  // Optional occurrence data for initial creation
+  selectedDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
+  manualDates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional(),
 });
 
 export const updateLineSchema = createLineSchema.partial();
