@@ -7,7 +7,7 @@ import { CreateVenueDialog } from "./CreateVenueDialog";
 import { listVenues } from "../actions/listVenues";
 import { createVenue } from "../actions/createVenue";
 import { deleteVenue } from "../actions/deleteVenue";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/Button";
 import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
 import type { Venue } from "@prisma/client";
@@ -78,7 +78,7 @@ export function VenuesHomePage() {
               <h1 className="text-3xl font-bold">המקומות שלי</h1>
               <p className="mt-1 text-sm text-gray-400">נהל את כל המקומות העסקיים שלך במקום אחד</p>
             </div>
-            <Button variant="default" size="lg" onClick={() => setIsCreateOpen(true)}>
+            <Button variant="primary" size="lg" onClick={() => setIsCreateOpen(true)}>
               + צור מקום חדש
             </Button>
           </div>
@@ -106,7 +106,7 @@ export function VenuesHomePage() {
               <div className="mb-4 text-6xl">🏢</div>
               <h2 className="mb-2 text-2xl font-semibold">אין מקומות עדיין</h2>
               <p className="mb-6 text-gray-400">התחל על ידי יצירת המקום העסקי הראשון שלך</p>
-              <Button variant="default" size="lg" onClick={() => setIsCreateOpen(true)}>
+              <Button variant="primary" size="lg" onClick={() => setIsCreateOpen(true)}>
                 + צור מקום ראשון
               </Button>
             </div>

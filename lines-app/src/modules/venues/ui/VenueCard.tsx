@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/Card";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui";
 import { formatDate } from "@/utils/date";
 import type { Venue } from "@prisma/client";
 
@@ -40,11 +40,11 @@ export function VenueCard({ venue, onSelect, onDelete }: VenueCardProps) {
 
       <div className="border-t border-gray-800 px-6 pb-4">
         <div className="flex gap-2 pt-3">
-          <Button variant="default" size="sm" onClick={onSelect} className="flex-1">
+          <Button variant="primary" size="sm" onClick={onSelect} className="flex-1">
             כניסה למקום →
           </Button>
           <Button
-            variant={showDeleteConfirm ? "destructive" : "secondary"}
+            variant={showDeleteConfirm ? "danger" : "secondary"}
             size="sm"
             onClick={handleDelete}
             onBlur={() => setShowDeleteConfirm(false)}

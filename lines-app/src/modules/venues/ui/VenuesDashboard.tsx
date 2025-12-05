@@ -8,13 +8,11 @@ import { listVenues } from "../actions/listVenues";
 import { createVenue } from "../actions/createVenue";
 import { deleteVenue } from "../actions/deleteVenue";
 import { Button } from "@/components/ui/button";
-import { Plus, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import type { Venue } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
-import { PageHeader } from "@/shared/layout/PageHeader";
-import { StatCard } from "@/shared/patterns/StatCard";
 
 export function VenuesDashboard() {
   const router = useRouter();
@@ -105,25 +103,28 @@ export function VenuesDashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader
-        title={t("venues.title")}
-        description={t("venues.subtitle")}
-        action={
-          <Button onClick={() => setIsCreateOpen(true)} size="lg">
-            <Plus className="ml-2 h-5 w-5" />
-            {t("venues.createVenue")}
-          </Button>
-        }
-      />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">המקומות שלי</h1>
+          <p className="text-muted-foreground">נהל את כל המקומות העסקיים שלך במקום אחד</p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} size="lg">
+          <Plus className="ml-2 h-5 w-5" />
+          צור מקום חדש
+        </Button>
+      </div>
 
       {/* Stats */}
       {venues.length > 0 && (
         <div className="flex gap-4">
-          <StatCard
-            icon={Building2}
-            value={venues.length}
-            label={venues.length === 1 ? t("venues.venue") : t("venues.venues")}
-          />
+          <div className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold">{venues.length}</div>
+              <div className="text-sm text-muted-foreground">
+                {venues.length === 1 ? "מקום" : "מקומות"}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, List } from "lucide-react";
-import { PageHeader } from "@/shared/layout/PageHeader";
-import { StatCard } from "@/shared/patterns/StatCard";
 import { listLines } from "../actions/listLines";
 import { getLine } from "../actions/getLine";
 import { useToast } from "@/hooks/use-toast";
@@ -109,25 +107,31 @@ export function LinesTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <PageHeader
-        title={t("lines.title")}
-        description={t("lines.subtitle")}
-        action={
-          <Button onClick={() => setIsCreateOpen(true)} size="lg">
-            <Plus className="ml-2 h-5 w-5" />
-            {t("lines.newLine")}
-          </Button>
-        }
-      />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">ליינים</h1>
+          <p className="text-muted-foreground">נהל אירועים חוזרים עם לוחות זמנים וצבעים</p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)} size="lg">
+          <Plus className="ml-2 h-5 w-5" />
+          צור ליין חדש
+        </Button>
+      </div>
 
       {/* Stats */}
       {lines.length > 0 && (
         <div className="flex gap-4">
-          <StatCard
-            icon={List}
-            value={lines.length}
-            label={lines.length === 1 ? t("lines.line") : t("lines.lines")}
-          />
+          <div className="rounded-lg border bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <List className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <div className="text-2xl font-bold">{lines.length}</div>
+                <div className="text-xs text-muted-foreground">
+                  {lines.length === 1 ? "ליין" : "ליינים"}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

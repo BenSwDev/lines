@@ -25,7 +25,6 @@ import { getCalendarData } from "../actions/getCalendarData";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
 import { CalendarGrid } from "./CalendarGrid";
-import { PageHeader } from "@/shared/layout/PageHeader";
 import {
   toISODate,
   getTodayISODate,
@@ -217,10 +216,10 @@ export function CalendarTab() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <PageHeader
-        title={t("calendar.title")}
-        action={
+      {/* Toolbar */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold tracking-tight">לוח שנה</h1>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -246,31 +245,35 @@ export function CalendarTab() {
             <Button variant="outline" onClick={goToToday} className="text-sm">
               היום
             </Button>
-            {view !== "month" && (
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCompressed(!compressed)}
-                title={compressed ? "הרחב שעות" : "כווץ שעות ריקות"}
-                aria-label={compressed ? "הרחב שעות" : "כווץ שעות ריקות"}
-              >
-                {compressed ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-              </Button>
-            )}
-            <Select value={view} onValueChange={(v) => changeView(v as CalendarView)}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="day">יום</SelectItem>
-                <SelectItem value="week">שבוע</SelectItem>
-                <SelectItem value="month">חודש</SelectItem>
-                <SelectItem value="list">רשימה</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
-        }
-      />
+        </div>
+
+        <div className="flex items-center gap-2">
+          {view !== "month" && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setCompressed(!compressed)}
+              title={compressed ? "הרחב שעות" : "כווץ שעות ריקות"}
+              aria-label={compressed ? "הרחב שעות" : "כווץ שעות ריקות"}
+            >
+              {compressed ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+            </Button>
+          )}
+
+          <Select value={view} onValueChange={(v) => changeView(v as CalendarView)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="day">יום</SelectItem>
+              <SelectItem value="week">שבוע</SelectItem>
+              <SelectItem value="month">חודש</SelectItem>
+              <SelectItem value="list">רשימה</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Calendar Grid */}
       {data && (

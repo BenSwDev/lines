@@ -27,10 +27,10 @@ export function Hero({ isAuthenticated }: HeroProps) {
           </Badge>
 
           {/* Main Heading */}
-          <h1 className="mb-4 text-5xl font-extrabold leading-[1.1] tracking-tight md:text-6xl lg:text-7xl xl:text-8xl">
+          <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
             ניהול אירועים חוזרים
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               בצורה פשוטה וחכמה
             </span>
           </h1>
@@ -69,7 +69,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
 
           {/* Feature Highlights */}
           <div className="mt-24 grid gap-8 md:grid-cols-3">
-            <div className="group rounded-xl border bg-card p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+            <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
                 <Calendar className="h-6 w-6 text-primary" />
               </div>
@@ -79,7 +79,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
               </p>
             </div>
 
-            <div className="group rounded-xl border bg-card p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+            <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
                 <Palette className="h-6 w-6 text-primary" />
               </div>
@@ -89,7 +89,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
               </p>
             </div>
 
-            <div className="group rounded-xl border bg-card p-6 transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1">
+            <div className="group rounded-xl border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10">
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-transform group-hover:scale-110">
                 <Zap className="h-6 w-6 text-primary" />
               </div>

@@ -33,13 +33,9 @@ export function VenueCardModern({ venue, onSelect, onDelete }: VenueCardModernPr
   };
 
   return (
-    <Card
-      interactive
-      className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5"
-      onClick={onSelect}
-    >
+    <Card className="group relative overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/10">
       {/* Gradient background on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
 
       <CardHeader className="relative">
         <div className="flex items-start justify-between">
