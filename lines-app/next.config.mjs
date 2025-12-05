@@ -1,15 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    appDir: true
-  },
-  i18n: {
-    locales: ["he"],
-    defaultLocale: "he"
-  }
+  // RTL handled via HTML dir attribute in layout
+  // i18n not needed for App Router
 };
 
 export default nextConfig;
-
 
