@@ -1,0 +1,92 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginError": "Invalid email or password",
+    "registerSuccess": "Registration successful"
+  },
+  "venues": {
+    "title": "My Venues",
+    "subtitle": "Manage all your venues in one place",
+    "createVenue": "New Venue",
+    "enterVenue": "Enter Venue",
+    "deleteVenue": "Delete",
+    "emptyTitle": "No venues yet",
+    "emptyDescription": "Start managing your venues by creating the first one",
+    "createFirst": "Create First Venue",
+    "createDialogTitle": "Create New Venue",
+    "venueName": "Venue Name",
+    "venueNamePlaceholder": "Enter venue name...",
+    "venueNameRequired": "Venue name is required",
+    "deleteDialogTitle": "Delete Venue",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
+    "deleteWarning": "All related data will be permanently deleted (lines, events, menus, zones, and tables).",
+    "deleteButton": "Delete Permanently",
+    "deleting": "Deleting...",
+    "creating": "Creating...",
+    "createdAt": "Created on"
+  },
+  "venueInfo": {
+    "title": "Venue Info",
+    "phone": "Phone",
+    "phonePlaceholder": "Enter phone number...",
+    "email": "Email",
+    "emailPlaceholder": "Enter email address...",
+    "address": "Address",
+    "addressPlaceholder": "Street, number, city...",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "saved": "✓ Saved"
+  },
+  "workspace": {
+    "backToHome": "Back to Home",
+    "info": "Venue Info",
+    "settings": "Venue Settings",
+    "lines": "Lines",
+    "calendar": "Calendar"
+  },
+  "lines": {
+    "title": "Lines",
+    "subtitle": "Manage all your lines and events",
+    "newLine": "+ New Line",
+    "comingSoon": "Line management will be added in the next version",
+    "backendReady": "Full backend ready, UI in progress"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "comingSoon": "Interactive calendar will be added in the next version",
+    "serviceReady": "Backend + Calendar service ready"
+  },
+  "settings": {
+    "title": "Venue Settings",
+    "menus": "Menus",
+    "menusComingSoon": "Menu management will be added in the next version",
+    "seating": "Zones & Tables",
+    "seatingComingSoon": "Seating management will be added in the next version"
+  },
+  "errors": {
+    "generic": "An unexpected error occurred",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access denied"
+  }
+}

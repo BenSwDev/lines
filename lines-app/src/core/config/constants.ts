@@ -23,7 +23,7 @@ export const LINE_COLOR_PALETTE = [
   "#00B894", // Green
   "#E17055", // Coral
   "#B2BEC3", // Gray
-  "#55EFC4", // Mint
+  "#55EFC4" // Mint
 ] as const;
 
 // Time format constants
@@ -34,22 +34,14 @@ export const DATE_FORMAT = "YYYY-MM-DD";
 export const DEFAULT_SUGGESTION_MONTHS = 6;
 
 // Weekday indices (Hebrew)
-export const WEEKDAY_NAMES_HE = [
-  "ראשון",
-  "שני",
-  "שלישי",
-  "רביעי",
-  "חמישי",
-  "שישי",
-  "שבת",
-] as const;
+export const WEEKDAY_NAMES_HE = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"] as const;
 
 // Frequency types (Hebrew labels)
 export const FREQUENCY_LABELS_HE = {
   weekly: "שבועי",
   monthly: "חודשי",
   variable: "משתנה",
-  oneTime: "חד-פעמי",
+  oneTime: "חד-פעמי"
 } as const;
 
 // Event status labels (Hebrew)
@@ -57,6 +49,5 @@ export const EVENT_STATUS_LABELS_HE = {
   cancelled: "בוטל",
   ended: "הסתיים",
   current: "מתקיים כעת",
-  upcoming: "עתידי",
+  upcoming: "עתידי"
 } as const;
-

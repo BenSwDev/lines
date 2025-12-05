@@ -5,4 +5,3 @@ export default async function LinesPage({ params }: { params: Promise<{ venueId:
   const { venueId } = await params;
   return <LinesTab venueId={venueId} />;
 }
-

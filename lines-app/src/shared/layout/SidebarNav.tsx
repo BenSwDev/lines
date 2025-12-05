@@ -30,16 +30,14 @@ export function SidebarNav({ items, title, onNavigate }: SidebarNavProps) {
 
       {items.map((item) => {
         const active = isActive(item.href);
-        
+
         return (
           <Link
             key={item.id}
             href={item.href}
             onClick={() => onNavigate?.(item)}
             className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-              active
-                ? "bg-blue-600 text-white"
-                : "text-gray-300 hover:bg-gray-800 hover:text-white"
+              active ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-800 hover:text-white"
             }`}
           >
             {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
@@ -50,4 +48,3 @@ export function SidebarNav({ items, title, onNavigate }: SidebarNavProps) {
     </nav>
   );
 }
-

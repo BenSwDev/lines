@@ -18,4 +18,3 @@ Must be kept up to date as described in `information/PROJECT_DOCUMENTATION_OVERV
 ## Phase 1 – Core Domain (MVP)
 
 - Implement Venues, Venue Settings, Lines, Events, and Calendar flows according to `lines-mvp-information-v1.md`.
-

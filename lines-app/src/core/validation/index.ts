@@ -11,29 +11,26 @@ export const emailSchema = z.string().email("כתובת אימייל לא תקי
 export const phoneSchema = z.string().min(9, "מספר טלפון חייב להכיל לפחות 9 ספרות");
 
 // Time validation (HH:MM format, 00:00-23:59 or 24:00)
-export const timeSchema = z.string().regex(
-  /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$|^24:00$/,
-  "פורמט שעה לא תקין (נדרש HH:MM)"
-);
+export const timeSchema = z
+  .string()
+  .regex(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$|^24:00$/, "פורמט שעה לא תקין (נדרש HH:MM)");
 
 // Date validation (YYYY-MM-DD)
-export const dateSchema = z.string().regex(
-  /^\d{4}-\d{2}-\d{2}$/,
-  "פורמט תאריך לא תקין (נדרש YYYY-MM-DD)"
-);
+export const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "פורמט תאריך לא תקין (נדרש YYYY-MM-DD)");
 
 // Color validation (hex format)
-export const colorSchema = z.string().regex(
-  /^#[0-9A-Fa-f]{6}$/,
-  "צבע חייב להיות בפורמט hex (#RRGGBB)"
-);
+export const colorSchema = z
+  .string()
+  .regex(/^#[0-9A-Fa-f]{6}$/, "צבע חייב להיות בפורמט hex (#RRGGBB)");
 
 // Weekday validation (0-6, Sunday to Saturday)
 export const weekdaySchema = z.number().int().min(0).max(6);
 
 // Frequency validation
 export const frequencySchema = z.enum(["weekly", "monthly", "variable", "oneTime"], {
-  errorMap: () => ({ message: "תדירות לא חוקית" }),
+  errorMap: () => ({ message: "תדירות לא חוקית" })
 });
 
 /**
@@ -56,11 +53,13 @@ export function isOvernightShift(startTime: string, endTime: string): boolean {
   try {
     const start = parseTime(startTime);
     const end = parseTime(endTime);
-    
+
     // If end is 24:00 or earlier than start, it's overnight
-    return endTime === "24:00" || 
-           end.hours < start.hours || 
-           (end.hours === start.hours && end.minutes <= start.minutes);
+    return (
+      endTime === "24:00" ||
+      end.hours < start.hours ||
+      (end.hours === start.hours && end.minutes <= start.minutes)
+    );
   } catch {
     return false;
   }
@@ -86,4 +85,3 @@ export function validateSafe<T>(
   }
   return { success: false, errors: result.error };
 }
-

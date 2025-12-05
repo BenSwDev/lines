@@ -30,4 +30,3 @@ export function VenueSettingsTab({ venueId }: VenueSettingsTabProps) {
     </div>
   );
 }
-

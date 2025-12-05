@@ -33,5 +33,3 @@ Run from the `lines-app` directory:
 ### Current Production URL
 
 - `https://lines-10qilj4im-ben-swissa.vercel.app`
-
-

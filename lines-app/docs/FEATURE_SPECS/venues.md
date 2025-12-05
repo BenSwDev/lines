@@ -28,11 +28,13 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ### Venues Home Page (`/`)
 
 **Layout:**
+
 - Page title: "המקומות שלי" (My Venues)
 - Grid of venue cards (responsive: 1 col mobile, 2-3 cols desktop)
 - "Create Venue" button (primary action)
 
 **Empty State:**
+
 - Shown when no venues exist
 - Message: "עדיין לא יצרת מקומות"
 - Prominent CTA: "צור מקום ראשון"
@@ -40,34 +42,41 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ### Venue Card
 
 **Content:**
+
 - Venue name (heading)
 - Creation date (formatted Hebrew date)
 - Placeholder for team info (future feature)
 
 **Actions:**
+
 - "כניסה למקום" (Enter Workspace) - primary button
 - "מחיקה" (Delete) - danger button with confirmation
 
 ### Create Venue Dialog
 
 **Fields:**
+
 - Name (required, text input)
 
 **Actions:**
+
 - Save (validates name is not empty)
 - Cancel
 
 **Behavior:**
+
 - On save: venue created, dialog closes, list refreshes
 - Validation error shown inline if name empty
 
 ### Delete Venue Confirmation
 
 **Content:**
+
 - Warning message: "האם למחוק את המקום '[name]'?"
 - Note: "כל הנתונים ייאבדו (ליינים, אירועים, תפריטים, וכו')"
 
 **Actions:**
+
 - Confirm delete (danger)
 - Cancel
 
@@ -78,6 +87,7 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ### `GET /api/venues`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -95,6 +105,7 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ### `POST /api/venues`
 
 **Request:**
+
 ```json
 {
   "name": "שם המקום החדש"
@@ -102,6 +113,7 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -115,11 +127,13 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ```
 
 **Validation:**
+
 - `name`: required, min 1 char, max 100 chars
 
 ### `DELETE /api/venues/[venueId]`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -131,9 +145,11 @@ Based on `information/lines-mvp-information-v1.md` section 6.1.
 ```
 
 **Cascade:**
+
 - Deletes all related VenueDetails, Menus, Zones, Tables, Lines, LineOccurrences (via Prisma cascade)
 
 **Error Cases:**
+
 - 404 if venue not found
 - 500 on database error
 
@@ -176,13 +192,16 @@ src/modules/venues/
 ## Testing
 
 **Unit Tests:**
+
 - venuesService: create, delete, list operations
 - Zod schemas: validation rules
 
 **Integration Tests:**
+
 - API routes: GET, POST, DELETE with valid/invalid data
 
 **E2E Tests:**
+
 - Create venue flow
 - Delete venue with confirmation
 - Empty state display
@@ -200,4 +219,3 @@ src/modules/venues/
 ---
 
 **Last Updated:** 2025-12-05
-

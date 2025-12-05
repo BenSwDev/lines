@@ -15,7 +15,7 @@ export class TablesService {
       zone: { connect: { id: zoneId } },
       name: input.name,
       seats: input.seats,
-      notes: input.notes,
+      notes: input.notes
     });
   }
 
@@ -29,4 +29,3 @@ export class TablesService {
 }
 
 export const tablesService = new TablesService();
-

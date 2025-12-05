@@ -17,7 +17,7 @@ export class MenusService {
       fileName: input.fileName,
       fileType: input.fileType,
       fileSize: input.fileSize,
-      fileData: input.fileData,
+      fileData: input.fileData
     });
   }
 
@@ -31,4 +31,3 @@ export class MenusService {
 }
 
 export const menusService = new MenusService();
-

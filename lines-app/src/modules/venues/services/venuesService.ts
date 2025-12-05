@@ -2,7 +2,10 @@ import { venueRepository } from "@/core/db";
 import type { Venue } from "@prisma/client";
 
 export class VenuesService {
-  async listVenues(): Promise<Venue[]> {
+  async listVenues(userId?: string): Promise<Venue[]> {
+    if (userId) {
+      return venueRepository.findAll(); // Will add user filter when needed
+    }
     return venueRepository.findAll();
   }
 
@@ -14,15 +17,16 @@ export class VenuesService {
     return venueRepository.findByIdWithRelations(id);
   }
 
-  async createVenue(name: string): Promise<Venue> {
+  async createVenue(name: string, userId: string): Promise<Venue> {
     return venueRepository.create({
       name,
+      user: { connect: { id: userId } }
     });
   }
 
   async updateVenue(id: string, name: string): Promise<Venue> {
     return venueRepository.update(id, {
-      name,
+      name
     });
   }
 
@@ -38,4 +42,3 @@ export class VenuesService {
 }
 
 export const venuesService = new VenuesService();
-

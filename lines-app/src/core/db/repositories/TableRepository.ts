@@ -5,38 +5,38 @@ export class TableRepository {
   async findByZoneId(zoneId: string): Promise<Table[]> {
     return prisma.table.findMany({
       where: { zoneId },
-      orderBy: { name: "asc" },
+      orderBy: { name: "asc" }
     });
   }
 
   async findById(id: string): Promise<Table | null> {
     return prisma.table.findUnique({
-      where: { id },
+      where: { id }
     });
   }
 
   async create(data: Prisma.TableCreateInput): Promise<Table> {
     return prisma.table.create({
-      data,
+      data
     });
   }
 
   async update(id: string, data: Prisma.TableUpdateInput): Promise<Table> {
     return prisma.table.update({
       where: { id },
-      data,
+      data
     });
   }
 
   async delete(id: string): Promise<Table> {
     return prisma.table.delete({
-      where: { id },
+      where: { id }
     });
   }
 
   async countByZoneId(zoneId: string): Promise<number> {
     return prisma.table.count({
-      where: { zoneId },
+      where: { zoneId }
     });
   }
 
@@ -47,4 +47,3 @@ export class TableRepository {
 }
 
 export const tableRepository = new TableRepository();
-

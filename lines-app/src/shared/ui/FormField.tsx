@@ -15,7 +15,7 @@ export function FormField({
   hint,
   required,
   children,
-  className = "",
+  className = ""
 }: FormFieldProps) {
   return (
     <div className={`space-y-1 ${className}`}>
@@ -61,4 +61,3 @@ export function Textarea({ error, className = "", ...props }: TextareaProps) {
     />
   );
 }
-

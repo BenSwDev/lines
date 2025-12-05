@@ -7,7 +7,7 @@ export class CalendarService {
 
     return occurrences.map((occ) => ({
       ...occ,
-      isOvernight: isOvernightShift(occ.startTime, occ.endTime),
+      isOvernight: isOvernightShift(occ.startTime, occ.endTime)
     }));
   }
 
@@ -33,4 +33,3 @@ export class CalendarService {
 }
 
 export const calendarService = new CalendarService();
-

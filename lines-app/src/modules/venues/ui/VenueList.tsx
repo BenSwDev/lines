@@ -21,9 +21,7 @@ export function VenueList({ venues, onCreateClick, onEnterVenue, onDeleteVenue }
           <CardContent className="text-center space-y-4 py-8">
             <div className="text-5xl">🏢</div>
             <h2 className="text-2xl font-semibold text-gray-100">עדיין לא יצרת מקומות</h2>
-            <p className="text-gray-400">
-              התחל בניהול המקומות שלך על ידי יצירת המקום הראשון
-            </p>
+            <p className="text-gray-400">התחל בניהול המקומות שלך על ידי יצירת המקום הראשון</p>
             <Button variant="primary" onClick={onCreateClick} className="mt-4">
               צור מקום ראשון
             </Button>
@@ -36,14 +34,8 @@ export function VenueList({ venues, onCreateClick, onEnterVenue, onDeleteVenue }
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {venues.map((venue) => (
-        <VenueCard
-          key={venue.id}
-          venue={venue}
-          onEnter={onEnterVenue}
-          onDelete={onDeleteVenue}
-        />
+        <VenueCard key={venue.id} venue={venue} onEnter={onEnterVenue} onDelete={onDeleteVenue} />
       ))}
     </div>
   );
 }
-

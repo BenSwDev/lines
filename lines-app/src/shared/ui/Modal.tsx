@@ -29,7 +29,7 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
     sm: "max-w-md",
     md: "max-w-lg",
     lg: "max-w-2xl",
-    xl: "max-w-4xl",
+    xl: "max-w-4xl"
   };
 
   return (
@@ -51,7 +51,12 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
               aria-label="סגור"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -63,4 +68,3 @@ export function Modal({ isOpen, onClose, title, children, size = "md" }: ModalPr
     </div>
   );
 }
-

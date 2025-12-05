@@ -61,7 +61,7 @@ export class LineScheduleService {
       // For each selected day of week, find all occurrences in this month
       days.forEach((targetDay) => {
         let date = new Date(currentMonth);
-        
+
         // Find first occurrence of targetDay in month
         while (date.getDay() !== targetDay && date.getMonth() === currentMonth.getMonth()) {
           date = addDays(date, 1);
@@ -89,12 +89,12 @@ export class LineScheduleService {
 
     days.forEach((targetDay) => {
       let date = new Date(today);
-      
+
       // Find next occurrence of this day
       while (date.getDay() !== targetDay) {
         date = addDays(date, 1);
       }
-      
+
       results.push(toISODate(date));
     });
 
@@ -103,4 +103,3 @@ export class LineScheduleService {
 }
 
 export const lineScheduleService = new LineScheduleService();
-

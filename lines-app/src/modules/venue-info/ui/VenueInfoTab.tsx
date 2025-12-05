@@ -29,13 +29,13 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
   const loadDetails = async () => {
     setIsLoading(true);
     const result = await getVenueDetails(venue.id);
-    
+
     if (result.success && result.data) {
       setPhone(result.data.phone || "");
       setEmail(result.data.email || "");
       setAddress(result.data.address || "");
     }
-    
+
     setIsLoading(false);
   };
 
@@ -49,7 +49,7 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
       const result = await updateVenueDetails(venue.id, {
         phone,
         email,
-        address,
+        address
       });
 
       if (result.success) {
@@ -119,16 +119,8 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
           )}
 
           <div className="flex gap-3">
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={isSaving}
-            >
-              {isSaving
-                ? "שומר..."
-                : saveStatus === "success"
-                ? "✓ נשמר"
-                : "שמור שינויים"}
+            <Button type="submit" variant="primary" disabled={isSaving}>
+              {isSaving ? "שומר..." : saveStatus === "success" ? "✓ נשמר" : "שמור שינויים"}
             </Button>
           </div>
         </form>
@@ -136,4 +128,3 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
     </Card>
   );
 }
-

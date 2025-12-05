@@ -6,14 +6,14 @@ export function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString("he-IL", {
     year: "numeric",
     month: "long",
-    day: "numeric",
+    day: "numeric"
   });
 }
 
 export function formatTime(date: Date | string): string {
   return new Date(date).toLocaleTimeString("he-IL", {
     hour: "2-digit",
-    minute: "2-digit",
+    minute: "2-digit"
   });
 }
 

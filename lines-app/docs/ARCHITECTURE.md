@@ -20,11 +20,13 @@
 ## Architecture Layers
 
 ### 1. Routing Layer (`src/app`)
+
 - **Purpose:** URL routing only, no business logic
 - **Contents:** Pages, layouts, API route handlers
 - **Pattern:** Delegates all logic to modules
 
 ### 2. Feature Modules (`src/modules`)
+
 - **Purpose:** Self-contained business features
 - **Pattern:** Each module has:
   - `ui/` - React components
@@ -36,6 +38,7 @@
   - `README.md` - Module documentation
 
 **Current Modules:**
+
 - `venues` - Venue management (home page)
 - `venue-info` - Contact details
 - `venue-settings` - Menus, Zones & Tables
@@ -45,6 +48,7 @@
 - `workspace-shell` - Shared workspace layout
 
 ### 3. Core Infrastructure (`src/core`)
+
 - **db/** - Database repositories (vendor-agnostic interfaces)
 - **integrations/** - External providers (Prisma client)
 - **validation/** - Shared Zod helpers
@@ -52,10 +56,12 @@
 - **config/** - Environment variables, constants
 
 ### 4. Shared Components (`src/shared`)
+
 - **ui/** - Reusable UI primitives (Button, Card, Modal, etc.)
 - **layout/** - Layout components (AppShell, SidebarNav, TopBar)
 
 ### 5. Utilities (`src/utils`)
+
 - **Generic helpers only** (date, time, i18n)
 - No domain-specific logic
 
@@ -70,6 +76,7 @@ User → UI Component → Server Action → Service → Repository → Database
 ```
 
 For API routes:
+
 ```
 HTTP Request → API Route Handler → Service → Repository → Database
                       ↓
@@ -83,6 +90,7 @@ HTTP Request → API Route Handler → Service → Repository → Database
 See `docs/DATA_MODEL.md` for full entity definitions.
 
 **Core Entities:**
+
 - Venue → VenueDetails (1:1)
 - Venue → Menu (1:N)
 - Venue → Zone → Table (1:N:N)

@@ -8,7 +8,7 @@ export class LinesService {
    */
   async getAvailableColors(venueId: string): Promise<string[]> {
     const usedColors = await lineRepository.findUsedColorsByVenueId(venueId);
-    
+
     return LINE_COLOR_PALETTE.filter((color) => {
       return !usedColors.includes(color);
     });
@@ -17,11 +17,7 @@ export class LinesService {
   /**
    * Validate if a color is available
    */
-  async isColorAvailable(
-    venueId: string,
-    color: string,
-    excludeLineId?: string
-  ): Promise<boolean> {
+  async isColorAvailable(venueId: string, color: string, excludeLineId?: string): Promise<boolean> {
     return lineRepository.isColorAvailable(venueId, color, excludeLineId);
   }
 
@@ -30,11 +26,11 @@ export class LinesService {
    */
   async getNextAvailableColor(venueId: string): Promise<string> {
     const available = await this.getAvailableColors(venueId);
-    
+
     if (available.length === 0) {
       throw new Error("כל הצבעים תפוסים. מחק ליין קיים כדי לפנות צבע");
     }
-    
+
     return available[0];
   }
 
@@ -62,4 +58,3 @@ export class LinesService {
 }
 
 export const linesService = new LinesService();
-

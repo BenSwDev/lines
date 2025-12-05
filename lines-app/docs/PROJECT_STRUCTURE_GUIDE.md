@@ -25,5 +25,3 @@ This file must be expanded into a full, project-specific version and kept aligne
 - No module imports another module directly; shared logic goes to `core/` or `shared/`.
 - All external providers (Prisma client, etc.) live under `src/core/integrations/`.
 - Each module defines its own schemas and types and has a local `README.md`.
-
-

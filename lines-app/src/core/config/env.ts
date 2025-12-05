@@ -6,6 +6,8 @@ import { z } from "zod";
 const envSchema = z.object({
   DATABASE_URL: z.string().url("DATABASE_URL must be a valid URL"),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  NEXTAUTH_URL: z.string().url().optional(),
+  NEXTAUTH_SECRET: z.string().min(32).optional()
 });
 
 /**
@@ -15,7 +17,7 @@ const envSchema = z.object({
 function getEnv() {
   const parsed = envSchema.safeParse({
     DATABASE_URL: process.env.DATABASE_URL,
-    NODE_ENV: process.env.NODE_ENV,
+    NODE_ENV: process.env.NODE_ENV
   });
 
   if (!parsed.success) {

@@ -11,4 +11,3 @@ export async function listVenues() {
     return { success: false, error: "שגיאה בטעינת המקומות" };
   }
 }
-

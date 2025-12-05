@@ -24,7 +24,7 @@ export function CreateVenueDialog({ isOpen, onClose, onSuccess }: CreateVenueDia
 
     try {
       const result = await createVenue({ name });
-      
+
       if (result.success) {
         setName("");
         onSuccess();
@@ -60,19 +60,10 @@ export function CreateVenueDialog({ isOpen, onClose, onSuccess }: CreateVenueDia
         </FormField>
 
         <div className="flex gap-3 justify-end pt-4">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
+          <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>
             ביטול
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={isSubmitting || !name.trim()}
-          >
+          <Button type="submit" variant="primary" disabled={isSubmitting || !name.trim()}>
             {isSubmitting ? "שומר..." : "יצירה"}
           </Button>
         </div>
@@ -80,4 +71,3 @@ export function CreateVenueDialog({ isOpen, onClose, onSuccess }: CreateVenueDia
     </Modal>
   );
 }
-

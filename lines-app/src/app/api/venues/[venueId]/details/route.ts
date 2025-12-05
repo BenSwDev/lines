@@ -1,11 +1,7 @@
 import { NextRequest } from "next/server";
 import { venueDetailsService } from "@/modules/venue-info/services/venueDetailsService";
 import { updateVenueDetailsSchema } from "@/modules/venue-info/schemas/venueDetailsSchemas";
-import {
-  successResponse,
-  handleApiError,
-  validationErrorResponse,
-} from "@/core/http";
+import { successResponse, handleApiError, validationErrorResponse } from "@/core/http";
 
 export async function GET(
   request: NextRequest,
@@ -28,12 +24,9 @@ export async function PUT(
     const { venueId } = await params;
     const body = await request.json();
     const validated = updateVenueDetailsSchema.parse(body);
-    
-    const details = await venueDetailsService.updateVenueDetails(
-      venueId,
-      validated
-    );
-    
+
+    const details = await venueDetailsService.updateVenueDetails(venueId, validated);
+
     return successResponse(details);
   } catch (error) {
     if (error instanceof Error && error.name === "ZodError") {
@@ -42,4 +35,3 @@ export async function PUT(
     return handleApiError(error);
   }
 }
-

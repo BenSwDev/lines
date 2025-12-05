@@ -22,7 +22,7 @@ export function successResponse<T>(data: T, status = 200): NextResponse<ApiRespo
   return NextResponse.json(
     {
       success: true,
-      data,
+      data
     },
     { status }
   );
@@ -43,8 +43,8 @@ export function errorResponse(
       error: {
         message,
         code,
-        details,
-      },
+        details
+      }
     },
     { status }
   );
@@ -60,7 +60,7 @@ export function validationErrorResponse(error: ZodError): NextResponse<ApiRespon
     "VALIDATION_ERROR",
     error.errors.map((err) => ({
       path: err.path.join("."),
-      message: err.message,
+      message: err.message
     }))
   );
 }
@@ -114,4 +114,3 @@ export function handleApiError(error: unknown): NextResponse<ApiResponse> {
 
   return errorResponse("שגיאה לא צפויה", 500, "UNKNOWN_ERROR");
 }
-

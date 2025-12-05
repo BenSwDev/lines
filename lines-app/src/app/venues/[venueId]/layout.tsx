@@ -5,7 +5,7 @@ import { venuesService } from "@/modules/venues/services/venuesService";
 
 export default async function VenueLayout({
   children,
-  params,
+  params
 }: {
   children: React.ReactNode;
   params: Promise<{ venueId: string }>;
@@ -19,4 +19,3 @@ export default async function VenueLayout({
 
   return <WorkspaceLayout venue={venue}>{children}</WorkspaceLayout>;
 }
-

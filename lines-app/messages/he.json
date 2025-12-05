@@ -1,0 +1,92 @@
+{
+  "common": {
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "עריכה",
+    "create": "יצירה",
+    "back": "חזרה",
+    "next": "הבא",
+    "previous": "הקודם",
+    "close": "סגור"
+  },
+  "auth": {
+    "login": "התחברות",
+    "logout": "התנתקות",
+    "register": "הרשמה",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "name": "שם",
+    "forgotPassword": "שכחת סיסמה?",
+    "noAccount": "אין לך חשבון?",
+    "hasAccount": "כבר יש לך חשבון?",
+    "loginError": "אימייל או סיסמה לא נכונים",
+    "registerSuccess": "ההרשמה בוצעה בהצלחה"
+  },
+  "venues": {
+    "title": "המקומות שלי",
+    "subtitle": "נהל את כל המקומות שלך במקום אחד",
+    "createVenue": "מקום חדש",
+    "enterVenue": "כניסה למקום",
+    "deleteVenue": "מחיקה",
+    "emptyTitle": "עדיין לא יצרת מקומות",
+    "emptyDescription": "התחל בניהול המקומות שלך על ידי יצירת המקום הראשון",
+    "createFirst": "צור מקום ראשון",
+    "createDialogTitle": "יצירת מקום חדש",
+    "venueName": "שם המקום",
+    "venueNamePlaceholder": "הכנס שם מקום...",
+    "venueNameRequired": "שם המקום הוא שדה חובה",
+    "deleteDialogTitle": "מחיקת מקום",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק את \"{name}\"?",
+    "deleteWarning": "כל הנתונים הקשורים למקום זה יימחקו לצמיתות (ליינים, אירועים, תפריטים, אזורים ושולחנות).",
+    "deleteButton": "מחק לצמיתות",
+    "deleting": "מוחק...",
+    "creating": "יוצר...",
+    "createdAt": "נוצר ב"
+  },
+  "venueInfo": {
+    "title": "פרטי מקום",
+    "phone": "טלפון",
+    "phonePlaceholder": "הכנס מספר טלפון...",
+    "email": "אימייל",
+    "emailPlaceholder": "הכנס כתובת אימייל...",
+    "address": "כתובת",
+    "addressPlaceholder": "רחוב, מספר, עיר...",
+    "saveChanges": "שמור שינויים",
+    "saving": "שומר...",
+    "saved": "✓ נשמר"
+  },
+  "workspace": {
+    "backToHome": "חזרה לבית",
+    "info": "פרטי מקום",
+    "settings": "הגדרות מקום",
+    "lines": "ליינים",
+    "calendar": "לוח שנה"
+  },
+  "lines": {
+    "title": "ליינים",
+    "subtitle": "נהל את כל הליינים והאירועים שלך",
+    "newLine": "+ ליין חדש",
+    "comingSoon": "ניהול ליינים יתווסף בגרסה הבאה",
+    "backendReady": "Backend מלא מוכן, UI בהמשך"
+  },
+  "calendar": {
+    "title": "לוח שנה",
+    "comingSoon": "לוח שנה אינטראקטיבי יתווסף בגרסה הבאה",
+    "serviceReady": "Backend + Calendar service מוכנים"
+  },
+  "settings": {
+    "title": "הגדרות מקום",
+    "menus": "תפריטים",
+    "menusComingSoon": "ניהול תפריטים יתווסף בגרסה הבאה",
+    "seating": "אזורים ושולחנות",
+    "seatingComingSoon": "ניהול אזורים ושולחנות יתווסף בגרסה הבאה"
+  },
+  "errors": {
+    "generic": "אירעה שגיאה לא צפויה",
+    "notFound": "לא נמצא",
+    "unauthorized": "אין הרשאה",
+    "forbidden": "גישה נדחתה"
+  }
+}

@@ -5,4 +5,3 @@ export type { Menu, Zone, Table };
 export type ZoneWithTables = Zone & {
   tables: Table[];
 };
-

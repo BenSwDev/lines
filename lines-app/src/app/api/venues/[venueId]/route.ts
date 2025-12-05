@@ -9,11 +9,11 @@ export async function GET(
   try {
     const { venueId } = await params;
     const venue = await venuesService.getVenue(venueId);
-    
+
     if (!venue) {
       return notFoundResponse("Venue");
     }
-    
+
     return successResponse(venue);
   } catch (error) {
     return handleApiError(error);
@@ -32,4 +32,3 @@ export async function DELETE(
     return handleApiError(error);
   }
 }
-

@@ -13,4 +13,3 @@ export default async function VenueInfoPage({ params }: { params: Promise<{ venu
 
   return <VenueInfoTab venue={venue} />;
 }
-

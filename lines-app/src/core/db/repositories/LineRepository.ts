@@ -6,9 +6,9 @@ export class LineRepository {
     return prisma.line.findMany({
       where: { venueId },
       include: {
-        occurrences: true,
+        occurrences: true
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc" }
     });
   }
 
@@ -17,42 +17,42 @@ export class LineRepository {
       where: { id },
       include: {
         occurrences: {
-          orderBy: { date: "asc" },
-        },
-      },
+          orderBy: { date: "asc" }
+        }
+      }
     });
   }
 
   async create(data: Prisma.LineCreateInput): Promise<Line> {
     return prisma.line.create({
-      data,
+      data
     });
   }
 
   async update(id: string, data: Prisma.LineUpdateInput): Promise<Line> {
     return prisma.line.update({
       where: { id },
-      data,
+      data
     });
   }
 
   async delete(id: string): Promise<Line> {
     return prisma.line.delete({
-      where: { id },
+      where: { id }
     });
   }
 
   async findUsedColorsByVenueId(venueId: string): Promise<string[]> {
     const lines = await prisma.line.findMany({
       where: { venueId },
-      select: { color: true },
+      select: { color: true }
     });
     return lines.map((line) => line.color);
   }
 
   async countByVenueId(venueId: string): Promise<number> {
     return prisma.line.count({
-      where: { venueId },
+      where: { venueId }
     });
   }
 
@@ -61,12 +61,11 @@ export class LineRepository {
       where: {
         venueId,
         color,
-        id: excludeLineId ? { not: excludeLineId } : undefined,
-      },
+        id: excludeLineId ? { not: excludeLineId } : undefined
+      }
     });
     return !existing;
   }
 }
 
 export const lineRepository = new LineRepository();
-

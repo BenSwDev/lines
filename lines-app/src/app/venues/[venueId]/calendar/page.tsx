@@ -5,4 +5,3 @@ export default async function CalendarPage({ params }: { params: Promise<{ venue
   const { venueId } = await params;
   return <CalendarTab venueId={venueId} />;
 }
-

@@ -3,5 +3,3 @@
 ---
 
 Document the automated build, test, and deployment pipeline (e.g., GitHub Actions).
-
-

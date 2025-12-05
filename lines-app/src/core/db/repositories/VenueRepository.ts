@@ -4,13 +4,13 @@ import type { Venue, Prisma } from "@prisma/client";
 export class VenueRepository {
   async findAll(): Promise<Venue[]> {
     return prisma.venue.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc" }
     });
   }
 
   async findById(id: string): Promise<Venue | null> {
     return prisma.venue.findUnique({
-      where: { id },
+      where: { id }
     });
   }
 
@@ -22,34 +22,34 @@ export class VenueRepository {
         menus: true,
         zones: {
           include: {
-            tables: true,
-          },
+            tables: true
+          }
         },
         lines: {
           include: {
-            occurrences: true,
-          },
-        },
-      },
+            occurrences: true
+          }
+        }
+      }
     });
   }
 
   async create(data: Prisma.VenueCreateInput): Promise<Venue> {
     return prisma.venue.create({
-      data,
+      data
     });
   }
 
   async update(id: string, data: Prisma.VenueUpdateInput): Promise<Venue> {
     return prisma.venue.update({
       where: { id },
-      data,
+      data
     });
   }
 
   async delete(id: string): Promise<Venue> {
     return prisma.venue.delete({
-      where: { id },
+      where: { id }
     });
   }
 
@@ -59,4 +59,3 @@ export class VenueRepository {
 }
 
 export const venueRepository = new VenueRepository();
-

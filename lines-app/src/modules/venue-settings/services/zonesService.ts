@@ -15,7 +15,7 @@ export class ZonesService {
       venue: { connect: { id: venueId } },
       name: input.name,
       color: input.color,
-      description: input.description,
+      description: input.description
     });
   }
 
@@ -29,4 +29,3 @@ export class ZonesService {
 }
 
 export const zonesService = new ZonesService();
-

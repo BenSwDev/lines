@@ -12,10 +12,9 @@ export class VenueDetailsService {
     return venueDetailsRepository.upsert(venueId, {
       phone: data.phone || null,
       email: data.email || null,
-      address: data.address || null,
+      address: data.address || null
     });
   }
 }
 
 export const venueDetailsService = new VenueDetailsService();
-

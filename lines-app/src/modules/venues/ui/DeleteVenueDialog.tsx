@@ -19,13 +19,13 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
 
   const handleDelete = async () => {
     if (!venue) return;
-    
+
     setError("");
     setIsDeleting(true);
 
     try {
       const result = await deleteVenue(venue.id);
-      
+
       if (result.success) {
         onSuccess();
         onClose();
@@ -52,7 +52,8 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
             האם אתה בטוח שברצונך למחוק את <strong>&quot;{venue?.name}&quot;</strong>?
           </p>
           <p className="text-sm text-yellow-500">
-            ⚠️ כל הנתונים הקשורים למקום זה יימחקו לצמיתות (ליינים, אירועים, תפריטים, אזורים ושולחנות).
+            ⚠️ כל הנתונים הקשורים למקום זה יימחקו לצמיתות (ליינים, אירועים, תפריטים, אזורים
+            ושולחנות).
           </p>
         </div>
 
@@ -63,20 +64,10 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
         )}
 
         <div className="flex gap-3 justify-end pt-4">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleClose}
-            disabled={isDeleting}
-          >
+          <Button type="button" variant="ghost" onClick={handleClose} disabled={isDeleting}>
             ביטול
           </Button>
-          <Button
-            type="button"
-            variant="danger"
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
+          <Button type="button" variant="danger" onClick={handleDelete} disabled={isDeleting}>
             {isDeleting ? "מוחק..." : "מחק לצמיתות"}
           </Button>
         </div>
@@ -84,4 +75,3 @@ export function DeleteVenueDialog({ venue, isOpen, onClose, onSuccess }: DeleteV
     </Modal>
   );
 }
-

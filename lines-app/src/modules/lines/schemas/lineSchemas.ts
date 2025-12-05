@@ -7,7 +7,7 @@ export const createLineSchema = z.object({
   startTime: timeSchema,
   endTime: timeSchema,
   frequency: frequencySchema,
-  color: colorSchema,
+  color: colorSchema
 });
 
 export const updateLineSchema = createLineSchema.partial();
@@ -15,15 +15,14 @@ export const updateLineSchema = createLineSchema.partial();
 export const occurrenceInputSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   isExpected: z.boolean(),
-  isActive: z.boolean().optional(),
+  isActive: z.boolean().optional()
 });
 
 export const syncOccurrencesSchema = z.object({
-  occurrences: z.array(occurrenceInputSchema),
+  occurrences: z.array(occurrenceInputSchema)
 });
 
 export type CreateLineInput = z.infer<typeof createLineSchema>;
 export type UpdateLineInput = z.infer<typeof updateLineSchema>;
 export type OccurrenceInput = z.infer<typeof occurrenceInputSchema>;
 export type SyncOccurrencesInput = z.infer<typeof syncOccurrencesSchema>;
-

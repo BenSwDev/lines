@@ -5,7 +5,7 @@ export const createMenuSchema = z.object({
   fileName: z.string(),
   fileType: z.string(),
   fileSize: z.number(),
-  fileData: z.string().optional(),
+  fileData: z.string().optional()
 });
 
 export const updateMenuSchema = z.object({
@@ -13,9 +13,8 @@ export const updateMenuSchema = z.object({
   fileName: z.string().optional(),
   fileType: z.string().optional(),
   fileSize: z.number().optional(),
-  fileData: z.string().optional(),
+  fileData: z.string().optional()
 });
 
 export type CreateMenuInput = z.infer<typeof createMenuSchema>;
 export type UpdateMenuInput = z.infer<typeof updateMenuSchema>;
-

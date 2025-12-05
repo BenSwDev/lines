@@ -19,15 +19,18 @@ Based on `information/lines-mvp-information-v1.md` section 6.3.
 ### VenueInfoTab
 
 **Fields:**
+
 - Venue name (read-only, displayed from venue context)
 - Phone (optional, free-text)
 - Email (optional, validated format)
 - Address (optional, multi-line text)
 
 **Actions:**
+
 - Save button (persists changes)
 
 **Behavior:**
+
 - Fields load from VenueDetails (or empty if not set)
 - On save: shows temporary success feedback
 - Validation errors shown inline per field
@@ -43,6 +46,7 @@ Returns VenueDetails for the venue (or null if not set).
 ### `PUT /api/venues/[venueId]/details`
 
 **Request:**
+
 ```json
 {
   "phone": "050-1234567",
@@ -52,6 +56,7 @@ Returns VenueDetails for the venue (or null if not set).
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -76,4 +81,3 @@ Returns VenueDetails for the venue (or null if not set).
 ---
 
 **Last Updated:** 2025-12-05
-

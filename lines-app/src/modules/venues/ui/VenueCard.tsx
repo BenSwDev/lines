@@ -21,7 +21,7 @@ export function VenueCard({ venue, onEnter, onDelete }: VenueCardProps) {
       <CardContent>
         <div className="space-y-3">
           <p className="text-sm text-gray-400">נוצר ב: {formatDate(venue.createdAt)}</p>
-          
+
           <div className="flex gap-2">
             <Button
               variant="primary"
@@ -31,11 +31,7 @@ export function VenueCard({ venue, onEnter, onDelete }: VenueCardProps) {
             >
               כניסה למקום
             </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => onDelete(venue)}
-            >
+            <Button variant="danger" size="sm" onClick={() => onDelete(venue)}>
               מחיקה
             </Button>
           </div>
@@ -44,4 +40,3 @@ export function VenueCard({ venue, onEnter, onDelete }: VenueCardProps) {
     </Card>
   );
 }
-

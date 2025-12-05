@@ -7,4 +7,3 @@ export * from "./repositories/ZoneRepository";
 export * from "./repositories/TableRepository";
 export * from "./repositories/LineRepository";
 export * from "./repositories/LineOccurrenceRepository";
-

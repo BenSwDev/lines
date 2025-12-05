@@ -11,10 +11,7 @@ export class LineOccurrencesSyncService {
   /**
    * Sync occurrences for a line (create/update based on suggestions + manual dates)
    */
-  async syncOccurrences(
-    line: Line,
-    occurrences: OccurrenceInput[]
-  ): Promise<void> {
+  async syncOccurrences(line: Line, occurrences: OccurrenceInput[]): Promise<void> {
     // For simplicity, we'll delete existing and recreate
     // In production, you might want incremental sync
     await lineOccurrenceRepository.deleteByLineId(line.id);
@@ -30,7 +27,7 @@ export class LineOccurrencesSyncService {
       startTime: line.startTime,
       endTime: line.endTime,
       isExpected: occ.isExpected,
-      isActive: occ.isActive ?? true,
+      isActive: occ.isActive ?? true
     }));
 
     await lineOccurrenceRepository.createMany(createData);
@@ -48,7 +45,7 @@ export class LineOccurrencesSyncService {
   ) {
     // Check if already exists
     const existing = await lineOccurrenceRepository.findByLineIdAndDate(lineId, date);
-    
+
     if (existing) {
       throw new Error("תאריך כבר קיים עבור הליין הזה");
     }
@@ -60,7 +57,7 @@ export class LineOccurrencesSyncService {
       startTime,
       endTime,
       isExpected: false,
-      isActive: true,
+      isActive: true
     });
   }
 
@@ -69,7 +66,7 @@ export class LineOccurrencesSyncService {
    */
   async cancelOccurrence(id: string) {
     return lineOccurrenceRepository.update(id, {
-      isActive: false,
+      isActive: false
     });
   }
 
@@ -78,10 +75,9 @@ export class LineOccurrencesSyncService {
    */
   async reactivateOccurrence(id: string) {
     return lineOccurrenceRepository.update(id, {
-      isActive: true,
+      isActive: true
     });
   }
 }
 
 export const lineOccurrencesSyncService = new LineOccurrencesSyncService();
-

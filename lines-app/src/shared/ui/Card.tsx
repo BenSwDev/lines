@@ -11,7 +11,7 @@ export function Card({ children, className = "", padding = "md" }: CardProps) {
     none: "",
     sm: "p-3",
     md: "p-4",
-    lg: "p-6",
+    lg: "p-6"
   };
 
   return (
@@ -49,4 +49,3 @@ export interface CardContentProps {
 export function CardContent({ children, className = "" }: CardContentProps) {
   return <div className={className}>{children}</div>;
 }
-

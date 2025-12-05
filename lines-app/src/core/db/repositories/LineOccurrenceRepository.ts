@@ -5,7 +5,7 @@ export class LineOccurrenceRepository {
   async findByLineId(lineId: string): Promise<LineOccurrence[]> {
     return prisma.lineOccurrence.findMany({
       where: { lineId },
-      orderBy: { date: "asc" },
+      orderBy: { date: "asc" }
     });
   }
 
@@ -13,9 +13,9 @@ export class LineOccurrenceRepository {
     return prisma.lineOccurrence.findMany({
       where: { venueId },
       include: {
-        line: true,
+        line: true
       },
-      orderBy: { date: "asc" },
+      orderBy: { date: "asc" }
     });
   }
 
@@ -23,8 +23,8 @@ export class LineOccurrenceRepository {
     return prisma.lineOccurrence.findUnique({
       where: { id },
       include: {
-        line: true,
-      },
+        line: true
+      }
     });
   }
 
@@ -33,22 +33,22 @@ export class LineOccurrenceRepository {
       where: {
         lineId_date: {
           lineId,
-          date,
-        },
-      },
+          date
+        }
+      }
     });
   }
 
   async create(data: Prisma.LineOccurrenceCreateInput): Promise<LineOccurrence> {
     return prisma.lineOccurrence.create({
-      data,
+      data
     });
   }
 
   async createMany(data: Prisma.LineOccurrenceCreateManyInput[]): Promise<number> {
     const result = await prisma.lineOccurrence.createMany({
       data,
-      skipDuplicates: true,
+      skipDuplicates: true
     });
     return result.count;
   }
@@ -56,19 +56,19 @@ export class LineOccurrenceRepository {
   async update(id: string, data: Prisma.LineOccurrenceUpdateInput): Promise<LineOccurrence> {
     return prisma.lineOccurrence.update({
       where: { id },
-      data,
+      data
     });
   }
 
   async delete(id: string): Promise<LineOccurrence> {
     return prisma.lineOccurrence.delete({
-      where: { id },
+      where: { id }
     });
   }
 
   async deleteByLineId(lineId: string): Promise<number> {
     const result = await prisma.lineOccurrence.deleteMany({
-      where: { lineId },
+      where: { lineId }
     });
     return result.count;
   }
@@ -79,13 +79,13 @@ export class LineOccurrenceRepository {
 
     return {
       previous: currentIndex > 0 ? allOccurrences[currentIndex - 1] : null,
-      next: currentIndex < allOccurrences.length - 1 ? allOccurrences[currentIndex + 1] : null,
+      next: currentIndex < allOccurrences.length - 1 ? allOccurrences[currentIndex + 1] : null
     };
   }
 
   async countByLineId(lineId: string): Promise<number> {
     return prisma.lineOccurrence.count({
-      where: { lineId },
+      where: { lineId }
     });
   }
 
@@ -93,11 +93,10 @@ export class LineOccurrenceRepository {
     return prisma.lineOccurrence.count({
       where: {
         lineId,
-        isActive: true,
-      },
+        isActive: true
+      }
     });
   }
 }
 
 export const lineOccurrenceRepository = new LineOccurrenceRepository();
-

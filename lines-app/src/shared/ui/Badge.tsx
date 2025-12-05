@@ -13,12 +13,12 @@ export function Badge({ children, variant = "default", size = "md", className = 
     success: "bg-green-600 text-white",
     warning: "bg-yellow-600 text-white",
     danger: "bg-red-600 text-white",
-    info: "bg-blue-600 text-white",
+    info: "bg-blue-600 text-white"
   };
 
   const sizeStyles = {
     sm: "px-2 py-0.5 text-xs",
-    md: "px-2.5 py-1 text-sm",
+    md: "px-2.5 py-1 text-sm"
   };
 
   return (
@@ -29,4 +29,3 @@ export function Badge({ children, variant = "default", size = "md", className = 
     </span>
   );
 }
-

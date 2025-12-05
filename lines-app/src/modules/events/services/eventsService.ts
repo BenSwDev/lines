@@ -5,14 +5,12 @@ export class EventsService {
   /**
    * Get event status based on current time and event state
    */
-  getEventStatus(
-    occurrence: {
-      isActive: boolean;
-      date: string;
-      startTime: string;
-      endTime: string;
-    }
-  ): EventStatus {
+  getEventStatus(occurrence: {
+    isActive: boolean;
+    date: string;
+    startTime: string;
+    endTime: string;
+  }): EventStatus {
     if (!occurrence.isActive) {
       return "cancelled";
     }
@@ -26,8 +24,11 @@ export class EventsService {
     let endDateTime = new Date(year, month - 1, day, endHour, endMin);
 
     // Handle overnight (endTime <= startTime or 24:00)
-    if (occurrence.endTime === "24:00" || endHour < startHour || 
-        (endHour === startHour && endMin <= startMin)) {
+    if (
+      occurrence.endTime === "24:00" ||
+      endHour < startHour ||
+      (endHour === startHour && endMin <= startMin)
+    ) {
       endDateTime = new Date(year, month - 1, day + 1, endHour === 24 ? 0 : endHour, endMin);
     }
 
@@ -52,4 +53,3 @@ export class EventsService {
 }
 
 export const eventsService = new EventsService();
-

@@ -23,12 +23,9 @@ export function LinesTab({ venueId }: LinesTabProps) {
         <CardContent className="text-center py-12">
           <div className="text-5xl mb-4">📋</div>
           <p className="text-gray-400">ניהול ליינים יתווסף בגרסה הבאה (venueId: {venueId})</p>
-          <p className="text-sm text-gray-500 mt-2">
-            Backend מלא מוכן, UI בהמשך
-          </p>
+          <p className="text-sm text-gray-500 mt-2">Backend מלא מוכן, UI בהמשך</p>
         </CardContent>
       </Card>
     </div>
   );
 }
-

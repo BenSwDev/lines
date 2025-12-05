@@ -15,23 +15,23 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
     {
       id: "info",
       label: "פרטי מקום",
-      href: `/venues/${venue.id}/info`,
+      href: `/venues/${venue.id}/info`
     },
     {
       id: "settings",
       label: "הגדרות מקום",
-      href: `/venues/${venue.id}/settings`,
+      href: `/venues/${venue.id}/settings`
     },
     {
       id: "lines",
       label: "ליינים",
-      href: `/venues/${venue.id}/lines`,
+      href: `/venues/${venue.id}/lines`
     },
     {
       id: "calendar",
       label: "לוח שנה",
-      href: `/venues/${venue.id}/calendar`,
-    },
+      href: `/venues/${venue.id}/calendar`
+    }
   ];
 
   return (
@@ -40,18 +40,15 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
         title={venue.name}
         backLink={{
           href: "/",
-          label: "חזרה לבית",
+          label: "חזרה לבית"
         }}
       />
-      
+
       <div className="flex">
         <SidebarNav items={navItems} />
-        
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );
 }
-
