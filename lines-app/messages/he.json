@@ -247,10 +247,31 @@
   "floorPlan": {
     "title": "תכנון מקום",
     "addTable": "הוסף שולחן",
+    "addZone": "הוסף אזור",
     "edit": "עריכה",
+    "editTable": "עריכת שולחן",
+    "editZone": "עריכת אזור",
+    "editSpecialArea": "עריכת אזור מיוחד",
+    "editDescription": "ערוך את הפרטים של האלמנט",
     "shape": "צורה",
     "rotate": "סיבוב",
     "delete": "מחק",
-    "tables": "שולחנות"
+    "tables": "שולחנות",
+    "zones": "אזורים",
+    "specialAreas": {
+      "entrance": "כניסה",
+      "exit": "יציאה",
+      "kitchen": "מטבח",
+      "restroom": "שירותים",
+      "bar": "בר",
+      "stage": "במה",
+      "storage": "מחסן",
+      "dj_booth": "תא DJ",
+      "other": "אחר"
+    },
+    "venueCapacity": "תכולת מקום",
+    "capacityTooSmall": "תכולת המקום קטנה מסכום מקומות הישיבה",
+    "interactiveView": "תצוגה אינטראקטיבית",
+    "nonInteractiveView": "תצוגה לא אינטראקטיבית"
   }
 }

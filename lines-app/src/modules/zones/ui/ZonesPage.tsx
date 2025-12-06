@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
-import { FloorPlanEditor, type TableItem } from "@/modules/venue-settings/ui/FloorPlanEditor";
+import {
+  FloorPlanEditorV2,
+  type FloorPlanElement,
+  type ElementShape
+} from "@/modules/venue-settings/ui/FloorPlanEditorV2";
 import { loadVenueTables } from "@/modules/venue-settings/actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
@@ -19,15 +23,32 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
   const router = useRouter();
   const { t } = useTranslations();
   const { toast } = useToast();
-  const [tables, setTables] = useState<TableItem[]>([]);
+  const [elements, setElements] = useState<FloorPlanElement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [venueCapacity] = useState(0);
 
   const loadData = async () => {
     try {
       setIsLoading(true);
       const result = await loadVenueTables(venueId);
       if (result.success && "data" in result) {
-        setTables(result.data || []);
+        // Convert tables to FloorPlanElements
+        const tableElements: FloorPlanElement[] = (result.data || []).map((table) => ({
+          id: table.id,
+          type: "table" as const,
+          name: table.name,
+          seats: table.seats,
+          notes: table.notes,
+          x: table.x,
+          y: table.y,
+          width: table.width,
+          height: table.height,
+          rotation: table.rotation,
+          shape: table.shape as ElementShape,
+          zoneId: table.zoneId,
+          color: table.color
+        }));
+        setElements(tableElements);
       } else {
         const errorMsg = !result.success && "error" in result ? result.error : null;
         toast({
@@ -80,7 +101,7 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
         </div>
       </div>
 
-      <FloorPlanEditor venueId={venueId} initialTables={tables} />
+      <FloorPlanEditorV2 venueId={venueId} initialElements={elements} initialCapacity={venueCapacity} />
     </div>
   );
 }

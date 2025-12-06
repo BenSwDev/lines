@@ -132,7 +132,9 @@
     "myAccount": "My Account",
     "logout": "Logout",
     "saving": "Saving...",
-    "seats": "Seats"
+    "seats": "Seats",
+    "name": "Name",
+    "color": "Color"
   },
   "errors": {
     "generic": "An unexpected error occurred",
@@ -247,10 +249,31 @@
   "floorPlan": {
     "title": "Floor Plan",
     "addTable": "Add Table",
+    "addZone": "Add Zone",
     "edit": "Edit",
+    "editTable": "Edit Table",
+    "editZone": "Edit Zone",
+    "editSpecialArea": "Edit Special Area",
+    "editDescription": "Edit the element details",
     "shape": "Shape",
     "rotate": "Rotate",
     "delete": "Delete",
-    "tables": "Tables"
+    "tables": "Tables",
+    "zones": "Zones",
+    "specialAreas": {
+      "entrance": "Entrance",
+      "exit": "Exit",
+      "kitchen": "Kitchen",
+      "restroom": "Restroom",
+      "bar": "Bar",
+      "stage": "Stage",
+      "storage": "Storage",
+      "dj_booth": "DJ Booth",
+      "other": "Other"
+    },
+    "venueCapacity": "Venue Capacity",
+    "capacityTooSmall": "Venue capacity is smaller than total seating capacity",
+    "interactiveView": "Interactive View",
+    "nonInteractiveView": "Non-Interactive View"
   }
 }
