@@ -35,12 +35,18 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
     try {
       setIsLoading(true);
       const layoutResult = await loadVenueLayout(venueId);
-      if (layoutResult.success && "data" in layoutResult && layoutResult.data) {
-        // Normalize ensures layoutData always exists
-        const normalized = normalizeLayout(layoutResult.data);
-        setLayout(normalized);
+      if (layoutResult.success) {
+        // Type guard: check if data exists
+        if ("data" in layoutResult && layoutResult.data) {
+          // Normalize ensures layoutData always exists
+          const normalized = normalizeLayout(layoutResult.data);
+          setLayout(normalized);
+        } else {
+          // No data - use default
+          setLayout(null);
+        }
       } else {
-        // Set to null - SeatingLayoutEditor will use default
+        // Error - use default
         setLayout(null);
       }
       // TODO: Load zones list
