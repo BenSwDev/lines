@@ -19,7 +19,7 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
     },
     {
       id: "zones",
-      label: "סידורי הושבה",
+      label: "מפת המקום",
       href: `/venues/${venue.id}/zones`
     },
     {

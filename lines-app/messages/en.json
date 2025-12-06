@@ -92,9 +92,10 @@
     "menus": "Menus",
     "menusDescription": "Upload and manage menus and documents",
     "menusComingSoon": "Menu management will be added in the next version",
-    "seating": "Zones & Tables",
-    "seatingDescription": "Manage seating areas and tables",
-    "seatingComingSoon": "Seating management will be added in the next version"
+    "seating": "Venue Map",
+    "seatingDescription": "Complete map of the venue with all elements",
+    "seatingComingSoon": "Seating management will be added in the next version",
+    "venueMap": "Venue Map"
   },
   "profile": {
     "title": "Profile",
@@ -299,10 +300,12 @@
     "editSecurity": "Edit Security",
     "security": "Security",
     "mapTypes": {
+      "general": "General Map",
       "tables": "Tables Map",
       "bars": "Bars Map",
-      "general": "General Map",
-      "security": "Security Map"
+      "security": "Security Map",
+      "lines": "Lines Map",
+      "entrances": "Entrances & Exits Map"
     },
     "templates": "Templates",
     "selectTemplate": "Select Template",

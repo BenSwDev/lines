@@ -92,9 +92,10 @@
     "menus": "תפריטים",
     "menusDescription": "העלה וניהול תפריטים ומסמכים",
     "menusComingSoon": "ניהול תפריטים יתווסף בגרסה הבאה",
-    "seating": "אזורים ושולחנות",
-    "seatingDescription": "ניהול אזורי הישיבה והשולחנות",
-    "seatingComingSoon": "ניהול אזורים ושולחנות יתווסף בגרסה הבאה"
+    "seating": "מפת המקום",
+    "seatingDescription": "מפה מלאה של המקום עם כל האלמנטים",
+    "seatingComingSoon": "ניהול אזורים ושולחנות יתווסף בגרסה הבאה",
+    "venueMap": "מפת המקום"
   },
   "profile": {
     "title": "פרופיל",
@@ -296,10 +297,12 @@
     "editSecurity": "עריכת אבטחה",
     "security": "אבטחה",
     "mapTypes": {
+      "general": "מפה כללית",
       "tables": "מפת שולחנות",
       "bars": "מפת ברים",
-      "general": "מפה כללית",
-      "security": "מפת אבטחה"
+      "security": "מפת אבטחה",
+      "lines": "מפת ליינים",
+      "entrances": "מפת כניסות ויציאות"
     },
     "templates": "טמפלטים",
     "selectTemplate": "בחר טמפלט",

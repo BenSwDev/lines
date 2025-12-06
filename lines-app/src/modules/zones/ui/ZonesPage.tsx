@@ -95,9 +95,9 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
             {t("common.back")}
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">
-            {t("settings.seating")} - {venueName}
+            {t("settings.venueMap") || t("settings.seating")} - {venueName}
           </h1>
-          <p className="text-muted-foreground">{t("floorPlan.title")}</p>
+          <p className="text-muted-foreground">{t("settings.seatingDescription")}</p>
         </div>
       </div>
 

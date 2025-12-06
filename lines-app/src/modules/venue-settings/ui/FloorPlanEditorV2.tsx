@@ -52,9 +52,9 @@ import { findContainingZone } from "../utils/zoneContainment";
 
 export type ElementShape = "rectangle" | "circle" | "oval" | "square" | "triangle" | "pentagon" | "hexagon" | "polygon";
 
-export type ElementType = "table" | "zone" | "specialArea" | "security";
+export type ElementType = "table" | "zone" | "specialArea" | "security" | "line";
 
-export type MapType = "tables" | "bars" | "general" | "security";
+export type MapType = "general" | "tables" | "bars" | "security" | "lines" | "entrances";
 
 export type SpecialAreaType =
   | "entrance"
@@ -716,6 +716,8 @@ export function FloorPlanEditorV2({
             <SelectItem value="tables">{t("floorPlan.mapTypes.tables")}</SelectItem>
             <SelectItem value="bars">{t("floorPlan.mapTypes.bars")}</SelectItem>
             <SelectItem value="security">{t("floorPlan.mapTypes.security")}</SelectItem>
+            <SelectItem value="lines">{t("floorPlan.mapTypes.lines")}</SelectItem>
+            <SelectItem value="entrances">{t("floorPlan.mapTypes.entrances")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -792,9 +794,11 @@ export function FloorPlanEditorV2({
             {/* Render Elements - Filter by map type */}
             {elements
               .filter((element) => {
-                if (currentMapType === "tables") return element.type === "table";
+                if (currentMapType === "tables") return element.type === "table" && element.tableType !== "bar" && element.tableType !== "counter";
                 if (currentMapType === "bars") return element.type === "table" && element.tableType === "bar";
                 if (currentMapType === "security") return element.type === "security";
+                if (currentMapType === "lines") return element.type === "line" || (element.type === "table" && element.tableType === "counter");
+                if (currentMapType === "entrances") return element.type === "specialArea" && (element.areaType === "entrance" || element.areaType === "exit");
                 return true; // general shows all
               })
               .map((element) => (
