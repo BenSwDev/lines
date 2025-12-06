@@ -260,6 +260,7 @@ export function FloorPlanEditorV2({
     return () => {
       autoSaveManagerRef.current?.destroy();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId]);
   
   // Calculate canvas size to fit container
@@ -268,8 +269,8 @@ export function FloorPlanEditorV2({
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         setCanvasSize({
-          width: rect.width - 32,
-          height: rect.height - 32
+          width: rect.width,
+          height: rect.height
         });
       }
     };
@@ -278,6 +279,31 @@ export function FloorPlanEditorV2({
     window.addEventListener("resize", updateCanvasSize);
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, []);
+
+  // Helper function to convert screen coordinates to canvas coordinates
+  const screenToCanvas = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    
+    // Mouse position relative to container
+    const containerX = screenX - containerRect.left;
+    const containerY = screenY - containerRect.top;
+    
+    // Canvas center in container coordinates
+    const canvasCenterX = containerRect.width / 2;
+    const canvasCenterY = containerRect.height / 2;
+    
+    // Mouse position relative to canvas center (before zoom)
+    const relativeX = (containerX - canvasCenterX - panOffset.x) / zoom;
+    const relativeY = (containerY - canvasCenterY - panOffset.y) / zoom;
+    
+    // Canvas coordinates (canvas is 2000x2000, centered)
+    const canvasX = relativeX + 1000; // 1000 is half of 2000
+    const canvasY = relativeY + 1000;
+    
+    return { x: canvasX, y: canvasY };
+  }, [zoom, panOffset]);
   
   // Helper function to update elements with history and auto-save
   const updateElementsWithHistory = useCallback((newElements: FloorPlanElement[], skipHistory = false) => {
@@ -612,12 +638,9 @@ export function FloorPlanEditorV2({
         setSelectedElementIds(new Set([element.id]));
       }
       
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      if (!containerRect) return;
-      
-      // Calculate mouse position relative to canvas (accounting for zoom and pan)
-      const mouseX = (e.clientX - containerRect.left - panOffset.x * zoom) / zoom;
-      const mouseY = (e.clientY - containerRect.top - panOffset.y * zoom) / zoom;
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const mouseX = canvasPos.x;
+      const mouseY = canvasPos.y;
       
       // Store drag start position
       dragStartPosRef.current = { x: mouseX, y: mouseY };
@@ -635,7 +658,7 @@ export function FloorPlanEditorV2({
       setIsDragging(true);
       setDraggedElement(element);
     },
-    [viewMode, selectedElementIds, elements, zoom, isResizing, isRotating]
+    [viewMode, selectedElementIds, elements, isResizing, isRotating, screenToCanvas]
   );
   
   // Handle canvas mouse down for selection box or pan
@@ -654,10 +677,9 @@ export function FloorPlanEditorV2({
       
       if (e.button !== 0) return; // Only left mouse button for selection
       
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      if (!containerRect) return;
-      const startX = (e.clientX - containerRect.left - panOffset.x * zoom) / zoom;
-      const startY = (e.clientY - containerRect.top - panOffset.y * zoom) / zoom;
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const startX = canvasPos.x;
+      const startY = canvasPos.y;
       
       setIsSelecting(true);
       setSelectionBox({ startX, startY, endX: startX, endY: startY });
@@ -668,46 +690,48 @@ export function FloorPlanEditorV2({
         setSelectedElementIds(new Set());
       }
     },
-    [viewMode, isDrawingPolygon, zoom]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [viewMode, isDrawingPolygon, screenToCanvas]
   );
   
-  // Mouse wheel zoom - improved with pan support
+  // Mouse wheel zoom - professional implementation like Excalidraw
   useEffect(() => {
     if (viewMode === "nonInteractive" || !containerRef.current) return;
     
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
       
-      // Zoom with Ctrl/Cmd or Shift, Pan with regular wheel
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
+      // Get mouse position relative to container
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      
+      // Zoom with Ctrl/Cmd or Shift + wheel
       if (e.ctrlKey || e.metaKey || e.shiftKey) {
-        const delta = e.deltaY > 0 ? -0.05 : 0.05;
-        const newZoom = Math.max(0.1, Math.min(5, zoom + delta));
+        // Calculate zoom point in canvas coordinates (before zoom)
+        const worldX = (mouseX - panOffset.x) / zoom;
+        const worldY = (mouseY - panOffset.y) / zoom;
         
-        // Zoom towards mouse position
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          const mouseX = e.clientX - rect.left;
-          const mouseY = e.clientY - rect.top;
-          
-          // Calculate zoom point in canvas coordinates
-          const zoomPointX = (mouseX / zoom - panOffset.x);
-          const zoomPointY = (mouseY / zoom - panOffset.y);
-          
-          // Adjust pan to keep zoom point under mouse
-          const newPanX = mouseX / newZoom - zoomPointX;
-          const newPanY = mouseY / newZoom - zoomPointY;
-          
-          setPanOffset({ x: newPanX, y: newPanY });
-        }
+        // Calculate new zoom (smooth zoom factor)
+        const zoomFactor = 1.1;
+        const newZoom = e.deltaY > 0 
+          ? Math.max(0.1, zoom / zoomFactor)
+          : Math.min(5, zoom * zoomFactor);
         
+        // Adjust pan to keep zoom point under mouse
+        const newPanX = mouseX - worldX * newZoom;
+        const newPanY = mouseY - worldY * newZoom;
+        
+        setPanOffset({ x: newPanX, y: newPanY });
         setZoom(newZoom);
       } else {
-        // Pan with regular wheel
-        const deltaX = e.deltaX * 0.5;
-        const deltaY = e.deltaY * 0.5;
+        // Pan with regular wheel (horizontal and vertical)
+        const panSpeed = 1;
         setPanOffset(prev => ({
-          x: prev.x - deltaX / zoom,
-          y: prev.y - deltaY / zoom
+          x: prev.x - (e.deltaX * panSpeed),
+          y: prev.y - (e.deltaY * panSpeed)
         }));
       }
     };
@@ -726,29 +750,26 @@ export function FloorPlanEditorV2({
       setIsRotating(true);
       setDraggedElement(element);
       
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect) {
-        // Calculate mouse position relative to canvas (accounting for zoom)
-        const mouseX = (e.clientX - rect.left) / zoom;
-        const mouseY = (e.clientY - rect.top) / zoom;
-        
-        const centerX = element.x + element.width / 2;
-        const centerY = element.y + element.height / 2;
-        
-        // Calculate initial angle from center to mouse
-        const dx = mouseX - centerX;
-        const dy = mouseY - centerY;
-        const startAngle = Math.atan2(dy, dx) * (180 / Math.PI);
-        
-        rotateStartRef.current = {
-          angle: element.rotation,
-          centerX: centerX,
-          centerY: centerY,
-          startAngle: startAngle
-        };
-      }
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const mouseX = canvasPos.x;
+      const mouseY = canvasPos.y;
+      
+      const centerX = element.x + element.width / 2;
+      const centerY = element.y + element.height / 2;
+      
+      // Calculate initial angle from center to mouse
+      const dx = mouseX - centerX;
+      const dy = mouseY - centerY;
+      const startAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+      
+      rotateStartRef.current = {
+        angle: element.rotation,
+        centerX: centerX,
+        centerY: centerY,
+        startAngle: startAngle
+      };
     },
-    [zoom]
+    [screenToCanvas]
   );
 
   // Handle resize start - support all 8 handles (not rotate)
@@ -770,25 +791,22 @@ export function FloorPlanEditorV2({
       setResizeHandle(handle);
       setDraggedElement(element);
       
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect) {
-        // Calculate mouse position relative to canvas (accounting for zoom)
-        const mouseX = (e.clientX - rect.left) / zoom;
-        const mouseY = (e.clientY - rect.top) / zoom;
-        
-        resizeStartRef.current = {
-          mouseX: mouseX,
-          mouseY: mouseY,
-          width: element.width,
-          height: element.height,
-          elementX: element.x,
-          elementY: element.y,
-          elementWidth: element.width,
-          elementHeight: element.height
-        };
-      }
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const mouseX = canvasPos.x;
+      const mouseY = canvasPos.y;
+      
+      resizeStartRef.current = {
+        mouseX: mouseX,
+        mouseY: mouseY,
+        width: element.width,
+        height: element.height,
+        elementX: element.x,
+        elementY: element.y,
+        elementWidth: element.width,
+        elementHeight: element.height
+      };
     },
-    [handleRotateStart, zoom]
+    [handleRotateStart, screenToCanvas]
   );
 
   // Keyboard shortcuts
@@ -906,17 +924,12 @@ export function FloorPlanEditorV2({
     if (viewMode === "nonInteractive") return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      if (!containerRect) return;
+      if (!containerRef.current) return;
 
-      // Calculate canvas coordinates accounting for pan and zoom
-      const canvasX = (e.clientX - containerRect.left - panOffset.x * zoom) / zoom;
-      const canvasY = (e.clientY - containerRect.top - panOffset.y * zoom) / zoom;
-      
       // Handle panning (Space + drag or middle mouse button or right click drag)
       if (isPanning && panStartRef.current) {
-        const deltaX = (e.clientX - panStartRef.current.x) / zoom;
-        const deltaY = (e.clientY - panStartRef.current.y) / zoom;
+        const deltaX = (e.clientX - panStartRef.current.x);
+        const deltaY = (e.clientY - panStartRef.current.y);
         setPanOffset(prev => ({
           x: prev.x + deltaX,
           y: prev.y + deltaY
@@ -924,6 +937,11 @@ export function FloorPlanEditorV2({
         panStartRef.current = { x: e.clientX, y: e.clientY };
         return;
       }
+
+      // Calculate canvas coordinates accounting for pan and zoom
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const canvasX = canvasPos.x;
+      const canvasY = canvasPos.y;
       
       // Handle selection box
       if (isSelecting && selectionBox) {
@@ -1363,15 +1381,15 @@ export function FloorPlanEditorV2({
       if (!canvasRef.current || viewMode !== "interactive") return;
       
       if (isDrawingPolygon) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / zoom;
-        const y = (e.clientY - rect.top) / zoom;
+        const canvasPos = screenToCanvas(e.clientX, e.clientY);
+        const x = canvasPos.x;
+        const y = canvasPos.y;
         setPolygonPoints([...polygonPoints, { x, y }]);
       } else if (e.target === canvasRef.current) {
         setSelectedElementId(null);
       }
     },
-    [viewMode, isDrawingPolygon, polygonPoints, zoom]
+    [viewMode, isDrawingPolygon, polygonPoints, screenToCanvas]
   );
   
   // Finish polygon drawing
@@ -1696,21 +1714,24 @@ export function FloorPlanEditorV2({
         <div className="flex flex-1 overflow-hidden">
           {viewMode === "interactive" ? (
             <>
-              <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
+              <Card ref={containerRef} className="relative flex-1 overflow-hidden p-0">
                 <div
-                  className="relative w-full h-full overflow-auto"
-                  style={{ cursor: isPanning ? "grabbing" : "grab" }}
+                  className="relative w-full h-full overflow-hidden"
+                  style={{ 
+                    cursor: isPanning ? "grabbing" : "grab",
+                    position: "relative"
+                  }}
                 >
                   <div
                     ref={canvasRef}
-                    className="relative cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
+                    className="absolute cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
                     style={{
-                      minWidth: "5000px",
-                      minHeight: "5000px",
-                      width: "5000px",
-                      height: "5000px",
-                      transform: `translate(${panOffset.x * zoom}px, ${panOffset.y * zoom}px) scale(${zoom})`,
-                      transformOrigin: "0 0",
+                      width: "2000px",
+                      height: "2000px",
+                      left: "50%",
+                      top: "50%",
+                      transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
+                      transformOrigin: "center center",
                       backgroundImage: showGrid
                         ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
                            linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
