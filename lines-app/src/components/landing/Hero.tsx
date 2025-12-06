@@ -60,7 +60,7 @@ export function Hero({ isAuthenticated }: HeroProps) {
                 <Link href="/demo">
                   <Button size="lg" variant="outline" className="gap-2">
                     <Sparkles className="h-4 w-4" />
-                    לחץ להדמיה
+                    הכנסו להדמייה
                   </Button>
                 </Link>
               </>
