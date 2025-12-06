@@ -43,7 +43,6 @@ import {
   Hexagon,
   X,
   Sparkles,
-  Maximize2,
   Minimize2,
   ZoomIn,
   ZoomOut,
@@ -950,10 +949,35 @@ export function FloorPlanEditorV2({
       e.stopPropagation();
       e.preventDefault();
 
-      // Multi-select with Ctrl/Cmd
-      if (e.ctrlKey || e.metaKey) {
+      // Multi-select with Ctrl/Cmd or Shift
+      if (e.ctrlKey || e.metaKey || e.shiftKey) {
         const newSelection = new Set(selectedElementIds);
-        if (newSelection.has(element.id)) {
+        if (e.shiftKey && selectedElementIds.size > 0) {
+          // Shift+Click: Add range of elements
+          const selectedIds = Array.from(selectedElementIds);
+          const lastSelected = elements.find((el) => el.id === selectedIds[selectedIds.length - 1]);
+          if (lastSelected) {
+            // Add all elements between last selected and current
+            const startX = Math.min(lastSelected.x, element.x);
+            const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
+            const startY = Math.min(lastSelected.y, element.y);
+            const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
+            
+            elements.forEach((el) => {
+              if (
+                el.x >= startX &&
+                el.x + el.width <= endX &&
+                el.y >= startY &&
+                el.y + el.height <= endY
+              ) {
+                newSelection.add(el.id);
+              }
+            });
+          } else {
+            newSelection.add(element.id);
+          }
+        } else if (newSelection.has(element.id)) {
+          // Toggle off with Ctrl/Cmd
           newSelection.delete(element.id);
           if (newSelection.size === 0) {
             setSelectedElementId(null);
@@ -961,6 +985,7 @@ export function FloorPlanEditorV2({
             setSelectedElementId(Array.from(newSelection)[0]);
           }
         } else {
+          // Add to selection
           newSelection.add(element.id);
           setSelectedElementId(element.id);
         }
@@ -980,8 +1005,23 @@ export function FloorPlanEditorV2({
 
       // Store initial positions of all selected elements
       const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : new Set([element.id]);
+      
+      // If moving a zone, include all contained elements
+      const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
+      const containedElementIds = new Set<string>();
+      movingZones.forEach((zone) => {
+        elements.forEach((el) => {
+          if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
+            containedElementIds.add(el.id);
+          }
+        });
+      });
+      
+      // Combine selected IDs with contained element IDs
+      const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
+      
       dragElementsStartPosRef.current.clear();
-      selectedIds.forEach((id) => {
+      allMovingIds.forEach((id) => {
         const el = elements.find((e) => e.id === id);
         if (el) {
           dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
@@ -1398,10 +1438,47 @@ export function FloorPlanEditorV2({
 
           // Update all selected elements
           setElements((prevElements) => {
+            // Check if we're moving a zone - if so, move all contained elements too
+            const movingZones = prevElements.filter(
+              (el) => selectedIds.has(el.id) && el.type === "zone"
+            );
+            const containedElementIds = new Set<string>();
+            movingZones.forEach((zone) => {
+              prevElements.forEach((el) => {
+                if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
+                  containedElementIds.add(el.id);
+                }
+              });
+            });
+
+            // Combine selected IDs with contained element IDs
+            const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
+
             return prevElements.map((el) => {
-              if (selectedIds.has(el.id)) {
+              if (allMovingIds.has(el.id)) {
                 const startPos = dragElementsStartPosRef.current.get(el.id);
-                if (!startPos) return el;
+                if (!startPos) {
+                  // For contained elements, find parent zone and use its delta
+                  const parentZone = movingZones.find((z) => el.zoneId === z.id);
+                  if (parentZone && !selectedIds.has(el.id)) {
+                    const zoneStartPos = dragElementsStartPosRef.current.get(parentZone.id);
+                    if (zoneStartPos) {
+                      // Use the same delta as the zone
+                      const newX = el.x + deltaX;
+                      const newY = el.y + deltaY;
+                      
+                      // Store in dragElementsStartPosRef for next frame
+                      dragElementsStartPosRef.current.set(el.id, { x: el.x, y: el.y });
+                      
+                      return {
+                        ...el,
+                        x: newX,
+                        y: newY
+                      };
+                    }
+                  }
+                  return el;
+                }
 
                 let newX = startPos.x + deltaX;
                 let newY = startPos.y + deltaY;
@@ -3008,117 +3085,6 @@ export function FloorPlanEditorV2({
                     position: "relative"
                   }}
                 >
-                  {/* Canvas Controls - Top Right */}
-                  <div
-                    className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={panMode ? "default" : "ghost"}
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setPanMode(!panMode)}
-                        >
-                          <Hand className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          <div className="font-semibold">{panMode ? "מצב גרירה" : "מצב בחירה"}</div>
-                          <div className="text-xs">
-                            {panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}
-                          </div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                    <div className="h-6 w-px bg-border mx-1" />
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setZoom((prev) => Math.min(10, prev * 1.2))}
-                        >
-                          <ZoomIn className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
-                          <div className="text-xs">Ctrl/Cmd + Scroll</div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setZoom((prev) => Math.max(0.01, prev / 1.2))}
-                        >
-                          <ZoomOut className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
-                          <div className="text-xs">Ctrl/Cmd + Scroll</div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => {
-                            setZoom(1);
-                            setPanOffset({ x: 0, y: 0 });
-                          }}
-                        >
-                          <Grid className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          <div className="font-semibold">איפוס זום</div>
-                          <div className="text-xs">החזר לזום 100%</div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                    <div className="h-6 w-px bg-border mx-1" />
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setIsFullscreen(!isFullscreen)}
-                        >
-                          {isFullscreen ? (
-                            <Minimize2 className="h-4 w-4" />
-                          ) : (
-                            <Maximize2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="space-y-1">
-                          <div className="font-semibold">
-                            {isFullscreen
-                              ? t("floorPlan.exitFullscreen")
-                              : t("floorPlan.fullscreen")}
-                          </div>
-                          <div className="text-xs">F11</div>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
                   {/* Ruler - Top */}
                   {showRuler && (
                     <div
@@ -3254,6 +3220,53 @@ export function FloorPlanEditorV2({
                         }}
                       />
                     )}
+                    {/* Multi-select helper message */}
+                    {selectedElementIds.size > 1 && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          backgroundColor: "rgba(59, 130, 246, 0.95)",
+                          color: "white",
+                          padding: "8px 16px",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          zIndex: 1001,
+                          pointerEvents: "none",
+                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+                        }}
+                      >
+                        {selectedElementIds.size} אובייקטים נבחרו • לחץ Ctrl/Cmd+Click להוספה/הסרה • Shift+Click לבחירת טווח
+                      </div>
+                    )}
+                    {/* Zone movement helper message */}
+                    {selectedElementId &&
+                      elements.find((e) => e.id === selectedElementId)?.type === "zone" &&
+                      elements.filter((e) => e.zoneId === selectedElementId).length > 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: selectedElementIds.size > 1 ? "50px" : "10px",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            backgroundColor: "rgba(16, 185, 129, 0.95)",
+                            color: "white",
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: 500,
+                            zIndex: 1001,
+                            pointerEvents: "none",
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+                          }}
+                        >
+                          כל האובייקטים באזור יזוזו איתך (
+                          {elements.filter((e) => e.zoneId === selectedElementId).length} אובייקטים)
+                        </div>
+                      )}
                     {/* Polygon drawing preview */}
                     {isDrawingPolygon && polygonPoints.length > 0 && (
                       <svg
