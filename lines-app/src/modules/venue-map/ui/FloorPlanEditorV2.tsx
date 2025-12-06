@@ -252,6 +252,7 @@ export function FloorPlanEditorV2({
   const [draggedElement, setDraggedElement] = useState<FloorPlanElement | null>(null);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const dragElementsStartPosRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const relativePositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const dragAnimationFrameRef = useRef<number | null>(null);
 
   // Resize state - support all 8 handles
@@ -1011,10 +1012,13 @@ export function FloorPlanEditorV2({
       // If moving a zone, include all contained elements
       const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
       const containedElementIds = new Set<string>();
+      const elementToZoneMap = new Map<string, string>(); // Map element ID to zone ID
+      
       movingZones.forEach((zone) => {
         elements.forEach((el) => {
           if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
             containedElementIds.add(el.id);
+            elementToZoneMap.set(el.id, zone.id);
           }
         });
       });
@@ -1023,10 +1027,24 @@ export function FloorPlanEditorV2({
       const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
       
       dragElementsStartPosRef.current.clear();
+      relativePositionsRef.current.clear();
+      
       allMovingIds.forEach((id) => {
         const el = elements.find((e) => e.id === id);
         if (el) {
           dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
+          
+          // If this is a contained element, store relative position to zone
+          const zoneId = elementToZoneMap.get(id);
+          if (zoneId) {
+            const zone = elements.find((e) => e.id === zoneId);
+            if (zone) {
+              relativePositionsRef.current.set(id, {
+                x: el.x - zone.x,
+                y: el.y - zone.y
+              });
+            }
+          }
         }
       });
 
@@ -1460,28 +1478,33 @@ export function FloorPlanEditorV2({
               if (allMovingIds.has(el.id)) {
                 const startPos = dragElementsStartPosRef.current.get(el.id);
                 if (!startPos) {
-                  // For contained elements, find parent zone and use its delta
-                  const parentZone = movingZones.find((z) => el.zoneId === z.id);
-                  if (parentZone && !selectedIds.has(el.id)) {
-                    const zoneStartPos = dragElementsStartPosRef.current.get(parentZone.id);
-                    if (zoneStartPos) {
-                      // Use the same delta as the zone
-                      const newX = el.x + deltaX;
-                      const newY = el.y + deltaY;
-                      
-                      // Store in dragElementsStartPosRef for next frame
-                      dragElementsStartPosRef.current.set(el.id, { x: el.x, y: el.y });
-                      
-                      return {
-                        ...el,
-                        x: newX,
-                        y: newY
-                      };
-                    }
-                  }
                   return el;
                 }
 
+                // Check if this is a contained element (has relative position stored)
+                const relativePos = relativePositionsRef.current.get(el.id);
+                
+                if (relativePos) {
+                  // This is a contained element - move it relative to its parent zone
+                  const parentZone = movingZones.find((z) => el.zoneId === z.id);
+                  if (parentZone) {
+                    const zoneStartPos = dragElementsStartPosRef.current.get(parentZone.id);
+                    if (zoneStartPos) {
+                      // Calculate new zone position
+                      const newZoneX = zoneStartPos.x + deltaX;
+                      const newZoneY = zoneStartPos.y + deltaY;
+                      
+                      // Apply relative position
+                      return {
+                        ...el,
+                        x: newZoneX + relativePos.x,
+                        y: newZoneY + relativePos.y
+                      };
+                    }
+                  }
+                }
+
+                // For directly selected elements (including zones), use their start position
                 let newX = startPos.x + deltaX;
                 let newY = startPos.y + deltaY;
 
@@ -4701,25 +4724,17 @@ const ElementRenderer = memo(function ElementRenderer({
             >
               {element.name}
             </div>
-            {/* Saved indicator badge - shown on all saved elements */}
-            <div
-              className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5 shadow-sm"
-              style={{ zIndex: 1000, pointerEvents: "none" }}
-              title="נשמר במסד הנתונים"
-            >
-              <CheckCircle2 className="h-2.5 w-2.5 text-white" />
-            </div>
             {element.type === "table" && element.seats && (
               <div
                 style={{
                   fontSize: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontSize,
-                  fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontWeight,
+                  fontWeight: "bold",
                   lineHeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.lineHeight,
-                  color: FLOOR_PLAN_TYPOGRAPHY.tableSeats.color,
+                  color: "#000000",
                   marginTop: "2px"
                 }}
               >
-                Places: {element.seats}
+                {element.seats}
               </div>
             )}
             {/* Price display */}
@@ -4901,25 +4916,17 @@ const ElementRenderer = memo(function ElementRenderer({
         >
           {element.name}
         </div>
-        {/* Saved indicator badge for regular shapes */}
-        <div
-          className="absolute -top-1 -right-1 bg-green-500 rounded-full p-0.5 shadow-sm"
-          style={{ zIndex: 1000, pointerEvents: "none" }}
-          title="נשמר במסד הנתונים"
-        >
-          <CheckCircle2 className="h-2.5 w-2.5 text-white" />
-        </div>
         {element.type === "table" && element.seats && (
           <div
             style={{
               fontSize: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontSize,
-              fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontWeight,
+              fontWeight: "bold",
               lineHeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.lineHeight,
-              color: FLOOR_PLAN_TYPOGRAPHY.tableSeats.color,
+              color: "#000000",
               marginTop: "2px"
             }}
           >
-            Places: {element.seats}
+            {element.seats}
           </div>
         )}
       </div>
