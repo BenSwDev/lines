@@ -426,7 +426,7 @@ export function SeatingLayoutEditor({
 
   // Render grid
   const renderGrid = () => {
-    if (!showGrid || viewMode === "view") return null;
+    if (!showGrid || viewMode === "view" || !layout?.layoutData) return null;
     const { width, height } = layout.layoutData;
     const lines = [];
 
@@ -644,8 +644,8 @@ export function SeatingLayoutEditor({
     });
   };
 
-  const canvasWidth = layout.layoutData.width;
-  const canvasHeight = layout.layoutData.height;
+  const canvasWidth = layout?.layoutData?.width || 1600;
+  const canvasHeight = layout?.layoutData?.height || 1200;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -1133,7 +1133,7 @@ export function SeatingLayoutEditor({
                 y={0}
                 width={canvasWidth}
                 height={canvasHeight}
-                fill={layout.layoutData.backgroundColor || "#f8f9fa"}
+                fill={layout?.layoutData?.backgroundColor || "#f8f9fa"}
                 listening={false}
               />
 
