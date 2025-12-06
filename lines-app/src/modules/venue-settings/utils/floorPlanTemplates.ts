@@ -40,11 +40,14 @@ function scaleToCanvas(elements: FloorPlanElement[], targetWidth: number, target
   const scaleY = (targetHeight - padding * 2) / sourceHeight;
   const scale = Math.min(scaleX, scaleY);
   
-  // Scale all elements
+  // Scale all elements and center on infinite canvas (2500x2500 center)
+  const centerX = 2500;
+  const centerY = 2500;
+  
   return elements.map(el => ({
     ...el,
-    x: (el.x - minX) * scale + padding,
-    y: (el.y - minY) * scale + padding,
+    x: centerX + (el.x - minX - sourceWidth / 2) * scale,
+    y: centerY + (el.y - minY - sourceHeight / 2) * scale,
     width: el.width * scale,
     height: el.height * scale
   }));
@@ -98,20 +101,6 @@ const eventHallTemplateRaw: VenueTemplate = {
       seats: 8,
       zoneId: "zone-main"
     })),
-    // Stage
-    {
-      id: "stage-1",
-      type: "specialArea" as ElementType,
-      name: "במה",
-      x: 250,
-      y: 700,
-      width: 800,
-      height: 100,
-      rotation: 0,
-      shape: "rectangle",
-      areaType: "stage" as SpecialAreaType,
-      color: "#8B5CF6"
-    },
     // Kitchen
     {
       id: "kitchen-1",
@@ -192,19 +181,19 @@ const barTemplateRaw: VenueTemplate = {
       tableType: "bar" as const,
       seats: 4
     })),
-    // Storage
+    // Restrooms
     {
-      id: "storage-1",
+      id: "restroom-1",
       type: "specialArea" as ElementType,
-      name: "מחסן",
+      name: "שירותים",
       x: 900,
       y: 200,
       width: 150,
       height: 200,
       rotation: 0,
       shape: "rectangle",
-      areaType: "storage" as SpecialAreaType,
-      color: "#6B7280"
+      areaType: "restroom" as SpecialAreaType,
+      color: "#06B6D4"
     }
   ]
 };
@@ -243,20 +232,6 @@ const clubTemplateRaw: VenueTemplate = {
       shape: "rectangle",
       color: "#EC4899"
     },
-    // DJ Booth
-    {
-      id: "dj-booth-1",
-      type: "specialArea" as ElementType,
-      name: "תא DJ",
-      x: 200,
-      y: 100,
-      width: 200,
-      height: 80,
-      rotation: 0,
-      shape: "rectangle",
-      areaType: "dj_booth" as SpecialAreaType,
-      color: "#8B5CF6"
-    },
     // VIP tables - reduced to 6 tables
     ...Array.from({ length: 6 }, (_, i) => ({
       id: `table-vip-${i + 1}`,
@@ -270,19 +245,33 @@ const clubTemplateRaw: VenueTemplate = {
       shape: "rectangle" as const,
       seats: 6
     })),
-    // Bar
+    // Bar counter
     {
-      id: "bar-1",
-      type: "specialArea" as ElementType,
-      name: "בר",
+      id: "bar-counter-1",
+      type: "table" as ElementType,
+      name: "דלפק בר",
       x: 750,
       y: 600,
       width: 300,
       height: 100,
       rotation: 0,
       shape: "rectangle",
-      areaType: "bar" as SpecialAreaType,
-      color: "#F59E0B"
+      tableType: "bar",
+      seats: 20
+    },
+    // Restrooms
+    {
+      id: "restroom-1",
+      type: "specialArea" as ElementType,
+      name: "שירותים",
+      x: 1100,
+      y: 600,
+      width: 150,
+      height: 150,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "restroom" as SpecialAreaType,
+      color: "#06B6D4"
     }
   ]
 };
@@ -421,20 +410,6 @@ const conferenceHallTemplateRaw: VenueTemplate = {
       shape: "rectangle",
       color: "#3B82F6"
     },
-    // Stage
-    {
-      id: "stage-1",
-      type: "specialArea" as ElementType,
-      name: "במה",
-      x: 300,
-      y: 800,
-      width: 1000,
-      height: 120,
-      rotation: 0,
-      shape: "rectangle",
-      areaType: "stage" as SpecialAreaType,
-      color: "#8B5CF6"
-    },
     // Rows of seats (rectangular tables representing rows)
     ...Array.from({ length: 15 }, (_, i) => ({
       id: `row-${i + 1}`,
@@ -514,20 +489,6 @@ const concertHallTemplateRaw: VenueTemplate = {
       shape: "rectangle",
       color: "#EC4899"
     },
-    // Stage
-    {
-      id: "stage-1",
-      type: "specialArea" as ElementType,
-      name: "במה",
-      x: 250,
-      y: 850,
-      width: 800,
-      height: 150,
-      rotation: 0,
-      shape: "rectangle",
-      areaType: "stage" as SpecialAreaType,
-      color: "#8B5CF6"
-    },
     // VIP area 1
     {
       id: "zone-vip-1",
@@ -568,19 +529,19 @@ const concertHallTemplateRaw: VenueTemplate = {
       seats: 4,
       zoneId: i < 4 ? "zone-vip-1" : "zone-vip-2"
     })),
-    // Bar
+    // Bar counter
     {
-      id: "bar-1",
-      type: "specialArea" as ElementType,
-      name: "בר",
+      id: "bar-counter-1",
+      type: "table" as ElementType,
+      name: "דלפק בר",
       x: 1100,
       y: 800,
       width: 300,
       height: 100,
       rotation: 0,
       shape: "rectangle",
-      areaType: "bar" as SpecialAreaType,
-      color: "#F59E0B"
+      tableType: "bar",
+      seats: 20
     },
     // Exit
     {

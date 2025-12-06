@@ -257,6 +257,7 @@
   "floorPlan": {
     "title": "Floor Plan",
     "addTable": "Add Table",
+    "addBar": "Add Bar",
     "addZone": "Add Zone",
     "edit": "Edit",
     "editTable": "Edit Table",

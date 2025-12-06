@@ -39,7 +39,6 @@ import {
   List,
   MapPin,
   DoorOpen,
-  Utensils,
   Circle,
   Hexagon,
   X,
@@ -63,7 +62,7 @@ import {
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
-import { getAllTemplates, type VenueTemplateType } from "../utils/floorPlanTemplates";
+import { getAllTemplates } from "../utils/floorPlanTemplates";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -78,7 +77,7 @@ export type ElementShape = "rectangle" | "circle" | "triangle" | "square" | "pol
 
 export type ElementType = "table" | "zone" | "specialArea" | "security" | "line";
 
-export type MapType = "general" | "tables" | "bars" | "security" | "lines" | "entrances";
+// MapType removed - only one map per venue
 
 export type SpecialAreaType =
   | "entrance"
@@ -125,7 +124,6 @@ interface FloorPlanEditorV2Props {
   venueId: string;
   initialElements?: FloorPlanElement[];
   initialCapacity?: number;
-  mapType?: MapType;
 }
 
 const DEFAULT_TABLE_SIZE = 80;
@@ -136,8 +134,7 @@ const GRID_SIZE = 20;
 export function FloorPlanEditorV2({
   venueId,
   initialElements = [],
-  initialCapacity = 0,
-  mapType = "general"
+  initialCapacity = 0
 }: FloorPlanEditorV2Props) {
   const { t } = useTranslations();
   const { toast } = useToast();
@@ -156,8 +153,7 @@ export function FloorPlanEditorV2({
   const [venueCapacity, setVenueCapacity] = useState(initialCapacity);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingElement, setEditingElement] = useState<FloorPlanElement | null>(null);
-  const [currentMapType, setCurrentMapType] = useState<MapType>(mapType);
-  const [venueTypeFilter, setVenueTypeFilter] = useState<VenueTemplateType | "all">("all");
+  // Removed mapType - only one map per venue
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   
   // Polygon drawing mode
@@ -512,30 +508,31 @@ export function FloorPlanEditorV2({
 
   // Add new element
   const handleAddElement = useCallback(
-    (type: ElementType, areaType?: SpecialAreaType) => {
-      const centerX = canvasSize.width / 2;
-      const centerY = canvasSize.height / 2;
-      const size = type === "table" ? DEFAULT_TABLE_SIZE : type === "zone" ? DEFAULT_ZONE_SIZE : type === "security" ? 40 : DEFAULT_AREA_SIZE;
+    (type: ElementType, areaType?: SpecialAreaType, tableType?: "table" | "bar" | "counter") => {
+      const centerX = 2500; // Center of infinite canvas
+      const centerY = 2500;
+      const size = type === "table" ? DEFAULT_TABLE_SIZE : type === "zone" ? DEFAULT_ZONE_SIZE : DEFAULT_AREA_SIZE;
 
       const newElement: FloorPlanElement = {
         id: `${type}-${Date.now()}`,
         type,
         name:
           type === "table"
-            ? `שולחן ${elements.filter((e) => e.type === "table").length + 1}`
+            ? tableType === "bar"
+              ? `בר ${elements.filter((e) => e.type === "table" && e.tableType === "bar").length + 1}`
+              : `שולחן ${elements.filter((e) => e.type === "table" && e.tableType !== "bar").length + 1}`
             : type === "zone"
               ? `אזור ${elements.filter((e) => e.type === "zone").length + 1}`
-              : type === "security"
-                ? `אבטחה ${elements.filter((e) => e.type === "security").length + 1}`
-                : t(`floorPlan.specialAreas.${areaType || "other"}`),
-        x: Math.max(0, centerX - size / 2),
-        y: Math.max(0, centerY - size / 2),
+              : t(`floorPlan.specialAreas.${areaType || "other"}`),
+        x: centerX - size / 2,
+        y: centerY - size / 2,
         width: size,
         height: size,
         rotation: 0,
-        shape: type === "security" ? "circle" : "rectangle",
-        color: type === "zone" ? "#3B82F6" : type === "specialArea" ? "#10B981" : type === "security" ? "#EF4444" : undefined,
-        seats: type === "table" ? 4 : undefined,
+        shape: "rectangle",
+        color: type === "zone" ? "#3B82F6" : type === "specialArea" ? "#10B981" : undefined,
+        seats: type === "table" ? (tableType === "bar" ? 8 : 4) : undefined,
+        tableType: type === "table" ? (tableType || "table") : undefined,
         areaType: type === "specialArea" ? areaType || "other" : undefined
       };
 
@@ -543,7 +540,7 @@ export function FloorPlanEditorV2({
       updateElementsWithHistory(newElements);
       setSelectedElementId(newElement.id);
     },
-    [elements, canvasSize, t, updateElementsWithHistory]
+    [elements, t, updateElementsWithHistory]
   );
 
   // Delete element
@@ -870,12 +867,11 @@ export function FloorPlanEditorV2({
           let newX = el.x;
           let newY = el.y;
 
-          if (e.key === "ArrowLeft") newX = Math.max(0, el.x - step);
-          if (e.key === "ArrowRight")
-            newX = Math.min(canvasSize.width - el.width, el.x + step);
-          if (e.key === "ArrowUp") newY = Math.max(0, el.y - step);
-          if (e.key === "ArrowDown")
-            newY = Math.min(canvasSize.height - el.height, el.y + step);
+          // No canvas bounds for infinite canvas - allow free movement
+          if (e.key === "ArrowLeft") newX = el.x - step;
+          if (e.key === "ArrowRight") newX = el.x + step;
+          if (e.key === "ArrowUp") newY = el.y - step;
+          if (e.key === "ArrowDown") newY = el.y + step;
 
           const updatedElement = {
             ...el,
@@ -990,9 +986,8 @@ export function FloorPlanEditorV2({
                   newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
                 }
                 
-                // Constrain to canvas bounds
-                newX = Math.max(0, Math.min(canvasSize.width - el.width, newX));
-                newY = Math.max(0, Math.min(canvasSize.height - el.height, newY));
+                // No canvas bounds constraint for infinite canvas
+                // Allow elements to move freely
                 
                 const updatedElement = {
                   ...el,
@@ -1000,12 +995,16 @@ export function FloorPlanEditorV2({
                   y: newY
                 };
 
-                // If dragging a table, check if it's inside a zone
+                // Check if element is inside a zone (for tables and other elements)
                 let newZoneId: string | undefined = undefined;
-                if (updatedElement.type === "table") {
+                if (updatedElement.type === "table" || updatedElement.type === "security") {
                   const zones = prevElements.filter((zoneEl) => zoneEl.type === "zone");
                   const containingZone = findContainingZone(updatedElement, zones);
                   newZoneId = containingZone?.id;
+                  // If element left the zone, remove zoneId
+                  if (!containingZone && el.zoneId) {
+                    newZoneId = undefined;
+                  }
                 }
 
                 return {
@@ -1457,6 +1456,10 @@ export function FloorPlanEditorV2({
                       <Square className="ml-2 h-4 w-4" />
                       {t("floorPlan.addTable")}
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("table", undefined, "bar")}>
+                      <Square className="ml-2 h-4 w-4" />
+                      {t("floorPlan.addBar")}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleAddElement("zone")}>
                       <MapPin className="ml-2 h-4 w-4" />
                       {t("floorPlan.addZone")}
@@ -1470,24 +1473,12 @@ export function FloorPlanEditorV2({
                       {t("floorPlan.specialAreas.exit")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleAddElement("specialArea", "kitchen")}>
-                      <Utensils className="ml-2 h-4 w-4" />
+                      <ChefHat className="ml-2 h-4 w-4" />
                       {t("floorPlan.specialAreas.kitchen")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleAddElement("specialArea", "restroom")}>
-                      <MapPin className="ml-2 h-4 w-4" />
+                      <Bath className="ml-2 h-4 w-4" />
                       {t("floorPlan.specialAreas.restroom")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "bar")}>
-                      {t("floorPlan.specialAreas.bar")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "stage")}>
-                      {t("floorPlan.specialAreas.stage")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "storage")}>
-                      {t("floorPlan.specialAreas.storage")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "other")}>
-                      {t("floorPlan.specialAreas.other")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1698,33 +1689,6 @@ export function FloorPlanEditorV2({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-xs"
           />
-          <Select value={currentMapType} onValueChange={(v) => setCurrentMapType(v as MapType)}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="general">{t("floorPlan.mapTypes.general")}</SelectItem>
-              <SelectItem value="tables">{t("floorPlan.mapTypes.tables")}</SelectItem>
-              <SelectItem value="bars">{t("floorPlan.mapTypes.bars")}</SelectItem>
-              <SelectItem value="security">{t("floorPlan.mapTypes.security")}</SelectItem>
-              <SelectItem value="lines">{t("floorPlan.mapTypes.lines")}</SelectItem>
-              <SelectItem value="entrances">{t("floorPlan.mapTypes.entrances")}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={venueTypeFilter} onValueChange={(v) => setVenueTypeFilter(v as VenueTemplateType | "all")}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder={t("floorPlan.filterByVenueType")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("floorPlan.allVenueTypes")}</SelectItem>
-              <SelectItem value="event_hall">{t("floorPlan.venueTypes.eventHall")}</SelectItem>
-              <SelectItem value="conference_hall">{t("floorPlan.venueTypes.conferenceHall")}</SelectItem>
-              <SelectItem value="concert_hall">{t("floorPlan.venueTypes.concertHall")}</SelectItem>
-              <SelectItem value="restaurant">{t("floorPlan.venueTypes.restaurant")}</SelectItem>
-              <SelectItem value="bar">{t("floorPlan.venueTypes.bar")}</SelectItem>
-              <SelectItem value="club">{t("floorPlan.venueTypes.club")}</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -1903,18 +1867,15 @@ export function FloorPlanEditorV2({
               />
             ))}
             
-            {/* Render Elements - Filter by map type and search */}
+            {/* Render Elements - Zones first (lower z-index), then other elements */}
             {filteredElements
-              .filter((element) => {
-                // Filter by map type
-                if (currentMapType === "tables") return element.type === "table" && element.tableType !== "bar" && element.tableType !== "counter";
-                if (currentMapType === "bars") return element.type === "table" && element.tableType === "bar";
-                if (currentMapType === "security") return element.type === "security";
-                if (currentMapType === "lines") return element.type === "line" || (element.type === "table" && element.tableType === "counter");
-                if (currentMapType === "entrances") return element.type === "specialArea" && (element.areaType === "entrance" || element.areaType === "exit");
-                return true; // general shows all
-              })
               .filter((element) => !hiddenElements.has(element.id))
+              .sort((a, b) => {
+                // Zones first (z-index 1), then other elements (z-index 10)
+                if (a.type === "zone" && b.type !== "zone") return -1;
+                if (a.type !== "zone" && b.type === "zone") return 1;
+                return 0;
+              })
               .map((element) => (
                 <ElementRenderer
                   key={element.id}
@@ -2164,15 +2125,13 @@ export function FloorPlanEditorV2({
                     </Button>
                   </div>
                 )}
-                {/* Render Elements - Filter by map type */}
+                {/* Render Elements - Zones first (lower z-index), then other elements */}
                 {elements
-                  .filter((element) => {
-                    if (currentMapType === "tables") return element.type === "table" && element.tableType !== "bar" && element.tableType !== "counter";
-                    if (currentMapType === "bars") return element.type === "table" && element.tableType === "bar";
-                    if (currentMapType === "security") return element.type === "security";
-                    if (currentMapType === "lines") return element.type === "line" || (element.type === "table" && element.tableType === "counter");
-                    if (currentMapType === "entrances") return element.type === "specialArea" && (element.areaType === "entrance" || element.areaType === "exit");
-                    return true;
+                  .sort((a, b) => {
+                    // Zones first (z-index 1), then other elements (z-index 10)
+                    if (a.type === "zone" && b.type !== "zone") return -1;
+                    if (a.type !== "zone" && b.type === "zone") return 1;
+                    return 0;
                   })
                   .map((element) => (
                     <ElementRenderer
@@ -2268,7 +2227,10 @@ function ElementRenderer({
   const getElementStyle = (): React.CSSProperties => {
     // Determine border color based on zone membership - inherit from zone
     let borderColor = isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)";
-    if (parentZone && !isSelected) {
+    if (element.type === "zone") {
+      // Zones have colored border
+      borderColor = element.color || "#3B82F6";
+    } else if (parentZone && !isSelected) {
       // Use zone color for border if element is in a zone - inherit zone color
       borderColor = parentZone.color || "rgba(59, 130, 246, 0.5)";
     }
@@ -2282,10 +2244,14 @@ function ElementRenderer({
       transform: `rotate(${element.rotation}deg)`,
       transformOrigin: "center center",
       cursor: isInteractive ? (isSelected ? "move" : "grab") : "default",
-      border: isSelected ? `2px solid ${borderColor}` : `2px solid ${borderColor}`,
+      border: element.type === "zone" 
+        ? `2px dashed ${borderColor}` // Zones have dashed border
+        : isSelected 
+          ? `2px solid ${borderColor}` 
+          : `2px solid ${borderColor}`,
       backgroundColor: (() => {
         if (element.type === "zone") {
-          return element.color || `${AREA_TYPE_COLORS.zone}33`; // 20% opacity
+          return "transparent"; // Zones have transparent background
         }
         if (element.type === "specialArea") {
           return element.color || `${AREA_TYPE_COLORS[element.areaType || "other"]}33`; // 20% opacity
@@ -2303,6 +2269,7 @@ function ElementRenderer({
         }
         return AREA_TYPE_COLORS.table; // White for tables
       })(),
+      zIndex: element.type === "zone" ? 1 : 10, // Zones always have lower z-index
       boxShadow: isSelected
         ? "0 4px 12px rgba(59, 130, 246, 0.3)"
         : element.type === "table" && parentZone
@@ -2381,7 +2348,8 @@ function ElementRenderer({
           height: `${element.height}px`,
           transform: `rotate(${element.rotation}deg)`,
           transformOrigin: "center center",
-          cursor: isInteractive ? (isSelected ? "move" : "grab") : "default"
+          cursor: isInteractive ? (isSelected ? "move" : "grab") : "default",
+          zIndex: element.type === "zone" ? 1 : 10 // Zones always have lower z-index
         }}
         onMouseDown={isInteractive ? onMouseDown : undefined}
         onDoubleClick={onDoubleClick}
@@ -2405,7 +2373,7 @@ function ElementRenderer({
             d={path}
             fill={
               element.type === "zone"
-                ? element.color || "rgba(59, 130, 246, 0.2)"
+                ? "transparent" // Zones have transparent background
                 : element.type === "specialArea"
                   ? element.color || "rgba(16, 185, 129, 0.2)"
                   : element.type === "security"
@@ -2416,8 +2384,9 @@ function ElementRenderer({
                         ? "rgba(59, 130, 246, 0.15)"
                         : "rgba(255, 255, 255, 0.95)"
             }
-            stroke={isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)"}
-            strokeWidth={isSelected ? 2 : 2}
+            stroke={element.type === "zone" ? (element.color || "#3B82F6") : (isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)")}
+            strokeWidth={2}
+            strokeDasharray={element.type === "zone" ? "5,5" : "none"}
           />
           {/* Render vertices for polygon editing */}
           {isInteractive && isSelected && element.shape === "polygon" && element.polygonPoints && onVertexDrag && (
