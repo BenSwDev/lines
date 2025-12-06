@@ -48,6 +48,7 @@ import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
 import { getAllTemplates } from "../utils/floorPlanTemplates";
+import { findContainingZone } from "../utils/zoneContainment";
 
 export type ElementShape = "rectangle" | "circle" | "oval" | "square" | "triangle" | "pentagon" | "hexagon" | "polygon";
 
@@ -320,13 +321,27 @@ export function FloorPlanEditorV2({
         if (e.key === "ArrowDown")
           newY = Math.min(canvasSize.height - selectedElement.height, selectedElement.y + step);
 
+        // Update element position
+        const updatedElement = {
+          ...selectedElement,
+          x: newX,
+          y: newY
+        };
+
+        // If moving a table, check if it's inside a zone
+        let newZoneId: string | undefined = undefined;
+        if (updatedElement.type === "table") {
+          const zones = elements.filter((el) => el.type === "zone");
+          const containingZone = findContainingZone(updatedElement, zones);
+          newZoneId = containingZone?.id;
+        }
+
         setElements(
           elements.map((el) =>
             el.id === selectedElementId
               ? {
-                  ...el,
-                  x: newX,
-                  y: newY
+                  ...updatedElement,
+                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
                 }
               : el
           )
@@ -364,13 +379,27 @@ export function FloorPlanEditorV2({
         newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, newX));
         newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, newY));
 
+        // Update element position
+        const updatedElement = {
+          ...draggedElement,
+          x: newX,
+          y: newY
+        };
+
+        // If dragging a table, check if it's inside a zone
+        let newZoneId: string | undefined = undefined;
+        if (updatedElement.type === "table") {
+          const zones = elements.filter((el) => el.type === "zone");
+          const containingZone = findContainingZone(updatedElement, zones);
+          newZoneId = containingZone?.id;
+        }
+
         setElements(
           elements.map((el) =>
             el.id === draggedElement.id
               ? {
-                  ...el,
-                  x: newX,
-                  y: newY
+                  ...updatedElement,
+                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
                 }
               : el
           )
@@ -427,15 +456,29 @@ export function FloorPlanEditorV2({
           newHeight = canvasSize.height - newY;
         }
 
+        // Update element position and size
+        const updatedElement = {
+          ...draggedElement,
+          x: newX,
+          y: newY,
+          width: newWidth,
+          height: newHeight
+        };
+
+        // If resizing a table, check if it's still inside a zone
+        let newZoneId: string | undefined = undefined;
+        if (updatedElement.type === "table") {
+          const zones = elements.filter((el) => el.type === "zone");
+          const containingZone = findContainingZone(updatedElement, zones);
+          newZoneId = containingZone?.id;
+        }
+
         setElements(
           elements.map((el) =>
             el.id === draggedElement.id
               ? {
-                  ...el,
-                  x: newX,
-                  y: newY,
-                  width: newWidth,
-                  height: newHeight
+                  ...updatedElement,
+                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
                 }
               : el
           )
@@ -695,39 +738,57 @@ export function FloorPlanEditorV2({
             onClick={handleCanvasClick}
           >
             {/* Visual Feedback Overlay */}
-            {(isDragging || isResizing || isRotating) && draggedElement && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: `${draggedElement.y - 30}px`,
-                  left: `${draggedElement.x}px`,
-                  backgroundColor: "rgba(0, 0, 0, 0.8)",
-                  color: "white",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  fontSize: "12px",
-                  pointerEvents: "none",
-                  zIndex: 1000,
-                  whiteSpace: "nowrap"
-                }}
-              >
-                {isDragging && (
-                  <>
-                    X: {Math.round(draggedElement.x)}px, Y: {Math.round(draggedElement.y)}px
-                  </>
-                )}
-                {isResizing && (
-                  <>
-                    {Math.round(draggedElement.width)}×{Math.round(draggedElement.height)}px
-                  </>
-                )}
-                {isRotating && (
-                  <>
-                    {Math.round(draggedElement.rotation)}°
-                  </>
-                )}
-              </div>
-            )}
+            {(isDragging || isResizing || isRotating) && draggedElement && (() => {
+              // Check if table is in a zone
+              const zones = elements.filter((el) => el.type === "zone");
+              const containingZone = draggedElement.type === "table" 
+                ? findContainingZone(draggedElement, zones)
+                : null;
+
+              return (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: `${draggedElement.y - 30}px`,
+                    left: `${draggedElement.x}px`,
+                    backgroundColor: "rgba(0, 0, 0, 0.8)",
+                    color: "white",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                    pointerEvents: "none",
+                    zIndex: 1000,
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {isDragging && (
+                    <>
+                      X: {Math.round(draggedElement.x)}px, Y: {Math.round(draggedElement.y)}px
+                      {containingZone && (
+                        <span style={{ marginLeft: "8px", color: containingZone.color || "#3B82F6" }}>
+                          • {containingZone.name}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  {isResizing && (
+                    <>
+                      {Math.round(draggedElement.width)}×{Math.round(draggedElement.height)}px
+                      {containingZone && (
+                        <span style={{ marginLeft: "8px", color: containingZone.color || "#3B82F6" }}>
+                          • {containingZone.name}
+                        </span>
+                      )}
+                    </>
+                  )}
+                  {isRotating && (
+                    <>
+                      {Math.round(draggedElement.rotation)}°
+                    </>
+                  )}
+                </div>
+              );
+            })()}
             {/* Render Elements - Filter by map type */}
             {elements
               .filter((element) => {
@@ -864,7 +925,19 @@ function ElementRenderer({
   onResizeStart,
   onRotateStart
 }: ElementRendererProps) {
+  // Find the zone this table belongs to (for visual feedback)
+  const parentZone = element.type === "table" && element.zoneId
+    ? allElements.find((el) => el.id === element.zoneId && el.type === "zone")
+    : null;
+
   const getElementStyle = (): React.CSSProperties => {
+    // Determine border color based on zone membership
+    let borderColor = isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)";
+    if (element.type === "table" && parentZone && !isSelected) {
+      // Use zone color for border if table is in a zone
+      borderColor = parentZone.color || "rgba(59, 130, 246, 0.5)";
+    }
+
     const baseStyle: React.CSSProperties = {
       position: "absolute",
       left: `${element.x}px`,
@@ -874,7 +947,7 @@ function ElementRenderer({
       transform: `rotate(${element.rotation}deg)`,
       transformOrigin: "center center",
       cursor: isInteractive ? (isSelected ? "move" : "grab") : "default",
-      border: isSelected ? "2px solid #3B82F6" : "2px solid rgba(0,0,0,0.3)",
+      border: isSelected ? `2px solid ${borderColor}` : `2px solid ${borderColor}`,
       backgroundColor:
         element.type === "zone"
           ? element.color || "rgba(59, 130, 246, 0.2)"
@@ -882,12 +955,16 @@ function ElementRenderer({
             ? element.color || "rgba(16, 185, 129, 0.2)"
             : element.type === "security"
               ? element.color || "rgba(239, 68, 68, 0.2)"
-              : isSelected
-                ? "rgba(59, 130, 246, 0.15)"
-                : "rgba(255, 255, 255, 0.95)",
+              : element.type === "table" && parentZone
+                ? `${parentZone.color || "#3B82F6"}15` // Very light tint of zone color
+                : isSelected
+                  ? "rgba(59, 130, 246, 0.15)"
+                  : "rgba(255, 255, 255, 0.95)",
       boxShadow: isSelected
         ? "0 4px 12px rgba(59, 130, 246, 0.3)"
-        : "0 2px 4px rgba(0,0,0,0.1)",
+        : element.type === "table" && parentZone
+          ? `0 2px 8px ${parentZone.color || "#3B82F6"}40` // Subtle shadow with zone color
+          : "0 2px 4px rgba(0,0,0,0.1)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
