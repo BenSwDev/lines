@@ -113,6 +113,7 @@ model VenueDetails {
   phone   String?
   email   String?
   address String?
+  currency String? @default("ILS") // ILS, USD, GBP, EUR
 
   // Relationships
   venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)

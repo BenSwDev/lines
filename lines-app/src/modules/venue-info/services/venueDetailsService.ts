@@ -7,12 +7,13 @@ export class VenueDetailsService {
 
   async updateVenueDetails(
     venueId: string,
-    data: { phone?: string; email?: string; address?: string }
+    data: { phone?: string; email?: string; address?: string; currency?: string }
   ) {
     return venueDetailsRepository.upsert(venueId, {
       phone: data.phone || null,
       email: data.email || null,
-      address: data.address || null
+      address: data.address || null,
+      currency: data.currency || "ILS"
     });
   }
 }

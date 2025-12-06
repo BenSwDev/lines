@@ -134,6 +134,9 @@ export interface FloorPlanElement {
   notes?: string | null;
   zoneId?: string;
   tableType?: "table" | "bar" | "counter";
+  showStools?: boolean; // Show bar stools (default: false for bars)
+  minimumPrice?: number | null; // Minimum order price
+  pricePerSeat?: number | null; // Price per seat (for bars)
   // Zone specific
   description?: string | null;
   zoneType?:
@@ -145,6 +148,7 @@ export interface FloorPlanElement {
     | "seating_area"
     | "standing_area"
     | "custom";
+  zoneMinimumPrice?: number | null; // Minimum price for entire zone
   // Special area specific
   areaType?: SpecialAreaType;
   icon?: string;
@@ -3453,6 +3457,24 @@ export function FloorPlanEditorV2({
                         if (element.type === "table" && !layers.tables.visible) return false;
                         if (element.type === "specialArea" && !layers.specialAreas.visible)
                           return false;
+                        
+                        // Hide bar stools by default - only show if parent bar has showStools = true
+                        if (element.type === "table" && element.tableType === "bar" && element.name?.includes("כיסא בר")) {
+                          // Find parent bar - look for nearby bar table (not zone)
+                          const parentBar = elements.find((e) => 
+                            e.type === "table" && 
+                            e.tableType === "bar" && 
+                            e.id !== element.id &&
+                            !e.name?.includes("כיסא בר") &&
+                            Math.abs(e.x - element.x) < 300 && 
+                            Math.abs(e.y - element.y) < 300
+                          );
+                          // If no parent bar found or parent bar doesn't have showStools, hide the stool
+                          if (!parentBar || !parentBar.showStools) {
+                            return false;
+                          }
+                        }
+                        
                         return true;
                       })
                       .sort((a, b) => {
@@ -4702,6 +4724,36 @@ const ElementRenderer = memo(function ElementRenderer({
                 Places: {element.seats}
               </div>
             )}
+            {/* Price display */}
+            {(element.minimumPrice || element.pricePerSeat || (parentZone && parentZone.zoneMinimumPrice)) && (
+              <div
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "bold",
+                  color: "#10B981",
+                  marginTop: "2px",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  padding: "2px 4px",
+                  borderRadius: "2px"
+                }}
+              >
+                {(() => {
+                  // Calculate price: zone price > table price > price per seat
+                  const zonePrice = parentZone?.zoneMinimumPrice;
+                  const tablePrice = element.minimumPrice;
+                  const perSeatPrice = element.pricePerSeat;
+                  
+                  if (zonePrice) {
+                    return `₪${zonePrice.toFixed(0)}`;
+                  } else if (tablePrice) {
+                    return `₪${tablePrice.toFixed(0)}`;
+                  } else if (perSeatPrice && element.seats) {
+                    return `₪${(perSeatPrice * element.seats).toFixed(0)} (${perSeatPrice.toFixed(0)}/כסא)`;
+                  }
+                  return null;
+                })()}
+              </div>
+            )}
             {showMeasurements && (
               <div
                 style={{
@@ -5121,6 +5173,69 @@ function EditElementForm({
               })
             }
           />
+          
+          {/* Bar specific: Show stools */}
+          {element.tableType === "bar" && (
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-show-stools"
+                  checked={element.showStools || false}
+                  onChange={(e) =>
+                    onChange({
+                      ...element,
+                      showStools: e.target.checked
+                    })
+                  }
+                  className="rounded"
+                />
+                <Label htmlFor="edit-show-stools" className="cursor-pointer">
+                  הצג כיסאות בר
+                </Label>
+              </div>
+            </div>
+          )}
+          
+          {/* Minimum price */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-minimum-price">מחיר מינימום הזמנה</Label>
+            <Input
+              id="edit-minimum-price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={element.minimumPrice || ""}
+              onChange={(e) =>
+                onChange({
+                  ...element,
+                  minimumPrice: e.target.value ? parseFloat(e.target.value) : null
+                })
+              }
+              placeholder="אופציונלי"
+            />
+          </div>
+          
+          {/* Price per seat (for bars) */}
+          {element.tableType === "bar" && (
+            <div className="space-y-2">
+              <Label htmlFor="edit-price-per-seat">מחיר לכסא</Label>
+              <Input
+                id="edit-price-per-seat"
+                type="number"
+                min="0"
+                step="0.01"
+                value={element.pricePerSeat || ""}
+                onChange={(e) =>
+                  onChange({
+                    ...element,
+                    pricePerSeat: e.target.value ? parseFloat(e.target.value) : null
+                  })
+                }
+                placeholder="אופציונלי"
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -5143,6 +5258,25 @@ function EditElementForm({
               value={element.description || ""}
               onChange={(e) => onChange({ ...element, description: e.target.value })}
               rows={3}
+            />
+          </div>
+          
+          {/* Zone minimum price */}
+          <div className="space-y-2">
+            <Label htmlFor="edit-zone-minimum-price">מחיר מינימום לאזור (לכל השולחנות)</Label>
+            <Input
+              id="edit-zone-minimum-price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={element.zoneMinimumPrice || ""}
+              onChange={(e) =>
+                onChange({
+                  ...element,
+                  zoneMinimumPrice: e.target.value ? parseFloat(e.target.value) : null
+                })
+              }
+              placeholder="אופציונלי"
             />
           </div>
 

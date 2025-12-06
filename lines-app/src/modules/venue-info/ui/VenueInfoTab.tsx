@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, Mail, MapPin, Building2, Loader2 } from "lucide-react";
 import { getVenueDetails } from "../actions/getVenueDetails";
 import { updateVenueDetails } from "../actions/updateVenueDetails";
@@ -25,6 +26,7 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [currency, setCurrency] = useState<"ILS" | "USD" | "GBP" | "EUR">("ILS");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -41,6 +43,7 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
       setPhone(result.data.phone || "");
       setEmail(result.data.email || "");
       setAddress(result.data.address || "");
+      setCurrency((result.data.currency as "ILS" | "USD" | "GBP" | "EUR") || "ILS");
     }
 
     setIsLoading(false);
@@ -59,7 +62,8 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
       const result = await updateVenueDetails(venue.id, {
         phone: sanitizedPhone,
         email: sanitizedEmail,
-        address: sanitizedAddress
+        address: sanitizedAddress,
+        currency: currency
       });
 
       if (result.success) {
@@ -197,6 +201,26 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
                 aria-required="false"
               />
               <p className="text-xs text-muted-foreground">{t("venueInfo.addressDescription")}</p>
+            </div>
+
+            {/* Currency */}
+            <div className="space-y-2">
+              <Label htmlFor="currency" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                מטבע תשלום
+              </Label>
+              <Select value={currency} onValueChange={(value) => setCurrency(value as "ILS" | "USD" | "GBP" | "EUR")} disabled={isSaving}>
+                <SelectTrigger className="text-base">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ILS">₪ שקל ישראלי (ILS)</SelectItem>
+                  <SelectItem value="USD">$ דולר אמריקאי (USD)</SelectItem>
+                  <SelectItem value="GBP">£ לירה שטרלינג (GBP)</SelectItem>
+                  <SelectItem value="EUR">€ יורו (EUR)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">המטבע שבו מתקבלים תשלומים במקום</p>
             </div>
 
             {/* Submit */}
