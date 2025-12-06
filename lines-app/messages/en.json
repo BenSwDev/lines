@@ -310,6 +310,19 @@
     "templates": "Templates",
     "selectTemplate": "Select Template",
     "selectTemplateDescription": "Choose a template to get started quickly or start from scratch",
-    "elements": "elements"
+    "elements": "Elements",
+    "name": "Name",
+    "seats": "Seats",
+    "tableType": "Table Type",
+    "table": "Table",
+    "counter": "Counter",
+    "color": "Color",
+    "description": "Description",
+    "grid": "Grid",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetZoom": "Reset Zoom",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit Fullscreen"
   }
 }

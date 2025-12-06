@@ -307,6 +307,19 @@
     "templates": "טמפלטים",
     "selectTemplate": "בחר טמפלט",
     "selectTemplateDescription": "בחר טמפלט להתחלה מהירה או התחל מאפס",
-    "elements": "אלמנטים"
+    "elements": "אלמנטים",
+    "name": "שם",
+    "seats": "מקומות",
+    "tableType": "סוג שולחן",
+    "table": "שולחן",
+    "counter": "דלפק",
+    "color": "צבע",
+    "description": "תיאור",
+    "grid": "רשת",
+    "zoomIn": "הגדל",
+    "zoomOut": "הקטן",
+    "resetZoom": "איפוס זום",
+    "fullscreen": "מסך מלא",
+    "exitFullscreen": "יציאה ממסך מלא"
   }
 }

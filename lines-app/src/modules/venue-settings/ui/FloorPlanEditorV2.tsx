@@ -48,7 +48,8 @@ import {
   Minimize2,
   ZoomIn,
   ZoomOut,
-  Pencil
+  Pencil,
+  MoreVertical
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -56,6 +57,9 @@ import { saveVenueTables } from "../actions/floorPlanActions";
 import { getAllTemplates } from "../utils/floorPlanTemplates";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
+import { ContextPanel } from "./ContextPanel";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AREA_TYPE_COLORS } from "../config/floorPlanDesignTokens";
 
 export type ElementShape = "rectangle" | "circle" | "triangle" | "polygon";
 
@@ -151,6 +155,12 @@ export function FloorPlanEditorV2({
   
   // Zoom state
   const [zoom, setZoom] = useState(1);
+  
+  // Right panel state (for collapsible panel)
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  
+  // Context panel state (opens when selecting an element)
+  const [contextPanelElement, setContextPanelElement] = useState<FloorPlanElement | null>(null);
 
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -247,6 +257,34 @@ export function FloorPlanEditorV2({
     setEditDialogOpen(false);
     setEditingElement(null);
   }, [editingElement, elements]);
+  
+  // Save context panel element
+  const handleContextPanelSave = useCallback(() => {
+    // Element is already updated via handleContextPanelChange
+    // Just close the panel
+    setContextPanelElement(null);
+  }, []);
+  
+  // Handle context panel element changes
+  const handleContextPanelChange = useCallback((updatedElement: FloorPlanElement) => {
+    setContextPanelElement(updatedElement);
+    setElements(
+      elements.map((e) => (e.id === updatedElement.id ? updatedElement : e))
+    );
+  }, [elements]);
+  
+  // Update context panel when selection changes
+  useEffect(() => {
+    if (selectedElementId && selectedElementIds.size <= 1) {
+      const element = elements.find(e => e.id === selectedElementId);
+      setContextPanelElement(element || null);
+      if (element) {
+        setIsRightPanelOpen(true);
+      }
+    } else if (selectedElementIds.size === 0) {
+      setContextPanelElement(null);
+    }
+  }, [selectedElementId, selectedElementIds, elements]);
 
   // Mouse down on element
   const handleElementMouseDown = useCallback(
@@ -787,25 +825,21 @@ export function FloorPlanEditorV2({
   }, []);
 
   return (
-    <div className="flex h-[calc(100vh-250px)] flex-col gap-4">
-      {/* Toolbar */}
-      <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3">
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setTemplateDialogOpen(true)}
-          >
-            <Sparkles className="ml-2 h-4 w-4" />
-            {t("floorPlan.templates")}
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Plus className="ml-2 h-4 w-4" />
-                {t("common.create")}
-              </Button>
-            </DropdownMenuTrigger>
+    <TooltipProvider>
+      <div className="flex h-[calc(100vh-250px)] flex-col gap-4">
+        {/* Simplified Toolbar - Only Primary Actions */}
+        <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            {/* Primary Action: Create */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      {t("common.create")}
+                    </Button>
+                  </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => handleAddElement("table")}>
                 <Square className="ml-2 h-4 w-4" />
@@ -843,86 +877,124 @@ export function FloorPlanEditorV2({
               <DropdownMenuItem onClick={() => handleAddElement("specialArea", "other")}>
                 {t("floorPlan.specialAreas.other")}
               </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowGrid(!showGrid)}
-            className={showGrid ? "bg-primary/10" : ""}
-          >
-            <Grid className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setIsDrawingPolygon(!isDrawingPolygon);
-              if (isDrawingPolygon) {
-                cancelPolygonDrawing();
-              }
-            }}
-            className={isDrawingPolygon ? "bg-primary/10" : ""}
-          >
-            <Pencil className="ml-2 h-4 w-4" />
-            {t("floorPlan.shapes.polygon")}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
-          >
-            <ZoomOut className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(1)}
-          >
-            {Math.round(zoom * 100)}%
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setZoom(Math.min(2, zoom + 0.1))}
-          >
-            <ZoomIn className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsFullscreen(!isFullscreen)}
-          >
-            {isFullscreen ? <Minimize2 className="ml-2 h-4 w-4" /> : <Maximize2 className="ml-2 h-4 w-4" />}
-          </Button>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="capacity" className="text-sm whitespace-nowrap">
-              {t("floorPlan.venueCapacity")}:
-            </Label>
-            <Input
-              id="capacity"
-              type="number"
-              min="0"
-              value={venueCapacity}
-              onChange={(e) => setVenueCapacity(parseInt(e.target.value) || 0)}
-              className={`w-20 ${capacityError ? "border-destructive" : ""}`}
-            />
-            {capacityError && (
-              <span className="text-xs text-destructive">{t("floorPlan.capacityTooSmall")}</span>
-            )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TooltipTrigger>
+              <TooltipContent>{t("common.create")}</TooltipContent>
+            </Tooltip>
+            
+            {/* Secondary: Grid Toggle */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowGrid(!showGrid)}
+                  className={showGrid ? "bg-primary/10" : ""}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t("floorPlan.grid")}</TooltipContent>
+            </Tooltip>
+            
+            {/* Zoom Controls Group */}
+            <div className="flex items-center gap-1 border-l pl-2 ml-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("floorPlan.zoomOut")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setZoom(1)}
+                    className="min-w-[60px]"
+                  >
+                    {Math.round(zoom * 100)}%
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("floorPlan.resetZoom")}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t("floorPlan.zoomIn")}</TooltipContent>
+              </Tooltip>
+            </div>
+            
+            {/* Overflow Menu for Secondary Actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>More options</TooltipContent>
+                </Tooltip>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => setTemplateDialogOpen(true)}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {t("floorPlan.templates")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setIsDrawingPolygon(!isDrawingPolygon);
+                    if (isDrawingPolygon) {
+                      cancelPolygonDrawing();
+                    }
+                  }}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  {t("floorPlan.shapes.polygon")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsFullscreen(!isFullscreen)}>
+                  {isFullscreen ? (
+                    <Minimize2 className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Maximize2 className="mr-2 h-4 w-4" />
+                  )}
+                  {isFullscreen ? t("floorPlan.exitFullscreen") : t("floorPlan.fullscreen")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")} •{" "}
-            {totalCapacity} {t("common.seats")}
+          {/* Right Side: Stats and Save */}
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground hidden md:block">
+              {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")} •{" "}
+              {totalCapacity} {t("common.seats")}
+            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={handleSave} disabled={isSaving} size="sm" className="gap-2">
+                  <Save className="h-4 w-4" />
+                  {isSaving ? t("common.loading") : t("common.save")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Save changes</TooltipContent>
+            </Tooltip>
           </div>
-          <Button onClick={handleSave} disabled={isSaving} size="sm">
-            <Save className="ml-2 h-4 w-4" />
-            {isSaving ? t("common.loading") : t("common.save")}
-          </Button>
         </div>
-      </div>
 
       {/* View Mode Tabs and Map Type Selector */}
       <div className="flex shrink-0 items-center justify-between gap-4">
@@ -953,10 +1025,12 @@ export function FloorPlanEditorV2({
         </Select>
       </div>
 
-      {/* Main Content */}
-      {viewMode === "interactive" ? (
-        <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
-          <div
+        {/* Main Content - Flex Layout with Context Panel */}
+        <div className="flex flex-1 gap-4 overflow-hidden">
+          {viewMode === "interactive" ? (
+            <>
+              <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
+                <div
             ref={canvasRef}
             className="relative h-full w-full cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
             style={{
@@ -1117,7 +1191,7 @@ export function FloorPlanEditorV2({
                 <ElementRenderer
                   key={element.id}
                   element={element}
-                  isSelected={selectedElementId === element.id}
+                  isSelected={selectedElementId === element.id || selectedElementIds.has(element.id)}
                   isInteractive={true}
                   onMouseDown={(e) => handleElementMouseDown(e, element)}
                   onDoubleClick={() => handleEditElement(element)}
@@ -1139,15 +1213,34 @@ export function FloorPlanEditorV2({
                   onRotateStart={(e) => handleRotateStart(e, element)}
                 />
               ))}
-          </div>
-        </Card>
-      ) : (
-        <NonInteractiveView
-          elements={elements}
-          onEdit={handleEditElement}
-          onDelete={handleDeleteElement}
-        />
-      )}
+                </div>
+              </Card>
+              
+              {/* Context Panel - Collapsible Right Panel */}
+              <ContextPanel
+                element={contextPanelElement}
+                isOpen={isRightPanelOpen}
+                onClose={() => {
+                  setIsRightPanelOpen(false);
+                  setContextPanelElement(null);
+                  setSelectedElementId(null);
+                  setSelectedElementIds(new Set());
+                }}
+                onToggle={() => setIsRightPanelOpen(!isRightPanelOpen)}
+                onEdit={handleEditElement}
+                onDelete={handleDeleteElement}
+                onChange={handleContextPanelChange}
+                onSave={handleContextPanelSave}
+              />
+            </>
+          ) : (
+            <NonInteractiveView
+              elements={elements}
+              onEdit={handleEditElement}
+              onDelete={handleDeleteElement}
+            />
+          )}
+        </div>
 
       {/* Template Selection Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
@@ -1341,7 +1434,8 @@ export function FloorPlanEditorV2({
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
 
@@ -1395,16 +1489,16 @@ function ElementRenderer({
       border: isSelected ? `2px solid ${borderColor}` : `2px solid ${borderColor}`,
       backgroundColor:
         element.type === "zone"
-          ? element.color || "rgba(59, 130, 246, 0.2)"
+          ? element.color || `${AREA_TYPE_COLORS.zone}33` // 20% opacity
           : element.type === "specialArea"
-            ? element.color || "rgba(16, 185, 129, 0.2)"
+            ? element.color || `${AREA_TYPE_COLORS[element.areaType || "other"]}33` // 20% opacity
             : element.type === "security"
-              ? element.color || "rgba(239, 68, 68, 0.2)"
+              ? element.color || `${AREA_TYPE_COLORS.other}33` // 20% opacity
               : element.type === "table" && parentZone
-                ? `${parentZone.color || "#3B82F6"}15` // Very light tint of zone color
+                ? `${parentZone.color || AREA_TYPE_COLORS.zone}15` // Very light tint of zone color
                 : isSelected
                   ? "rgba(59, 130, 246, 0.15)"
-                  : "rgba(255, 255, 255, 0.95)",
+                  : AREA_TYPE_COLORS.table, // White for tables
       boxShadow: isSelected
         ? "0 4px 12px rgba(59, 130, 246, 0.3)"
         : element.type === "table" && parentZone
