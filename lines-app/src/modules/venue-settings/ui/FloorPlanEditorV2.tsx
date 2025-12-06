@@ -47,9 +47,11 @@ import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
 
-export type ElementShape = "rectangle" | "circle" | "oval" | "square" | "polygon";
+export type ElementShape = "rectangle" | "circle" | "oval" | "square" | "triangle" | "pentagon" | "hexagon" | "polygon";
 
-export type ElementType = "table" | "zone" | "specialArea";
+export type ElementType = "table" | "zone" | "specialArea" | "security";
+
+export type MapType = "tables" | "bars" | "general" | "security";
 
 export type SpecialAreaType =
   | "entrance"
@@ -82,6 +84,7 @@ export interface FloorPlanElement {
   seats?: number | null;
   notes?: string | null;
   zoneId?: string;
+  tableType?: "table" | "bar" | "counter";
   // Zone specific
   description?: string | null;
   // Special area specific
@@ -95,6 +98,7 @@ interface FloorPlanEditorV2Props {
   venueId: string;
   initialElements?: FloorPlanElement[];
   initialCapacity?: number;
+  mapType?: MapType;
 }
 
 const DEFAULT_TABLE_SIZE = 80;
@@ -104,7 +108,8 @@ const DEFAULT_AREA_SIZE = 100;
 export function FloorPlanEditorV2({
   venueId,
   initialElements = [],
-  initialCapacity = 0
+  initialCapacity = 0,
+  mapType = "general"
 }: FloorPlanEditorV2Props) {
   const { t } = useTranslations();
   const { toast } = useToast();
@@ -120,6 +125,7 @@ export function FloorPlanEditorV2({
   const [venueCapacity, setVenueCapacity] = useState(initialCapacity);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingElement, setEditingElement] = useState<FloorPlanElement | null>(null);
+  const [currentMapType, setCurrentMapType] = useState<MapType>(mapType);
 
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -147,7 +153,7 @@ export function FloorPlanEditorV2({
     (type: ElementType, areaType?: SpecialAreaType) => {
       const centerX = canvasSize.width / 2;
       const centerY = canvasSize.height / 2;
-      const size = type === "table" ? DEFAULT_TABLE_SIZE : type === "zone" ? DEFAULT_ZONE_SIZE : DEFAULT_AREA_SIZE;
+      const size = type === "table" ? DEFAULT_TABLE_SIZE : type === "zone" ? DEFAULT_ZONE_SIZE : type === "security" ? 40 : DEFAULT_AREA_SIZE;
 
       const newElement: FloorPlanElement = {
         id: `${type}-${Date.now()}`,
@@ -157,14 +163,16 @@ export function FloorPlanEditorV2({
             ? `שולחן ${elements.filter((e) => e.type === "table").length + 1}`
             : type === "zone"
               ? `אזור ${elements.filter((e) => e.type === "zone").length + 1}`
-              : t(`floorPlan.specialAreas.${areaType || "other"}`),
+              : type === "security"
+                ? `אבטחה ${elements.filter((e) => e.type === "security").length + 1}`
+                : t(`floorPlan.specialAreas.${areaType || "other"}`),
         x: Math.max(0, centerX - size / 2),
         y: Math.max(0, centerY - size / 2),
         width: size,
         height: size,
         rotation: 0,
-        shape: "rectangle",
-        color: type === "zone" ? "#3B82F6" : type === "specialArea" ? "#10B981" : undefined,
+        shape: type === "security" ? "circle" : "rectangle",
+        color: type === "zone" ? "#3B82F6" : type === "specialArea" ? "#10B981" : type === "security" ? "#EF4444" : undefined,
         seats: type === "table" ? 4 : undefined,
         areaType: type === "specialArea" ? areaType || "other" : undefined
       };
@@ -431,8 +439,8 @@ export function FloorPlanEditorV2({
         </div>
       </div>
 
-      {/* View Mode Tabs */}
-      <div className="flex shrink-0 items-center gap-4">
+      {/* View Mode Tabs and Map Type Selector */}
+      <div className="flex shrink-0 items-center justify-between gap-4">
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}>
           <TabsList>
             <TabsTrigger value="interactive">
@@ -445,6 +453,17 @@ export function FloorPlanEditorV2({
             </TabsTrigger>
           </TabsList>
         </Tabs>
+        <Select value={currentMapType} onValueChange={(v) => setCurrentMapType(v as MapType)}>
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="general">{t("floorPlan.mapTypes.general")}</SelectItem>
+            <SelectItem value="tables">{t("floorPlan.mapTypes.tables")}</SelectItem>
+            <SelectItem value="bars">{t("floorPlan.mapTypes.bars")}</SelectItem>
+            <SelectItem value="security">{t("floorPlan.mapTypes.security")}</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Main Content */}
@@ -466,8 +485,15 @@ export function FloorPlanEditorV2({
               }}
               onClick={handleCanvasClick}
             >
-              {/* Render Elements */}
-              {elements.map((element) => (
+            {/* Render Elements - Filter by map type */}
+            {elements
+              .filter((element) => {
+                if (currentMapType === "tables") return element.type === "table";
+                if (currentMapType === "bars") return element.type === "table" && element.tableType === "bar";
+                if (currentMapType === "security") return element.type === "security";
+                return true; // general shows all
+              })
+              .map((element) => (
                 <ElementRenderer
                   key={element.id}
                   element={element}
@@ -543,7 +569,9 @@ export function FloorPlanEditorV2({
                 ? t("floorPlan.editTable")
                 : editingElement?.type === "zone"
                   ? t("floorPlan.editZone")
-                  : t("floorPlan.editSpecialArea")}
+                  : editingElement?.type === "security"
+                    ? t("floorPlan.editSecurity")
+                    : t("floorPlan.editSpecialArea")}
             </DialogTitle>
             <DialogDescription>{t("floorPlan.editDescription")}</DialogDescription>
           </DialogHeader>
@@ -572,6 +600,8 @@ interface ElementRendererProps {
   onMouseDown: (e: React.MouseEvent) => void;
   onDoubleClick: () => void;
   onDelete: () => void;
+  onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;
+  allElements?: FloorPlanElement[];
 }
 
 function ElementRenderer({
@@ -579,7 +609,9 @@ function ElementRenderer({
   isSelected,
   isInteractive,
   onMouseDown,
-  onDoubleClick
+  onDoubleClick,
+  onVertexDrag,
+  allElements = []
 }: ElementRendererProps) {
   const getElementStyle = (): React.CSSProperties => {
     const baseStyle: React.CSSProperties = {
@@ -597,9 +629,11 @@ function ElementRenderer({
           ? element.color || "rgba(59, 130, 246, 0.2)"
           : element.type === "specialArea"
             ? element.color || "rgba(16, 185, 129, 0.2)"
-            : isSelected
-              ? "rgba(59, 130, 246, 0.15)"
-              : "rgba(255, 255, 255, 0.95)",
+            : element.type === "security"
+              ? element.color || "rgba(239, 68, 68, 0.2)"
+              : isSelected
+                ? "rgba(59, 130, 246, 0.15)"
+                : "rgba(255, 255, 255, 0.95)",
       boxShadow: isSelected
         ? "0 4px 12px rgba(59, 130, 246, 0.3)"
         : "0 2px 4px rgba(0,0,0,0.1)",
@@ -616,22 +650,51 @@ function ElementRenderer({
     if (element.shape === "square") {
       return { ...baseStyle, borderRadius: "4px" };
     }
-    if (element.shape === "polygon") {
-      // For polygon, we'll use SVG clipPath
+    if (element.shape === "triangle" || element.shape === "pentagon" || element.shape === "hexagon" || element.shape === "polygon") {
+      // For complex shapes, we'll use SVG clipPath
       return baseStyle;
     }
     return { ...baseStyle, borderRadius: "8px" };
   };
 
-  const getPolygonPath = (): string => {
-    if (element.shape !== "polygon" || !element.polygonPoints || element.polygonPoints.length < 3) {
-      return "";
+  // Generate polygon path for regular shapes
+  const getRegularPolygonPath = (sides: number, width: number, height: number): string => {
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2;
+    const points: Point[] = [];
+    
+    for (let i = 0; i < sides; i++) {
+      const angle = (i * 2 * Math.PI) / sides - Math.PI / 2; // Start from top
+      const x = centerX + radius * Math.cos(angle);
+      const y = centerY + radius * Math.sin(angle);
+      points.push({ x, y });
     }
-    return element.polygonPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
+    
+    return points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
   };
 
-  if (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) {
-    const path = getPolygonPath();
+  const getPolygonPath = (): string => {
+    if (element.shape === "triangle") {
+      return getRegularPolygonPath(3, element.width, element.height);
+    }
+    if (element.shape === "pentagon") {
+      return getRegularPolygonPath(5, element.width, element.height);
+    }
+    if (element.shape === "hexagon") {
+      return getRegularPolygonPath(6, element.width, element.height);
+    }
+    if (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) {
+      return element.polygonPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
+    }
+    return "";
+  };
+
+  const path = getPolygonPath();
+  const needsSvg = element.shape === "triangle" || element.shape === "pentagon" || element.shape === "hexagon" || 
+                   (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3);
+
+  if (needsSvg && path) {
     return (
       <div
         style={{
@@ -669,13 +732,30 @@ function ElementRenderer({
                 ? element.color || "rgba(59, 130, 246, 0.2)"
                 : element.type === "specialArea"
                   ? element.color || "rgba(16, 185, 129, 0.2)"
-                  : isSelected
-                    ? "rgba(59, 130, 246, 0.15)"
-                    : "rgba(255, 255, 255, 0.95)"
+                  : element.type === "security"
+                    ? element.color || "rgba(239, 68, 68, 0.2)"
+                    : isSelected
+                      ? "rgba(59, 130, 246, 0.15)"
+                      : "rgba(255, 255, 255, 0.95)"
             }
             stroke={isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)"}
             strokeWidth={isSelected ? 2 : 2}
           />
+          {/* Render vertices for polygon editing */}
+          {isInteractive && isSelected && element.shape === "polygon" && element.polygonPoints && onVertexDrag && (
+            <>
+              {element.polygonPoints.map((point, index) => (
+                <PolygonVertex
+                  key={index}
+                  point={point}
+                  index={index}
+                  element={element}
+                  allElements={allElements}
+                  onDrag={onVertexDrag}
+                />
+              ))}
+            </>
+          )}
         </svg>
         <div
           className="pointer-events-none text-center px-1 absolute inset-0 flex items-center justify-center"
@@ -825,6 +905,24 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
                 {t("floorPlan.shapes.oval")}
               </div>
             </SelectItem>
+            <SelectItem value="triangle">
+              <div className="flex items-center gap-2">
+                <Hexagon className="h-4 w-4" />
+                {t("floorPlan.shapes.triangle")}
+              </div>
+            </SelectItem>
+            <SelectItem value="pentagon">
+              <div className="flex items-center gap-2">
+                <Hexagon className="h-4 w-4" />
+                {t("floorPlan.shapes.pentagon")}
+              </div>
+            </SelectItem>
+            <SelectItem value="hexagon">
+              <div className="flex items-center gap-2">
+                <Hexagon className="h-4 w-4" />
+                {t("floorPlan.shapes.hexagon")}
+              </div>
+            </SelectItem>
             <SelectItem value="polygon">
               <div className="flex items-center gap-2">
                 <Hexagon className="h-4 w-4" />
@@ -936,6 +1034,19 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
         </>
       )}
 
+      {/* Security specific */}
+      {element.type === "security" && (
+        <div className="space-y-2">
+          <Label htmlFor="edit-security-color">{t("common.color")}</Label>
+          <Input
+            id="edit-security-color"
+            type="color"
+            value={element.color || "#EF4444"}
+            onChange={(e) => onChange({ ...element, color: e.target.value })}
+          />
+        </div>
+      )}
+
       {/* Special Area specific: Color and Type */}
       {element.type === "specialArea" && (
         <>
@@ -975,60 +1086,6 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
         </>
       )}
 
-      {/* Position and Size */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-2">
-          <Label htmlFor="edit-x">X</Label>
-          <Input
-            id="edit-x"
-            type="number"
-            value={Math.round(element.x)}
-            onChange={(e) => onChange({ ...element, x: parseInt(e.target.value) || 0 })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit-y">Y</Label>
-          <Input
-            id="edit-y"
-            type="number"
-            value={Math.round(element.y)}
-            onChange={(e) => onChange({ ...element, y: parseInt(e.target.value) || 0 })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit-width">{t("floorPlan.width")}</Label>
-          <Input
-            id="edit-width"
-            type="number"
-            min="10"
-            value={Math.round(element.width)}
-            onChange={(e) => onChange({ ...element, width: parseInt(e.target.value) || 10 })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit-height">{t("floorPlan.height")}</Label>
-          <Input
-            id="edit-height"
-            type="number"
-            min="10"
-            value={Math.round(element.height)}
-            onChange={(e) => onChange({ ...element, height: parseInt(e.target.value) || 10 })}
-          />
-        </div>
-      </div>
-
-      {/* Rotation */}
-      <div className="space-y-2">
-        <Label htmlFor="edit-rotation">{t("floorPlan.rotation")} (°)</Label>
-        <Input
-          id="edit-rotation"
-          type="number"
-          min="0"
-          max="360"
-          value={element.rotation}
-          onChange={(e) => onChange({ ...element, rotation: parseInt(e.target.value) || 0 })}
-        />
-      </div>
 
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
@@ -1037,6 +1094,83 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
         <Button onClick={onSave}>{t("common.save")}</Button>
       </DialogFooter>
     </div>
+  );
+}
+
+// Polygon Vertex Component for dragging
+interface PolygonVertexProps {
+  point: Point;
+  index: number;
+  element: FloorPlanElement;
+  allElements: FloorPlanElement[];
+  onDrag: (vertexIndex: number, newPoint: Point) => void;
+}
+
+function PolygonVertex({ point, index, element, allElements, onDrag }: PolygonVertexProps) {
+  const handleVertexMouseDown = (e: React.MouseEvent<SVGCircleElement>) => {
+    e.stopPropagation();
+    const svgElement = e.currentTarget.ownerSVGElement;
+    if (!svgElement) return;
+
+    const rect = svgElement.getBoundingClientRect();
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const newX = moveEvent.clientX - rect.left;
+      const newY = moveEvent.clientY - rect.top;
+
+      // Constrain to element bounds
+      const newPoint: Point = {
+        x: Math.max(0, Math.min(element.width, newX)),
+        y: Math.max(0, Math.min(element.height, newY))
+      };
+
+      // Basic collision check - prevent overlapping with other elements
+      const hasCollision = allElements.some((other) => {
+        if (other.id === element.id) return false;
+        // Simple bounding box check for vertex area
+        const vertexLeft = element.x + newPoint.x - 5;
+        const vertexRight = element.x + newPoint.x + 5;
+        const vertexTop = element.y + newPoint.y - 5;
+        const vertexBottom = element.y + newPoint.y + 5;
+
+        const otherLeft = other.x;
+        const otherRight = other.x + other.width;
+        const otherTop = other.y;
+        const otherBottom = other.y + other.height;
+
+        return !(
+          vertexRight < otherLeft ||
+          vertexLeft > otherRight ||
+          vertexBottom < otherTop ||
+          vertexTop > otherBottom
+        );
+      });
+
+      if (!hasCollision) {
+        onDrag(index, newPoint);
+      }
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  return (
+    <circle
+      cx={point.x}
+      cy={point.y}
+      r={6}
+      fill="#3B82F6"
+      stroke="white"
+      strokeWidth={2}
+      style={{ cursor: "grab" }}
+      onMouseDown={handleVertexMouseDown}
+    />
   );
 }
 

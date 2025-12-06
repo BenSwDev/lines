@@ -288,7 +288,19 @@
       "square": "Square",
       "circle": "Circle",
       "oval": "Oval",
+      "triangle": "Triangle",
+      "pentagon": "Pentagon",
+      "hexagon": "Hexagon",
       "polygon": "Polygon"
+    },
+    "addSecurity": "Add Security",
+    "editSecurity": "Edit Security",
+    "security": "Security",
+    "mapTypes": {
+      "tables": "Tables Map",
+      "bars": "Bars Map",
+      "general": "General Map",
+      "security": "Security Map"
     }
   }
 }

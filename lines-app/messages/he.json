@@ -287,7 +287,19 @@
       "square": "ריבוע",
       "circle": "עיגול",
       "oval": "אליפסה",
+      "triangle": "משולש",
+      "pentagon": "מחומש",
+      "hexagon": "משושה",
       "polygon": "פוליגון"
+    },
+    "addSecurity": "הוסף אבטחה",
+    "editSecurity": "עריכת אבטחה",
+    "security": "אבטחה",
+    "mapTypes": {
+      "tables": "מפת שולחנות",
+      "bars": "מפת ברים",
+      "general": "מפה כללית",
+      "security": "מפת אבטחה"
     }
   }
 }
