@@ -22,16 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-  List,
-  Clock,
-  Palette,
-  ChevronDown,
-  X,
-  Settings,
-  Copy,
-  Check
-} from "lucide-react";
+import { List, Clock, Palette, ChevronDown, X, Settings, Copy, Check } from "lucide-react";
 import { createLine } from "../actions/createLine";
 import { updateLine } from "../actions/updateLine";
 import { useToast } from "@/hooks/use-toast";

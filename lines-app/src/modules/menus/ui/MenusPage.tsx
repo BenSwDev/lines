@@ -33,7 +33,7 @@ export function MenusPage({ venueId, venueName }: MenusPageProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/venues/${venueId}/settings`)}
+            onClick={() => router.push(`/venues/${venueId}/info`)}
             className="mb-2"
           >
             <ArrowRight className="ml-2 h-4 w-4" />

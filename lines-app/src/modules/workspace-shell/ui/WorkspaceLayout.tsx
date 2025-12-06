@@ -14,13 +14,18 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
   const navItems: SidebarNavItem[] = [
     {
       id: "info",
-      label: "פרטי מקום",
+      label: "מידע כללי",
       href: `/venues/${venue.id}/info`
     },
     {
-      id: "settings",
-      label: "הגדרות מקום",
-      href: `/venues/${venue.id}/settings`
+      id: "zones",
+      label: "סידורי הושבה",
+      href: `/venues/${venue.id}/zones`
+    },
+    {
+      id: "menus",
+      label: "תפריטים",
+      href: `/venues/${venue.id}/menus`
     },
     {
       id: "lines",

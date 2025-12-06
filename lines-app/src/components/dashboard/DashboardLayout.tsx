@@ -34,7 +34,8 @@ import {
   Info,
   Calendar,
   List,
-  Sliders
+  MapPin,
+  FileText
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -130,15 +131,23 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         <SidebarMenuButton asChild isActive={pathname?.includes("/info")}>
                           <Link href={`/venues/${currentVenue.id}/info`}>
                             <Info className="h-4 w-4" />
-                            <span>מידע על המקום</span>
+                            <span>מידע כללי</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings")}>
-                          <Link href={`/venues/${currentVenue.id}/settings`}>
-                            <Sliders className="h-4 w-4" />
-                            <span>הגדרות</span>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/zones")}>
+                          <Link href={`/venues/${currentVenue.id}/zones`}>
+                            <MapPin className="h-4 w-4" />
+                            <span>סידורי הושבה</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/menus")}>
+                          <Link href={`/venues/${currentVenue.id}/menus`}>
+                            <FileText className="h-4 w-4" />
+                            <span>תפריטים</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

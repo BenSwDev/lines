@@ -19,7 +19,7 @@ export async function createZone(venueId: string, input: unknown) {
     );
 
     if (result.success) {
-      revalidatePath(`/venues/${venueId}/settings`);
+      revalidatePath(`/venues/${venueId}/zones`);
     }
 
     return result;

@@ -19,7 +19,7 @@ export async function createMenu(venueId: string, input: unknown) {
     );
 
     if (result.success) {
-      revalidatePath(`/venues/${venueId}/settings`);
+      revalidatePath(`/venues/${venueId}/menus`);
     }
 
     return result;
@@ -35,7 +35,7 @@ export async function deleteMenu(id: string, venueId: string) {
   const result = await withErrorHandling(() => menusService.deleteMenu(id), "Error deleting menu");
 
   if (result.success) {
-    revalidatePath(`/venues/${venueId}/settings`);
+    revalidatePath(`/venues/${venueId}/menus`);
   }
 
   return result;
