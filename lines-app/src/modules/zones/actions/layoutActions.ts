@@ -6,6 +6,7 @@ import { withErrorHandling } from "@/core/http/errorHandler";
 import { venueAreaRepository } from "@/core/db";
 import type { Prisma } from "@prisma/client";
 import type { VenueLayout } from "../types";
+import { normalizeLayout, normalizeLayoutData } from "../utils/layoutUtils";
 
 /**
  * Load venue layout from database
@@ -28,15 +29,13 @@ export async function loadVenueLayout(venueId: string) {
     }
 
     // Convert database models to visual layout
+    // Normalize ensures layoutData always has all required fields
+    const rawLayoutData = venue.layoutData
+      ? (venue.layoutData as unknown as VenueLayout["layoutData"])
+      : null;
+    
     const layout: VenueLayout = {
-      layoutData: (venue.layoutData as unknown as VenueLayout["layoutData"]) || {
-        width: 1200,
-        height: 800,
-        scale: 1,
-        gridSize: 20,
-        showGrid: true,
-        backgroundColor: "#f8f9fa"
-      },
+      layoutData: normalizeLayoutData(rawLayoutData),
       zones: venue.zones.map((zone) => ({
         id: zone.id,
         name: zone.name,
@@ -99,7 +98,9 @@ export async function loadVenueLayout(venueId: string) {
       }))
     };
 
-    return { success: true, data: layout };
+    // Normalize the complete layout to ensure all fields are valid
+    const normalizedLayout = normalizeLayout(layout);
+    return { success: true, data: normalizedLayout };
   }, "Error loading venue layout");
 }
 
