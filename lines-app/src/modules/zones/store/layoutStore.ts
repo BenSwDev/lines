@@ -1,10 +1,11 @@
 /**
  * Zustand store for managing layout state
- * Provides centralized state management with undo/redo support
+ * Best practices 2026: Type-safe, immutable, validated state management
  */
 
 import { create } from "zustand";
 import type { VenueLayout } from "../types";
+import { createDefaultLayout, normalizeLayout } from "../utils/layoutUtils";
 
 interface LayoutState {
   layout: VenueLayout;
@@ -21,7 +22,7 @@ interface LayoutState {
   error: string | null;
 
   // Actions
-  setLayout: (layout: VenueLayout) => void;
+  setLayout: (layout: VenueLayout | Partial<VenueLayout> | null | undefined) => void;
   updateLayout: (updater: (layout: VenueLayout) => VenueLayout) => void;
   selectElement: (id: string | null) => void;
   setToolMode: (mode: LayoutState["toolMode"]) => void;
@@ -40,118 +41,151 @@ interface LayoutState {
   canUndo: () => boolean;
   canRedo: () => boolean;
   clearHistory: () => void;
+  reset: () => void;
 }
 
 const MAX_HISTORY = 50;
 
-export const useLayoutStore = create<LayoutState>((set, get) => ({
-  layout: {
-    layoutData: {
-      width: 1200,
-      height: 800,
-      scale: 1,
-      gridSize: 20,
-      showGrid: true,
-      backgroundColor: "#f8f9fa"
+/**
+ * Deep clone a layout for history
+ */
+function cloneLayout(layout: VenueLayout): VenueLayout {
+  return JSON.parse(JSON.stringify(layout)) as VenueLayout;
+}
+
+export const useLayoutStore = create<LayoutState>((set, get) => {
+  const defaultLayout = createDefaultLayout();
+
+  return {
+    layout: defaultLayout,
+    history: [cloneLayout(defaultLayout)],
+    historyIndex: 0,
+    selectedElementId: null,
+    toolMode: "select",
+    viewMode: "edit",
+    zoom: 1,
+    showGrid: true,
+    panOffset: { x: 0, y: 0 },
+    isDragging: false,
+    isSaving: false,
+    error: null,
+
+    setLayout: (layout) => {
+      const normalized = normalizeLayout(layout);
+      const cloned = cloneLayout(normalized);
+      set({
+        layout: normalized,
+        history: [cloned],
+        historyIndex: 0,
+        selectedElementId: null,
+        error: null
+      });
     },
-    zones: [],
-    tables: [],
-    areas: []
-  },
-  history: [],
-  historyIndex: -1,
-  selectedElementId: null,
-  toolMode: "select",
-  viewMode: "edit",
-  zoom: 1,
-  showGrid: true,
-  panOffset: { x: 0, y: 0 },
-  isDragging: false,
-  isSaving: false,
-  error: null,
 
-  setLayout: (layout) => {
-    set({ layout, history: [layout], historyIndex: 0 });
-  },
+    updateLayout: (updater) => {
+      const current = get().layout;
+      const updated = updater(current);
+      const normalized = normalizeLayout(updated);
+      set({ layout: normalized, error: null });
+    },
 
-  updateLayout: (updater) => {
-    const current = get().layout;
-    const updated = updater(current);
-    set({ layout: updated });
-  },
+    selectElement: (id) => set({ selectedElementId: id }),
 
-  selectElement: (id) => set({ selectedElementId: id }),
+    setToolMode: (mode) => set({ toolMode: mode }),
 
-  setToolMode: (mode) => set({ toolMode: mode }),
+    setViewMode: (mode) => set({ viewMode: mode }),
 
-  setViewMode: (mode) => set({ viewMode: mode }),
+    setZoom: (zoom) => set({ zoom: Math.max(0.1, Math.min(5, zoom)) }),
 
-  setZoom: (zoom) => set({ zoom: Math.max(0.1, Math.min(5, zoom)) }),
+    toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
 
-  toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
+    setPanOffset: (offset) => set({ panOffset: offset }),
 
-  setPanOffset: (offset) => set({ panOffset: offset }),
+    setIsDragging: (isDragging) => set({ isDragging }),
 
-  setIsDragging: (isDragging) => set({ isDragging }),
+    setIsSaving: (isSaving) => set({ isSaving }),
 
-  setIsSaving: (isSaving) => set({ isSaving }),
+    setError: (error) => set({ error }),
 
-  setError: (error) => set({ error }),
+    pushToHistory: () => {
+      const { layout, history, historyIndex } = get();
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(cloneLayout(layout));
 
-  pushToHistory: () => {
-    const { layout, history, historyIndex } = get();
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(layout))); // Deep clone
+      // Limit history size
+      if (newHistory.length > MAX_HISTORY) {
+        newHistory.shift();
+      } else {
+        // Only increment index if we didn't remove items
+        set({
+          history: newHistory,
+          historyIndex: newHistory.length - 1
+        });
+        return;
+      }
 
-    // Limit history size
-    if (newHistory.length > MAX_HISTORY) {
-      newHistory.shift();
-    }
-
-    set({
-      history: newHistory,
-      historyIndex: newHistory.length - 1
-    });
-  },
-
-  undo: () => {
-    const { history, historyIndex } = get();
-    if (historyIndex > 0) {
-      const previousLayout = history[historyIndex - 1];
       set({
-        layout: JSON.parse(JSON.stringify(previousLayout)),
-        historyIndex: historyIndex - 1
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      });
+    },
+
+    undo: () => {
+      const { history, historyIndex } = get();
+      if (historyIndex > 0) {
+        const previousLayout = history[historyIndex - 1];
+        set({
+          layout: cloneLayout(previousLayout),
+          historyIndex: historyIndex - 1,
+          error: null
+        });
+      }
+    },
+
+    redo: () => {
+      const { history, historyIndex } = get();
+      if (historyIndex < history.length - 1) {
+        const nextLayout = history[historyIndex + 1];
+        set({
+          layout: cloneLayout(nextLayout),
+          historyIndex: historyIndex + 1,
+          error: null
+        });
+      }
+    },
+
+    canUndo: () => {
+      const { historyIndex } = get();
+      return historyIndex > 0;
+    },
+
+    canRedo: () => {
+      const { history, historyIndex } = get();
+      return historyIndex < history.length - 1;
+    },
+
+    clearHistory: () => {
+      const { layout } = get();
+      const cloned = cloneLayout(layout);
+      set({
+        history: [cloned],
+        historyIndex: 0
+      });
+    },
+
+    reset: () => {
+      const defaultLayout = createDefaultLayout();
+      const cloned = cloneLayout(defaultLayout);
+      set({
+        layout: defaultLayout,
+        history: [cloned],
+        historyIndex: 0,
+        selectedElementId: null,
+        toolMode: "select",
+        zoom: 1,
+        panOffset: { x: 0, y: 0 },
+        error: null
       });
     }
-  },
-
-  redo: () => {
-    const { history, historyIndex } = get();
-    if (historyIndex < history.length - 1) {
-      const nextLayout = history[historyIndex + 1];
-      set({
-        layout: JSON.parse(JSON.stringify(nextLayout)),
-        historyIndex: historyIndex + 1
-      });
-    }
-  },
-
-  canUndo: () => {
-    const { historyIndex } = get();
-    return historyIndex > 0;
-  },
-
-  canRedo: () => {
-    const { history, historyIndex } = get();
-    return historyIndex < history.length - 1;
-  },
-
-  clearHistory: () => {
-    const { layout } = get();
-    set({
-      history: [JSON.parse(JSON.stringify(layout))],
-      historyIndex: 0
-    });
-  }
-}));
-
+  };
+});

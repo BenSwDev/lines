@@ -48,6 +48,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useLayoutStore } from "../store/layoutStore";
+import { DEFAULT_LAYOUT_DATA } from "../utils/layoutUtils";
 import type {
   VenueLayout,
   ZoneVisual,
@@ -112,10 +113,14 @@ export function SeatingLayoutEditor({
     canRedo
   } = useLayoutStore();
 
-  // Initialize layout
+  // Initialize layout - always ensure valid layoutData exists
   useEffect(() => {
     if (initialLayout) {
+      // Normalize ensures layoutData always exists
       setLayout(initialLayout);
+    } else {
+      // Reset to default if no initial layout
+      setLayout(null);
     }
   }, [initialLayout, setLayout]);
 
@@ -426,7 +431,8 @@ export function SeatingLayoutEditor({
 
   // Render grid
   const renderGrid = () => {
-    if (!showGrid || viewMode === "view" || !layout?.layoutData) return null;
+    if (!showGrid || viewMode === "view") return null;
+    // layoutData is guaranteed to exist after normalization
     const { width, height } = layout.layoutData;
     const lines = [];
 
@@ -644,8 +650,9 @@ export function SeatingLayoutEditor({
     });
   };
 
-  const canvasWidth = layout?.layoutData?.width || 1600;
-  const canvasHeight = layout?.layoutData?.height || 1200;
+  // Always use layoutData from store (guaranteed to exist after normalization)
+  const canvasWidth = layout.layoutData.width;
+  const canvasHeight = layout.layoutData.height;
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -1133,7 +1140,7 @@ export function SeatingLayoutEditor({
                 y={0}
                 width={canvasWidth}
                 height={canvasHeight}
-                fill={layout?.layoutData?.backgroundColor || "#f8f9fa"}
+                fill={layout.layoutData.backgroundColor || DEFAULT_LAYOUT_DATA.backgroundColor}
                 listening={false}
               />
 
