@@ -127,7 +127,10 @@ export function FloorPlanEditorV2({
   const canvasRef = useRef<HTMLDivElement>(null);
   const [elements, setElements] = useState<FloorPlanElement[]>(initialElements);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
@@ -250,7 +253,28 @@ export function FloorPlanEditorV2({
       if (viewMode === "nonInteractive") return;
       e.stopPropagation();
       e.preventDefault();
-      setSelectedElementId(element.id);
+      
+      // Multi-select with Ctrl/Cmd
+      if (e.ctrlKey || e.metaKey) {
+        const newSelection = new Set(selectedElementIds);
+        if (newSelection.has(element.id)) {
+          newSelection.delete(element.id);
+          if (newSelection.size === 0) {
+            setSelectedElementId(null);
+          } else if (newSelection.size === 1) {
+            setSelectedElementId(Array.from(newSelection)[0]);
+          }
+        } else {
+          newSelection.add(element.id);
+          setSelectedElementId(element.id);
+        }
+        setSelectedElementIds(newSelection);
+      } else {
+        // Single select
+        setSelectedElementId(element.id);
+        setSelectedElementIds(new Set([element.id]));
+      }
+      
       setIsDragging(true);
       setDraggedElement(element);
 
@@ -264,7 +288,30 @@ export function FloorPlanEditorV2({
         });
       }
     },
-    [viewMode]
+    [viewMode, selectedElementIds]
+  );
+  
+  // Handle canvas mouse down for selection box
+  const handleCanvasMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      if (!canvasRef.current || viewMode !== "interactive" || isDrawingPolygon) return;
+      if (e.target !== canvasRef.current) return; // Only on canvas, not on elements
+      if (e.button !== 0) return; // Only left mouse button
+      
+      const rect = canvasRef.current.getBoundingClientRect();
+      const startX = (e.clientX - rect.left) / zoom;
+      const startY = (e.clientY - rect.top) / zoom;
+      
+      setIsSelecting(true);
+      setSelectionBox({ startX, startY, endX: startX, endY: startY });
+      
+      // If not Ctrl/Cmd, clear selection
+      if (!e.ctrlKey && !e.metaKey) {
+        setSelectedElementId(null);
+        setSelectedElementIds(new Set());
+      }
+    },
+    [viewMode, isDrawingPolygon, zoom]
   );
 
   // Handle rotate start
@@ -383,8 +430,18 @@ export function FloorPlanEditorV2({
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const canvasX = e.clientX - rect.left;
-      const canvasY = e.clientY - rect.top;
+      const canvasX = (e.clientX - rect.left) / zoom;
+      const canvasY = (e.clientY - rect.top) / zoom;
+      
+      // Handle selection box
+      if (isSelecting && selectionBox) {
+        setSelectionBox({
+          ...selectionBox,
+          endX: canvasX,
+          endY: canvasY
+        });
+        return;
+      }
 
       // Handle dragging
       if (isDragging && draggedElement) {
@@ -401,30 +458,42 @@ export function FloorPlanEditorV2({
         newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, newX));
         newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, newY));
 
-        // Update element position
-        const updatedElement = {
-          ...draggedElement,
-          x: newX,
-          y: newY
-        };
-
-        // If dragging a table, check if it's inside a zone
-        let newZoneId: string | undefined = undefined;
-        if (updatedElement.type === "table") {
-          const zones = elements.filter((el) => el.type === "zone");
-          const containingZone = findContainingZone(updatedElement, zones);
-          newZoneId = containingZone?.id;
-        }
-
+        // Update element position - handle multi-select
+        const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
+        const deltaX = newX - draggedElement.x;
+        const deltaY = newY - draggedElement.y;
+        
         setElements(
-          elements.map((el) =>
-            el.id === draggedElement.id
-              ? {
-                  ...updatedElement,
-                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
-                }
-              : el
-          )
+          elements.map((el) => {
+            if (selectedIds.has(el.id)) {
+              const newElX = el.x + deltaX;
+              const newElY = el.y + deltaY;
+              
+              // Constrain to canvas bounds
+              const constrainedX = Math.max(0, Math.min(canvasSize.width - el.width, newElX));
+              const constrainedY = Math.max(0, Math.min(canvasSize.height - el.height, newElY));
+              
+              const updatedElement = {
+                ...el,
+                x: constrainedX,
+                y: constrainedY
+              };
+
+              // If dragging a table, check if it's inside a zone
+              let newZoneId: string | undefined = undefined;
+              if (updatedElement.type === "table") {
+                const zones = elements.filter((zoneEl) => zoneEl.type === "zone");
+                const containingZone = findContainingZone(updatedElement, zones);
+                newZoneId = containingZone?.id;
+              }
+
+              return {
+                ...updatedElement,
+                zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+              };
+            }
+            return el;
+          })
         );
         return;
       }
@@ -549,6 +618,34 @@ export function FloorPlanEditorV2({
     };
 
     const handleMouseUp = () => {
+      // Handle selection box completion
+      if (isSelecting && selectionBox) {
+        const minX = Math.min(selectionBox.startX, selectionBox.endX);
+        const maxX = Math.max(selectionBox.startX, selectionBox.endX);
+        const minY = Math.min(selectionBox.startY, selectionBox.endY);
+        const maxY = Math.max(selectionBox.startY, selectionBox.endY);
+        
+        // Find all elements within selection box
+        const selected = elements.filter(el => {
+          const elCenterX = el.x + el.width / 2;
+          const elCenterY = el.y + el.height / 2;
+          return elCenterX >= minX && elCenterX <= maxX && elCenterY >= minY && elCenterY <= maxY;
+        });
+        
+        if (selected.length > 0) {
+          const selectedIds = new Set(selected.map(el => el.id));
+          setSelectedElementIds(selectedIds);
+          if (selected.length === 1) {
+            setSelectedElementId(selected[0].id);
+          } else {
+            setSelectedElementId(null);
+          }
+        }
+        
+        setIsSelecting(false);
+        setSelectionBox(null);
+      }
+      
       setIsDragging(false);
       setDraggedElement(null);
       setIsResizing(false);
@@ -556,7 +653,7 @@ export function FloorPlanEditorV2({
       setIsRotating(false);
     };
 
-    if (isDragging || isResizing || isRotating) {
+    if (isDragging || isResizing || isRotating || isSelecting) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
 
@@ -565,7 +662,7 @@ export function FloorPlanEditorV2({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, isRotating, draggedElement, dragOffset, resizeHandle, resizeStart, rotateStart, elements, canvasSize, viewMode, showGrid]);
+  }, [isDragging, isResizing, isRotating, isSelecting, selectionBox, draggedElement, dragOffset, resizeHandle, resizeStart, rotateStart, elements, canvasSize, viewMode, showGrid, zoom, selectedElementIds, selectedElementId]);
 
   // Calculate total capacity from tables
   const totalCapacity = elements
@@ -873,7 +970,24 @@ export function FloorPlanEditorV2({
               backgroundSize: `${20 / zoom}px ${20 / zoom}px`
             }}
             onClick={handleCanvasClick}
+            onMouseDown={handleCanvasMouseDown}
           >
+            {/* Selection Box */}
+            {isSelecting && selectionBox && (
+              <div
+                style={{
+                  position: "absolute",
+                  left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
+                  top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
+                  width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
+                  height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`,
+                  border: "2px dashed #3B82F6",
+                  backgroundColor: "rgba(59, 130, 246, 0.1)",
+                  pointerEvents: "none",
+                  zIndex: 998
+                }}
+              />
+            )}
             {/* Polygon drawing preview */}
             {isDrawingPolygon && polygonPoints.length > 0 && (
               <svg
@@ -1176,7 +1290,7 @@ export function FloorPlanEditorV2({
                     <ElementRenderer
                       key={element.id}
                       element={element}
-                      isSelected={selectedElementId === element.id}
+                      isSelected={selectedElementId === element.id || selectedElementIds.has(element.id)}
                       isInteractive={true}
                       onMouseDown={(e) => handleElementMouseDown(e, element)}
                       onDoubleClick={() => handleEditElement(element)}
