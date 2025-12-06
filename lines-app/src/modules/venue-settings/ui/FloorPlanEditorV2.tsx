@@ -163,8 +163,10 @@ export function FloorPlanEditorV2({
   const [contextPanelElement, setContextPanelElement] = useState<FloorPlanElement | null>(null);
 
   // Drag state
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [draggedElement, setDraggedElement] = useState<FloorPlanElement | null>(null);
+  const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const dragElementsStartPosRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const animationFrameRef = useRef<number | null>(null);
   
   // Resize state - support all 8 handles
   const [isResizing, setIsResizing] = useState(false);
@@ -314,20 +316,30 @@ export function FloorPlanEditorV2({
         setSelectedElementIds(new Set([element.id]));
       }
       
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
+      // Calculate mouse position relative to canvas (accounting for zoom)
+      const mouseX = (e.clientX - rect.left) / zoom;
+      const mouseY = (e.clientY - rect.top) / zoom;
+      
+      // Store drag start position
+      dragStartPosRef.current = { x: mouseX, y: mouseY };
+      
+      // Store initial positions of all selected elements
+      const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : new Set([element.id]);
+      dragElementsStartPosRef.current.clear();
+      selectedIds.forEach(id => {
+        const el = elements.find(e => e.id === id);
+        if (el) {
+          dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
+        }
+      });
+      
       setIsDragging(true);
       setDraggedElement(element);
-
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (rect) {
-        const canvasX = e.clientX - rect.left;
-        const canvasY = e.clientY - rect.top;
-        setDragOffset({
-          x: canvasX - element.x,
-          y: canvasY - element.y
-        });
-      }
     },
-    [viewMode, selectedElementIds]
+    [viewMode, selectedElementIds, elements, zoom]
   );
   
   // Handle canvas mouse down for selection box
@@ -482,58 +494,91 @@ export function FloorPlanEditorV2({
         return;
       }
 
-      // Handle dragging
-      if (isDragging && draggedElement) {
-        let newX = canvasX - dragOffset.x;
-        let newY = canvasY - dragOffset.y;
-        
-        // Snap to grid if enabled
-        if (showGrid) {
-          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+      // Handle dragging with requestAnimationFrame for smooth performance
+      if (isDragging && draggedElement && dragStartPosRef.current) {
+        // Cancel previous animation frame
+        if (animationFrameRef.current !== null) {
+          cancelAnimationFrame(animationFrameRef.current);
         }
         
-        // Constrain to canvas bounds
-        newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, newX));
-        newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, newY));
+        // Use requestAnimationFrame for smooth dragging
+        animationFrameRef.current = requestAnimationFrame(() => {
+          // Calculate delta from drag start
+          const deltaX = canvasX - dragStartPosRef.current!.x;
+          const deltaY = canvasY - dragStartPosRef.current!.y;
+          
+          // Get selected elements
+          const selectedIds = selectedElementIds.size > 0 
+            ? selectedElementIds 
+            : (selectedElementId ? new Set([selectedElementId]) : new Set());
+          
+          // Update all selected elements
+          setElements((prevElements) => {
+            return prevElements.map((el) => {
+              if (selectedIds.has(el.id)) {
+                const startPos = dragElementsStartPosRef.current.get(el.id);
+                if (!startPos) return el;
+                
+                let newX = startPos.x + deltaX;
+                let newY = startPos.y + deltaY;
+                
+                // Snap to grid if enabled
+                if (showGrid) {
+                  newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+                  newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+                }
+                
+                // Constrain to canvas bounds
+                newX = Math.max(0, Math.min(canvasSize.width - el.width, newX));
+                newY = Math.max(0, Math.min(canvasSize.height - el.height, newY));
+                
+                const updatedElement = {
+                  ...el,
+                  x: newX,
+                  y: newY
+                };
 
-        // Update element position - handle multi-select
-        const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
-        const deltaX = newX - draggedElement.x;
-        const deltaY = newY - draggedElement.y;
-        
-        setElements(
-          elements.map((el) => {
-            if (selectedIds.has(el.id)) {
-              const newElX = el.x + deltaX;
-              const newElY = el.y + deltaY;
-              
-              // Constrain to canvas bounds
-              const constrainedX = Math.max(0, Math.min(canvasSize.width - el.width, newElX));
-              const constrainedY = Math.max(0, Math.min(canvasSize.height - el.height, newElY));
-              
-              const updatedElement = {
-                ...el,
-                x: constrainedX,
-                y: constrainedY
-              };
+                // If dragging a table, check if it's inside a zone
+                let newZoneId: string | undefined = undefined;
+                if (updatedElement.type === "table") {
+                  const zones = prevElements.filter((zoneEl) => zoneEl.type === "zone");
+                  const containingZone = findContainingZone(updatedElement, zones);
+                  newZoneId = containingZone?.id;
+                }
 
-              // If dragging a table, check if it's inside a zone
-              let newZoneId: string | undefined = undefined;
-              if (updatedElement.type === "table") {
-                const zones = elements.filter((zoneEl) => zoneEl.type === "zone");
-                const containingZone = findContainingZone(updatedElement, zones);
-                newZoneId = containingZone?.id;
+                return {
+                  ...updatedElement,
+                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+                };
               }
-
-              return {
-                ...updatedElement,
-                zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
-              };
+              return el;
+            });
+          });
+          
+          // Update dragged element for visual feedback
+          const startPos = dragElementsStartPosRef.current.get(draggedElement.id);
+          if (startPos) {
+            let newX = startPos.x + deltaX;
+            let newY = startPos.y + deltaY;
+            
+            if (showGrid) {
+              newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+              newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
             }
-            return el;
-          })
-        );
+            
+            newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, newX));
+            newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, newY));
+            
+            setDraggedElement((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                x: newX,
+                y: newY
+              };
+            });
+          }
+        });
         return;
       }
 
@@ -657,6 +702,12 @@ export function FloorPlanEditorV2({
     };
 
     const handleMouseUp = () => {
+      // Cancel any pending animation frame
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      
       // Handle selection box completion
       if (isSelecting && selectionBox) {
         const minX = Math.min(selectionBox.startX, selectionBox.endX);
@@ -685,6 +736,12 @@ export function FloorPlanEditorV2({
         setSelectionBox(null);
       }
       
+      // Clean up drag state
+      if (isDragging) {
+        dragStartPosRef.current = null;
+        dragElementsStartPosRef.current.clear();
+      }
+      
       setIsDragging(false);
       setDraggedElement(null);
       setIsResizing(false);
@@ -701,7 +758,16 @@ export function FloorPlanEditorV2({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, isRotating, isSelecting, selectionBox, draggedElement, dragOffset, resizeHandle, resizeStart, rotateStart, elements, canvasSize, viewMode, showGrid, zoom, selectedElementIds, selectedElementId]);
+  }, [isDragging, isResizing, isRotating, isSelecting, selectionBox, draggedElement, resizeHandle, resizeStart, rotateStart, elements, canvasSize, viewMode, showGrid, zoom, selectedElementIds, selectedElementId]);
+  
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   // Calculate total capacity from tables
   const totalCapacity = elements
