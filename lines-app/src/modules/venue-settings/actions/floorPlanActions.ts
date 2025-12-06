@@ -3,7 +3,22 @@
 import { prisma } from "@/core/integrations/prisma/client";
 import { revalidatePath } from "next/cache";
 import { withErrorHandling } from "@/core/http/errorHandler";
-import type { TableItem } from "../ui/FloorPlanEditor";
+// TableItem type for floor plan
+export type TableItem = {
+  id: string;
+  name: string;
+  seats?: number | null;
+  notes?: string | null;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  shape: "rectangle" | "circle" | "triangle" | "polygon";
+  zoneId?: string;
+  color?: string;
+  polygonPoints?: { x: number; y: number }[];
+};
 
 /**
  * Load all tables for a venue (across all zones) with visual properties

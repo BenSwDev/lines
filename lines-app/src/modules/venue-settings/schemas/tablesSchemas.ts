@@ -10,7 +10,7 @@ export const createTableSchema = z.object({
   width: z.number().positive().optional().nullable(),
   height: z.number().positive().optional().nullable(),
   rotation: z.number().min(0).max(360).optional().nullable(),
-  shape: z.enum(["rectangle", "circle", "oval", "square"]).optional().nullable()
+  shape: z.enum(["rectangle", "circle", "triangle", "polygon"]).optional().nullable()
 });
 
 export const updateTableSchema = z.object({
@@ -23,7 +23,7 @@ export const updateTableSchema = z.object({
   width: z.number().positive().optional().nullable(),
   height: z.number().positive().optional().nullable(),
   rotation: z.number().min(0).max(360).optional().nullable(),
-  shape: z.enum(["rectangle", "circle", "oval", "square"]).optional().nullable()
+  shape: z.enum(["rectangle", "circle", "triangle", "polygon"]).optional().nullable()
 });
 
 export type CreateTableInput = z.infer<typeof createTableSchema>;

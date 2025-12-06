@@ -227,7 +227,7 @@ export const clubTemplate: VenueTemplate = {
       width: 80,
       height: 80,
       rotation: 0,
-      shape: "square" as const,
+      shape: "rectangle" as const,
       seats: 6
     })),
     // Bar

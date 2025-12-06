@@ -120,7 +120,7 @@ export function isElementInZone(element: FloorPlanElement, zone: FloorPlanElemen
   };
 
   // Check based on zone shape
-  if (zone.shape === "circle" || zone.shape === "oval") {
+  if (zone.shape === "circle") {
     return isPointInCircle(elementCenter, zoneBounds);
   } else if (zone.shape === "polygon" && zone.polygonPoints) {
     return isPointInPolygon(elementCenter, zone.polygonPoints, zoneBounds);
@@ -172,7 +172,7 @@ export function isElementFullyInZone(element: FloorPlanElement, zone: FloorPlanE
   for (const corner of corners) {
     let inside = false;
 
-    if (zone.shape === "circle" || zone.shape === "oval") {
+    if (zone.shape === "circle") {
       inside = isPointInCircle(corner, zoneBounds);
     } else if (zone.shape === "polygon" && zone.polygonPoints) {
       inside = isPointInPolygon(corner, zone.polygonPoints, zoneBounds);

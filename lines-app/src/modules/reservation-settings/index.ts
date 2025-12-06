@@ -1,7 +1,8 @@
 export { ReservationSettingsTab } from "./ui/ReservationSettingsTab";
 export {
   getReservationSettings,
-  updateReservationSettings
+  updateReservationSettings,
+  getVenueLines
 } from "./actions/reservationSettingsActions";
 export { reservationSettingsService } from "./services/reservationSettingsService";
 export type {

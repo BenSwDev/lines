@@ -8,7 +8,7 @@ import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
 
-export type TableShape = "rectangle" | "circle" | "oval" | "square";
+export type TableShape = "rectangle" | "circle" | "triangle" | "polygon";
 
 export interface TableItem {
   id: string;
@@ -245,7 +245,7 @@ export function FloorPlanEditor({ venueId, initialTables = [] }: FloorPlanEditor
                 ...t,
                 shape,
                 // For circle/square, make width = height
-                ...(shape === "circle" || shape === "square" ? { height: t.width } : {})
+                ...(shape === "circle" ? { height: t.width } : {})
               }
             : t
         )
@@ -427,12 +427,12 @@ export function FloorPlanEditor({ venueId, initialTables = [] }: FloorPlanEditor
                     <Circle className="h-4 w-4" />
                   </Button>
                   <Button
-                    variant={selectedTable.shape === "oval" ? "default" : "outline"}
+                    variant={selectedTable.shape === "triangle" ? "default" : "outline"}
                     size="sm"
-                    onClick={() => handleChangeShape("oval")}
-                    title="Oval"
+                    onClick={() => handleChangeShape("triangle")}
+                    title="Triangle"
                   >
-                    <Circle className="h-4 w-4" />
+                    <Square className="h-4 w-4 rotate-45" />
                   </Button>
                 </div>
               </div>
@@ -496,17 +496,9 @@ function TableElement({ table, isSelected, onMouseDown, onResize }: TableElement
         borderRadius: "50%"
       };
     }
-    if (table.shape === "oval") {
-      return {
-        ...baseStyle,
-        borderRadius: "50%"
-      };
-    }
-    if (table.shape === "square") {
-      return {
-        ...baseStyle,
-        borderRadius: "4px"
-      };
+    if (table.shape === "triangle") {
+      // Triangle uses SVG clipPath
+      return baseStyle;
     }
     return {
       ...baseStyle,

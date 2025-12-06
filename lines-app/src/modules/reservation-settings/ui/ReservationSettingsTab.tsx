@@ -13,12 +13,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
 import {
   getReservationSettings,
-  updateReservationSettings
+  updateReservationSettings,
+  getVenueLines
 } from "../actions/reservationSettingsActions";
 import type { ReservationSettingsInput } from "../types";
 import { Calendar, Clock, Link2, List, Settings2 } from "lucide-react";
-import { lineRepository } from "@/core/db/repositories/LineRepository";
-import type { Line } from "@prisma/client";
+
+type Line = {
+  id: string;
+  name: string;
+};
 
 const DAYS_OF_WEEK = [
   { value: 0, label: "Sunday" },
@@ -87,8 +91,10 @@ export function ReservationSettingsTab() {
       }
 
       // Load lines
-      const venueLines = await lineRepository.findByVenueId(venueId);
-      setLines(venueLines);
+      const linesResult = await getVenueLines(venueId);
+      if (linesResult.success) {
+        setLines(linesResult.data);
+      }
     } catch (error) {
       toast({
         title: t("errors.generic"),

@@ -42,15 +42,21 @@ import {
   Circle,
   Hexagon,
   X,
-  Sparkles
+  Sparkles,
+  Maximize2,
+  Minimize2,
+  ZoomIn,
+  ZoomOut,
+  Pencil
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
 import { getAllTemplates } from "../utils/floorPlanTemplates";
 import { findContainingZone } from "../utils/zoneContainment";
+import { FreeTransform } from "./FreeTransform";
 
-export type ElementShape = "rectangle" | "circle" | "oval" | "square" | "triangle" | "pentagon" | "hexagon" | "polygon";
+export type ElementShape = "rectangle" | "circle" | "triangle" | "polygon";
 
 export type ElementType = "table" | "zone" | "specialArea" | "security" | "line";
 
@@ -131,15 +137,25 @@ export function FloorPlanEditorV2({
   const [editingElement, setEditingElement] = useState<FloorPlanElement | null>(null);
   const [currentMapType, setCurrentMapType] = useState<MapType>(mapType);
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
+  
+  // Polygon drawing mode
+  const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
+  const [polygonPoints, setPolygonPoints] = useState<Point[]>([]);
+  
+  // Fullscreen modal
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  
+  // Zoom state
+  const [zoom, setZoom] = useState(1);
 
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [draggedElement, setDraggedElement] = useState<FloorPlanElement | null>(null);
   
-  // Resize state
+  // Resize state - support all 8 handles
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeHandle, setResizeHandle] = useState<"nw" | "ne" | "sw" | "se" | null>(null);
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeHandle, setResizeHandle] = useState<"nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | null>(null);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, elementX: 0, elementY: 0 });
   
   // Rotate state
   const [isRotating, setIsRotating] = useState(false);
@@ -251,25 +267,6 @@ export function FloorPlanEditorV2({
     [viewMode]
   );
 
-  // Handle resize start
-  const handleResizeStart = useCallback(
-    (e: React.MouseEvent, element: FloorPlanElement, handle: "nw" | "ne" | "sw" | "se") => {
-      e.stopPropagation();
-      e.preventDefault();
-      setSelectedElementId(element.id);
-      setIsResizing(true);
-      setResizeHandle(handle);
-      setDraggedElement(element);
-      setResizeStart({
-        x: e.clientX,
-        y: e.clientY,
-        width: element.width,
-        height: element.height
-      });
-    },
-    []
-  );
-
   // Handle rotate start
   const handleRotateStart = useCallback(
     (e: React.MouseEvent, element: FloorPlanElement) => {
@@ -290,6 +287,31 @@ export function FloorPlanEditorV2({
       }
     },
     []
+  );
+
+  // Handle resize start - support all 8 handles (not rotate)
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent, element: FloorPlanElement, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate") => {
+      if (handle === "rotate") {
+        handleRotateStart(e, element);
+        return;
+      }
+      e.stopPropagation();
+      e.preventDefault();
+      setSelectedElementId(element.id);
+      setIsResizing(true);
+      setResizeHandle(handle);
+      setDraggedElement(element);
+      setResizeStart({
+        x: e.clientX,
+        y: e.clientY,
+        width: element.width,
+        height: element.height,
+        elementX: element.x,
+        elementY: element.y
+      });
+    },
+    [handleRotateStart]
   );
 
   // Keyboard shortcuts
@@ -407,15 +429,16 @@ export function FloorPlanEditorV2({
         return;
       }
 
-      // Handle resizing
+      // Handle resizing - support all 8 handles
       if (isResizing && resizeHandle && draggedElement) {
         const deltaX = canvasX - resizeStart.x;
         const deltaY = canvasY - resizeStart.y;
         let newWidth = resizeStart.width;
         let newHeight = resizeStart.height;
-        let newX = draggedElement.x;
-        let newY = draggedElement.y;
+        let newX = resizeStart.elementX;
+        let newY = resizeStart.elementY;
 
+        // Handle corner resizing
         if (resizeHandle === "se") {
           // Southeast - bottom right
           newWidth = Math.max(20, resizeStart.width + deltaX);
@@ -424,18 +447,34 @@ export function FloorPlanEditorV2({
           // Southwest - bottom left
           newWidth = Math.max(20, resizeStart.width - deltaX);
           newHeight = Math.max(20, resizeStart.height + deltaY);
-          newX = draggedElement.x + deltaX;
+          newX = resizeStart.elementX + deltaX;
         } else if (resizeHandle === "ne") {
           // Northeast - top right
           newWidth = Math.max(20, resizeStart.width + deltaX);
           newHeight = Math.max(20, resizeStart.height - deltaY);
-          newY = draggedElement.y + deltaY;
+          newY = resizeStart.elementY + deltaY;
         } else if (resizeHandle === "nw") {
           // Northwest - top left
           newWidth = Math.max(20, resizeStart.width - deltaX);
           newHeight = Math.max(20, resizeStart.height - deltaY);
-          newX = draggedElement.x + deltaX;
-          newY = draggedElement.y + deltaY;
+          newX = resizeStart.elementX + deltaX;
+          newY = resizeStart.elementY + deltaY;
+        }
+        // Handle edge resizing
+        else if (resizeHandle === "n") {
+          // North - top edge
+          newHeight = Math.max(20, resizeStart.height - deltaY);
+          newY = resizeStart.elementY + deltaY;
+        } else if (resizeHandle === "s") {
+          // South - bottom edge
+          newHeight = Math.max(20, resizeStart.height + deltaY);
+        } else if (resizeHandle === "e") {
+          // East - right edge
+          newWidth = Math.max(20, resizeStart.width + deltaX);
+        } else if (resizeHandle === "w") {
+          // West - left edge
+          newWidth = Math.max(20, resizeStart.width - deltaX);
+          newX = resizeStart.elementX + deltaX;
         }
 
         // Snap to grid if enabled
@@ -562,7 +601,7 @@ export function FloorPlanEditorV2({
           width: e.width,
           height: e.height,
           rotation: e.rotation,
-          shape: e.shape as "rectangle" | "circle" | "oval" | "square",
+          shape: e.shape as "rectangle" | "circle" | "triangle" | "polygon",
           zoneId: e.zoneId,
           color: e.color
         }));
@@ -587,15 +626,67 @@ export function FloorPlanEditorV2({
     }
   }, [elements, venueId, capacityError, toast, t]);
 
-  // Click canvas to deselect
+  // Click canvas to deselect or add polygon point
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
-      if (e.target === canvasRef.current && viewMode === "interactive") {
+      if (!canvasRef.current || viewMode !== "interactive") return;
+      
+      if (isDrawingPolygon) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / zoom;
+        const y = (e.clientY - rect.top) / zoom;
+        setPolygonPoints([...polygonPoints, { x, y }]);
+      } else if (e.target === canvasRef.current) {
         setSelectedElementId(null);
       }
     },
-    [viewMode]
+    [viewMode, isDrawingPolygon, polygonPoints, zoom]
   );
+  
+  // Finish polygon drawing
+  const finishPolygonDrawing = useCallback(() => {
+    if (polygonPoints.length >= 3) {
+      // Calculate bounds
+      const minX = Math.min(...polygonPoints.map(p => p.x));
+      const minY = Math.min(...polygonPoints.map(p => p.y));
+      const maxX = Math.max(...polygonPoints.map(p => p.x));
+      const maxY = Math.max(...polygonPoints.map(p => p.y));
+      const width = maxX - minX || 100;
+      const height = maxY - minY || 100;
+      
+      // Normalize points to 0-100%
+      const normalizedPoints = polygonPoints.map(p => ({
+        x: width > 0 ? ((p.x - minX) / width) * 100 : p.x,
+        y: height > 0 ? ((p.y - minY) / height) * 100 : p.y
+      }));
+      
+      // Create new zone with polygon shape
+      const newElement: FloorPlanElement = {
+        id: `zone-${Date.now()}`,
+        type: "zone",
+        name: `Zone ${elements.filter(e => e.type === "zone").length + 1}`,
+        x: minX,
+        y: minY,
+        width: width,
+        height: height,
+        rotation: 0,
+        shape: "polygon",
+        polygonPoints: normalizedPoints,
+        color: "#3B82F6",
+        description: null
+      };
+      
+      setElements([...elements, newElement]);
+      setPolygonPoints([]);
+      setIsDrawingPolygon(false);
+    }
+  }, [polygonPoints, elements]);
+  
+  // Cancel polygon drawing
+  const cancelPolygonDrawing = useCallback(() => {
+    setPolygonPoints([]);
+    setIsDrawingPolygon(false);
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-250px)] flex-col gap-4">
@@ -664,6 +755,48 @@ export function FloorPlanEditorV2({
           >
             <Grid className="ml-2 h-4 w-4" />
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setIsDrawingPolygon(!isDrawingPolygon);
+              if (isDrawingPolygon) {
+                cancelPolygonDrawing();
+              }
+            }}
+            className={isDrawingPolygon ? "bg-primary/10" : ""}
+          >
+            <Pencil className="ml-2 h-4 w-4" />
+            {t("floorPlan.shapes.polygon")}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+          >
+            <ZoomOut className="ml-2 h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setZoom(1)}
+          >
+            {Math.round(zoom * 100)}%
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+          >
+            <ZoomIn className="ml-2 h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFullscreen(!isFullscreen)}
+          >
+            {isFullscreen ? <Minimize2 className="ml-2 h-4 w-4" /> : <Maximize2 className="ml-2 h-4 w-4" />}
+          </Button>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -731,14 +864,78 @@ export function FloorPlanEditorV2({
             style={{
               width: `${canvasSize.width || 800}px`,
               height: `${canvasSize.height || 600}px`,
+              transform: `scale(${zoom})`,
+              transformOrigin: "top left",
               backgroundImage: showGrid
                 ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
                    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
                 : undefined,
-              backgroundSize: "20px 20px"
+              backgroundSize: `${20 / zoom}px ${20 / zoom}px`
             }}
             onClick={handleCanvasClick}
           >
+            {/* Polygon drawing preview */}
+            {isDrawingPolygon && polygonPoints.length > 0 && (
+              <svg
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: "none",
+                  zIndex: 999
+                }}
+              >
+                <polyline
+                  points={polygonPoints.map(p => `${p.x},${p.y}`).join(" ")}
+                  fill="none"
+                  stroke="#3B82F6"
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                />
+                {polygonPoints.map((point, i) => (
+                  <circle
+                    key={i}
+                    cx={point.x}
+                    cy={point.y}
+                    r="4"
+                    fill="#3B82F6"
+                  />
+                ))}
+              </svg>
+            )}
+            {isDrawingPolygon && polygonPoints.length >= 3 && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "20px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  color: "white",
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  zIndex: 1000
+                }}
+              >
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={finishPolygonDrawing}
+                  className="mr-2"
+                >
+                  {t("common.save")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={cancelPolygonDrawing}
+                >
+                  {t("common.cancel")}
+                </Button>
+              </div>
+            )}
             {/* Visual Feedback Overlay */}
             {(isDragging || isResizing || isRotating) && draggedElement && (() => {
               // Check if table is in a zone
@@ -914,7 +1111,7 @@ interface ElementRendererProps {
   onDelete: () => void;
   onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;
   allElements?: FloorPlanElement[];
-  onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se") => void;
+  onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w") => void;
   onRotateStart?: (e: React.MouseEvent) => void;
 }
 
@@ -976,17 +1173,15 @@ function ElementRenderer({
       transition: isSelected ? "none" : "all 0.2s ease"
     };
 
-    if (element.shape === "circle" || element.shape === "oval") {
+    if (element.shape === "circle") {
       return { ...baseStyle, borderRadius: "50%" };
     }
-    if (element.shape === "square") {
-      return { ...baseStyle, borderRadius: "4px" };
-    }
-    if (element.shape === "triangle" || element.shape === "pentagon" || element.shape === "hexagon" || element.shape === "polygon") {
-      // For complex shapes, we'll use SVG clipPath
+    if (element.shape === "triangle" || element.shape === "polygon") {
+      // For triangle and polygon, we'll use SVG clipPath
       return baseStyle;
     }
-    return { ...baseStyle, borderRadius: "8px" };
+    // Rectangle (default)
+    return { ...baseStyle, borderRadius: "4px" };
   };
 
   // Generate polygon path for regular shapes
@@ -1010,20 +1205,19 @@ function ElementRenderer({
     if (element.shape === "triangle") {
       return getRegularPolygonPath(3, element.width, element.height);
     }
-    if (element.shape === "pentagon") {
-      return getRegularPolygonPath(5, element.width, element.height);
-    }
-    if (element.shape === "hexagon") {
-      return getRegularPolygonPath(6, element.width, element.height);
-    }
     if (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) {
-      return element.polygonPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
+      // Convert normalized points (0-100%) to absolute coordinates
+      const absolutePoints = element.polygonPoints.map((p) => ({
+        x: (p.x / 100) * element.width,
+        y: (p.y / 100) * element.height
+      }));
+      return absolutePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
     }
     return "";
   };
 
   const path = getPolygonPath();
-  const needsSvg = element.shape === "triangle" || element.shape === "pentagon" || element.shape === "hexagon" || 
+  const needsSvg = element.shape === "triangle" || 
                    (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3);
 
   if (needsSvg && path) {
@@ -1205,109 +1399,6 @@ function ElementRenderer({
     );
   }
 
-  // Resize handles component
-  const ResizeHandles = () => {
-    if (!isSelected || !isInteractive || !onResizeStart) return null;
-    
-    const handleSize = 8;
-    const handleStyle: React.CSSProperties = {
-      position: "absolute",
-      width: `${handleSize}px`,
-      height: `${handleSize}px`,
-      backgroundColor: "#3B82F6",
-      border: "2px solid white",
-      borderRadius: "50%",
-      cursor: "nwse-resize",
-      zIndex: 10
-    };
-
-    return (
-      <>
-        {/* Top-left */}
-        <div
-          style={{
-            ...handleStyle,
-            top: `-${handleSize / 2}px`,
-            left: `-${handleSize / 2}px`,
-            cursor: "nwse-resize"
-          }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            onResizeStart(e, "nw");
-          }}
-        />
-        {/* Top-right */}
-        <div
-          style={{
-            ...handleStyle,
-            top: `-${handleSize / 2}px`,
-            right: `-${handleSize / 2}px`,
-            cursor: "nesw-resize"
-          }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            onResizeStart(e, "ne");
-          }}
-        />
-        {/* Bottom-left */}
-        <div
-          style={{
-            ...handleStyle,
-            bottom: `-${handleSize / 2}px`,
-            left: `-${handleSize / 2}px`,
-            cursor: "nesw-resize"
-          }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            onResizeStart(e, "sw");
-          }}
-        />
-        {/* Bottom-right */}
-        <div
-          style={{
-            ...handleStyle,
-            bottom: `-${handleSize / 2}px`,
-            right: `-${handleSize / 2}px`,
-            cursor: "nwse-resize"
-          }}
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            onResizeStart(e, "se");
-          }}
-        />
-      </>
-    );
-  };
-
-  // Rotate handle component
-  const RotateHandle = () => {
-    if (!isSelected || !isInteractive || !onRotateStart) return null;
-    
-    const handleSize = 8;
-    const handleOffset = 20;
-    
-    return (
-      <div
-        style={{
-          position: "absolute",
-          top: `-${handleOffset}px`,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: `${handleSize}px`,
-          height: `${handleSize}px`,
-          backgroundColor: "#10B981",
-          border: "2px solid white",
-          borderRadius: "50%",
-          cursor: "grab",
-          zIndex: 10
-        }}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          onRotateStart(e);
-        }}
-      />
-    );
-  };
 
   return (
     <div
@@ -1322,8 +1413,22 @@ function ElementRenderer({
           <div className="text-[10px] text-muted-foreground mt-0.5">{element.seats}</div>
         )}
       </div>
-      <ResizeHandles />
-      <RotateHandle />
+      {isSelected && isInteractive && (
+        <FreeTransform
+          element={element}
+          isSelected={isSelected}
+          onResizeStart={(e, handle) => {
+            if (onResizeStart && handle !== "rotate") {
+              onResizeStart(e, handle as "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w");
+            }
+          }}
+          onRotateStart={(e) => {
+            if (onRotateStart) {
+              onRotateStart(e);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1424,40 +1529,16 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
                 {t("floorPlan.shapes.rectangle")}
               </div>
             </SelectItem>
-            <SelectItem value="square">
-              <div className="flex items-center gap-2">
-                <Square className="h-4 w-4" />
-                {t("floorPlan.shapes.square")}
-              </div>
-            </SelectItem>
             <SelectItem value="circle">
               <div className="flex items-center gap-2">
                 <Circle className="h-4 w-4" />
                 {t("floorPlan.shapes.circle")}
               </div>
             </SelectItem>
-            <SelectItem value="oval">
-              <div className="flex items-center gap-2">
-                <Circle className="h-4 w-4" />
-                {t("floorPlan.shapes.oval")}
-              </div>
-            </SelectItem>
             <SelectItem value="triangle">
               <div className="flex items-center gap-2">
                 <Hexagon className="h-4 w-4" />
                 {t("floorPlan.shapes.triangle")}
-              </div>
-            </SelectItem>
-            <SelectItem value="pentagon">
-              <div className="flex items-center gap-2">
-                <Hexagon className="h-4 w-4" />
-                {t("floorPlan.shapes.pentagon")}
-              </div>
-            </SelectItem>
-            <SelectItem value="hexagon">
-              <div className="flex items-center gap-2">
-                <Hexagon className="h-4 w-4" />
-                {t("floorPlan.shapes.hexagon")}
               </div>
             </SelectItem>
             <SelectItem value="polygon">
