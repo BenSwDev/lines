@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { MenusSection } from "./MenusSection";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 
 type MenusPageProps = {
@@ -13,7 +10,6 @@ type MenusPageProps = {
 };
 
 export function MenusPage({ venueId, venueName }: MenusPageProps) {
-  const router = useRouter();
   const { t } = useTranslations();
   const [menus, setMenus] = useState<unknown[]>([]);
 
@@ -30,15 +26,6 @@ export function MenusPage({ venueId, venueName }: MenusPageProps) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/venues/${venueId}/info`)}
-            className="mb-2"
-          >
-            <ArrowRight className="ml-2 h-4 w-4" />
-            {t("common.back")}
-          </Button>
           <h1 className="text-3xl font-bold tracking-tight">
             {t("settings.menus")} - {venueName}
           </h1>
