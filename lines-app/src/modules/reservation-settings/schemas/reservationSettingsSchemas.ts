@@ -36,4 +36,3 @@ export function validateTimeRange(startTime: string, endTime: string): boolean {
   const endTotal = endHours * 60 + endMinutes;
   return endTotal > startTotal;
 }
-

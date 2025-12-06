@@ -91,8 +91,7 @@ function isPointInPolygon(
     const yj = absolutePoints[j].y;
 
     const intersect =
-      yi > point.y !== yj > point.y &&
-      point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
+      yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
     if (intersect) inside = !inside;
   }
 
@@ -185,4 +184,3 @@ export function isElementFullyInZone(element: FloorPlanElement, zone: FloorPlanE
 
   return true;
 }
-

@@ -108,5 +108,3 @@ export class HistoryManager<T> {
     return this.currentIndex;
   }
 }
-
-

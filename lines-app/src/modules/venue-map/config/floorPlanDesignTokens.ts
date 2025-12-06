@@ -15,14 +15,14 @@ export const AREA_TYPE_COLORS: Record<string, string> = {
   storage: "#6B7280", // Gray
   dj_booth: "#6366F1", // Indigo
   other: "#94A3B8", // Slate
-  
+
   // Zones
   zone: "#3B82F6", // Blue (default)
-  
+
   // Tables
   table: "#FFFFFF", // White (neutral, standard)
   table_bar: "#F3F4F6", // Light gray
-  table_counter: "#F9FAFB", // Very light gray
+  table_counter: "#F9FAFB" // Very light gray
 };
 
 // Typography
@@ -77,5 +77,3 @@ export const FLOOR_PLAN_RADIUS = {
   panel: "8px",
   button: "6px"
 };
-
-

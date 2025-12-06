@@ -88,7 +88,9 @@ export async function updateReservationSettings(
  */
 export async function getVenueLines(
   venueId: string
-): Promise<{ success: true; data: Array<{ id: string; name: string }> } | { success: false; error: string }> {
+): Promise<
+  { success: true; data: Array<{ id: string; name: string }> } | { success: false; error: string }
+> {
   try {
     const user = await getCurrentUser();
     if (!user?.id) {

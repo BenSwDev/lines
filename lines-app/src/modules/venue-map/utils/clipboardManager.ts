@@ -16,7 +16,7 @@ export class ClipboardManager<T extends { id: string; x: number; y: number }> {
    */
   copy(elements: T[]): void {
     if (elements.length === 0) return;
-    
+
     this.clipboard = {
       elements: JSON.parse(JSON.stringify(elements)), // Deep clone
       timestamp: Date.now()
@@ -86,4 +86,3 @@ export class ClipboardManager<T extends { id: string; x: number; y: number }> {
     return this.clipboard?.elements.length || 0;
   }
 }
-

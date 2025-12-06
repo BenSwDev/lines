@@ -20,6 +20,7 @@ export default async function VenueMapRoute({ params }: Props) {
     redirect("/dashboard");
   }
 
-  return <VenueMapPage venueId={venueId} venueName={venueResult.data.name} userId={user.id || ""} />;
+  return (
+    <VenueMapPage venueId={venueId} venueName={venueResult.data.name} userId={user.id || ""} />
+  );
 }
-

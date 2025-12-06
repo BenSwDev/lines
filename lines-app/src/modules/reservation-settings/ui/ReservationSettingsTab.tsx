@@ -359,7 +359,10 @@ export function ReservationSettingsTab() {
           </CardHeader>
           <CardContent className="relative z-10 space-y-3">
             {lines.map((line) => (
-              <div key={line.id} className={`flex items-center ${rtlClasses.flexReverse} ${rtlClasses.spaceX} gap-3`}>
+              <div
+                key={line.id}
+                className={`flex items-center ${rtlClasses.flexReverse} ${rtlClasses.spaceX} gap-3`}
+              >
                 <Checkbox
                   id={`line-${line.id}`}
                   checked={excludedLineIds.includes(line.id)}
@@ -396,7 +399,9 @@ export function ReservationSettingsTab() {
               return (
                 <div key={day.value} className="space-y-4 rounded-lg border p-4">
                   <div className={`flex items-center justify-between ${rtlClasses.textAlign}`}>
-                    <Label className={`text-base font-semibold ${rtlClasses.textAlign}`}>{day.label}</Label>
+                    <Label className={`text-base font-semibold ${rtlClasses.textAlign}`}>
+                      {day.label}
+                    </Label>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className={`space-y-2 ${rtlClasses.textAlign}`}>

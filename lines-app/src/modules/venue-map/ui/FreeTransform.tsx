@@ -26,8 +26,9 @@ interface FreeTransformProps {
 }
 
 const HANDLE_SIZE = 10; // Increased from 8 for better interactivity
-const HANDLE_OFFSET = -HANDLE_SIZE / 2;
-const ROTATE_HANDLE_OFFSET = 30; // Increased from 25 for better reach
+const HANDLE_OFFSET = -HANDLE_SIZE / 2; // Center handles on corners/edges
+const ROTATE_HANDLE_OFFSET = 35; // Distance from top edge for rotation handle
+const ROTATE_CIRCLE_RADIUS = 20; // Radius of rotation indicator circle
 
 export function FreeTransform({
   element,
@@ -64,7 +65,11 @@ export function FreeTransform({
         case "w":
           return { left: `${offset}px`, top: `${h / 2 + offset}px`, cursor: "ew-resize" };
         case "rotate":
-          return { left: `${w / 2 + offset}px`, top: `${-rotateOffset + offset}px`, cursor: "grab" };
+          return {
+            left: `${w / 2 + offset}px`,
+            top: `${-rotateOffset + offset}px`,
+            cursor: "grab"
+          };
         default:
           return { left: "0px", top: "0px" };
       }
@@ -106,23 +111,19 @@ export function FreeTransform({
     cursor: "ns-resize"
   };
 
-  const rotateHandleStyle: React.CSSProperties = {
-    ...handleStyle,
-    backgroundColor: "#10B981",
-    cursor: "grab",
-    width: `${handleSize * 1.2}px`, // Slightly larger for better visibility
-    height: `${handleSize * 1.2}px`
-  };
-
   const rotation = element.rotation || 0;
-  const transformStyle: React.CSSProperties = {
-    transform: `rotate(${rotation}deg)`,
-    transformOrigin: "center center"
-  };
+
+  // Calculate element center for rotation handle positioning
+  const centerX = element.width / 2;
+  const centerY = element.height / 2;
+  const rotationHandleY = -rotateOffset;
+
+  // Rotation indicator circle center (above the element)
+  const rotationCircleCenterY = rotationHandleY - ROTATE_CIRCLE_RADIUS / 2;
 
   return (
-    <div style={transformStyle}>
-      {/* Corner handles */}
+    <>
+      {/* Corner handles - positioned exactly on corners */}
       {(["nw", "ne", "se", "sw"] as TransformHandle[]).map((handle) => {
         const pos = getHandlePosition(handle);
         return (
@@ -132,14 +133,16 @@ export function FreeTransform({
               ...handleStyle,
               left: pos.left,
               top: pos.top,
-              cursor: pos.cursor || "nwse-resize"
+              cursor: pos.cursor || "nwse-resize",
+              transform: `rotate(${rotation}deg)`,
+              transformOrigin: `${centerX}px ${centerY}px`
             }}
             onMouseDown={(e) => handleMouseDown(e, handle)}
           />
         );
       })}
 
-      {/* Edge handles */}
+      {/* Edge handles - positioned exactly on edges */}
       {(["n", "e", "s", "w"] as TransformHandle[]).map((handle) => {
         const pos = getHandlePosition(handle);
         return (
@@ -149,36 +152,100 @@ export function FreeTransform({
               ...edgeHandleStyle,
               left: pos.left,
               top: pos.top,
-              cursor: pos.cursor || "ns-resize"
+              cursor: pos.cursor || "ns-resize",
+              transform: `rotate(${rotation}deg)`,
+              transformOrigin: `${centerX}px ${centerY}px`
             }}
             onMouseDown={(e) => handleMouseDown(e, handle)}
           />
         );
       })}
 
-      {/* Rotation handle */}
-      <div
-        style={{
-          ...rotateHandleStyle,
-          ...getHandlePosition("rotate")
-        }}
-        onMouseDown={(e) => handleMouseDown(e, "rotate")}
-      />
-
-      {/* Rotation line */}
+      {/* Rotation indicator circle - like Word, shows rotation area */}
       <div
         style={{
           position: "absolute",
-          left: `${element.width / 2}px`,
+          left: `${centerX - ROTATE_CIRCLE_RADIUS}px`,
+          top: `${rotationCircleCenterY - ROTATE_CIRCLE_RADIUS}px`,
+          width: `${ROTATE_CIRCLE_RADIUS * 2}px`,
+          height: `${ROTATE_CIRCLE_RADIUS * 2}px`,
+          borderRadius: "50%",
+          border: "2px dashed #10B981",
+          backgroundColor: "rgba(16, 185, 129, 0.1)",
+          pointerEvents: "none",
+          zIndex: 998,
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: `${centerX}px ${centerY}px`
+        }}
+      />
+
+      {/* Rotation line - connects element to rotation handle */}
+      <div
+        style={{
+          position: "absolute",
+          left: `${centerX - 1}px`,
           top: "0px",
           width: "2px",
           height: `${rotateOffset}px`,
           backgroundColor: "#10B981",
-          opacity: 0.5,
+          opacity: 0.6,
           pointerEvents: "none",
-          zIndex: 999
+          zIndex: 997,
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: `${centerX}px ${centerY}px`
         }}
       />
-    </div>
+
+      {/* Rotation handle - prominent, clear it's for rotation */}
+      <div
+        style={{
+          position: "absolute",
+          left: `${centerX + handleOffset}px`,
+          top: `${rotationHandleY + handleOffset}px`,
+          width: `${handleSize * 1.5}px`,
+          height: `${handleSize * 1.5}px`,
+          backgroundColor: "#10B981",
+          border: "3px solid white",
+          borderRadius: "50%",
+          cursor: "grab",
+          zIndex: 1001,
+          boxShadow: "0 3px 6px rgba(0,0,0,0.3), 0 0 0 2px rgba(16, 185, 129, 0.3)",
+          transition: "all 0.15s ease",
+          userSelect: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: `${centerX}px ${centerY}px`
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onRotateStart(e);
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.cursor = "grabbing";
+          e.currentTarget.style.transform = `rotate(${rotation}deg) scale(1.15)`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.cursor = "grab";
+          e.currentTarget.style.transform = `rotate(${rotation}deg) scale(1)`;
+        }}
+      >
+        {/* Rotation icon indicator */}
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
+        </svg>
+      </div>
+    </>
   );
 }

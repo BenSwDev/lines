@@ -114,7 +114,9 @@ export async function loadVenueFloorPlan(venueId: string) {
       width: zone.width ? Number(zone.width) : 200,
       height: zone.height ? Number(zone.height) : 200,
       shape: (zone.shape as ZoneItem["shape"]) || "rectangle",
-      polygonPoints: zone.polygonPoints ? (zone.polygonPoints as { x: number; y: number }[]) : undefined
+      polygonPoints: zone.polygonPoints
+        ? (zone.polygonPoints as { x: number; y: number }[])
+        : undefined
     }));
 
     const venueAreaItems: VenueAreaItem[] = venueAreas.map((area) => ({
@@ -194,7 +196,9 @@ export async function saveVenueFloorPlan(
             width: zone.width,
             height: zone.height,
             shape: zone.shape,
-            polygonPoints: zone.polygonPoints ? (zone.polygonPoints as Prisma.InputJsonValue) : Prisma.JsonNull
+            polygonPoints: zone.polygonPoints
+              ? (zone.polygonPoints as Prisma.InputJsonValue)
+              : Prisma.JsonNull
           }
         });
       } else {
@@ -210,7 +214,9 @@ export async function saveVenueFloorPlan(
             width: zone.width,
             height: zone.height,
             shape: zone.shape,
-            polygonPoints: zone.polygonPoints ? (zone.polygonPoints as Prisma.InputJsonValue) : Prisma.JsonNull
+            polygonPoints: zone.polygonPoints
+              ? (zone.polygonPoints as Prisma.InputJsonValue)
+              : Prisma.JsonNull
           }
         });
       }

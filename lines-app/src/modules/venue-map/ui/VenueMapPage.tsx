@@ -31,7 +31,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
       const result = await loadVenueFloorPlan(venueId);
       if (result.success && "data" in result && result.data) {
         const allElements: FloorPlanElement[] = [];
-        
+
         // Convert tables to FloorPlanElements
         const tableElements: FloorPlanElement[] = (result.data.tables || []).map((table) => ({
           id: table.id,
@@ -48,7 +48,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           zoneId: table.zoneId,
           color: table.color
         }));
-        
+
         // Convert zones to FloorPlanElements
         const zoneElements: FloorPlanElement[] = (result.data.zones || []).map((zone) => ({
           id: zone.id,
@@ -64,7 +64,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           description: zone.description,
           polygonPoints: zone.polygonPoints
         }));
-        
+
         // Convert venue areas to FloorPlanElements
         const areaElements: FloorPlanElement[] = (result.data.venueAreas || []).map((area) => ({
           id: area.id,
@@ -80,7 +80,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           color: area.color,
           icon: area.icon
         }));
-        
+
         allElements.push(...zoneElements, ...tableElements, ...areaElements);
         setElements(allElements);
       } else {
@@ -122,12 +122,18 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           <h1 className="text-3xl font-bold tracking-tight">
             {t("settings.venueMap") || "מפת המקום"} - {venueName}
           </h1>
-          <p className="text-muted-foreground">{t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}</p>
+          <p className="text-muted-foreground">
+            {t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}
+          </p>
         </div>
       </div>
 
-      <FloorPlanEditorV2 venueId={venueId} initialElements={elements} initialCapacity={venueCapacity} userId={userId} />
+      <FloorPlanEditorV2
+        venueId={venueId}
+        initialElements={elements}
+        initialCapacity={venueCapacity}
+        userId={userId}
+      />
     </div>
   );
 }
-

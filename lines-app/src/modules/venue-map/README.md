@@ -20,4 +20,3 @@ This module provides a comprehensive floor plan editor for creating and managing
 - `utils/` - Utility functions (history, clipboard, alignment, etc.)
 - `config/` - Design tokens and configuration
 - `schemas/` - Zod schemas for validation
-

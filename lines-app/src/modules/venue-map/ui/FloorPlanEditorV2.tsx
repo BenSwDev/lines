@@ -39,7 +39,6 @@ import {
   Layout,
   List,
   MapPin,
-  DoorOpen,
   Circle,
   Hexagon,
   X,
@@ -72,13 +71,31 @@ import { getAllTemplates } from "../utils/floorPlanTemplates";
 import { loadUserTemplates, saveTemplate, deleteTemplate } from "../actions/templateActions";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
+import { AddElementDialog } from "./AddElementDialog";
+import {
+  getZoneTypeConfig,
+  getElementTypeConfig,
+  type ZoneType,
+  type ElementCategory
+} from "../config/zoneAndElementTypes";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AREA_TYPE_COLORS } from "../config/floorPlanDesignTokens";
 import { HistoryManager } from "../utils/historyManager";
 import { ClipboardManager } from "../utils/clipboardManager";
 import { AutoSaveManager } from "../utils/autoSave";
-import { findAlignmentGuides, snapToGuides, calculateBounds, type AlignmentGuide } from "../utils/alignmentGuides";
-import { alignElements, distributeElements, resizeToSameSize, type AlignmentType, type DistributionType } from "../utils/bulkOperations";
+import {
+  findAlignmentGuides,
+  snapToGuides,
+  calculateBounds,
+  type AlignmentGuide
+} from "../utils/alignmentGuides";
+import {
+  alignElements,
+  distributeElements,
+  resizeToSameSize,
+  type AlignmentType,
+  type DistributionType
+} from "../utils/bulkOperations";
 
 export type ElementShape = "rectangle" | "circle" | "triangle" | "square" | "polygon";
 
@@ -120,6 +137,15 @@ export interface FloorPlanElement {
   tableType?: "table" | "bar" | "counter";
   // Zone specific
   description?: string | null;
+  zoneType?:
+    | "tables_zone"
+    | "entrance_zone"
+    | "dance_floor"
+    | "vip_zone"
+    | "bar_area"
+    | "seating_area"
+    | "standing_area"
+    | "custom";
   // Special area specific
   areaType?: SpecialAreaType;
   icon?: string;
@@ -154,17 +180,24 @@ export function FloorPlanEditorV2({
   const [selectedElementIds, setSelectedElementIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
+  const [selectionBox, setSelectionBox] = useState<{
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+  } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveProgress, setSaveProgress] = useState(0);
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
-  const [saveHistory, setSaveHistory] = useState<Array<{
-    timestamp: Date;
-    tablesCount: number;
-    zonesCount: number;
-    areasCount: number;
-  }>>([]);
+  const [saveHistory, setSaveHistory] = useState<
+    Array<{
+      timestamp: Date;
+      tablesCount: number;
+      zonesCount: number;
+      areasCount: number;
+    }>
+  >([]);
   const [showGrid, setShowGrid] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [viewMode, setViewMode] = useState<"interactive" | "nonInteractive">("interactive");
@@ -176,6 +209,7 @@ export function FloorPlanEditorV2({
   const [saveConfirmDialogOpen, setSaveConfirmDialogOpen] = useState(false);
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [addElementDialogOpen, setAddElementDialogOpen] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -189,26 +223,28 @@ export function FloorPlanEditorV2({
     specialAreas: { visible: true, locked: false }
   });
   const [showLayersPanel, setShowLayersPanel] = useState(false);
-  const [customTemplates, setCustomTemplates] = useState<Array<{
-    id: string;
-    userId: string;
-    venueId?: string | null;
-    name: string;
-    description?: string | null;
-    elements: FloorPlanElement[];
-    defaultCapacity: number;
-  }>>([]);
-  
+  const [customTemplates, setCustomTemplates] = useState<
+    Array<{
+      id: string;
+      userId: string;
+      venueId?: string | null;
+      name: string;
+      description?: string | null;
+      elements: FloorPlanElement[];
+      defaultCapacity: number;
+    }>
+  >([]);
+
   // Polygon drawing mode
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
   const [polygonPoints, setPolygonPoints] = useState<Point[]>([]);
-  
+
   // Fullscreen modal
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   // Zoom state
   const [zoom, setZoom] = useState(1);
-  
+
   // Context panel removed - using Edit Dialog instead
 
   // Drag state
@@ -216,62 +252,69 @@ export function FloorPlanEditorV2({
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const dragElementsStartPosRef = useRef<Map<string, { x: number; y: number }>>(new Map());
   const dragAnimationFrameRef = useRef<number | null>(null);
-  
+
   // Resize state - support all 8 handles
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeHandle, setResizeHandle] = useState<"nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | null>(null);
-  const resizeStartRef = useRef<{ 
-    mouseX: number; 
-    mouseY: number; 
-    width: number; 
-    height: number; 
-    elementX: number; 
+  const [resizeHandle, setResizeHandle] = useState<
+    "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | null
+  >(null);
+  const resizeStartRef = useRef<{
+    mouseX: number;
+    mouseY: number;
+    width: number;
+    height: number;
+    elementX: number;
     elementY: number;
     elementWidth: number;
     elementHeight: number;
   } | null>(null);
   const resizeAnimationFrameRef = useRef<number | null>(null);
-  
+
   // Rotate state
   const [isRotating, setIsRotating] = useState(false);
-  const rotateStartRef = useRef<{ angle: number; centerX: number; centerY: number; startAngle: number } | null>(null);
+  const rotateStartRef = useRef<{
+    angle: number;
+    centerX: number;
+    centerY: number;
+    startAngle: number;
+  } | null>(null);
   const rotateAnimationFrameRef = useRef<number | null>(null);
-  
+
   // History management (Undo/Redo)
   const historyManagerRef = useRef(new HistoryManager<FloorPlanElement>(50));
-  
+
   // Clipboard management (Copy/Paste)
   const clipboardManagerRef = useRef(new ClipboardManager<FloorPlanElement>());
-  
+
   // Auto-save management
   const autoSaveManagerRef = useRef<AutoSaveManager<FloorPlanElement[]> | null>(null);
-  
+
   // Alignment guides
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
   const [showAlignmentGuides] = useState(true);
-  
+
   // Pan state
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
-  
+
   // Pan mode vs Select mode
   const [panMode, setPanMode] = useState(false); // false = select mode, true = pan mode
-  
+
   // Element locking and hiding
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_lockedElements] = useState<Set<string>>(new Set());
   const [hiddenElements] = useState<Set<string>>(new Set());
-  
+
   // Search/filter
   const [searchQuery, setSearchQuery] = useState("");
   const [filterZone, setFilterZone] = useState<string | null>(null);
   const [filterElementType, setFilterElementType] = useState<ElementType | "all">("all");
-  
+
   // Minimap
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showMinimap] = useState(true);
-  
+
   // Loading state
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_isLoading, _setIsLoading] = useState(false);
@@ -281,15 +324,17 @@ export function FloorPlanEditorV2({
     if (userId) {
       loadUserTemplates(userId, venueId).then((result) => {
         if (result.success && "data" in result && result.data) {
-          setCustomTemplates(result.data as unknown as Array<{
-            id: string;
-            userId: string;
-            venueId?: string | null;
-            name: string;
-            description?: string | null;
-            elements: FloorPlanElement[];
-            defaultCapacity: number;
-          }>);
+          setCustomTemplates(
+            result.data as unknown as Array<{
+              id: string;
+              userId: string;
+              venueId?: string | null;
+              name: string;
+              description?: string | null;
+              elements: FloorPlanElement[];
+              defaultCapacity: number;
+            }>
+          );
         }
       });
     }
@@ -316,7 +361,7 @@ export function FloorPlanEditorV2({
             zoneId: e.zoneId,
             color: e.color
           }));
-        
+
         const zones = data
           .filter((e) => e.type === "zone")
           .map((e) => ({
@@ -331,7 +376,7 @@ export function FloorPlanEditorV2({
             shape: e.shape as "rectangle" | "circle" | "triangle" | "square" | "polygon",
             polygonPoints: e.polygonPoints
           }));
-        
+
         const venueAreas = data
           .filter((e) => e.type === "specialArea")
           .map((e) => ({
@@ -347,21 +392,21 @@ export function FloorPlanEditorV2({
             color: e.color,
             icon: e.icon
           }));
-        
+
         await saveVenueFloorPlan(venueId, tables, zones, venueAreas);
       },
       2000 // 2 second delay
     );
-    
+
     // Initialize history with initial state
     historyManagerRef.current.push(initialElements);
-    
+
     return () => {
       autoSaveManagerRef.current?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId]);
-  
+
   // Calculate canvas size to fit container
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -380,39 +425,45 @@ export function FloorPlanEditorV2({
   }, []);
 
   // Helper function to convert screen coordinates to canvas coordinates
-  const screenToCanvas = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
-    if (!containerRef.current) return { x: 0, y: 0 };
-    
-    const containerRect = containerRef.current.getBoundingClientRect();
-    
-    // Mouse position relative to container
-    const containerX = screenX - containerRect.left;
-    const containerY = screenY - containerRect.top;
-    
-    // Canvas center in container coordinates
-    const canvasCenterX = containerRect.width / 2;
-    const canvasCenterY = containerRect.height / 2;
-    
-    // Mouse position relative to canvas center (before zoom)
-    const relativeX = (containerX - canvasCenterX - panOffset.x) / zoom;
-    const relativeY = (containerY - canvasCenterY - panOffset.y) / zoom;
-    
-    // Canvas coordinates (canvas is 2000x2000, centered)
-    const canvasX = relativeX + 1000; // 1000 is half of 2000
-    const canvasY = relativeY + 1000;
-    
-    return { x: canvasX, y: canvasY };
-  }, [zoom, panOffset]);
-  
+  const screenToCanvas = useCallback(
+    (screenX: number, screenY: number): { x: number; y: number } => {
+      if (!containerRef.current) return { x: 0, y: 0 };
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+
+      // Mouse position relative to container
+      const containerX = screenX - containerRect.left;
+      const containerY = screenY - containerRect.top;
+
+      // Canvas center in container coordinates
+      const canvasCenterX = containerRect.width / 2;
+      const canvasCenterY = containerRect.height / 2;
+
+      // Mouse position relative to canvas center (before zoom)
+      const relativeX = (containerX - canvasCenterX - panOffset.x) / zoom;
+      const relativeY = (containerY - canvasCenterY - panOffset.y) / zoom;
+
+      // Canvas coordinates (canvas is 2000x2000, centered)
+      const canvasX = relativeX + 1000; // 1000 is half of 2000
+      const canvasY = relativeY + 1000;
+
+      return { x: canvasX, y: canvasY };
+    },
+    [zoom, panOffset]
+  );
+
   // Helper function to update elements with history and auto-save
-  const updateElementsWithHistory = useCallback((newElements: FloorPlanElement[], skipHistory = false) => {
-    if (!skipHistory) {
-      historyManagerRef.current.push(elements);
-    }
-    setElements(newElements);
-    autoSaveManagerRef.current?.schedule(newElements);
-  }, [elements]);
-  
+  const updateElementsWithHistory = useCallback(
+    (newElements: FloorPlanElement[], skipHistory = false) => {
+      if (!skipHistory) {
+        historyManagerRef.current.push(elements);
+      }
+      setElements(newElements);
+      autoSaveManagerRef.current?.schedule(newElements);
+    },
+    [elements]
+  );
+
   // Undo
   const handleUndo = useCallback(() => {
     const previousState = historyManagerRef.current.undo();
@@ -421,7 +472,7 @@ export function FloorPlanEditorV2({
       autoSaveManagerRef.current?.schedule(previousState);
     }
   }, []);
-  
+
   // Redo
   const handleRedo = useCallback(() => {
     const nextState = historyManagerRef.current.redo();
@@ -430,11 +481,16 @@ export function FloorPlanEditorV2({
       autoSaveManagerRef.current?.schedule(nextState);
     }
   }, []);
-  
+
   // Copy
   const handleCopy = useCallback(() => {
-    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
-    const selectedElements = elements.filter(e => selectedIds.has(e.id));
+    const selectedIds =
+      selectedElementIds.size > 0
+        ? selectedElementIds
+        : selectedElementId
+          ? new Set([selectedElementId])
+          : new Set();
+    const selectedElements = elements.filter((e) => selectedIds.has(e.id));
     if (selectedElements.length > 0) {
       clipboardManagerRef.current.copy(selectedElements);
       toast({
@@ -443,145 +499,174 @@ export function FloorPlanEditorV2({
       });
     }
   }, [selectedElementIds, selectedElementId, elements, toast, t]);
-  
+
   // Paste
   const handlePaste = useCallback(() => {
     const pasted = clipboardManagerRef.current.paste();
     if (pasted && pasted.length > 0) {
       const newElements = [...elements, ...pasted];
       updateElementsWithHistory(newElements);
-      setSelectedElementIds(new Set(pasted.map(e => e.id)));
+      setSelectedElementIds(new Set(pasted.map((e) => e.id)));
       toast({
         title: t("success.pasted"),
         description: t("success.pastedDescription", { count: pasted.length.toString() })
       });
     }
   }, [elements, updateElementsWithHistory, toast, t]);
-  
+
   // Duplicate
   const handleDuplicate = useCallback(() => {
-    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
-    const selectedElements = elements.filter(e => selectedIds.has(e.id));
+    const selectedIds =
+      selectedElementIds.size > 0
+        ? selectedElementIds
+        : selectedElementId
+          ? new Set([selectedElementId])
+          : new Set();
+    const selectedElements = elements.filter((e) => selectedIds.has(e.id));
     if (selectedElements.length > 0) {
       const duplicated = clipboardManagerRef.current.duplicate(selectedElements);
       const newElements = [...elements, ...duplicated];
       updateElementsWithHistory(newElements);
-      setSelectedElementIds(new Set(duplicated.map(e => e.id)));
+      setSelectedElementIds(new Set(duplicated.map((e) => e.id)));
       toast({
         title: t("success.duplicated"),
         description: t("success.duplicatedDescription", { count: duplicated.length.toString() })
       });
     }
   }, [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]);
-  
+
   // Filter elements by search query
   const filteredElements = useMemo(() => {
     let filtered = elements;
-    
+
     // Filter by element type
     if (filterElementType !== "all") {
-      filtered = filtered.filter(el => el.type === filterElementType);
+      filtered = filtered.filter((el) => el.type === filterElementType);
     }
-    
+
     // Filter by zone
     if (filterZone) {
-      filtered = filtered.filter(el => el.zoneId === filterZone);
+      filtered = filtered.filter((el) => el.zoneId === filterZone);
     }
-    
+
     // Search query - search in name, description, notes, seats
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(el => {
+      filtered = filtered.filter((el) => {
         const nameMatch = el.name.toLowerCase().includes(query);
         const descriptionMatch = el.description?.toLowerCase().includes(query);
         const notesMatch = el.notes?.toLowerCase().includes(query);
         const seatsMatch = el.seats?.toString().includes(query);
-        const zoneNameMatch = el.zoneId 
-          ? elements.find(z => z.id === el.zoneId && z.type === "zone")?.name.toLowerCase().includes(query)
+        const zoneNameMatch = el.zoneId
+          ? elements
+              .find((z) => z.id === el.zoneId && z.type === "zone")
+              ?.name.toLowerCase()
+              .includes(query)
           : false;
-        
+
         return nameMatch || descriptionMatch || notesMatch || seatsMatch || zoneNameMatch;
       });
     }
-    
+
     return filtered;
   }, [elements, searchQuery, filterZone, filterElementType]);
-  
+
   // Get unique zones for filter dropdown
   const availableZones = useMemo(() => {
-    return elements.filter(el => el.type === "zone");
+    return elements.filter((el) => el.type === "zone");
   }, [elements]);
-  
+
   // Bulk operations
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _handleAlign = useCallback((alignment: AlignmentType) => {
-    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
-    if (selectedIds.size < 2) {
-      toast({
-        title: t("errors.validation"),
-        description: "Select at least 2 elements to align",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const selectedElements = elements.filter(e => selectedIds.has(e.id));
-    const bounds = selectedElements.map(e => ({
-      id: e.id,
-      x: e.x,
-      y: e.y,
-      width: e.width,
-      height: e.height
-    }));
-    
-    const positions = alignElements(bounds, alignment);
-    const newElements = elements.map(el => {
-      const pos = positions.get(el.id);
-      if (pos) {
-        return { ...el, x: pos.x, y: pos.y };
+  const _handleAlign = useCallback(
+    (alignment: AlignmentType) => {
+      const selectedIds =
+        selectedElementIds.size > 0
+          ? selectedElementIds
+          : selectedElementId
+            ? new Set([selectedElementId])
+            : new Set();
+      if (selectedIds.size < 2) {
+        toast({
+          title: t("errors.validation"),
+          description: "Select at least 2 elements to align",
+          variant: "destructive"
+        });
+        return;
       }
-      return el;
-    });
-    
-    updateElementsWithHistory(newElements);
-  }, [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]);
-  
+
+      const selectedElements = elements.filter((e) => selectedIds.has(e.id));
+      const bounds = selectedElements.map((e) => ({
+        id: e.id,
+        x: e.x,
+        y: e.y,
+        width: e.width,
+        height: e.height
+      }));
+
+      const positions = alignElements(bounds, alignment);
+      const newElements = elements.map((el) => {
+        const pos = positions.get(el.id);
+        if (pos) {
+          return { ...el, x: pos.x, y: pos.y };
+        }
+        return el;
+      });
+
+      updateElementsWithHistory(newElements);
+    },
+    [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]
+  );
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _handleDistribute = useCallback((distribution: DistributionType) => {
-    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
-    if (selectedIds.size < 3) {
-      toast({
-        title: t("errors.validation"),
-        description: "Select at least 3 elements to distribute",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const selectedElements = elements.filter(e => selectedIds.has(e.id));
-    const bounds = selectedElements.map(e => ({
-      id: e.id,
-      x: e.x,
-      y: e.y,
-      width: e.width,
-      height: e.height
-    }));
-    
-    const positions = distributeElements(bounds, distribution);
-    const newElements = elements.map(el => {
-      const pos = positions.get(el.id);
-      if (pos) {
-        return { ...el, x: pos.x, y: pos.y };
+  const _handleDistribute = useCallback(
+    (distribution: DistributionType) => {
+      const selectedIds =
+        selectedElementIds.size > 0
+          ? selectedElementIds
+          : selectedElementId
+            ? new Set([selectedElementId])
+            : new Set();
+      if (selectedIds.size < 3) {
+        toast({
+          title: t("errors.validation"),
+          description: "Select at least 3 elements to distribute",
+          variant: "destructive"
+        });
+        return;
       }
-      return el;
-    });
-    
-    updateElementsWithHistory(newElements);
-  }, [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]);
-  
+
+      const selectedElements = elements.filter((e) => selectedIds.has(e.id));
+      const bounds = selectedElements.map((e) => ({
+        id: e.id,
+        x: e.x,
+        y: e.y,
+        width: e.width,
+        height: e.height
+      }));
+
+      const positions = distributeElements(bounds, distribution);
+      const newElements = elements.map((el) => {
+        const pos = positions.get(el.id);
+        if (pos) {
+          return { ...el, x: pos.x, y: pos.y };
+        }
+        return el;
+      });
+
+      updateElementsWithHistory(newElements);
+    },
+    [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]
+  );
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleResizeToSameSize = useCallback(() => {
-    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
+    const selectedIds =
+      selectedElementIds.size > 0
+        ? selectedElementIds
+        : selectedElementId
+          ? new Set([selectedElementId])
+          : new Set();
     if (selectedIds.size < 2) {
       toast({
         title: t("errors.validation"),
@@ -590,29 +675,29 @@ export function FloorPlanEditorV2({
       });
       return;
     }
-    
-    const selectedElements = elements.filter(e => selectedIds.has(e.id));
+
+    const selectedElements = elements.filter((e) => selectedIds.has(e.id));
     const firstElement = selectedElements[0];
-    const bounds = selectedElements.map(e => ({
+    const bounds = selectedElements.map((e) => ({
       id: e.id,
       x: e.x,
       y: e.y,
       width: e.width,
       height: e.height
     }));
-    
+
     const sizes = resizeToSameSize(bounds, firstElement.width, firstElement.height);
-    const newElements = elements.map(el => {
+    const newElements = elements.map((el) => {
       const size = sizes.get(el.id);
       if (size) {
         return { ...el, width: size.width, height: size.height };
       }
       return el;
     });
-    
+
     updateElementsWithHistory(newElements);
   }, [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]);
-  
+
   // Export functions
   const handleExportPNG = useCallback(async () => {
     if (!containerRef.current) return;
@@ -634,7 +719,7 @@ export function FloorPlanEditorV2({
       setIsSaving(false);
     }
   }, [toast, t]);
-  
+
   const handleExportPDF = useCallback(async () => {
     if (!containerRef.current) return;
     setIsSaving(true);
@@ -677,12 +762,103 @@ export function FloorPlanEditorV2({
     }
   }, [toast, t]);
 
-  // Add new element
+  // Handle adding zone with zone type
+  const handleAddZone = useCallback(
+    (zoneType: ZoneType) => {
+      const centerX = 1000;
+      const centerY = 1000;
+      const zoneConfig = getZoneTypeConfig(zoneType);
+      const size = DEFAULT_ZONE_SIZE;
+
+      const newElement: FloorPlanElement = {
+        id: `zone-${Date.now()}`,
+        type: "zone",
+        name: `${zoneConfig.label} ${elements.filter((e) => e.type === "zone" && e.zoneType === zoneType).length + 1}`,
+        x: centerX - size / 2,
+        y: centerY - size / 2,
+        width: size,
+        height: size,
+        rotation: 0,
+        shape: "rectangle",
+        color: zoneConfig.defaultColor,
+        zoneType: zoneType
+      };
+
+      const newElements = [...elements, newElement];
+      updateElementsWithHistory(newElements);
+      setSelectedElementId(newElement.id);
+    },
+    [elements, updateElementsWithHistory]
+  );
+
+  // Handle adding element with element category
+  const handleAddElementByCategory = useCallback(
+    (elementCategory: ElementCategory) => {
+      const centerX = 1000;
+      const centerY = 1000;
+      const elementConfig = getElementTypeConfig(elementCategory);
+      const size = elementConfig.defaultSize;
+
+      // Map element category to ElementType
+      let type: ElementType;
+      let areaType: SpecialAreaType | undefined;
+      let tableType: "table" | "bar" | "counter" | undefined;
+
+      if (elementCategory === "table") {
+        type = "table";
+        tableType = "table";
+      } else if (elementCategory === "bar") {
+        type = "table";
+        tableType = "bar";
+      } else if (elementCategory === "security") {
+        type = "security";
+      } else if (
+        ["entrance", "exit", "kitchen", "restroom", "dj", "stage", "storage"].includes(
+          elementCategory
+        )
+      ) {
+        type = "specialArea";
+        areaType = elementCategory === "dj" ? "dj_booth" : (elementCategory as SpecialAreaType);
+      } else {
+        type = "table";
+        tableType = "table";
+      }
+
+      const newElement: FloorPlanElement = {
+        id: `${type}-${Date.now()}`,
+        type,
+        name: `${elementConfig.label} ${elements.filter((e) => e.type === type).length + 1}`,
+        x: centerX - size.width / 2,
+        y: centerY - size.height / 2,
+        width: size.width,
+        height: size.height,
+        rotation: 0,
+        shape: "rectangle",
+        color: elementConfig.defaultColor,
+        seats: type === "table" ? (tableType === "bar" ? 8 : 4) : undefined,
+        tableType: type === "table" ? tableType || "table" : undefined,
+        areaType: type === "specialArea" ? areaType || "other" : undefined
+      };
+
+      const newElements = [...elements, newElement];
+      updateElementsWithHistory(newElements);
+      setSelectedElementId(newElement.id);
+    },
+    [elements, updateElementsWithHistory]
+  );
+
+  // Add new element (legacy - for backward compatibility - kept for potential future use)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddElement = useCallback(
     (type: ElementType, areaType?: SpecialAreaType, tableType?: "table" | "bar" | "counter") => {
       const centerX = 1000; // Center of infinite canvas (middle of 2000x2000 canvas)
       const centerY = 1000;
-      const size = type === "table" ? DEFAULT_TABLE_SIZE : type === "zone" ? DEFAULT_ZONE_SIZE : DEFAULT_AREA_SIZE;
+      const size =
+        type === "table"
+          ? DEFAULT_TABLE_SIZE
+          : type === "zone"
+            ? DEFAULT_ZONE_SIZE
+            : DEFAULT_AREA_SIZE;
 
       const newElement: FloorPlanElement = {
         id: `${type}-${Date.now()}`,
@@ -703,7 +879,7 @@ export function FloorPlanEditorV2({
         shape: "rectangle",
         color: type === "zone" ? "#3B82F6" : type === "specialArea" ? "#10B981" : undefined,
         seats: type === "table" ? (tableType === "bar" ? 8 : 4) : undefined,
-        tableType: type === "table" ? (tableType || "table") : undefined,
+        tableType: type === "table" ? tableType || "table" : undefined,
         areaType: type === "specialArea" ? areaType || "other" : undefined
       };
 
@@ -730,38 +906,50 @@ export function FloorPlanEditorV2({
   );
 
   // Open edit dialog
-  const handleEditElement = useCallback(
-    (element: FloorPlanElement) => {
-      setEditingElement({ ...element });
-      setEditDialogOpen(true);
-    },
-    []
-  );
+  const handleEditElement = useCallback((element: FloorPlanElement) => {
+    setEditingElement({ ...element });
+    setEditDialogOpen(true);
+  }, []);
 
   // Save edited element
   const handleSaveEdit = useCallback(() => {
     if (!editingElement) return;
 
-    setElements(
-      elements.map((e) => (e.id === editingElement.id ? editingElement : e))
-    );
+    // If disconnecting elements from zone, update those elements too
+    const updatedElements = elements.map((e) => {
+      if (e.id === editingElement.id) {
+        return editingElement;
+      }
+      // If zone was edited and element's zoneId was removed, update it
+      if (editingElement.type === "zone" && e.zoneId === editingElement.id) {
+        // Check if element is still in zone bounds
+        const isStillInZone = findContainingZone(e, [editingElement]);
+        if (!isStillInZone) {
+          return { ...e, zoneId: undefined };
+        }
+      }
+      return e;
+    });
+
+    setElements(updatedElements);
+    updateElementsWithHistory(updatedElements);
     setEditDialogOpen(false);
     setEditingElement(null);
-  }, [editingElement, elements]);
-  
+  }, [editingElement, elements, updateElementsWithHistory]);
+
   // Context panel removed - using Edit Dialog instead
 
   // Mouse down on element
   const handleElementMouseDown = useCallback(
     (e: React.MouseEvent, element: FloorPlanElement) => {
       if (viewMode === "nonInteractive") return;
-      
+
       // Don't start drag if we're already resizing or rotating
       if (isResizing || isRotating) return;
-      
+
       e.stopPropagation();
       e.preventDefault();
-      
+
       // Multi-select with Ctrl/Cmd
       if (e.ctrlKey || e.metaKey) {
         const newSelection = new Set(selectedElementIds);
@@ -782,45 +970,45 @@ export function FloorPlanEditorV2({
         setSelectedElementId(element.id);
         setSelectedElementIds(new Set([element.id]));
       }
-      
+
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const mouseX = canvasPos.x;
       const mouseY = canvasPos.y;
-      
+
       // Store drag start position
       dragStartPosRef.current = { x: mouseX, y: mouseY };
-      
+
       // Store initial positions of all selected elements
       const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : new Set([element.id]);
       dragElementsStartPosRef.current.clear();
-      selectedIds.forEach(id => {
-        const el = elements.find(e => e.id === id);
+      selectedIds.forEach((id) => {
+        const el = elements.find((e) => e.id === id);
         if (el) {
           dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
         }
       });
-      
+
       setIsDragging(true);
       setDraggedElement(element);
     },
     [viewMode, selectedElementIds, elements, isResizing, isRotating, screenToCanvas]
   );
-  
+
   // Handle canvas mouse down for selection box or pan
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (!canvasRef.current || viewMode !== "interactive" || isDrawingPolygon) return;
-      
+
       // Check if click is on canvas (not on an element)
       // If target is not the canvas itself, it might be an element - check by position
       const target = e.target as HTMLElement;
       const isDirectCanvasClick = target === canvasRef.current;
-      
+
       // If not direct canvas click, check if we clicked on empty space
       if (!isDirectCanvasClick) {
         // Check if click is on an element by position
         const canvasPos = screenToCanvas(e.clientX, e.clientY);
-        const clickedElement = elements.find(el => {
+        const clickedElement = elements.find((el) => {
           if (el.type === "zone" && el.polygonPoints) {
             // For polygon zones, we'll handle separately if needed
             return false;
@@ -832,30 +1020,34 @@ export function FloorPlanEditorV2({
             canvasPos.y <= el.y + el.height
           );
         });
-        
+
         // If clicked on an element, let element handler deal with it
         if (clickedElement) return;
       }
-      
+
       // Middle mouse button, right click, or Space + left click for panning
-      if (e.button === 1 || e.button === 2 || (e.button === 0 && (e as unknown as KeyboardEvent).code === "Space")) {
+      if (
+        e.button === 1 ||
+        e.button === 2 ||
+        (e.button === 0 && (e as unknown as KeyboardEvent).code === "Space")
+      ) {
         e.preventDefault();
         setIsPanning(true);
         panStartRef.current = { x: e.clientX, y: e.clientY };
         return;
       }
-      
+
       if (e.button !== 0) return; // Only left mouse button for selection
-      
+
       // Get canvas position for selection box or panning
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const startX = canvasPos.x;
       const startY = canvasPos.y;
-      
+
       // If pan mode is active, always start panning on empty canvas
       if (panMode) {
         // Double-check that we're not clicking on an element
-        const clickedElement = elements.find(el => {
+        const clickedElement = elements.find((el) => {
           if (el.type === "zone" && el.polygonPoints) {
             // For polygon zones, simplified check
             return false;
@@ -867,7 +1059,7 @@ export function FloorPlanEditorV2({
             startY <= el.y + el.height
           );
         });
-        
+
         if (!clickedElement) {
           e.preventDefault();
           setIsPanning(true);
@@ -875,13 +1067,13 @@ export function FloorPlanEditorV2({
           return;
         }
       }
-      
+
       // In select mode, start selection box
       if (!panMode) {
         setIsSelecting(true);
         setSelectionBox({ startX, startY, endX: startX, endY: startY });
       }
-      
+
       // If not Ctrl/Cmd, clear selection
       if (!e.ctrlKey && !e.metaKey) {
         setSelectedElementId(null);
@@ -889,51 +1081,60 @@ export function FloorPlanEditorV2({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viewMode, isDrawingPolygon, screenToCanvas, selectedElementId, selectedElementIds, elements, panMode]
+    [
+      viewMode,
+      isDrawingPolygon,
+      screenToCanvas,
+      selectedElementId,
+      selectedElementIds,
+      elements,
+      panMode
+    ]
   );
-  
+
   // Mouse wheel zoom - professional implementation like Excalidraw
   useEffect(() => {
     if (viewMode === "nonInteractive" || !containerRef.current) return;
-    
+
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      
+
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
-      
+
       // Get mouse position relative to container
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
-      
+
       // Zoom with Ctrl/Cmd or Shift + wheel
       if (e.ctrlKey || e.metaKey || e.shiftKey) {
         // Calculate zoom point in canvas coordinates (before zoom)
         const worldX = (mouseX - panOffset.x) / zoom;
         const worldY = (mouseY - panOffset.y) / zoom;
-        
+
         // Calculate new zoom (smooth zoom factor) - no minimum limit for infinite canvas
         const zoomFactor = 1.1;
-        const newZoom = e.deltaY > 0 
-          ? Math.max(0.01, zoom / zoomFactor) // Allow very small zoom for infinite canvas
-          : Math.min(10, zoom * zoomFactor); // Increased max zoom
-        
+        const newZoom =
+          e.deltaY > 0
+            ? Math.max(0.01, zoom / zoomFactor) // Allow very small zoom for infinite canvas
+            : Math.min(10, zoom * zoomFactor); // Increased max zoom
+
         // Adjust pan to keep zoom point under mouse
         const newPanX = mouseX - worldX * newZoom;
         const newPanY = mouseY - worldY * newZoom;
-        
+
         setPanOffset({ x: newPanX, y: newPanY });
         setZoom(newZoom);
       } else {
         // Pan with regular wheel (horizontal and vertical)
         const panSpeed = 1;
-        setPanOffset(prev => ({
-          x: prev.x - (e.deltaX * panSpeed),
-          y: prev.y - (e.deltaY * panSpeed)
+        setPanOffset((prev) => ({
+          x: prev.x - e.deltaX * panSpeed,
+          y: prev.y - e.deltaY * panSpeed
         }));
       }
     };
-    
+
     const container = containerRef.current;
     container.addEventListener("wheel", handleWheel, { passive: false });
     return () => container.removeEventListener("wheel", handleWheel);
@@ -947,19 +1148,19 @@ export function FloorPlanEditorV2({
       setSelectedElementId(element.id);
       setIsRotating(true);
       setDraggedElement(element);
-      
+
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const mouseX = canvasPos.x;
       const mouseY = canvasPos.y;
-      
+
       const centerX = element.x + element.width / 2;
       const centerY = element.y + element.height / 2;
-      
+
       // Calculate initial angle from center to mouse
       const dx = mouseX - centerX;
       const dy = mouseY - centerY;
       const startAngle = Math.atan2(dy, dx) * (180 / Math.PI);
-      
+
       rotateStartRef.current = {
         angle: element.rotation,
         centerX: centerX,
@@ -972,27 +1173,31 @@ export function FloorPlanEditorV2({
 
   // Handle resize start - support all 8 handles (not rotate)
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent, element: FloorPlanElement, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate") => {
+    (
+      e: React.MouseEvent,
+      element: FloorPlanElement,
+      handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate"
+    ) => {
       if (handle === "rotate") {
         handleRotateStart(e, element);
         return;
       }
       e.stopPropagation();
       e.preventDefault();
-      
+
       // Prevent drag when resizing
       setIsDragging(false);
       dragStartPosRef.current = null;
-      
+
       setSelectedElementId(element.id);
       setIsResizing(true);
       setResizeHandle(handle);
       setDraggedElement(element);
-      
+
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const mouseX = canvasPos.x;
       const mouseY = canvasPos.y;
-      
+
       resizeStartRef.current = {
         mouseX: mouseX,
         mouseY: mouseY,
@@ -1018,54 +1223,58 @@ export function FloorPlanEditorV2({
       }
 
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-      
+
       // Undo (Ctrl+Z)
       if (isCtrlOrCmd && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
         return;
       }
-      
+
       // Redo (Ctrl+Shift+Z or Ctrl+Y)
       if ((isCtrlOrCmd && e.key === "z" && e.shiftKey) || (isCtrlOrCmd && e.key === "y")) {
         e.preventDefault();
         handleRedo();
         return;
       }
-      
+
       // Copy (Ctrl+C)
       if (isCtrlOrCmd && e.key === "c") {
         e.preventDefault();
         handleCopy();
         return;
       }
-      
+
       // Paste (Ctrl+V)
       if (isCtrlOrCmd && e.key === "v") {
         e.preventDefault();
         handlePaste();
         return;
       }
-      
+
       // Duplicate (Ctrl+D)
       if (isCtrlOrCmd && e.key === "d") {
         e.preventDefault();
         handleDuplicate();
         return;
       }
-      
+
       // Select All (Ctrl+A)
       if (isCtrlOrCmd && e.key === "a") {
         e.preventDefault();
-        setSelectedElementIds(new Set(elements.map(e => e.id)));
+        setSelectedElementIds(new Set(elements.map((e) => e.id)));
         return;
       }
 
       // Delete key
-      if ((e.key === "Delete" || e.key === "Backspace") && (selectedElementId || selectedElementIds.size > 0)) {
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        (selectedElementId || selectedElementIds.size > 0)
+      ) {
         e.preventDefault();
-        const idsToDelete = selectedElementIds.size > 0 ? Array.from(selectedElementIds) : [selectedElementId!];
-        idsToDelete.forEach(id => handleDeleteElement(id));
+        const idsToDelete =
+          selectedElementIds.size > 0 ? Array.from(selectedElementIds) : [selectedElementId!];
+        idsToDelete.forEach((id) => handleDeleteElement(id));
         setSelectedElementIds(new Set());
         setSelectedElementId(null);
         return;
@@ -1074,12 +1283,13 @@ export function FloorPlanEditorV2({
       // Arrow keys for movement (only if element is selected)
       if (e.key.startsWith("Arrow") && (selectedElementId || selectedElementIds.size > 0)) {
         e.preventDefault();
-        const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : new Set([selectedElementId!]);
-        const step = showGrid ? GRID_SIZE : (e.shiftKey ? 10 : 1);
-        
+        const selectedIds =
+          selectedElementIds.size > 0 ? selectedElementIds : new Set([selectedElementId!]);
+        const step = showGrid ? GRID_SIZE : e.shiftKey ? 10 : 1;
+
         const updatedElements = elements.map((el) => {
           if (!selectedIds.has(el.id)) return el;
-          
+
           let newX = el.x;
           let newY = el.y;
 
@@ -1105,17 +1315,31 @@ export function FloorPlanEditorV2({
 
           return {
             ...updatedElement,
-            zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+            zoneId: newZoneId
           };
         });
-        
+
         updateElementsWithHistory(updatedElements);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedElementId, selectedElementIds, elements, canvasSize, viewMode, handleDeleteElement, showGrid, handleUndo, handleRedo, handleCopy, handlePaste, handleDuplicate, updateElementsWithHistory]);
+  }, [
+    selectedElementId,
+    selectedElementIds,
+    elements,
+    canvasSize,
+    viewMode,
+    handleDeleteElement,
+    showGrid,
+    handleUndo,
+    handleRedo,
+    handleCopy,
+    handlePaste,
+    handleDuplicate,
+    updateElementsWithHistory
+  ]);
 
   // Mouse move - handle dragging, resizing, and rotating
   useEffect(() => {
@@ -1126,9 +1350,9 @@ export function FloorPlanEditorV2({
 
       // Handle panning (Space + drag or middle mouse button or right click drag)
       if (isPanning && panStartRef.current) {
-        const deltaX = (e.clientX - panStartRef.current.x);
-        const deltaY = (e.clientY - panStartRef.current.y);
-        setPanOffset(prev => ({
+        const deltaX = e.clientX - panStartRef.current.x;
+        const deltaY = e.clientY - panStartRef.current.y;
+        setPanOffset((prev) => ({
           x: prev.x + deltaX,
           y: prev.y + deltaY
         }));
@@ -1140,7 +1364,7 @@ export function FloorPlanEditorV2({
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const canvasX = canvasPos.x;
       const canvasY = canvasPos.y;
-      
+
       // Handle selection box
       if (isSelecting && selectionBox) {
         setSelectionBox({
@@ -1157,94 +1381,104 @@ export function FloorPlanEditorV2({
         if (dragAnimationFrameRef.current !== null) {
           cancelAnimationFrame(dragAnimationFrameRef.current);
         }
-        
+
         // Use requestAnimationFrame for smooth dragging
         dragAnimationFrameRef.current = requestAnimationFrame(() => {
           // Calculate delta from drag start
           const deltaX = canvasX - dragStartPosRef.current!.x;
           const deltaY = canvasY - dragStartPosRef.current!.y;
-          
+
           // Get selected elements
-          const selectedIds = selectedElementIds.size > 0 
-            ? selectedElementIds 
-            : (selectedElementId ? new Set([selectedElementId]) : new Set());
-          
+          const selectedIds =
+            selectedElementIds.size > 0
+              ? selectedElementIds
+              : selectedElementId
+                ? new Set([selectedElementId])
+                : new Set();
+
           // Update all selected elements
           setElements((prevElements) => {
             return prevElements.map((el) => {
               if (selectedIds.has(el.id)) {
                 const startPos = dragElementsStartPosRef.current.get(el.id);
                 if (!startPos) return el;
-                
+
                 let newX = startPos.x + deltaX;
                 let newY = startPos.y + deltaY;
-                
+
                 // Calculate bounds for alignment guides
                 const movingBounds = calculateBounds(newX, newY, el.width, el.height);
                 const otherElements = prevElements
-                  .filter(e => !selectedIds.has(e.id))
-                  .map(e => calculateBounds(e.x, e.y, e.width, e.height));
-                
+                  .filter((e) => !selectedIds.has(e.id))
+                  .map((e) => calculateBounds(e.x, e.y, e.width, e.height));
+
                 // Find alignment guides
-                const guides = showAlignmentGuides ? findAlignmentGuides(movingBounds, otherElements) : [];
+                const guides = showAlignmentGuides
+                  ? findAlignmentGuides(movingBounds, otherElements)
+                  : [];
                 setAlignmentGuides(guides);
-                
+
                 // Snap to guides if found
                 if (guides.length > 0) {
                   const snapped = snapToGuides(movingBounds, guides);
                   newX = snapped.x;
                   newY = snapped.y;
                 }
-                
+
                 // Snap to grid if enabled
                 if (showGrid) {
                   newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
                   newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
                 }
-                
+
                 // No canvas bounds constraint for infinite canvas
                 // Allow elements to move freely
-                
+
                 const updatedElement = {
                   ...el,
                   x: newX,
                   y: newY
                 };
 
-                // Check if element is inside a zone (for tables and other elements)
+                // Check if element is inside a zone (for tables, security, and other elements that can be in zones)
                 let newZoneId: string | undefined = undefined;
                 if (updatedElement.type === "table" || updatedElement.type === "security") {
                   const zones = prevElements.filter((zoneEl) => zoneEl.type === "zone");
+
+                  // Find the zone that contains this element (check all corners for better accuracy)
                   const containingZone = findContainingZone(updatedElement, zones);
-                  newZoneId = containingZone?.id;
-                  // If element left the zone, remove zoneId
-                  if (!containingZone && el.zoneId) {
+
+                  if (containingZone) {
+                    // Element entered or is still in a zone
+                    newZoneId = containingZone.id;
+                  } else {
+                    // Element left the zone or is not in any zone
                     newZoneId = undefined;
                   }
                 }
 
                 return {
                   ...updatedElement,
-                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+                  zoneId: newZoneId
                 };
               }
               return el;
             });
           });
-          
+
           // Update dragged element for visual feedback
           const startPos = dragElementsStartPosRef.current.get(draggedElement.id);
           if (startPos) {
             let newX = startPos.x + deltaX;
             let newY = startPos.y + deltaY;
-            
+
             if (showGrid) {
               newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
               newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
             }
-            
+
             // No canvas bounds constraint for infinite canvas - allow free movement
-            
+
             setDraggedElement((prev) => {
               if (!prev) return null;
               return {
@@ -1264,13 +1498,13 @@ export function FloorPlanEditorV2({
         if (resizeAnimationFrameRef.current !== null) {
           cancelAnimationFrame(resizeAnimationFrameRef.current);
         }
-        
+
         // Use requestAnimationFrame for smooth resizing
         resizeAnimationFrameRef.current = requestAnimationFrame(() => {
           const start = resizeStartRef.current!;
           const deltaX = canvasX - start.mouseX;
           const deltaY = canvasY - start.mouseY;
-          
+
           let newWidth = start.elementWidth;
           let newHeight = start.elementHeight;
           let newX = start.elementX;
@@ -1335,12 +1569,19 @@ export function FloorPlanEditorV2({
             height: newHeight
           };
 
-          // If resizing a table, check if it's still inside a zone
+          // If resizing a table or security element, check if it's still inside a zone
           let newZoneId: string | undefined = undefined;
-          if (updatedElement.type === "table") {
+          if (updatedElement.type === "table" || updatedElement.type === "security") {
             const zones = elements.filter((el) => el.type === "zone");
             const containingZone = findContainingZone(updatedElement, zones);
-            newZoneId = containingZone?.id;
+
+            if (containingZone) {
+              // Element is still in a zone
+              newZoneId = containingZone.id;
+            } else {
+              // Element left the zone or is not in any zone
+              newZoneId = undefined;
+            }
           }
 
           setElements((prevElements) =>
@@ -1348,12 +1589,12 @@ export function FloorPlanEditorV2({
               el.id === draggedElement.id
                 ? {
                     ...updatedElement,
-                    zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+                    zoneId: newZoneId
                   }
                 : el
             )
           );
-          
+
           // Update dragged element for visual feedback
           setDraggedElement((prev) => {
             if (!prev) return null;
@@ -1375,7 +1616,7 @@ export function FloorPlanEditorV2({
         if (rotateAnimationFrameRef.current !== null) {
           cancelAnimationFrame(rotateAnimationFrameRef.current);
         }
-        
+
         // Use requestAnimationFrame for smooth rotation
         rotateAnimationFrameRef.current = requestAnimationFrame(() => {
           const start = rotateStartRef.current!;
@@ -1385,19 +1626,40 @@ export function FloorPlanEditorV2({
           const dy = canvasY - centerY;
           const currentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
           const angleDelta = currentAngle - start.startAngle;
-          const normalizedAngle = ((start.angle + angleDelta) % 360 + 360) % 360;
+          const normalizedAngle = (((start.angle + angleDelta) % 360) + 360) % 360;
+
+          // Update element with new rotation
+          const rotatedElement = {
+            ...draggedElement,
+            rotation: normalizedAngle
+          };
+
+          // If rotating a table or security element, check if it's still inside a zone
+          let newZoneId: string | undefined = undefined;
+          if (rotatedElement.type === "table" || rotatedElement.type === "security") {
+            const zones = elements.filter((el) => el.type === "zone");
+            const containingZone = findContainingZone(rotatedElement, zones);
+
+            if (containingZone) {
+              // Element is still in a zone
+              newZoneId = containingZone.id;
+            } else {
+              // Element left the zone or is not in any zone
+              newZoneId = undefined;
+            }
+          }
 
           setElements((prevElements) =>
             prevElements.map((el) =>
               el.id === draggedElement.id
                 ? {
-                    ...el,
-                    rotation: normalizedAngle
+                    ...rotatedElement,
+                    zoneId: newZoneId
                   }
                 : el
             )
           );
-          
+
           // Update dragged element for visual feedback
           setDraggedElement((prev) => {
             if (!prev) return null;
@@ -1425,23 +1687,23 @@ export function FloorPlanEditorV2({
         cancelAnimationFrame(rotateAnimationFrameRef.current);
         rotateAnimationFrameRef.current = null;
       }
-      
+
       // Handle selection box completion
       if (isSelecting && selectionBox) {
         const minX = Math.min(selectionBox.startX, selectionBox.endX);
         const maxX = Math.max(selectionBox.startX, selectionBox.endX);
         const minY = Math.min(selectionBox.startY, selectionBox.endY);
         const maxY = Math.max(selectionBox.startY, selectionBox.endY);
-        
+
         // Find all elements within selection box
-        const selected = elements.filter(el => {
+        const selected = elements.filter((el) => {
           const elCenterX = el.x + el.width / 2;
           const elCenterY = el.y + el.height / 2;
           return elCenterX >= minX && elCenterX <= maxX && elCenterY >= minY && elCenterY <= maxY;
         });
-        
+
         if (selected.length > 0) {
-          const selectedIds = new Set(selected.map(el => el.id));
+          const selectedIds = new Set(selected.map((el) => el.id));
           setSelectedElementIds(selectedIds);
           if (selected.length === 1) {
             setSelectedElementId(selected[0].id);
@@ -1449,27 +1711,27 @@ export function FloorPlanEditorV2({
             setSelectedElementId(null);
           }
         }
-        
+
         setIsSelecting(false);
         setSelectionBox(null);
       }
-      
+
       // Clean up drag state
       if (isDragging) {
         dragStartPosRef.current = null;
         dragElementsStartPosRef.current.clear();
       }
-      
+
       // Clean up resize state
       if (isResizing) {
         resizeStartRef.current = null;
       }
-      
+
       // Clean up rotate state
       if (isRotating) {
         rotateStartRef.current = null;
       }
-      
+
       setIsDragging(false);
       setDraggedElement(null);
       setIsResizing(false);
@@ -1489,8 +1751,26 @@ export function FloorPlanEditorV2({
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDragging, isResizing, isRotating, isSelecting, selectionBox, draggedElement, resizeHandle, elements, canvasSize, viewMode, showGrid, zoom, selectedElementIds, selectedElementId, isPanning, panOffset, showAlignmentGuides]);
-  
+  }, [
+    isDragging,
+    isResizing,
+    isRotating,
+    isSelecting,
+    selectionBox,
+    draggedElement,
+    resizeHandle,
+    elements,
+    canvasSize,
+    viewMode,
+    showGrid,
+    zoom,
+    selectedElementIds,
+    selectedElementId,
+    isPanning,
+    panOffset,
+    showAlignmentGuides
+  ]);
+
   // Keyboard shortcuts for accessibility
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1519,12 +1799,12 @@ export function FloorPlanEditorV2({
       // Delete: Delete selected element
       if (e.key === "Delete" || e.key === "Backspace") {
         if (selectedElementId) {
-          const selectedElement = elements.find(el => el.id === selectedElementId);
-          const isLocked = selectedElement && (
-            (selectedElement.type === "zone" && layers.zones.locked) ||
-            (selectedElement.type === "table" && layers.tables.locked) ||
-            (selectedElement.type === "specialArea" && layers.specialAreas.locked)
-          );
+          const selectedElement = elements.find((el) => el.id === selectedElementId);
+          const isLocked =
+            selectedElement &&
+            ((selectedElement.type === "zone" && layers.zones.locked) ||
+              (selectedElement.type === "table" && layers.tables.locked) ||
+              (selectedElement.type === "specialArea" && layers.specialAreas.locked));
           if (!isLocked) {
             e.preventDefault();
             handleDeleteElement(selectedElementId);
@@ -1538,17 +1818,19 @@ export function FloorPlanEditorV2({
       }
       // Arrow keys: Move selected element
       if (selectedElementId) {
-        const selectedElement = elements.find((el: FloorPlanElement) => el.id === selectedElementId);
-        const isLocked = selectedElement && (
-          (selectedElement.type === "zone" && layers.zones.locked) ||
-          (selectedElement.type === "table" && layers.tables.locked) ||
-          (selectedElement.type === "specialArea" && layers.specialAreas.locked)
+        const selectedElement = elements.find(
+          (el: FloorPlanElement) => el.id === selectedElementId
         );
+        const isLocked =
+          selectedElement &&
+          ((selectedElement.type === "zone" && layers.zones.locked) ||
+            (selectedElement.type === "table" && layers.tables.locked) ||
+            (selectedElement.type === "specialArea" && layers.specialAreas.locked));
         if (!isLocked && selectedElement) {
           const step = e.shiftKey ? 10 : 1;
           let newX = selectedElement.x;
           let newY = selectedElement.y;
-          
+
           if (e.key === "ArrowLeft") {
             e.preventDefault();
             newX = Math.max(0, selectedElement.x - step);
@@ -1562,11 +1844,13 @@ export function FloorPlanEditorV2({
             e.preventDefault();
             newY = Math.min(CANVAS_SIZE - selectedElement.height, selectedElement.y + step);
           }
-          
+
           if (newX !== selectedElement.x || newY !== selectedElement.y) {
-            setElements(elements.map((el: FloorPlanElement) => 
-              el.id === selectedElementId ? { ...el, x: newX, y: newY } : el
-            ));
+            setElements(
+              elements.map((el: FloorPlanElement) =>
+                el.id === selectedElementId ? { ...el, x: newX, y: newY } : el
+              )
+            );
           }
         }
       }
@@ -1574,7 +1858,17 @@ export function FloorPlanEditorV2({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedElementId, elements, layers, handleUndo, handleRedo, handleCopy, handlePaste, handleDeleteElement, setElements]);
+  }, [
+    selectedElementId,
+    elements,
+    layers,
+    handleUndo,
+    handleRedo,
+    handleCopy,
+    handlePaste,
+    handleDeleteElement,
+    setElements
+  ]);
 
   // Cleanup animation frame on unmount
   useEffect(() => {
@@ -1611,32 +1905,38 @@ export function FloorPlanEditorV2({
   }, []);
 
   const validateElementPosition = useCallback((element: FloorPlanElement): string | null => {
-    if (element.x < 0 || element.y < 0 || 
-        element.x + element.width > CANVAS_SIZE || 
-        element.y + element.height > CANVAS_SIZE) {
+    if (
+      element.x < 0 ||
+      element.y < 0 ||
+      element.x + element.width > CANVAS_SIZE ||
+      element.y + element.height > CANVAS_SIZE
+    ) {
       return `האלמנט "${element.name}" נמצא מחוץ לגבולות הקנבס`;
     }
     return null;
   }, []);
 
-  const checkCollisions = useCallback((element: FloorPlanElement, excludeId?: string): FloorPlanElement[] => {
-    return elements.filter((e) => {
-      if (e.id === element.id || e.id === excludeId || e.type === "zone") return false;
-      
-      // Simple bounding box collision check
-      const e1Left = element.x;
-      const e1Right = element.x + element.width;
-      const e1Top = element.y;
-      const e1Bottom = element.y + element.height;
-      
-      const e2Left = e.x;
-      const e2Right = e.x + e.width;
-      const e2Top = e.y;
-      const e2Bottom = e.y + e.height;
-      
-      return !(e1Right < e2Left || e1Left > e2Right || e1Bottom < e2Top || e1Top > e2Bottom);
-    });
-  }, [elements]);
+  const checkCollisions = useCallback(
+    (element: FloorPlanElement, excludeId?: string): FloorPlanElement[] => {
+      return elements.filter((e) => {
+        if (e.id === element.id || e.id === excludeId || e.type === "zone") return false;
+
+        // Simple bounding box collision check
+        const e1Left = element.x;
+        const e1Right = element.x + element.width;
+        const e1Top = element.y;
+        const e1Bottom = element.y + element.height;
+
+        const e2Left = e.x;
+        const e2Right = e.x + e.width;
+        const e2Top = e.y;
+        const e2Bottom = e.y + e.height;
+
+        return !(e1Right < e2Left || e1Left > e2Right || e1Bottom < e2Top || e1Top > e2Bottom);
+      });
+    },
+    [elements]
+  );
 
   // Validate all elements
   const validationErrors = useMemo(() => {
@@ -1644,14 +1944,16 @@ export function FloorPlanEditorV2({
     elements.forEach((element) => {
       const sizeError = validateElementSize(element);
       if (sizeError) errors.push(sizeError);
-      
+
       const positionError = validateElementPosition(element);
       if (positionError) errors.push(positionError);
-      
+
       // Check collisions (warn but don't block)
       const collisions = checkCollisions(element);
       if (collisions.length > 0) {
-        errors.push(`האלמנט "${element.name}" חופף עם: ${collisions.map(c => c.name).join(", ")}`);
+        errors.push(
+          `האלמנט "${element.name}" חופף עם: ${collisions.map((c) => c.name).join(", ")}`
+        );
       }
     });
     return errors;
@@ -1689,12 +1991,12 @@ export function FloorPlanEditorV2({
     setIsSaving(true);
     setSaveProgress(0);
     setSaveStatus("מכין נתונים...");
-    
+
     try {
       // Split heavy computation to prevent blocking UI - yield to browser between operations
       setSaveProgress(20);
       setSaveStatus("מעבד שולחנות...");
-      await new Promise(resolve => setTimeout(resolve, 0)); // Yield to browser
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield to browser
       const tables = elements
         .filter((e) => e.type === "table")
         .map((e) => ({
@@ -1714,7 +2016,7 @@ export function FloorPlanEditorV2({
 
       setSaveProgress(40);
       setSaveStatus("מעבד אזורים...");
-      await new Promise(resolve => setTimeout(resolve, 0)); // Yield to browser
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield to browser
       const zones = elements
         .filter((e) => e.type === "zone")
         .map((e) => ({
@@ -1732,7 +2034,7 @@ export function FloorPlanEditorV2({
 
       setSaveProgress(60);
       setSaveStatus("מעבד אזורים מיוחדים...");
-      await new Promise(resolve => setTimeout(resolve, 0)); // Yield to browser
+      await new Promise((resolve) => setTimeout(resolve, 0)); // Yield to browser
       const venueAreas = elements
         .filter((e) => e.type === "specialArea")
         .map((e) => ({
@@ -1752,17 +2054,17 @@ export function FloorPlanEditorV2({
       setSaveProgress(80);
       setSaveStatus("שומר במסד הנתונים...");
       const result = await saveVenueFloorPlan(venueId, tables, zones, venueAreas);
-      
+
       setSaveProgress(100);
       setSaveStatus("נשמר בהצלחה!");
-      
+
       if (result.success && result.data) {
         const savedCounts = result.data;
         const saveTime = new Date();
         setLastSaveTime(saveTime);
-        
+
         // Add to save history
-        setSaveHistory(prev => [
+        setSaveHistory((prev) => [
           {
             timestamp: saveTime,
             tablesCount: savedCounts.tablesCount,
@@ -1771,7 +2073,7 @@ export function FloorPlanEditorV2({
           },
           ...prev.slice(0, 9) // Keep last 10 saves
         ]);
-        
+
         toast({
           title: t("success.detailsUpdated"),
           description: `נשמרו: ${savedCounts.tablesCount} שולחנות, ${savedCounts.zonesCount} אזורים, ${savedCounts.areasCount} אזורים מיוחדים`,
@@ -1780,7 +2082,7 @@ export function FloorPlanEditorV2({
       } else {
         throw new Error(result.error || t("errors.savingData"));
       }
-        } catch (error) {
+    } catch (error) {
       toast({
         title: t("errors.generic"),
         description: error instanceof Error ? error.message : t("errors.savingData"),
@@ -1796,62 +2098,67 @@ export function FloorPlanEditorV2({
   }, [elements, venueId, capacityError, toast, t, hasValidationErrors, validationErrors.length]);
 
   // Save as template
-  const handleSaveTemplate = useCallback(async (name: string, description?: string) => {
-    if (!userId) {
-      toast({
-        title: t("errors.generic"),
-        description: "נדרש להתחבר כדי לשמור תבנית",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const result = await saveTemplate(
-        userId,
-        name,
-        elements,
-        totalCapacity,
-        description,
-        venueId
-      );
-      
-      if (result.success) {
+  const handleSaveTemplate = useCallback(
+    async (name: string, description?: string) => {
+      if (!userId) {
         toast({
-          title: "תבנית נשמרה",
-          description: `התבנית &quot;${name}&quot; נשמרה בהצלחה`
+          title: t("errors.generic"),
+          description: "נדרש להתחבר כדי לשמור תבנית",
+          variant: "destructive"
         });
-        setSaveTemplateDialogOpen(false);
-        // Reload custom templates
-        const templatesResult = await loadUserTemplates(userId, venueId);
-        if (templatesResult.success && "data" in templatesResult && templatesResult.data) {
-          setCustomTemplates(templatesResult.data as unknown as Array<{
-            id: string;
-            userId: string;
-            venueId?: string | null;
-            name: string;
-            description?: string | null;
-            elements: FloorPlanElement[];
-            defaultCapacity: number;
-          }>);
-        }
-      } else {
-        throw new Error(result.error || "שגיאה בשמירת תבנית");
+        return;
       }
-    } catch (error) {
-      toast({
-        title: t("errors.generic"),
-        description: error instanceof Error ? error.message : "שגיאה בשמירת תבנית",
-        variant: "destructive"
-      });
-    }
-  }, [userId, elements, totalCapacity, venueId, toast, t]);
+
+      try {
+        const result = await saveTemplate(
+          userId,
+          name,
+          elements,
+          totalCapacity,
+          description,
+          venueId
+        );
+
+        if (result.success) {
+          toast({
+            title: "תבנית נשמרה",
+            description: `התבנית &quot;${name}&quot; נשמרה בהצלחה`
+          });
+          setSaveTemplateDialogOpen(false);
+          // Reload custom templates
+          const templatesResult = await loadUserTemplates(userId, venueId);
+          if (templatesResult.success && "data" in templatesResult && templatesResult.data) {
+            setCustomTemplates(
+              templatesResult.data as unknown as Array<{
+                id: string;
+                userId: string;
+                venueId?: string | null;
+                name: string;
+                description?: string | null;
+                elements: FloorPlanElement[];
+                defaultCapacity: number;
+              }>
+            );
+          }
+        } else {
+          throw new Error(result.error || "שגיאה בשמירת תבנית");
+        }
+      } catch (error) {
+        toast({
+          title: t("errors.generic"),
+          description: error instanceof Error ? error.message : "שגיאה בשמירת תבנית",
+          variant: "destructive"
+        });
+      }
+    },
+    [userId, elements, totalCapacity, venueId, toast, t]
+  );
 
   // Click canvas to deselect or add polygon point
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
       if (!canvasRef.current || viewMode !== "interactive") return;
-      
+
       if (isDrawingPolygon) {
         const canvasPos = screenToCanvas(e.clientX, e.clientY);
         const x = canvasPos.x;
@@ -1863,29 +2170,29 @@ export function FloorPlanEditorV2({
     },
     [viewMode, isDrawingPolygon, polygonPoints, screenToCanvas]
   );
-  
+
   // Finish polygon drawing
   const finishPolygonDrawing = useCallback(() => {
     if (polygonPoints.length >= 3) {
       // Calculate bounds
-      const minX = Math.min(...polygonPoints.map(p => p.x));
-      const minY = Math.min(...polygonPoints.map(p => p.y));
-      const maxX = Math.max(...polygonPoints.map(p => p.x));
-      const maxY = Math.max(...polygonPoints.map(p => p.y));
+      const minX = Math.min(...polygonPoints.map((p) => p.x));
+      const minY = Math.min(...polygonPoints.map((p) => p.y));
+      const maxX = Math.max(...polygonPoints.map((p) => p.x));
+      const maxY = Math.max(...polygonPoints.map((p) => p.y));
       const width = maxX - minX || 100;
       const height = maxY - minY || 100;
-      
+
       // Normalize points to 0-100%
-      const normalizedPoints = polygonPoints.map(p => ({
+      const normalizedPoints = polygonPoints.map((p) => ({
         x: width > 0 ? ((p.x - minX) / width) * 100 : p.x,
         y: height > 0 ? ((p.y - minY) / height) * 100 : p.y
       }));
-      
+
       // Create new zone with polygon shape
       const newElement: FloorPlanElement = {
         id: `zone-${Date.now()}`,
         type: "zone",
-        name: `Zone ${elements.filter(e => e.type === "zone").length + 1}`,
+        name: `Zone ${elements.filter((e) => e.type === "zone").length + 1}`,
         x: minX,
         y: minY,
         width: width,
@@ -1896,14 +2203,14 @@ export function FloorPlanEditorV2({
         color: "#3B82F6",
         description: null
       };
-      
+
       const newElements = [...elements, newElement];
       updateElementsWithHistory(newElements);
       setPolygonPoints([]);
       setIsDrawingPolygon(false);
     }
   }, [polygonPoints, elements, updateElementsWithHistory]);
-  
+
   // Cancel polygon drawing
   const cancelPolygonDrawing = useCallback(() => {
     setPolygonPoints([]);
@@ -1920,8 +2227,8 @@ export function FloorPlanEditorV2({
             <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    size="default" 
+                  <Button
+                    size="default"
                     className="gap-2"
                     onClick={() => setTemplateDialogOpen(true)}
                   >
@@ -1936,47 +2243,18 @@ export function FloorPlanEditorV2({
                   </div>
                 </TooltipContent>
               </Tooltip>
-              
+
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="default" className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        {t("floorPlan.addElement")}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem onClick={() => handleAddElement("table")}>
-                        <Square className="ml-2 h-4 w-4" />
-                        {t("floorPlan.addTable")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddElement("table", undefined, "bar")}>
-                        <Square className="ml-2 h-4 w-4" />
-                        {t("floorPlan.addBar")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddElement("zone")}>
-                        <MapPin className="ml-2 h-4 w-4" />
-                        {t("floorPlan.addZone")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddElement("specialArea", "entrance")}>
-                        <DoorOpen className="ml-2 h-4 w-4" />
-                        {t("floorPlan.specialAreas.entrance")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddElement("specialArea", "exit")}>
-                        <DoorOpen className="ml-2 h-4 w-4" />
-                        {t("floorPlan.specialAreas.exit")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddElement("specialArea", "kitchen")}>
-                        <ChefHat className="ml-2 h-4 w-4" />
-                        {t("floorPlan.specialAreas.kitchen")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleAddElement("specialArea", "restroom")}>
-                        <Bath className="ml-2 h-4 w-4" />
-                        {t("floorPlan.specialAreas.restroom")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button
+                    variant="outline"
+                    size="default"
+                    className="gap-2"
+                    onClick={() => setAddElementDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("floorPlan.addElement")}
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1">
@@ -1986,7 +2264,7 @@ export function FloorPlanEditorV2({
                 </TooltipContent>
               </Tooltip>
             </div>
-            
+
             {/* Group 2: Edit Actions */}
             <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
               <Tooltip>
@@ -2080,62 +2358,65 @@ export function FloorPlanEditorV2({
                 </TooltipContent>
               </Tooltip>
               {/* Bulk Operations - only show when multiple elements selected */}
-              {((selectedElementIds.size > 1) || (selectedElementId && selectedElementIds.size > 0)) && (
+              {(selectedElementIds.size > 1 ||
+                (selectedElementId && selectedElementIds.size > 0)) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                        >
+                        <Button variant="outline" size="sm">
                           <Layout className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start">
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => _handleAlign("left")}
-                          disabled={(selectedElementIds.size < 2 && !selectedElementId)}
+                          disabled={selectedElementIds.size < 2 && !selectedElementId}
                         >
                           יישור שמאל
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => _handleAlign("right")}
-                          disabled={(selectedElementIds.size < 2 && !selectedElementId)}
+                          disabled={selectedElementIds.size < 2 && !selectedElementId}
                         >
                           יישור ימין
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => _handleAlign("top")}
-                          disabled={(selectedElementIds.size < 2 && !selectedElementId)}
+                          disabled={selectedElementIds.size < 2 && !selectedElementId}
                         >
                           יישור עליון
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => _handleAlign("bottom")}
-                          disabled={(selectedElementIds.size < 2 && !selectedElementId)}
+                          disabled={selectedElementIds.size < 2 && !selectedElementId}
                         >
                           יישור תחתון
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => _handleAlign("center")}
-                          disabled={(selectedElementIds.size < 2 && !selectedElementId)}
+                          disabled={selectedElementIds.size < 2 && !selectedElementId}
                         >
                           יישור מרכז
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => _handleResizeToSameSize()}
-                          disabled={(selectedElementIds.size < 2 && !selectedElementId)}
+                          disabled={selectedElementIds.size < 2 && !selectedElementId}
                         >
                           גודל אחיד
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => {
-                            const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
+                            const selectedIds =
+                              selectedElementIds.size > 0
+                                ? selectedElementIds
+                                : selectedElementId
+                                  ? new Set([selectedElementId])
+                                  : new Set();
                             if (selectedIds.size > 0) {
                               const newColor = prompt("הזן צבע חדש (hex):", "#3B82F6");
                               if (newColor) {
-                                const newElements = elements.map(el => 
+                                const newElements = elements.map((el) =>
                                   selectedIds.has(el.id) ? { ...el, color: newColor } : el
                                 );
                                 updateElementsWithHistory(newElements);
@@ -2158,7 +2439,7 @@ export function FloorPlanEditorV2({
                 </Tooltip>
               )}
             </div>
-            
+
             {/* Group 3: View Controls */}
             <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
               <Tooltip>
@@ -2169,7 +2450,7 @@ export function FloorPlanEditorV2({
                     onClick={() => setShowGrid(!showGrid)}
                     className={showGrid ? "bg-primary/10" : ""}
                     aria-label={t("floorPlan.grid") || "הצג/הסתר רשת עזר"}
-                    aria-pressed={showGrid}
+                    aria-checked={showGrid}
                     role="switch"
                   >
                     <Grid className="h-4 w-4" />
@@ -2296,16 +2577,12 @@ export function FloorPlanEditorV2({
                 </TooltipContent>
               </Tooltip>
             </div>
-            
+
             {/* Group 4: Help */}
             <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setHelpDialogOpen(true)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setHelpDialogOpen(true)}>
                     <HelpCircle className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -2317,7 +2594,7 @@ export function FloorPlanEditorV2({
                 </TooltipContent>
               </Tooltip>
             </div>
-            
+
             {/* Group 5: Export */}
             <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
               <Tooltip>
@@ -2330,7 +2607,7 @@ export function FloorPlanEditorV2({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => {
                           const input = document.createElement("input");
                           input.type = "file";
@@ -2362,15 +2639,20 @@ export function FloorPlanEditorV2({
                             <X className="mr-2 h-4 w-4" />
                             הסר תמונת רקע
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                            const newOpacity = prompt("הזן שקיפות (0-1):", backgroundImageOpacity.toString());
-                            if (newOpacity !== null) {
-                              const opacity = parseFloat(newOpacity);
-                              if (!isNaN(opacity) && opacity >= 0 && opacity <= 1) {
-                                setBackgroundImageOpacity(opacity);
+                          <DropdownMenuItem
+                            onClick={() => {
+                              const newOpacity = prompt(
+                                "הזן שקיפות (0-1):",
+                                backgroundImageOpacity.toString()
+                              );
+                              if (newOpacity !== null) {
+                                const opacity = parseFloat(newOpacity);
+                                if (!isNaN(opacity) && opacity >= 0 && opacity <= 1) {
+                                  setBackgroundImageOpacity(opacity);
+                                }
                               }
-                            }
-                          }}>
+                            }}
+                          >
                             <Pencil className="mr-2 h-4 w-4" />
                             שנה שקיפות
                           </DropdownMenuItem>
@@ -2399,7 +2681,7 @@ export function FloorPlanEditorV2({
                 </TooltipContent>
               </Tooltip>
             </div>
-            
+
             {/* Group 6: More Options */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -2487,10 +2769,10 @@ export function FloorPlanEditorV2({
             )}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  onClick={handleSaveClick} 
-                  disabled={isSaving || hasValidationErrors} 
-                  size="sm" 
+                <Button
+                  onClick={handleSaveClick}
+                  disabled={isSaving || hasValidationErrors}
+                  size="sm"
                   className="gap-2"
                   variant={hasValidationErrors ? "destructive" : "default"}
                 >
@@ -2501,7 +2783,9 @@ export function FloorPlanEditorV2({
               <TooltipContent>
                 <div className="space-y-1">
                   <div className="font-semibold">שמירת מפה</div>
-                  <div className="text-xs">נשמרים: שולחנות, אזורים, כניסות, יציאות, מטבח, שירותים</div>
+                  <div className="text-xs">
+                    נשמרים: שולחנות, אזורים, כניסות, יציאות, מטבח, שירותים
+                  </div>
                   {lastSaveTime && (
                     <div className="text-xs text-muted-foreground mt-1">
                       נשמר לאחרונה: {lastSaveTime.toLocaleString("he-IL")}
@@ -2518,68 +2802,79 @@ export function FloorPlanEditorV2({
           </div>
         </div>
 
-      {/* View Mode Tabs and Map Type Selector */}
-      <div className="flex shrink-0 items-center justify-between gap-4">
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}>
-          <TabsList>
-            <TabsTrigger value="interactive">
-              <Layout className="ml-2 h-4 w-4" />
-              {t("floorPlan.interactiveView")}
-            </TabsTrigger>
-            <TabsTrigger value="nonInteractive">
-              <List className="ml-2 h-4 w-4" />
-              {t("floorPlan.nonInteractiveView")}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex items-center gap-2 flex-1 max-w-2xl">
-          <Input
-            placeholder={t("common.search") || "חיפוש אלמנטים..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-          />
-          <Select value={filterElementType} onValueChange={(v) => setFilterElementType(v as ElementType | "all")}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder={t("floorPlan.filterByType") || "סינון לפי סוג"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
-              <SelectItem value="table">{t("floorPlan.tables") || "שולחנות"}</SelectItem>
-              <SelectItem value="zone">{t("floorPlan.zones") || "אזורים"}</SelectItem>
-              <SelectItem value="specialArea">{t("floorPlan.specialAreas.other") || "אזורים מיוחדים"}</SelectItem>
-            </SelectContent>
-          </Select>
-          {availableZones.length > 0 && (
-            <Select value={filterZone || "all"} onValueChange={(v) => setFilterZone(v === "all" ? null : v)}>
+        {/* View Mode Tabs and Map Type Selector */}
+        <div className="flex shrink-0 items-center justify-between gap-4">
+          <Tabs
+            value={viewMode}
+            onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}
+          >
+            <TabsList>
+              <TabsTrigger value="interactive">
+                <Layout className="ml-2 h-4 w-4" />
+                {t("floorPlan.interactiveView")}
+              </TabsTrigger>
+              <TabsTrigger value="nonInteractive">
+                <List className="ml-2 h-4 w-4" />
+                {t("floorPlan.nonInteractiveView")}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex items-center gap-2 flex-1 max-w-2xl">
+            <Input
+              placeholder={t("common.search") || "חיפוש אלמנטים..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="max-w-xs"
+            />
+            <Select
+              value={filterElementType}
+              onValueChange={(v) => setFilterElementType(v as ElementType | "all")}
+            >
               <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder={t("floorPlan.filterByZone") || "סינון לפי אזור"} />
+                <SelectValue placeholder={t("floorPlan.filterByType") || "סינון לפי סוג"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
-                {availableZones.map((zone) => (
-                  <SelectItem key={zone.id} value={zone.id}>
-                    {zone.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="table">{t("floorPlan.tables") || "שולחנות"}</SelectItem>
+                <SelectItem value="zone">{t("floorPlan.zones") || "אזורים"}</SelectItem>
+                <SelectItem value="specialArea">
+                  {t("floorPlan.specialAreas.other") || "אזורים מיוחדים"}
+                </SelectItem>
               </SelectContent>
             </Select>
-          )}
-          {(searchQuery || filterElementType !== "all" || filterZone) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearchQuery("");
-                setFilterElementType("all");
-                setFilterZone(null);
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+            {availableZones.length > 0 && (
+              <Select
+                value={filterZone || "all"}
+                onValueChange={(v) => setFilterZone(v === "all" ? null : v)}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder={t("floorPlan.filterByZone") || "סינון לפי אזור"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
+                  {availableZones.map((zone) => (
+                    <SelectItem key={zone.id} value={zone.id}>
+                      {zone.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {(searchQuery || filterElementType !== "all" || filterZone) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterElementType("all");
+                  setFilterZone(null);
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
 
         {/* Main Content - Canvas Only (Panel moved to overlay) */}
         <div className="flex flex-1 overflow-hidden">
@@ -2604,7 +2899,12 @@ export function FloorPlanEditorV2({
                       <input
                         type="checkbox"
                         checked={layers.zones.visible}
-                        onChange={(e) => setLayers(prev => ({ ...prev, zones: { ...prev.zones, visible: e.target.checked } }))}
+                        onChange={(e) =>
+                          setLayers((prev) => ({
+                            ...prev,
+                            zones: { ...prev.zones, visible: e.target.checked }
+                          }))
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">אזורים</span>
@@ -2613,7 +2913,12 @@ export function FloorPlanEditorV2({
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => setLayers(prev => ({ ...prev, zones: { ...prev.zones, locked: !prev.zones.locked } }))}
+                      onClick={() =>
+                        setLayers((prev) => ({
+                          ...prev,
+                          zones: { ...prev.zones, locked: !prev.zones.locked }
+                        }))
+                      }
                       title={layers.zones.locked ? "פתח נעילה" : "נעול"}
                     >
                       {layers.zones.locked ? "🔒" : "🔓"}
@@ -2624,7 +2929,12 @@ export function FloorPlanEditorV2({
                       <input
                         type="checkbox"
                         checked={layers.tables.visible}
-                        onChange={(e) => setLayers(prev => ({ ...prev, tables: { ...prev.tables, visible: e.target.checked } }))}
+                        onChange={(e) =>
+                          setLayers((prev) => ({
+                            ...prev,
+                            tables: { ...prev.tables, visible: e.target.checked }
+                          }))
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">שולחנות</span>
@@ -2633,7 +2943,12 @@ export function FloorPlanEditorV2({
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => setLayers(prev => ({ ...prev, tables: { ...prev.tables, locked: !prev.tables.locked } }))}
+                      onClick={() =>
+                        setLayers((prev) => ({
+                          ...prev,
+                          tables: { ...prev.tables, locked: !prev.tables.locked }
+                        }))
+                      }
                       title={layers.tables.locked ? "פתח נעילה" : "נעול"}
                     >
                       {layers.tables.locked ? "🔒" : "🔓"}
@@ -2644,7 +2959,12 @@ export function FloorPlanEditorV2({
                       <input
                         type="checkbox"
                         checked={layers.specialAreas.visible}
-                        onChange={(e) => setLayers(prev => ({ ...prev, specialAreas: { ...prev.specialAreas, visible: e.target.checked } }))}
+                        onChange={(e) =>
+                          setLayers((prev) => ({
+                            ...prev,
+                            specialAreas: { ...prev.specialAreas, visible: e.target.checked }
+                          }))
+                        }
                         className="w-4 h-4"
                       />
                       <span className="text-sm">אזורים מיוחדים</span>
@@ -2653,7 +2973,12 @@ export function FloorPlanEditorV2({
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => setLayers(prev => ({ ...prev, specialAreas: { ...prev.specialAreas, locked: !prev.specialAreas.locked } }))}
+                      onClick={() =>
+                        setLayers((prev) => ({
+                          ...prev,
+                          specialAreas: { ...prev.specialAreas, locked: !prev.specialAreas.locked }
+                        }))
+                      }
                       title={layers.specialAreas.locked ? "פתח נעילה" : "נעול"}
                     >
                       {layers.specialAreas.locked ? "🔒" : "🔓"}
@@ -2668,10 +2993,14 @@ export function FloorPlanEditorV2({
               <Card ref={containerRef} className="relative flex-1 overflow-hidden p-0">
                 <div
                   className="relative w-full h-full overflow-hidden"
-                  style={{ 
-                    cursor: panMode 
-                      ? (isPanning ? "grabbing" : "grab")
-                      : (isPanning ? "grabbing" : "default"),
+                  style={{
+                    cursor: panMode
+                      ? isPanning
+                        ? "grabbing"
+                        : "grab"
+                      : isPanning
+                        ? "grabbing"
+                        : "default",
                     position: "relative"
                   }}
                 >
@@ -2694,7 +3023,9 @@ export function FloorPlanEditorV2({
                       <TooltipContent>
                         <div className="space-y-1">
                           <div className="font-semibold">{panMode ? "מצב גרירה" : "מצב בחירה"}</div>
-                          <div className="text-xs">{panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}</div>
+                          <div className="text-xs">
+                            {panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}
+                          </div>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -2705,7 +3036,7 @@ export function FloorPlanEditorV2({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0"
-                          onClick={() => setZoom(prev => Math.min(10, prev * 1.2))}
+                          onClick={() => setZoom((prev) => Math.min(10, prev * 1.2))}
                         >
                           <ZoomIn className="h-4 w-4" />
                         </Button>
@@ -2723,7 +3054,7 @@ export function FloorPlanEditorV2({
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0"
-                          onClick={() => setZoom(prev => Math.max(0.01, prev / 1.2))}
+                          onClick={() => setZoom((prev) => Math.max(0.01, prev / 1.2))}
                         >
                           <ZoomOut className="h-4 w-4" />
                         </Button>
@@ -2775,7 +3106,9 @@ export function FloorPlanEditorV2({
                       <TooltipContent>
                         <div className="space-y-1">
                           <div className="font-semibold">
-                            {isFullscreen ? t("floorPlan.exitFullscreen") : t("floorPlan.fullscreen")}
+                            {isFullscreen
+                              ? t("floorPlan.exitFullscreen")
+                              : t("floorPlan.fullscreen")}
                           </div>
                           <div className="text-xs">F11</div>
                         </div>
@@ -2817,7 +3150,7 @@ export function FloorPlanEditorV2({
                             color: "rgba(0,0,0,0.6)"
                           }}
                         >
-                          {i * 100 / scale}m
+                          {(i * 100) / scale}m
                         </div>
                       ))}
                     </div>
@@ -2859,7 +3192,7 @@ export function FloorPlanEditorV2({
                             textOrientation: "mixed"
                           }}
                         >
-                          {i * 100 / scale}m
+                          {(i * 100) / scale}m
                         </div>
                       ))}
                     </div>
@@ -2868,9 +3201,7 @@ export function FloorPlanEditorV2({
                     ref={canvasRef}
                     className="absolute bg-background"
                     style={{
-                      cursor: panMode 
-                        ? (isPanning ? "grabbing" : "grab")
-                        : "default",
+                      cursor: panMode ? (isPanning ? "grabbing" : "grab") : "default",
                       minWidth: "2000px",
                       minHeight: "2000px",
                       width: "2000px",
@@ -2879,7 +3210,7 @@ export function FloorPlanEditorV2({
                       top: "50%",
                       transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
                       transformOrigin: "center center",
-                      backgroundImage: backgroundImage 
+                      backgroundImage: backgroundImage
                         ? `url(${backgroundImage})`
                         : showGrid
                           ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
@@ -2898,253 +3229,277 @@ export function FloorPlanEditorV2({
                     tabIndex={0}
                   >
                     <div id="canvas-description" className="sr-only">
-                      Interactive floor plan canvas. Use arrow keys to move selected elements, Ctrl+Z to undo, Ctrl+Shift+Z to redo, Delete to remove elements.
+                      Interactive floor plan canvas. Use arrow keys to move selected elements,
+                      Ctrl+Z to undo, Ctrl+Shift+Z to redo, Delete to remove elements.
                     </div>
-            {/* Selection Box - Enhanced visibility for multi-select */}
-            {isSelecting && selectionBox && (
-              <div
-                style={{
-                  position: "absolute",
-                  left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
-                  top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
-                  width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
-                  height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`,
-                  border: "2px solid #3B82F6",
-                  backgroundColor: "rgba(59, 130, 246, 0.15)",
-                  borderRadius: "4px",
-                  pointerEvents: "none",
-                  zIndex: 998,
-                  boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)"
-                }}
-              />
-            )}
-            {/* Polygon drawing preview */}
-            {isDrawingPolygon && polygonPoints.length > 0 && (
-              <svg
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  pointerEvents: "none",
-                  zIndex: 999
-                }}
-              >
-                <polyline
-                  points={polygonPoints.map(p => `${p.x},${p.y}`).join(" ")}
-                  fill="none"
-                  stroke="#3B82F6"
-                  strokeWidth="2"
-                  strokeDasharray="5,5"
-                />
-                {polygonPoints.map((point, i) => (
-                  <circle
-                    key={i}
-                    cx={point.x}
-                    cy={point.y}
-                    r="4"
-                    fill="#3B82F6"
-                  />
-                ))}
-              </svg>
-            )}
-            {isDrawingPolygon && polygonPoints.length >= 3 && (
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "20px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  backgroundColor: "rgba(0, 0, 0, 0.8)",
-                  color: "white",
-                  padding: "8px 16px",
-                  borderRadius: "8px",
-                  zIndex: 1000
-                }}
-              >
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={finishPolygonDrawing}
-                  className="mr-2"
-                >
-                  {t("common.save")}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={cancelPolygonDrawing}
-                >
-                  {t("common.cancel")}
-                </Button>
-              </div>
-            )}
-            {/* Visual Feedback Overlay */}
-            {(isDragging || isResizing || isRotating) && draggedElement && (() => {
-              // Check if table is in a zone
-              const zones = elements.filter((el) => el.type === "zone");
-              const containingZone = draggedElement.type === "table" 
-                ? findContainingZone(draggedElement, zones)
-                : null;
+                    {/* Selection Box - Enhanced visibility for multi-select */}
+                    {isSelecting && selectionBox && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
+                          top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
+                          width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
+                          height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`,
+                          border: "2px solid #3B82F6",
+                          backgroundColor: "rgba(59, 130, 246, 0.15)",
+                          borderRadius: "4px",
+                          pointerEvents: "none",
+                          zIndex: 998,
+                          boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)"
+                        }}
+                      />
+                    )}
+                    {/* Polygon drawing preview */}
+                    {isDrawingPolygon && polygonPoints.length > 0 && (
+                      <svg
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          pointerEvents: "none",
+                          zIndex: 999
+                        }}
+                      >
+                        <polyline
+                          points={polygonPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+                          fill="none"
+                          stroke="#3B82F6"
+                          strokeWidth="2"
+                          strokeDasharray="5,5"
+                        />
+                        {polygonPoints.map((point, i) => (
+                          <circle key={i} cx={point.x} cy={point.y} r="4" fill="#3B82F6" />
+                        ))}
+                      </svg>
+                    )}
+                    {isDrawingPolygon && polygonPoints.length >= 3 && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "20px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          backgroundColor: "rgba(0, 0, 0, 0.8)",
+                          color: "white",
+                          padding: "8px 16px",
+                          borderRadius: "8px",
+                          zIndex: 1000
+                        }}
+                      >
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={finishPolygonDrawing}
+                          className="mr-2"
+                        >
+                          {t("common.save")}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={cancelPolygonDrawing}>
+                          {t("common.cancel")}
+                        </Button>
+                      </div>
+                    )}
+                    {/* Visual Feedback Overlay */}
+                    {(isDragging || isResizing || isRotating) &&
+                      draggedElement &&
+                      (() => {
+                        // Check if table is in a zone
+                        const zones = elements.filter((el) => el.type === "zone");
+                        const containingZone =
+                          draggedElement.type === "table"
+                            ? findContainingZone(draggedElement, zones)
+                            : null;
 
-              return (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: `${draggedElement.y - 30}px`,
-                    left: `${draggedElement.x}px`,
-                    backgroundColor: "rgba(0, 0, 0, 0.8)",
-                    color: "white",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
-                    fontSize: "12px",
-                    pointerEvents: "none",
-                    zIndex: 1000,
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  {isDragging && (
-                    <>
-                      X: {Math.round(draggedElement.x)}px ({Math.round(draggedElement.x * scale * 100) / 100}m), Y: {Math.round(draggedElement.y)}px ({Math.round(draggedElement.y * scale * 100) / 100}m)
-                      {containingZone && (
-                        <span style={{ marginLeft: "8px", color: containingZone.color || "#3B82F6" }}>
-                          • {containingZone.name}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {isResizing && (
-                    <>
-                      {Math.round(draggedElement.width)}×{Math.round(draggedElement.height)}px ({Math.round(draggedElement.width * scale * 100) / 100}m × {Math.round(draggedElement.height * scale * 100) / 100}m)
-                      {containingZone && (
-                        <span style={{ marginLeft: "8px", color: containingZone.color || "#3B82F6" }}>
-                          • {containingZone.name}
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {isRotating && (
-                    <>
-                      {Math.round(draggedElement.rotation)}°
-                    </>
-                  )}
-                </div>
-              );
-            })()}
-            {/* Alignment Guides Visualization */}
-            {showAlignmentGuides && alignmentGuides.map((guide, index) => (
-              <div
-                key={index}
-                style={{
-                  position: "absolute",
-                  [guide.type === "vertical" ? "left" : "top"]: `${guide.position}px`,
-                  [guide.type === "vertical" ? "width" : "height"]: "1px",
-                  [guide.type === "vertical" ? "height" : "width"]: guide.type === "vertical" ? `${canvasSize.height}px` : `${canvasSize.width}px`,
-                  backgroundColor: "#3B82F6",
-                  opacity: 0.5,
-                  pointerEvents: "none",
-                  zIndex: 997
-                }}
-              />
-            ))}
-            
-            {/* Empty Canvas Message */}
-            {elements.length === 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  textAlign: "center",
-                  zIndex: 10,
-                  pointerEvents: "none"
-                }}
-              >
-                <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md" style={{ pointerEvents: "auto" }}>
-                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
-                  <h3 className="text-xl font-semibold mb-2">{t("floorPlan.emptyCanvasTitle")}</h3>
-                  <p className="text-muted-foreground mb-4">{t("floorPlan.emptyCanvasDescription")}</p>
-                  <Button
-                    onClick={() => setTemplateDialogOpen(true)}
-                    className="gap-2"
-                    size="lg"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <Plus className="h-5 w-5" />
-                    {t("floorPlan.createMap")}
-                  </Button>
-                </div>
-              </div>
-            )}
+                        return (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: `${draggedElement.y - 30}px`,
+                              left: `${draggedElement.x}px`,
+                              backgroundColor: "rgba(0, 0, 0, 0.8)",
+                              color: "white",
+                              padding: "4px 8px",
+                              borderRadius: "4px",
+                              fontSize: "12px",
+                              pointerEvents: "none",
+                              zIndex: 1000,
+                              whiteSpace: "nowrap"
+                            }}
+                          >
+                            {isDragging && (
+                              <>
+                                X: {Math.round(draggedElement.x)}px (
+                                {Math.round(draggedElement.x * scale * 100) / 100}m), Y:{" "}
+                                {Math.round(draggedElement.y)}px (
+                                {Math.round(draggedElement.y * scale * 100) / 100}m)
+                                {containingZone && (
+                                  <span
+                                    style={{
+                                      marginLeft: "8px",
+                                      color: containingZone.color || "#3B82F6"
+                                    }}
+                                  >
+                                    • {containingZone.name}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            {isResizing && (
+                              <>
+                                {Math.round(draggedElement.width)}×
+                                {Math.round(draggedElement.height)}px (
+                                {Math.round(draggedElement.width * scale * 100) / 100}m ×{" "}
+                                {Math.round(draggedElement.height * scale * 100) / 100}m)
+                                {containingZone && (
+                                  <span
+                                    style={{
+                                      marginLeft: "8px",
+                                      color: containingZone.color || "#3B82F6"
+                                    }}
+                                  >
+                                    • {containingZone.name}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            {isRotating && <>{Math.round(draggedElement.rotation)}°</>}
+                          </div>
+                        );
+                      })()}
+                    {/* Alignment Guides Visualization */}
+                    {showAlignmentGuides &&
+                      alignmentGuides.map((guide, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            position: "absolute",
+                            [guide.type === "vertical" ? "left" : "top"]: `${guide.position}px`,
+                            [guide.type === "vertical" ? "width" : "height"]: "1px",
+                            [guide.type === "vertical" ? "height" : "width"]:
+                              guide.type === "vertical"
+                                ? `${canvasSize.height}px`
+                                : `${canvasSize.width}px`,
+                            backgroundColor: "#3B82F6",
+                            opacity: 0.5,
+                            pointerEvents: "none",
+                            zIndex: 997
+                          }}
+                        />
+                      ))}
 
-            {/* Render Elements - Zones first (lower z-index), then other elements */}
-            {filteredElements
-              .filter((element) => {
-                if (hiddenElements.has(element.id)) return false;
-                // Filter by layer visibility
-                if (element.type === "zone" && !layers.zones.visible) return false;
-                if (element.type === "table" && !layers.tables.visible) return false;
-                if (element.type === "specialArea" && !layers.specialAreas.visible) return false;
-                return true;
-              })
-              .sort((a, b) => {
-                // Zones first (z-index 1), then other elements (z-index 10)
-                if (a.type === "zone" && b.type !== "zone") return -1;
-                if (a.type !== "zone" && b.type === "zone") return 1;
-                return 0;
-              })
-              .map((element) => {
-                // Check if element is locked
-                const isLocked = 
-                  (element.type === "zone" && layers.zones.locked) ||
-                  (element.type === "table" && layers.tables.locked) ||
-                  (element.type === "specialArea" && layers.specialAreas.locked);
-                
-                // Highlight search matches
-                const isSearchMatch = searchQuery.trim() && (
-                  element.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  element.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  element.notes?.toLowerCase().includes(searchQuery.toLowerCase())
-                );
-                
-                return (
-                <ElementRenderer
-                  showMeasurements={showMeasurements}
-                  scale={scale}
-                  key={element.id}
-                  element={element}
-                  isSelected={selectedElementId === element.id || selectedElementIds.has(element.id)}
-                  isInteractive={!isLocked}
-                  onMouseDown={(e) => handleElementMouseDown(e, element)}
-                  onDoubleClick={() => handleEditElement(element)}
-                  onEdit={() => {
-                    const elementToEdit = elements.find(e => e.id === element.id);
-                    if (elementToEdit) {
-                      handleEditElement(elementToEdit);
-                    }
-                  }}
-                  onDelete={() => handleDeleteElement(element.id)}
-                  onVertexDrag={(vertexIndex, newPoint) => {
-                    setElements(
-                      elements.map((e) =>
-                        e.id === element.id && e.polygonPoints
-                          ? {
-                              ...e,
-                              polygonPoints: e.polygonPoints.map((p, i) => (i === vertexIndex ? newPoint : p))
+                    {/* Empty Canvas Message */}
+                    {elements.length === 0 && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
+                          textAlign: "center",
+                          zIndex: 10,
+                          pointerEvents: "none"
+                        }}
+                      >
+                        <div
+                          className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md"
+                          style={{ pointerEvents: "auto" }}
+                        >
+                          <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+                          <h3 className="text-xl font-semibold mb-2">
+                            {t("floorPlan.emptyCanvasTitle")}
+                          </h3>
+                          <p className="text-muted-foreground mb-4">
+                            {t("floorPlan.emptyCanvasDescription")}
+                          </p>
+                          <Button
+                            onClick={() => setTemplateDialogOpen(true)}
+                            className="gap-2"
+                            size="lg"
+                            style={{ pointerEvents: "auto" }}
+                          >
+                            <Plus className="h-5 w-5" />
+                            {t("floorPlan.createMap")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Render Elements - Zones first (lower z-index), then other elements */}
+                    {filteredElements
+                      .filter((element) => {
+                        if (hiddenElements.has(element.id)) return false;
+                        // Filter by layer visibility
+                        if (element.type === "zone" && !layers.zones.visible) return false;
+                        if (element.type === "table" && !layers.tables.visible) return false;
+                        if (element.type === "specialArea" && !layers.specialAreas.visible)
+                          return false;
+                        return true;
+                      })
+                      .sort((a, b) => {
+                        // Zones first (z-index 1), then other elements (z-index 10)
+                        if (a.type === "zone" && b.type !== "zone") return -1;
+                        if (a.type !== "zone" && b.type === "zone") return 1;
+                        return 0;
+                      })
+                      .map((element) => {
+                        // Check if element is locked
+                        const isLocked =
+                          (element.type === "zone" && layers.zones.locked) ||
+                          (element.type === "table" && layers.tables.locked) ||
+                          (element.type === "specialArea" && layers.specialAreas.locked);
+
+                        // Highlight search matches
+                        const isSearchMatch =
+                          searchQuery.trim() &&
+                          (element.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            element.description
+                              ?.toLowerCase()
+                              .includes(searchQuery.toLowerCase()) ||
+                            element.notes?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                        return (
+                          <ElementRenderer
+                            showMeasurements={showMeasurements}
+                            scale={scale}
+                            key={element.id}
+                            element={element}
+                            isSelected={
+                              selectedElementId === element.id || selectedElementIds.has(element.id)
                             }
-                          : e
-                      )
-                    );
-                  }}
-                  allElements={elements}
-                  onResizeStart={(e, handle) => handleResizeStart(e, element, handle)}
-                  onRotateStart={(e) => handleRotateStart(e, element)}
-                  isSearchMatch={!!isSearchMatch}
-                  />
-                );
-              })}
+                            isInteractive={!isLocked}
+                            onMouseDown={(e) => handleElementMouseDown(e, element)}
+                            onDoubleClick={() => handleEditElement(element)}
+                            onEdit={() => {
+                              const elementToEdit = elements.find((e) => e.id === element.id);
+                              if (elementToEdit) {
+                                handleEditElement(elementToEdit);
+                              }
+                            }}
+                            onDelete={() => handleDeleteElement(element.id)}
+                            onVertexDrag={(vertexIndex, newPoint) => {
+                              setElements(
+                                elements.map((e) =>
+                                  e.id === element.id && e.polygonPoints
+                                    ? {
+                                        ...e,
+                                        polygonPoints: e.polygonPoints.map((p, i) =>
+                                          i === vertexIndex ? newPoint : p
+                                        )
+                                      }
+                                    : e
+                                )
+                              );
+                            }}
+                            allElements={elements}
+                            onResizeStart={(e, handle) => handleResizeStart(e, element, handle)}
+                            onRotateStart={(e) => handleRotateStart(e, element)}
+                            isSearchMatch={!!isSearchMatch}
+                          />
+                        );
+                      })}
                   </div>
                 </div>
               </Card>
@@ -3158,801 +3513,890 @@ export function FloorPlanEditorV2({
           )}
         </div>
 
-      {/* Context Panel removed - using Edit Dialog instead when edit button is clicked */}
+        {/* Context Panel removed - using Edit Dialog instead when edit button is clicked */}
 
-      {/* Template Selection Dialog - Professional Map Creation */}
-      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{t("floorPlan.createMap")}</DialogTitle>
-            <DialogDescription>{t("floorPlan.createMapDescription")}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            {/* Event Venues Category */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.eventVenues")}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {getAllTemplates()
-                  .filter(t => ["event_hall", "conference_hall", "concert_hall"].includes(t.id))
-                  .map((template) => (
-                    <Card
-                      key={template.id}
-                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
-                      onClick={() => {
-                        const newElements = template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` }));
-                        setElements(newElements);
-                        setVenueCapacity(template.defaultCapacity);
-                        // Reset zoom and pan to center on template
-                        setZoom(1);
-                        setPanOffset({ x: 0, y: 0 });
-                        // Clear selection
-                        setSelectedElementId(null);
-                        setSelectedElementIds(new Set());
-                        setTemplateDialogOpen(false);
-                        toast({
-                          title: t("success.templateLoaded"),
-                          description: t("success.templateLoadedDescription", { name: template.name })
-                        });
-                      }}
-                    >
-                      <div className="p-4">
-                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{template.elements.length} {t("floorPlan.elements")}</span>
-                          <span>{template.defaultCapacity} {t("common.seats")}</span>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-              </div>
-            </div>
-
-            {/* Dining & Entertainment Category */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.diningEntertainment")}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {getAllTemplates()
-                  .filter(t => ["restaurant", "bar", "club"].includes(t.id))
-                  .map((template) => (
-                    <Card
-                      key={template.id}
-                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
-                      onClick={() => {
-                        const newElements = template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` }));
-                        setElements(newElements);
-                        setVenueCapacity(template.defaultCapacity);
-                        // Reset zoom and pan to center on template
-                        setZoom(1);
-                        setPanOffset({ x: 0, y: 0 });
-                        // Clear selection
-                        setSelectedElementId(null);
-                        setSelectedElementIds(new Set());
-                        setTemplateDialogOpen(false);
-                        toast({
-                          title: t("success.templateLoaded"),
-                          description: t("success.templateLoadedDescription", { name: template.name })
-                        });
-                      }}
-                    >
-                      <div className="p-4">
-                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{template.elements.length} {t("floorPlan.elements")}</span>
-                          <span>{template.defaultCapacity} {t("common.seats")}</span>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-              </div>
-            </div>
-
-            {/* Custom Templates */}
-            {customTemplates.length > 0 && (
+        {/* Template Selection Dialog - Professional Map Creation */}
+        <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{t("floorPlan.createMap")}</DialogTitle>
+              <DialogDescription>{t("floorPlan.createMapDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              {/* Event Venues Category */}
               <div>
-                <h3 className="text-lg font-semibold mb-3">התבניות שלי</h3>
+                <h3 className="text-lg font-semibold mb-3">
+                  {t("floorPlan.categories.eventVenues")}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {customTemplates.map((template) => (
-                    <Card
-                      key={template.id}
-                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary relative group"
-                      onClick={() => {
-                        const newElements = template.elements.map((el: FloorPlanElement) => ({ ...el, id: `${el.id}-${Date.now()}` }));
-                        setElements(newElements);
-                        setVenueCapacity(template.defaultCapacity);
-                        setZoom(1);
-                        setPanOffset({ x: 0, y: 0 });
-                        setSelectedElementId(null);
-                        setSelectedElementIds(new Set());
-                        setTemplateDialogOpen(false);
-                        toast({
-                          title: t("success.templateLoaded"),
-                          description: t("success.templateLoadedDescription", { name: template.name })
-                        });
-                      }}
-                    >
-                      <div className="p-4">
-                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{template.description || ""}</p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{template.elements.length} {t("floorPlan.elements")}</span>
-                          <span>{template.defaultCapacity} {t("common.seats")}</span>
+                  {getAllTemplates()
+                    .filter((t) => ["event_hall", "conference_hall", "concert_hall"].includes(t.id))
+                    .map((template) => (
+                      <Card
+                        key={template.id}
+                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
+                        onClick={() => {
+                          const newElements = template.elements.map((el) => ({
+                            ...el,
+                            id: `${el.id}-${Date.now()}`
+                          }));
+                          setElements(newElements);
+                          setVenueCapacity(template.defaultCapacity);
+                          // Reset zoom and pan to center on template
+                          setZoom(1);
+                          setPanOffset({ x: 0, y: 0 });
+                          // Clear selection
+                          setSelectedElementId(null);
+                          setSelectedElementIds(new Set());
+                          setTemplateDialogOpen(false);
+                          toast({
+                            title: t("success.templateLoaded"),
+                            description: t("success.templateLoadedDescription", {
+                              name: template.name
+                            })
+                          });
+                        }}
+                      >
+                        <div className="p-4">
+                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {template.description}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>
+                              {template.elements.length} {t("floorPlan.elements")}
+                            </span>
+                            <span>
+                              {template.defaultCapacity} {t("common.seats")}
+                            </span>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              </div>
+
+              {/* Dining & Entertainment Category */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  {t("floorPlan.categories.diningEntertainment")}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getAllTemplates()
+                    .filter((t) => ["restaurant", "bar", "club"].includes(t.id))
+                    .map((template) => (
+                      <Card
+                        key={template.id}
+                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
+                        onClick={() => {
+                          const newElements = template.elements.map((el) => ({
+                            ...el,
+                            id: `${el.id}-${Date.now()}`
+                          }));
+                          setElements(newElements);
+                          setVenueCapacity(template.defaultCapacity);
+                          // Reset zoom and pan to center on template
+                          setZoom(1);
+                          setPanOffset({ x: 0, y: 0 });
+                          // Clear selection
+                          setSelectedElementId(null);
+                          setSelectedElementIds(new Set());
+                          setTemplateDialogOpen(false);
+                          toast({
+                            title: t("success.templateLoaded"),
+                            description: t("success.templateLoadedDescription", {
+                              name: template.name
+                            })
+                          });
+                        }}
+                      >
+                        <div className="p-4">
+                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {template.description}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>
+                              {template.elements.length} {t("floorPlan.elements")}
+                            </span>
+                            <span>
+                              {template.defaultCapacity} {t("common.seats")}
+                            </span>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              </div>
+
+              {/* Custom Templates */}
+              {customTemplates.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">התבניות שלי</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {customTemplates.map((template) => (
+                      <Card
+                        key={template.id}
+                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary relative group"
+                        onClick={() => {
+                          const newElements = template.elements.map((el: FloorPlanElement) => ({
+                            ...el,
+                            id: `${el.id}-${Date.now()}`
+                          }));
+                          setElements(newElements);
+                          setVenueCapacity(template.defaultCapacity);
+                          setZoom(1);
+                          setPanOffset({ x: 0, y: 0 });
+                          setSelectedElementId(null);
+                          setSelectedElementIds(new Set());
+                          setTemplateDialogOpen(false);
+                          toast({
+                            title: t("success.templateLoaded"),
+                            description: t("success.templateLoadedDescription", {
+                              name: template.name
+                            })
+                          });
+                        }}
+                      >
+                        <div className="p-4">
+                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {template.description || ""}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>
+                              {template.elements.length} {t("floorPlan.elements")}
+                            </span>
+                            <span>
+                              {template.defaultCapacity} {t("common.seats")}
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm("האם למחוק את התבנית?")) {
+                              // eslint-disable-line no-alert
+                              deleteTemplate(template.id, userId!).then((result) => {
+                                if (result.success) {
+                                  setCustomTemplates(
+                                    customTemplates.filter((t) => t.id !== template.id)
+                                  );
+                                  toast({
+                                    title: "תבנית נמחקה",
+                                    description: `התבנית "${template.name}" נמחקה בהצלחה`
+                                  });
+                                }
+                              });
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Start from Scratch */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.custom")}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getAllTemplates()
+                    .filter((t) => t.id === "empty")
+                    .map((template) => (
+                      <Card
+                        key={template.id}
+                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary border-dashed"
+                        onClick={() => {
+                          setElements([]);
+                          setVenueCapacity(0);
+                          // Reset zoom and pan
+                          setZoom(1);
+                          setPanOffset({ x: 0, y: 0 });
+                          // Clear selection
+                          setSelectedElementId(null);
+                          setSelectedElementIds(new Set());
+                          setTemplateDialogOpen(false);
+                          toast({
+                            title: t("success.templateLoaded"),
+                            description: t("success.templateLoadedDescription", {
+                              name: template.name
+                            })
+                          });
+                        }}
+                      >
+                        <div className="p-4">
+                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {template.description}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>{t("floorPlan.startFromScratch")}</span>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Save Template Dialog */}
+        <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>שמור כתבנית</DialogTitle>
+              <DialogDescription>שמור את המפה הנוכחית כתבנית לשימוש עתידי</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="template-name">שם התבנית</Label>
+                <Input
+                  id="template-name"
+                  placeholder="לדוגמה: בר מרכזי"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                      const nameInput = document.getElementById(
+                        "template-name"
+                      ) as HTMLInputElement;
+                      const descInput = document.getElementById(
+                        "template-description"
+                      ) as HTMLTextAreaElement;
+                      if (nameInput?.value.trim()) {
+                        handleSaveTemplate(nameInput.value.trim(), descInput?.value || undefined);
+                      }
+                    }
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="template-description">תיאור (אופציונלי)</Label>
+                <Textarea id="template-description" placeholder="תיאור קצר של התבנית" />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                התבנית תכלול: {elements.filter((e) => e.type === "table").length} שולחנות,{" "}
+                {elements.filter((e) => e.type === "zone").length} אזורים,{" "}
+                {elements.filter((e) => e.type === "specialArea").length} אזורים מיוחדים
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSaveTemplateDialogOpen(false)}>
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={() => {
+                  const nameInput = document.getElementById("template-name") as HTMLInputElement;
+                  const descInput = document.getElementById(
+                    "template-description"
+                  ) as HTMLTextAreaElement;
+                  if (nameInput?.value.trim()) {
+                    handleSaveTemplate(nameInput.value.trim(), descInput?.value || undefined);
+                  }
+                }}
+              >
+                שמור
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Fullscreen Modal */}
+        <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between p-4 border-b">
+                <DialogTitle>{t("floorPlan.title")}</DialogTitle>
+                <Button variant="ghost" size="sm" onClick={() => setIsFullscreen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div
+                className="flex-1 overflow-hidden relative"
+                style={{
+                  cursor: panMode
+                    ? isPanning
+                      ? "grabbing"
+                      : "grab"
+                    : isPanning
+                      ? "grabbing"
+                      : "default"
+                }}
+              >
+                {/* Canvas Controls - Top Right (Same position as normal view) */}
+                <div
+                  className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
+                  style={{ pointerEvents: "auto" }}
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={panMode ? "default" : "ghost"}
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPanMode(!panMode)}
+                      >
+                        <Hand className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">{panMode ? "מצב גרירה" : "מצב בחירה"}</div>
+                        <div className="text-xs">
+                          {panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}
                         </div>
                       </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="h-6 w-px bg-border mx-1" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm("האם למחוק את התבנית?")) { // eslint-disable-line no-alert
-                            deleteTemplate(template.id, userId!).then((result) => {
-                              if (result.success) {
-                                setCustomTemplates(customTemplates.filter(t => t.id !== template.id));
-                                toast({
-                                  title: "תבנית נמחקה",
-                                  description: `התבנית "${template.name}" נמחקה בהצלחה`
-                                });
-                              }
-                            });
-                          }
+                        className="h-8 w-8 p-0"
+                        onClick={() => setZoom((prev) => Math.min(10, prev * 1.2))}
+                      >
+                        <ZoomIn className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
+                        <div className="text-xs">Ctrl/Cmd + Scroll</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setZoom((prev) => Math.max(0.01, prev / 1.2))}
+                      >
+                        <ZoomOut className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
+                        <div className="text-xs">Ctrl/Cmd + Scroll</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => {
+                          setZoom(1);
+                          setPanOffset({ x: 0, y: 0 });
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Grid className="h-4 w-4" />
                       </Button>
-                    </Card>
-                  ))}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">איפוס זום</div>
+                        <div className="text-xs">החזר לזום 100%</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <div className="h-6 w-px bg-border mx-1" />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setIsFullscreen(false)}
+                      >
+                        <Minimize2 className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">{t("floorPlan.exitFullscreen")}</div>
+                        <div className="text-xs">F11</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-              </div>
-            )}
-
-            {/* Start from Scratch */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.custom")}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {getAllTemplates()
-                  .filter(t => t.id === "empty")
-                  .map((template) => (
-                    <Card
-                      key={template.id}
-                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary border-dashed"
-                      onClick={() => {
-                        setElements([]);
-                        setVenueCapacity(0);
-                        // Reset zoom and pan
-                        setZoom(1);
-                        setPanOffset({ x: 0, y: 0 });
-                        // Clear selection
-                        setSelectedElementId(null);
-                        setSelectedElementIds(new Set());
-                        setTemplateDialogOpen(false);
-                        toast({
-                          title: t("success.templateLoaded"),
-                          description: t("success.templateLoadedDescription", { name: template.name })
-                        });
+                <div
+                  ref={canvasRef}
+                  className="absolute bg-background"
+                  style={{
+                    cursor: panMode ? (isPanning ? "grabbing" : "grab") : "default",
+                    minWidth: "2000px",
+                    minHeight: "2000px",
+                    width: "2000px",
+                    height: "2000px",
+                    left: "50%",
+                    top: "50%",
+                    transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
+                    transformOrigin: "center center",
+                    backgroundImage: backgroundImage
+                      ? `url(${backgroundImage})`
+                      : showGrid
+                        ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                         linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
+                        : undefined,
+                    backgroundSize: backgroundImage ? "contain" : `${20 / zoom}px ${20 / zoom}px`,
+                    backgroundRepeat: backgroundImage ? "no-repeat" : "repeat",
+                    backgroundPosition: "center",
+                    opacity: backgroundImage ? backgroundImageOpacity : 1
+                  }}
+                  onClick={handleCanvasClick}
+                  onMouseDown={handleCanvasMouseDown}
+                >
+                  {/* Polygon drawing preview */}
+                  {isDrawingPolygon && polygonPoints.length > 0 && (
+                    <svg
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        pointerEvents: "none",
+                        zIndex: 999
                       }}
                     >
-                      <div className="p-4">
-                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{t("floorPlan.startFromScratch")}</span>
-                        </div>
+                      <polyline
+                        points={polygonPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+                        fill="none"
+                        stroke="#3B82F6"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                      {polygonPoints.map((point, i) => (
+                        <circle key={i} cx={point.x} cy={point.y} r="4" fill="#3B82F6" />
+                      ))}
+                    </svg>
+                  )}
+                  {isDrawingPolygon && polygonPoints.length >= 3 && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "20px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                        color: "white",
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        zIndex: 1000
+                      }}
+                    >
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={finishPolygonDrawing}
+                        className="mr-2"
+                      >
+                        {t("common.save")}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={cancelPolygonDrawing}>
+                        {t("common.cancel")}
+                      </Button>
+                    </div>
+                  )}
+                  {/* Empty Canvas Message */}
+                  {elements.length === 0 && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        textAlign: "center",
+                        zIndex: 10,
+                        pointerEvents: "none"
+                      }}
+                    >
+                      <div
+                        className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md"
+                        style={{ pointerEvents: "auto" }}
+                      >
+                        <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+                        <h3 className="text-xl font-semibold mb-2">
+                          {t("floorPlan.emptyCanvasTitle")}
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          {t("floorPlan.emptyCanvasDescription")}
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setIsFullscreen(false);
+                            setTemplateDialogOpen(true);
+                          }}
+                          className="gap-2"
+                          size="lg"
+                          style={{ pointerEvents: "auto" }}
+                        >
+                          <Plus className="h-5 w-5" />
+                          {t("floorPlan.createMap")}
+                        </Button>
                       </div>
-                    </Card>
-                  ))}
+                    </div>
+                  )}
+
+                  {/* Render Elements - Zones first (lower z-index), then other elements */}
+                  {elements
+                    .filter((element) => !hiddenElements.has(element.id))
+                    .sort((a, b) => {
+                      // Zones first (z-index 1), then other elements (z-index 10)
+                      if (a.type === "zone" && b.type !== "zone") return -1;
+                      if (a.type !== "zone" && b.type === "zone") return 1;
+                      return 0;
+                    })
+                    .map((element) => (
+                      <ElementRenderer
+                        key={element.id}
+                        element={element}
+                        isSelected={
+                          selectedElementId === element.id || selectedElementIds.has(element.id)
+                        }
+                        isInteractive={true}
+                        onMouseDown={(e) => handleElementMouseDown(e, element)}
+                        onDoubleClick={() => handleEditElement(element)}
+                        onEdit={() => {
+                          const elementToEdit = elements.find((e) => e.id === element.id);
+                          if (elementToEdit) {
+                            handleEditElement(elementToEdit);
+                          }
+                        }}
+                        onDelete={() => handleDeleteElement(element.id)}
+                        onVertexDrag={(vertexIndex, newPoint) => {
+                          setElements(
+                            elements.map((e) =>
+                              e.id === element.id && e.polygonPoints
+                                ? {
+                                    ...e,
+                                    polygonPoints: e.polygonPoints.map((p, i) =>
+                                      i === vertexIndex ? newPoint : p
+                                    )
+                                  }
+                                : e
+                            )
+                          );
+                        }}
+                        allElements={elements}
+                        onResizeStart={(e, handle) => {
+                          if (handle === "rotate") {
+                            handleRotateStart(e, element);
+                          } else {
+                            handleResizeStart(
+                              e,
+                              element,
+                              handle as "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w"
+                            );
+                          }
+                        }}
+                        onRotateStart={(e) => handleRotateStart(e, element)}
+                      />
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
 
-      {/* Save Template Dialog */}
-      <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>שמור כתבנית</DialogTitle>
-            <DialogDescription>
-              שמור את המפה הנוכחית כתבנית לשימוש עתידי
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="template-name">שם התבנית</Label>
-              <Input
-                id="template-name"
-                placeholder="לדוגמה: בר מרכזי"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && e.currentTarget.value.trim()) {
-                    const nameInput = document.getElementById("template-name") as HTMLInputElement;
-                    const descInput = document.getElementById("template-description") as HTMLTextAreaElement;
-                    if (nameInput?.value.trim()) {
-                      handleSaveTemplate(nameInput.value.trim(), descInput?.value || undefined);
-                    }
-                  }
+        {/* Add Element Dialog - Beautiful card-based UI */}
+        <AddElementDialog
+          open={addElementDialogOpen}
+          onOpenChange={setAddElementDialogOpen}
+          onAddZone={handleAddZone}
+          onAddElement={handleAddElementByCategory}
+        />
+
+        {/* Edit Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingElement?.type === "table"
+                  ? t("floorPlan.editTable")
+                  : editingElement?.type === "zone"
+                    ? t("floorPlan.editZone")
+                    : editingElement?.type === "security"
+                      ? t("floorPlan.editSecurity")
+                      : t("floorPlan.editSpecialArea")}
+              </DialogTitle>
+              <DialogDescription>{t("floorPlan.editDescription")}</DialogDescription>
+            </DialogHeader>
+            {editingElement && (
+              <EditElementForm
+                element={editingElement}
+                onChange={setEditingElement}
+                onSave={handleSaveEdit}
+                onCancel={() => {
+                  setEditDialogOpen(false);
+                  setEditingElement(null);
                 }}
+                allElements={elements}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="template-description">תיאור (אופציונלי)</Label>
-              <Textarea
-                id="template-description"
-                placeholder="תיאור קצר של התבנית"
-              />
-            </div>
-            <div className="text-xs text-muted-foreground">
-              התבנית תכלול: {elements.filter((e) => e.type === "table").length} שולחנות, {elements.filter((e) => e.type === "zone").length} אזורים, {elements.filter((e) => e.type === "specialArea").length} אזורים מיוחדים
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveTemplateDialogOpen(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              onClick={() => {
-                const nameInput = document.getElementById("template-name") as HTMLInputElement;
-                const descInput = document.getElementById("template-description") as HTMLTextAreaElement;
-                if (nameInput?.value.trim()) {
-                  handleSaveTemplate(nameInput.value.trim(), descInput?.value || undefined);
-                }
-              }}
-            >
-              שמור
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            )}
+          </DialogContent>
+        </Dialog>
 
-      {/* Fullscreen Modal */}
-      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b">
-              <DialogTitle>{t("floorPlan.title")}</DialogTitle>
+        {/* Save Confirmation Dialog */}
+        <Dialog open={saveConfirmDialogOpen} onOpenChange={setSaveConfirmDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("floorPlan.saveMap") || "שמירת מפה"}</DialogTitle>
+              <DialogDescription>
+                {t("floorPlan.saveMapDescription") || "האם לשמור את כל השינויים במפה?"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-4">
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span>
+                  {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                <span>
+                  {elements.filter((e) => e.type === "zone").length} {t("floorPlan.zones")}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-purple-500" />
+                <span>
+                  {elements.filter((e) => e.type === "specialArea").length}{" "}
+                  {t("floorPlan.specialAreas.other")}
+                </span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded">
+                <Info className="h-3 w-3 inline mr-1" />
+                כל האלמנטים יישמרו במסד הנתונים ויהיו זמינים בפעם הבאה שתפתח את המפה
+              </div>
+              {isSaving && (
+                <div className="space-y-2 pt-2 border-t">
+                  <div className="text-xs text-muted-foreground">{saveStatus}</div>
+                  <Progress value={saveProgress} />
+                </div>
+              )}
+              {saveHistory.length > 0 && !isSaving && (
+                <div className="text-sm border-t pt-4">
+                  <p className="font-semibold mb-2 text-xs">היסטוריית שמירות אחרונות:</p>
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {saveHistory.slice(0, 3).map((save, idx) => (
+                      <div key={idx} className="text-xs text-muted-foreground flex justify-between">
+                        <span>{save.timestamp.toLocaleString("he-IL")}</span>
+                        <span>
+                          {save.tablesCount} שולחנות, {save.zonesCount} אזורים, {save.areasCount}{" "}
+                          אזורים מיוחדים
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setSaveConfirmDialogOpen(false)}
+                disabled={isSaving}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={async () => {
+                  setSaveConfirmDialogOpen(false);
+                  await handleSave();
+                }}
+                disabled={isSaving}
+              >
+                {isSaving ? t("common.loading") : t("common.save")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Tips Overlay */}
+        {showTips && (
+          <div className="fixed bottom-4 right-4 z-50 max-w-sm bg-card border rounded-lg shadow-lg p-4">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <Info className="h-4 w-4" />
+                טיפים שימושיים
+              </h3>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsFullscreen(false)}
+                className="h-6 w-6 p-0"
+                onClick={() => setShowTips(false)}
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div 
-              className="flex-1 overflow-hidden relative"
-              style={{ cursor: panMode 
-                ? (isPanning ? "grabbing" : "grab")
-                : (isPanning ? "grabbing" : "default") }}
-            >
-              {/* Canvas Controls - Top Right (Same position as normal view) */}
-              <div
-                className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
-                style={{ pointerEvents: "auto" }}
-              >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={panMode ? "default" : "ghost"}
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => setPanMode(!panMode)}
-                    >
-                      <Hand className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{panMode ? "מצב גרירה" : "מצב בחירה"}</div>
-                      <div className="text-xs">{panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <div className="h-6 w-px bg-border mx-1" />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => setZoom(prev => Math.min(10, prev * 1.2))}
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
-                      <div className="text-xs">Ctrl/Cmd + Scroll</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => setZoom(prev => Math.max(0.01, prev / 1.2))}
-                    >
-                      <ZoomOut className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
-                      <div className="text-xs">Ctrl/Cmd + Scroll</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => {
-                        setZoom(1);
-                        setPanOffset({ x: 0, y: 0 });
-                      }}
-                    >
-                      <Grid className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">איפוס זום</div>
-                      <div className="text-xs">החזר לזום 100%</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <div className="h-6 w-px bg-border mx-1" />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={() => setIsFullscreen(false)}
-                    >
-                      <Minimize2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.exitFullscreen")}</div>
-                      <div className="text-xs">F11</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              {currentTipIndex === 0 && (
+                <p>
+                  💡 <strong>גרור אלמנטים</strong> כדי להזיז אותם על המפה. לחץ פעמיים לעריכה.
+                </p>
+              )}
+              {currentTipIndex === 1 && (
+                <p>
+                  💡 <strong>השתמש ב-Ctrl/Cmd</strong> + גלגלת עכבר כדי להגדיל/להקטין את התצוגה.
+                </p>
+              )}
+              {currentTipIndex === 2 && (
+                <p>
+                  💡 <strong>בחר מספר אלמנטים</strong> עם גרירת תיבה כדי לבצע פעולות קבוצתיות.
+                </p>
+              )}
+              {currentTipIndex === 3 && (
+                <p>
+                  💡 <strong>שולחנות שנגררים לאזור</strong> יורשים את צבע האזור אוטומטית.
+                </p>
+              )}
+              {currentTipIndex === 4 && (
+                <p>
+                  💡 <strong>שמור תבנית מותאמת</strong> כדי להשתמש במפה שוב בעתיד.
+                </p>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t">
+              <div className="flex gap-1">
+                {[0, 1, 2, 3, 4].map((idx) => (
+                  <button
+                    key={idx}
+                    className={`h-2 w-2 rounded-full ${currentTipIndex === idx ? "bg-primary" : "bg-muted"}`}
+                    onClick={() => setCurrentTipIndex(idx)}
+                    aria-label={`טיפ ${idx + 1}`}
+                  />
+                ))}
               </div>
-              <div
-                ref={canvasRef}
-                className="absolute bg-background"
-                style={{
-                  cursor: panMode 
-                    ? (isPanning ? "grabbing" : "grab")
-                    : "default",
-                  minWidth: "2000px",
-                  minHeight: "2000px",
-                  width: "2000px",
-                  height: "2000px",
-                  left: "50%",
-                  top: "50%",
-                  transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
-                  transformOrigin: "center center",
-                  backgroundImage: backgroundImage 
-                    ? `url(${backgroundImage})`
-                    : showGrid
-                      ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                         linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
-                      : undefined,
-                  backgroundSize: backgroundImage ? "contain" : `${20 / zoom}px ${20 / zoom}px`,
-                  backgroundRepeat: backgroundImage ? "no-repeat" : "repeat",
-                  backgroundPosition: "center",
-                  opacity: backgroundImage ? backgroundImageOpacity : 1
-                }}
-                onClick={handleCanvasClick}
-                onMouseDown={handleCanvasMouseDown}
-              >
-                {/* Polygon drawing preview */}
-                {isDrawingPolygon && polygonPoints.length > 0 && (
-                  <svg
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      pointerEvents: "none",
-                      zIndex: 999
-                    }}
-                  >
-                    <polyline
-                      points={polygonPoints.map(p => `${p.x},${p.y}`).join(" ")}
-                      fill="none"
-                      stroke="#3B82F6"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                    />
-                    {polygonPoints.map((point, i) => (
-                      <circle
-                        key={i}
-                        cx={point.x}
-                        cy={point.y}
-                        r="4"
-                        fill="#3B82F6"
-                      />
-                    ))}
-                  </svg>
-                )}
-                {isDrawingPolygon && polygonPoints.length >= 3 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: "20px",
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      backgroundColor: "rgba(0, 0, 0, 0.8)",
-                      color: "white",
-                      padding: "8px 16px",
-                      borderRadius: "8px",
-                      zIndex: 1000
-                    }}
-                  >
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={finishPolygonDrawing}
-                      className="mr-2"
-                    >
-                      {t("common.save")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={cancelPolygonDrawing}
-                    >
-                      {t("common.cancel")}
-                    </Button>
-                  </div>
-                )}
-                {/* Empty Canvas Message */}
-                {elements.length === 0 && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: "translate(-50%, -50%)",
-                      textAlign: "center",
-                      zIndex: 10,
-                      pointerEvents: "none"
-                    }}
-                  >
-                    <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md" style={{ pointerEvents: "auto" }}>
-                      <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
-                      <h3 className="text-xl font-semibold mb-2">{t("floorPlan.emptyCanvasTitle")}</h3>
-                      <p className="text-muted-foreground mb-4">{t("floorPlan.emptyCanvasDescription")}</p>
-                      <Button
-                        onClick={() => {
-                          setIsFullscreen(false);
-                          setTemplateDialogOpen(true);
-                        }}
-                        className="gap-2"
-                        size="lg"
-                        style={{ pointerEvents: "auto" }}
-                      >
-                        <Plus className="h-5 w-5" />
-                        {t("floorPlan.createMap")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Render Elements - Zones first (lower z-index), then other elements */}
-                {elements
-                  .filter((element) => !hiddenElements.has(element.id))
-                  .sort((a, b) => {
-                    // Zones first (z-index 1), then other elements (z-index 10)
-                    if (a.type === "zone" && b.type !== "zone") return -1;
-                    if (a.type !== "zone" && b.type === "zone") return 1;
-                    return 0;
-                  })
-                  .map((element) => (
-                    <ElementRenderer
-                      key={element.id}
-                      element={element}
-                      isSelected={selectedElementId === element.id || selectedElementIds.has(element.id)}
-                      isInteractive={true}
-                      onMouseDown={(e) => handleElementMouseDown(e, element)}
-                      onDoubleClick={() => handleEditElement(element)}
-                      onEdit={() => {
-                        const elementToEdit = elements.find(e => e.id === element.id);
-                        if (elementToEdit) {
-                          handleEditElement(elementToEdit);
-                        }
-                      }}
-                      onDelete={() => handleDeleteElement(element.id)}
-                      onVertexDrag={(vertexIndex, newPoint) => {
-                        setElements(
-                          elements.map((e) =>
-                            e.id === element.id && e.polygonPoints
-                              ? {
-                                  ...e,
-                                  polygonPoints: e.polygonPoints.map((p, i) => (i === vertexIndex ? newPoint : p))
-                                }
-                              : e
-                          )
-                        );
-                      }}
-                      allElements={elements}
-                      onResizeStart={(e, handle) => {
-                        if (handle === "rotate") {
-                          handleRotateStart(e, element);
-                        } else {
-                          handleResizeStart(e, element, handle as "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w");
-                        }
-                      }}
-                      onRotateStart={(e) => handleRotateStart(e, element)}
-                    />
-                  ))}
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={() => setCurrentTipIndex((prev) => (prev > 0 ? prev - 1 : 4))}
+                >
+                  ←
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2"
+                  onClick={() => setCurrentTipIndex((prev) => (prev < 4 ? prev + 1 : 0))}
+                >
+                  →
+                </Button>
               </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
 
-      {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingElement?.type === "table"
-                ? t("floorPlan.editTable")
-                : editingElement?.type === "zone"
-                  ? t("floorPlan.editZone")
-                  : editingElement?.type === "security"
-                    ? t("floorPlan.editSecurity")
-                    : t("floorPlan.editSpecialArea")}
-            </DialogTitle>
-            <DialogDescription>{t("floorPlan.editDescription")}</DialogDescription>
-          </DialogHeader>
-          {editingElement && (
-            <EditElementForm
-              element={editingElement}
-              onChange={setEditingElement}
-              onSave={handleSaveEdit}
-              onCancel={() => {
-                setEditDialogOpen(false);
-                setEditingElement(null);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Save Confirmation Dialog */}
-      <Dialog open={saveConfirmDialogOpen} onOpenChange={setSaveConfirmDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("floorPlan.saveMap") || "שמירת מפה"}</DialogTitle>
-            <DialogDescription>
-              {t("floorPlan.saveMapDescription") || "האם לשמור את כל השינויים במפה?"}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-4">
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <span>{elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-blue-500" />
-              <span>{elements.filter((e) => e.type === "zone").length} {t("floorPlan.zones")}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <CheckCircle2 className="h-4 w-4 text-purple-500" />
-              <span>{elements.filter((e) => e.type === "specialArea").length} {t("floorPlan.specialAreas.other")}</span>
-            </div>
-            <div className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded">
-              <Info className="h-3 w-3 inline mr-1" />
-              כל האלמנטים יישמרו במסד הנתונים ויהיו זמינים בפעם הבאה שתפתח את המפה
-            </div>
-            {isSaving && (
-              <div className="space-y-2 pt-2 border-t">
-                <div className="text-xs text-muted-foreground">{saveStatus}</div>
-                <Progress value={saveProgress} />
+        {/* Help/Demo Dialog */}
+        <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                מדריך למשתמש - יצירת מפה
+              </DialogTitle>
+              <DialogDescription>למד איך להשתמש בכלי יצירת המפה בצורה מקצועית</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  יצירת מפה
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  לחץ על &quot;יצירת מפה&quot; כדי להתחיל. תוכל לבחור תבנית מקצועית (בר, מסעדה, אולם
+                  אירועים וכו&apos;) או להתחיל מאפס.
+                </p>
               </div>
-            )}
-            {saveHistory.length > 0 && !isSaving && (
-              <div className="text-sm border-t pt-4">
-                <p className="font-semibold mb-2 text-xs">היסטוריית שמירות אחרונות:</p>
-                <div className="max-h-32 overflow-y-auto space-y-1">
-                  {saveHistory.slice(0, 3).map((save, idx) => (
-                    <div key={idx} className="text-xs text-muted-foreground flex justify-between">
-                      <span>{save.timestamp.toLocaleString("he-IL")}</span>
-                      <span>{save.tablesCount} שולחנות, {save.zonesCount} אזורים, {save.areasCount} אזורים מיוחדים</span>
-                    </div>
-                  ))}
-                </div>
+
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Square className="h-4 w-4" />
+                  הוספת אלמנטים
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  לחץ על &quot;הוסף אלמנט&quot; כדי להוסיף שולחנות, אזורים, כניסות, יציאות, מטבח,
+                  שירותים ועוד.
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
+                  <li>גרור אלמנטים כדי להזיז אותם</li>
+                  <li>לחץ על אלמנט כדי לבחור אותו</li>
+                  <li>לחץ פעמיים על אלמנט כדי לערוך אותו</li>
+                  <li>גרור את הפינות כדי לשנות גודל</li>
+                </ul>
               </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSaveConfirmDialogOpen(false)} disabled={isSaving}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={async () => {
-              setSaveConfirmDialogOpen(false);
-              await handleSave();
-            }} disabled={isSaving}>
-              {isSaving ? t("common.loading") : t("common.save")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Tips Overlay */}
-      {showTips && (
-        <div className="fixed bottom-4 right-4 z-50 max-w-sm bg-card border rounded-lg shadow-lg p-4">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-sm flex items-center gap-2">
-              <Info className="h-4 w-4" />
-              טיפים שימושיים
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => setShowTips(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            {currentTipIndex === 0 && (
-              <p>💡 <strong>גרור אלמנטים</strong> כדי להזיז אותם על המפה. לחץ פעמיים לעריכה.</p>
-            )}
-            {currentTipIndex === 1 && (
-              <p>💡 <strong>השתמש ב-Ctrl/Cmd</strong> + גלגלת עכבר כדי להגדיל/להקטין את התצוגה.</p>
-            )}
-            {currentTipIndex === 2 && (
-              <p>💡 <strong>בחר מספר אלמנטים</strong> עם גרירת תיבה כדי לבצע פעולות קבוצתיות.</p>
-            )}
-            {currentTipIndex === 3 && (
-              <p>💡 <strong>שולחנות שנגררים לאזור</strong> יורשים את צבע האזור אוטומטית.</p>
-            )}
-            {currentTipIndex === 4 && (
-              <p>💡 <strong>שמור תבנית מותאמת</strong> כדי להשתמש במפה שוב בעתיד.</p>
-            )}
-          </div>
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <div className="flex gap-1">
-              {[0, 1, 2, 3, 4].map((idx) => (
-                <button
-                  key={idx}
-                  className={`h-2 w-2 rounded-full ${currentTipIndex === idx ? "bg-primary" : "bg-muted"}`}
-                  onClick={() => setCurrentTipIndex(idx)}
-                  aria-label={`טיפ ${idx + 1}`}
-                />
-              ))}
-            </div>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2"
-                onClick={() => setCurrentTipIndex((prev) => (prev > 0 ? prev - 1 : 4))}
-              >
-                ←
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2"
-                onClick={() => setCurrentTipIndex((prev) => (prev < 4 ? prev + 1 : 0))}
-              >
-                →
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  אזורים
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  אזורים הם תחומים שמכילים שולחנות. גרור שולחן לתוך אזור כדי לקשר אותו אליו. שולחנות
+                  בתוך אזור יורשים את צבע האזור.
+                </p>
+              </div>
 
-      {/* Help/Demo Dialog */}
-      <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              מדריך למשתמש - יצירת מפה
-            </DialogTitle>
-            <DialogDescription>
-              למד איך להשתמש בכלי יצירת המפה בצורה מקצועית
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                יצירת מפה
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                לחץ על &quot;יצירת מפה&quot; כדי להתחיל. תוכל לבחור תבנית מקצועית (בר, מסעדה, אולם אירועים וכו&apos;) או להתחיל מאפס.
-              </p>
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Grid className="h-4 w-4" />
+                  ניווט בקנבס
+                </h3>
+                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
+                  <li>גלגלת עכבר: הזז את הקנבס (pan)</li>
+                  <li>Ctrl/Cmd + גלגלת: הגדל/הקטן (zoom)</li>
+                  <li>לחץ ימני + גרור: הזז את הקנבס</li>
+                  <li>Space + גרור: הזז את הקנבס</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Copy className="h-4 w-4" />
+                  קיצורי מקלדת
+                </h3>
+                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
+                  <li>Ctrl+Z: ביטול פעולה</li>
+                  <li>Ctrl+Shift+Z: חזרה על פעולה</li>
+                  <li>Ctrl+C: העתק</li>
+                  <li>Ctrl+V: הדבק</li>
+                  <li>Ctrl+D: שכפול</li>
+                  <li>Delete: מחיקה</li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  שמירה
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  לחץ על &quot;שמור&quot; כדי לשמור את כל השינויים. כל האלמנטים (שולחנות, אזורים,
+                  אזורים מיוחדים) יישמרו במסד הנתונים.
+                </p>
+              </div>
             </div>
-            
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Square className="h-4 w-4" />
-                הוספת אלמנטים
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                לחץ על &quot;הוסף אלמנט&quot; כדי להוסיף שולחנות, אזורים, כניסות, יציאות, מטבח, שירותים ועוד.
-              </p>
-              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
-                <li>גרור אלמנטים כדי להזיז אותם</li>
-                <li>לחץ על אלמנט כדי לבחור אותו</li>
-                <li>לחץ פעמיים על אלמנט כדי לערוך אותו</li>
-                <li>גרור את הפינות כדי לשנות גודל</li>
-              </ul>
-            </div>
-            
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                אזורים
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                אזורים הם תחומים שמכילים שולחנות. גרור שולחן לתוך אזור כדי לקשר אותו אליו.
-                שולחנות בתוך אזור יורשים את צבע האזור.
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Grid className="h-4 w-4" />
-                ניווט בקנבס
-              </h3>
-              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
-                <li>גלגלת עכבר: הזז את הקנבס (pan)</li>
-                <li>Ctrl/Cmd + גלגלת: הגדל/הקטן (zoom)</li>
-                <li>לחץ ימני + גרור: הזז את הקנבס</li>
-                <li>Space + גרור: הזז את הקנבס</li>
-              </ul>
-            </div>
-            
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Copy className="h-4 w-4" />
-                קיצורי מקלדת
-              </h3>
-              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
-                <li>Ctrl+Z: ביטול פעולה</li>
-                <li>Ctrl+Shift+Z: חזרה על פעולה</li>
-                <li>Ctrl+C: העתק</li>
-                <li>Ctrl+V: הדבק</li>
-                <li>Ctrl+D: שכפול</li>
-                <li>Delete: מחיקה</li>
-              </ul>
-            </div>
-            
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                שמירה
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                לחץ על &quot;שמור&quot; כדי לשמור את כל השינויים. כל האלמנטים (שולחנות, אזורים, אזורים מיוחדים) יישמרו במסד הנתונים.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setHelpDialogOpen(false)}>
-              הבנתי
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button onClick={() => setHelpDialogOpen(false)}>הבנתי</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );
@@ -3969,7 +4413,10 @@ interface ElementRendererProps {
   onEdit?: () => void;
   onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;
   allElements?: FloorPlanElement[];
-  onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate") => void;
+  onResizeStart?: (
+    e: React.MouseEvent,
+    handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate"
+  ) => void;
   onRotateStart?: (e: React.MouseEvent) => void;
   showMeasurements?: boolean;
   scale?: number;
@@ -4015,11 +4462,12 @@ const ElementRenderer = memo(function ElementRenderer({
       transform: `rotate(${element.rotation}deg)`,
       transformOrigin: "center center",
       cursor: isInteractive ? (isSelected ? "move" : "grab") : "default",
-      border: element.type === "zone" 
-        ? `2px dashed ${borderColor}` // Zones have dashed border
-        : isSelected 
-          ? `2px solid ${borderColor}` 
-          : `2px solid ${borderColor}`,
+      border:
+        element.type === "zone"
+          ? `2px dashed ${borderColor}` // Zones have dashed border
+          : isSelected
+            ? `2px solid ${borderColor}`
+            : `2px solid ${borderColor}`,
       backgroundColor: (() => {
         if (element.type === "zone") {
           return "transparent"; // Zones have transparent background
@@ -4028,7 +4476,7 @@ const ElementRenderer = memo(function ElementRenderer({
           return element.color || `${AREA_TYPE_COLORS[element.areaType || "other"]}33`; // 20% opacity
         }
         if (element.type === "security") {
-          return parentZone 
+          return parentZone
             ? `${parentZone.color || AREA_TYPE_COLORS.zone}20` // Inherit zone color for security in zone
             : element.color || `${AREA_TYPE_COLORS.other}33`; // 20% opacity
         }
@@ -4075,14 +4523,14 @@ const ElementRenderer = memo(function ElementRenderer({
     const centerY = height / 2;
     const radius = Math.min(width, height) / 2;
     const points: Point[] = [];
-    
+
     for (let i = 0; i < sides; i++) {
       const angle = (i * 2 * Math.PI) / sides - Math.PI / 2; // Start from top
       const x = centerX + radius * Math.cos(angle);
       const y = centerY + radius * Math.sin(angle);
       points.push({ x, y });
     }
-    
+
     return points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
   };
 
@@ -4106,9 +4554,10 @@ const ElementRenderer = memo(function ElementRenderer({
   };
 
   const path = getPolygonPath();
-  const needsSvg = element.shape === "triangle" || 
-                   (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) ||
-                   element.shape === "square";
+  const needsSvg =
+    element.shape === "triangle" ||
+    (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) ||
+    element.shape === "square";
 
   if (needsSvg && path) {
     return (
@@ -4157,25 +4606,35 @@ const ElementRenderer = memo(function ElementRenderer({
                         ? "rgba(59, 130, 246, 0.15)"
                         : "rgba(255, 255, 255, 0.95)"
             }
-            stroke={element.type === "zone" ? (element.color || "#3B82F6") : (isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)")}
+            stroke={
+              element.type === "zone"
+                ? element.color || "#3B82F6"
+                : isSelected
+                  ? "#3B82F6"
+                  : "rgba(0,0,0,0.3)"
+            }
             strokeWidth={2}
             strokeDasharray={element.type === "zone" ? "5,5" : "none"}
           />
           {/* Render vertices for polygon editing */}
-          {isInteractive && isSelected && element.shape === "polygon" && element.polygonPoints && onVertexDrag && (
-            <>
-              {element.polygonPoints.map((point, index) => (
-                <PolygonVertex
-                  key={index}
-                  point={point}
-                  index={index}
-                  element={element}
-                  allElements={allElements}
-                  onDrag={onVertexDrag}
-                />
-              ))}
-            </>
-          )}
+          {isInteractive &&
+            isSelected &&
+            element.shape === "polygon" &&
+            element.polygonPoints &&
+            onVertexDrag && (
+              <>
+                {element.polygonPoints.map((point, index) => (
+                  <PolygonVertex
+                    key={index}
+                    point={point}
+                    index={index}
+                    element={element}
+                    allElements={allElements}
+                    onDrag={onVertexDrag}
+                  />
+                ))}
+              </>
+            )}
         </svg>
         <div
           className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center"
@@ -4194,7 +4653,7 @@ const ElementRenderer = memo(function ElementRenderer({
             <ChefHat className="h-6 w-6 mb-1" style={{ color: element.color || "#F59E0B" }} />
           )}
           <div>
-            <div 
+            <div
               style={{
                 fontSize: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontSize,
                 fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontWeight,
@@ -4214,7 +4673,7 @@ const ElementRenderer = memo(function ElementRenderer({
               <CheckCircle2 className="h-2.5 w-2.5 text-white" />
             </div>
             {element.type === "table" && element.seats && (
-              <div 
+              <div
                 style={{
                   fontSize: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontSize,
                   fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontWeight,
@@ -4227,7 +4686,7 @@ const ElementRenderer = memo(function ElementRenderer({
               </div>
             )}
             {showMeasurements && (
-              <div 
+              <div
                 style={{
                   fontSize: "10px",
                   color: "rgba(0,0,0,0.6)",
@@ -4237,7 +4696,8 @@ const ElementRenderer = memo(function ElementRenderer({
                   borderRadius: "2px"
                 }}
               >
-                {Math.round(element.width * scale * 100) / 100}m × {Math.round(element.height * scale * 100) / 100}m
+                {Math.round(element.width * scale * 100) / 100}m ×{" "}
+                {Math.round(element.height * scale * 100) / 100}m
               </div>
             )}
           </div>
@@ -4345,7 +4805,6 @@ const ElementRenderer = memo(function ElementRenderer({
     );
   }
 
-
   return (
     <div
       style={getElementStyle()}
@@ -4364,7 +4823,7 @@ const ElementRenderer = memo(function ElementRenderer({
         {element.type === "specialArea" && element.areaType === "kitchen" && (
           <ChefHat className="h-6 w-6 mb-1" style={{ color: element.color || "#F59E0B" }} />
         )}
-        <div 
+        <div
           style={{
             fontSize: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontSize,
             fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontWeight,
@@ -4384,7 +4843,7 @@ const ElementRenderer = memo(function ElementRenderer({
           <CheckCircle2 className="h-2.5 w-2.5 text-white" />
         </div>
         {element.type === "table" && element.seats && (
-          <div 
+          <div
             style={{
               fontSize: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontSize,
               fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontWeight,
@@ -4444,9 +4903,16 @@ interface EditElementFormProps {
   onChange: (element: FloorPlanElement) => void;
   onSave: () => void;
   onCancel: () => void;
+  allElements: FloorPlanElement[]; // All elements for zone connection/disconnection
 }
 
-function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFormProps) {
+function EditElementForm({
+  element,
+  onChange,
+  onSave,
+  onCancel,
+  allElements
+}: EditElementFormProps) {
   const { t } = useTranslations();
 
   // Initialize polygon points if shape is polygon and points don't exist
@@ -4566,7 +5032,9 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
       {element.shape === "polygon" && element.polygonPoints && (
         <div className="space-y-2 border rounded-lg p-3">
           <div className="flex items-center justify-between">
-            <Label>{t("floorPlan.polygonVertices")} ({element.polygonPoints.length})</Label>
+            <Label>
+              {t("floorPlan.polygonVertices")} ({element.polygonPoints.length})
+            </Label>
             <Button
               type="button"
               variant="outline"
@@ -4639,7 +5107,7 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
         </div>
       )}
 
-      {/* Zone specific: Color and Description */}
+      {/* Zone specific: Color, Description, and Connected Elements */}
       {element.type === "zone" && (
         <>
           <div className="space-y-2">
@@ -4660,7 +5128,100 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
               rows={3}
             />
           </div>
+
+          {/* Connected Elements in Zone */}
+          <div className="space-y-2 border rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <Label>
+                אובייקטים באזור ({allElements.filter((e) => e.zoneId === element.id).length})
+              </Label>
+            </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {allElements
+                .filter(
+                  (e) => e.zoneId === element.id && (e.type === "table" || e.type === "security")
+                )
+                .map((connectedElement) => (
+                  <div
+                    key={connectedElement.id}
+                    className="flex items-center justify-between p-2 bg-muted rounded"
+                  >
+                    <span className="text-sm">{connectedElement.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        // Disconnect element from zone - update it in allElements
+                        // This will be reflected when the form is saved
+                        const disconnectedElement = allElements.find(
+                          (e) => e.id === connectedElement.id
+                        );
+                        if (disconnectedElement) {
+                          onChange({ ...element }); // Trigger re-render
+                        }
+                      }}
+                      title="הסר מהאזור"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              {allElements.filter(
+                (e) => e.zoneId === element.id && (e.type === "table" || e.type === "security")
+              ).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  אין אובייקטים באזור זה
+                </p>
+              )}
+            </div>
+          </div>
         </>
+      )}
+
+      {/* Element connection to Zone (for tables and security) */}
+      {(element.type === "table" || element.type === "security") && (
+        <div className="space-y-2 border rounded-lg p-3">
+          <Label>חיבור לאזור</Label>
+          <Select
+            value={element.zoneId || "none"}
+            onValueChange={(value) => {
+              onChange({
+                ...element,
+                zoneId: value === "none" ? undefined : value
+              });
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="בחר אזור" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">ללא אזור</SelectItem>
+              {allElements
+                .filter((e) => e.type === "zone")
+                .map((zone) => (
+                  <SelectItem key={zone.id} value={zone.id}>
+                    {zone.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          {element.zoneId && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-muted-foreground">
+                מחובר לאזור: {allElements.find((z) => z.id === element.zoneId)?.name || "לא ידוע"}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange({ ...element, zoneId: undefined })}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Security specific */}
@@ -4714,7 +5275,6 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
           </div>
         </>
       )}
-
 
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
@@ -4814,9 +5374,7 @@ function NonInteractiveView({ elements, onEdit, onDelete }: NonInteractiveViewPr
   const { t } = useTranslations();
   const [filterType, setFilterType] = useState<ElementType | "all">("all");
 
-  const filteredElements = elements.filter(
-    (e) => filterType === "all" || e.type === filterType
-  );
+  const filteredElements = elements.filter((e) => filterType === "all" || e.type === filterType);
 
   const tables = elements.filter((e) => e.type === "table");
   const zones = elements.filter((e) => e.type === "zone");
@@ -4862,9 +5420,7 @@ function NonInteractiveView({ elements, onEdit, onDelete }: NonInteractiveViewPr
           {/* Elements List */}
           <div className="space-y-2">
             {filteredElements.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {t("common.empty")}
-              </div>
+              <div className="text-center py-8 text-muted-foreground">{t("common.empty")}</div>
             ) : (
               filteredElements.map((element) => (
                 <Card key={element.id} className="p-3">
@@ -4916,4 +5472,3 @@ function NonInteractiveView({ elements, onEdit, onDelete }: NonInteractiveViewPr
     </div>
   );
 }
-

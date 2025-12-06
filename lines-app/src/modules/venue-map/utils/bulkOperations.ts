@@ -169,5 +169,3 @@ export function getBoundingBox(elements: ElementBounds[]): {
     height: maxY - minY
   };
 }
-
-

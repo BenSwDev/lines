@@ -22,4 +22,3 @@ export default async function VenueMenusPage({ params }: Props) {
 
   return <MenusPage venueId={venueId} venueName={venueResult.data.name} />;
 }
-

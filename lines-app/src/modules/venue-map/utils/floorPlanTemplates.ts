@@ -1,6 +1,13 @@
 import type { FloorPlanElement, ElementType, SpecialAreaType } from "../ui/FloorPlanEditorV2";
 
-export type VenueTemplateType = "event_hall" | "bar" | "club" | "restaurant" | "conference_hall" | "concert_hall" | "empty";
+export type VenueTemplateType =
+  | "event_hall"
+  | "bar"
+  | "club"
+  | "restaurant"
+  | "conference_hall"
+  | "concert_hall"
+  | "empty";
 
 export interface VenueTemplate {
   id: string;
@@ -15,36 +22,40 @@ const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
 // Helper function to scale coordinates to fit canvas
-function scaleToCanvas(elements: FloorPlanElement[], targetWidth: number, targetHeight: number): FloorPlanElement[] {
+function scaleToCanvas(
+  elements: FloorPlanElement[],
+  targetWidth: number,
+  targetHeight: number
+): FloorPlanElement[] {
   if (elements.length === 0) return elements;
-  
+
   // Find bounds of all elements
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  
-  elements.forEach(el => {
+
+  elements.forEach((el) => {
     minX = Math.min(minX, el.x);
     minY = Math.min(minY, el.y);
     maxX = Math.max(maxX, el.x + el.width);
     maxY = Math.max(maxY, el.y + el.height);
   });
-  
+
   const sourceWidth = maxX - minX;
   const sourceHeight = maxY - minY;
-  
+
   // Calculate scale factor (with padding)
   const padding = 40;
   const scaleX = (targetWidth - padding * 2) / sourceWidth;
   const scaleY = (targetHeight - padding * 2) / sourceHeight;
   const scale = Math.min(scaleX, scaleY);
-  
+
   // Scale all elements and center on infinite canvas (1000x1000 center - middle of 2000x2000 canvas)
   const centerX = 1000;
   const centerY = 1000;
-  
-  return elements.map(el => ({
+
+  return elements.map((el) => ({
     ...el,
     x: centerX + (el.x - minX - sourceWidth / 2) * scale,
     y: centerY + (el.y - minY - sourceHeight / 2) * scale,

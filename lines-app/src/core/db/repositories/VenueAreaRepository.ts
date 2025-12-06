@@ -42,4 +42,3 @@ export class VenueAreaRepository {
 }
 
 export const venueAreaRepository = new VenueAreaRepository();
-

@@ -35,7 +35,7 @@ export async function loadUserTemplates(userId: string, venueId?: string) {
       venueId: t.venueId,
       name: t.name,
       description: t.description,
-            elements: (t.elements as unknown as FloorPlanElement[]),
+      elements: t.elements as unknown as FloorPlanElement[],
       defaultCapacity: t.defaultCapacity || 0
     }));
 
@@ -131,7 +131,9 @@ export async function updateTemplate(
       data: {
         ...(updates.name !== undefined && { name: updates.name }),
         ...(updates.description !== undefined && { description: updates.description }),
-        ...(updates.elements !== undefined && { elements: updates.elements as unknown as Prisma.InputJsonValue }),
+        ...(updates.elements !== undefined && {
+          elements: updates.elements as unknown as Prisma.InputJsonValue
+        }),
         ...(updates.defaultCapacity !== undefined && { defaultCapacity: updates.defaultCapacity })
       }
     });
@@ -144,4 +146,3 @@ export async function updateTemplate(
     return { success: false, error: "errors.updatingData" };
   }
 }
-

@@ -29,7 +29,7 @@ export class AutoSaveManager<T> {
     // Set new timeout
     this.timeoutId = setTimeout(async () => {
       if (this.isSaving) return;
-      
+
       try {
         this.isSaving = true;
         await this.saveFunction(data);
@@ -107,5 +107,3 @@ export class AutoSaveManager<T> {
     this.isSaving = false;
   }
 }
-
-

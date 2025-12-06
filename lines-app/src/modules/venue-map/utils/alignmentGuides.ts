@@ -164,5 +164,3 @@ export function snapToGuides(
 
   return { x: newX, y: newY };
 }
-
-
