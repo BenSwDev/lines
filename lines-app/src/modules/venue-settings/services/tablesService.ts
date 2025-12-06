@@ -15,7 +15,13 @@ export class TablesService {
       zone: { connect: { id: zoneId } },
       name: input.name,
       seats: input.seats,
-      notes: input.notes
+      notes: input.notes,
+      positionX: input.positionX ?? undefined,
+      positionY: input.positionY ?? undefined,
+      width: input.width ?? undefined,
+      height: input.height ?? undefined,
+      rotation: input.rotation ?? undefined,
+      shape: input.shape || undefined
     });
   }
 

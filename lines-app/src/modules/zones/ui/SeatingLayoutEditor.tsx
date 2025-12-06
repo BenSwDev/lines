@@ -85,7 +85,7 @@ export function SeatingLayoutEditor({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedAreaType, setSelectedAreaType] = useState<AreaType>("kitchen");
-  
+
   // New state for improved flow
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawStart, setDrawStart] = useState<Position | null>(null);
@@ -225,17 +225,17 @@ export function SeatingLayoutEditor({
       const width = Math.abs(end.x - start.x);
       const height = Math.abs(end.y - start.y);
       const minSize = 20;
-      
+
       if (width < minSize || height < minSize) return;
-      
+
       const position = {
         x: Math.min(start.x, end.x),
         y: Math.min(start.y, end.y)
       };
-      
+
       // Collapse canvas when drawing
       setIsCanvasExpanded(false);
-      
+
       if (toolMode === "zone") {
         const newZone: ZoneVisual = {
           id: `zone-${Date.now()}`,
@@ -294,14 +294,14 @@ export function SeatingLayoutEditor({
     },
     [toolMode, layout, selectedAreaType]
   );
-  
+
   // Handle config dialog save
   const handleConfigSave = useCallback(
     (config: Partial<ZoneVisual | TableVisual | VenueAreaVisual>) => {
       if (!pendingElement) return;
-      
+
       const updatedElement = { ...pendingElement.element, ...config };
-      
+
       if (pendingElement.type === "zone") {
         updateLayout((prev) => ({
           ...prev,
@@ -321,7 +321,7 @@ export function SeatingLayoutEditor({
         }));
         selectElement(updatedElement.id);
       }
-      
+
       pushToHistory();
       setToolMode("select");
       setPendingElement(null);
@@ -331,66 +331,76 @@ export function SeatingLayoutEditor({
     [pendingElement, updateLayout, selectElement, pushToHistory, setToolMode]
   );
 
-
   // Handle drawing start
   const handleDrawingStart = useCallback(
-    (e: { evt: { button: number }; target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+    (e: {
+      evt: { button: number };
+      target: {
+        getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null;
+      };
+    }) => {
       if (viewMode === "view" || isPanning || toolMode === "select") return;
       if (e.evt.button !== 0) return; // Only left mouse button
-      
+
       const stage = e.target.getStage();
       if (!stage) return;
       const point = stage.getPointerPosition();
       if (!point) return;
-      
+
       const canvasPoint = {
         x: snapToGrid((point.x - panOffset.x) / zoom),
         y: snapToGrid((point.y - panOffset.y) / zoom)
       };
-      
+
       setIsDrawing(true);
       setDrawStart(canvasPoint);
       setDrawEnd(canvasPoint);
     },
     [viewMode, isPanning, toolMode, zoom, panOffset, snapToGrid]
   );
-  
+
   // Handle drawing move
   const handleDrawingMove = useCallback(
-    (e: { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+    (e: {
+      target: {
+        getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null;
+      };
+    }) => {
       if (!isDrawing || !drawStart) return;
-      
+
       const stage = e.target.getStage();
       if (!stage) return;
       const point = stage.getPointerPosition();
       if (!point) return;
-      
+
       const canvasPoint = {
         x: snapToGrid((point.x - panOffset.x) / zoom),
         y: snapToGrid((point.y - panOffset.y) / zoom)
       };
-      
+
       setDrawEnd(canvasPoint);
     },
     [isDrawing, drawStart, zoom, panOffset, snapToGrid]
   );
-  
+
   // Handle drawing end
   const handleDrawingEnd = useCallback(() => {
-      if (!isDrawing || !drawStart || !drawEnd) return;
-      
-      createElementByDrawing(drawStart, drawEnd);
-      
-      setIsDrawing(false);
-      setDrawStart(null);
-      setDrawEnd(null);
-    },
-    [isDrawing, drawStart, drawEnd, createElementByDrawing]
-  );
-  
+    if (!isDrawing || !drawStart || !drawEnd) return;
+
+    createElementByDrawing(drawStart, drawEnd);
+
+    setIsDrawing(false);
+    setDrawStart(null);
+    setDrawEnd(null);
+  }, [isDrawing, drawStart, drawEnd, createElementByDrawing]);
+
   // Handle stage click (for selection only)
   const handleStageClick = useCallback(
-    (e: { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+    (e: {
+      target: {
+        getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null;
+      };
+    }) => {
       if (viewMode === "view" || isPanning || isDrawing) return;
 
       const stage = e.target.getStage();
@@ -403,22 +413,22 @@ export function SeatingLayoutEditor({
   );
 
   // Check if point is inside zone
-  const isPointInZone = useCallback(
-    (point: Position, zone: ZoneVisual): boolean => {
-      const { position, dimensions } = zone;
-      return (
-        point.x >= position.x &&
-        point.x <= position.x + dimensions.width &&
-        point.y >= position.y &&
-        point.y <= position.y + dimensions.height
-      );
-    },
-    []
-  );
+  const isPointInZone = useCallback((point: Position, zone: ZoneVisual): boolean => {
+    const { position, dimensions } = zone;
+    return (
+      point.x >= position.x &&
+      point.x <= position.x + dimensions.width &&
+      point.y >= position.y &&
+      point.y <= position.y + dimensions.height
+    );
+  }, []);
 
   // Calculate zone bounds from tables
   const calculateZoneBounds = useCallback(
-    (zoneId: string, tables: TableVisual[]): { minX: number; minY: number; maxX: number; maxY: number } | null => {
+    (
+      zoneId: string,
+      tables: TableVisual[]
+    ): { minX: number; minY: number; maxX: number; maxY: number } | null => {
       const zoneTables = tables.filter((t) => t.zoneId === zoneId);
       if (zoneTables.length === 0) return null;
 
@@ -493,12 +503,8 @@ export function SeatingLayoutEditor({
         // For zones and areas, just update position
         return {
           ...prev,
-          zones: prev.zones.map((z) =>
-            z.id === elementId ? { ...z, position: newPosition } : z
-          ),
-          areas: prev.areas.map((a) =>
-            a.id === elementId ? { ...a, position: newPosition } : a
-          )
+          zones: prev.zones.map((z) => (z.id === elementId ? { ...z, position: newPosition } : z)),
+          areas: prev.areas.map((a) => (a.id === elementId ? { ...a, position: newPosition } : a))
         };
       });
     },
@@ -659,20 +665,32 @@ export function SeatingLayoutEditor({
   };
 
   // Handle pan start
-  const handlePanStart = useCallback((e: { evt: { button: number; ctrlKey: boolean }; target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
-    if (e.evt.button === 1 || (e.evt.button === 0 && e.evt.ctrlKey)) {
-      setIsPanning(true);
-      const stage = e.target.getStage();
-      if (!stage) return;
-      const point = stage.getPointerPosition();
-      if (!point) return;
-      setPanStart({ x: point.x - panOffset.x, y: point.y - panOffset.y });
-    }
-  }, [panOffset]);
+  const handlePanStart = useCallback(
+    (e: {
+      evt: { button: number; ctrlKey: boolean };
+      target: {
+        getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null;
+      };
+    }) => {
+      if (e.evt.button === 1 || (e.evt.button === 0 && e.evt.ctrlKey)) {
+        setIsPanning(true);
+        const stage = e.target.getStage();
+        if (!stage) return;
+        const point = stage.getPointerPosition();
+        if (!point) return;
+        setPanStart({ x: point.x - panOffset.x, y: point.y - panOffset.y });
+      }
+    },
+    [panOffset]
+  );
 
   // Handle pan move
   const handlePanMove = useCallback(
-    (e: { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+    (e: {
+      target: {
+        getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null;
+      };
+    }) => {
       if (isPanning && panStart) {
         const stage = e.target.getStage();
         if (!stage) return;
@@ -735,14 +753,14 @@ export function SeatingLayoutEditor({
       const isSelected = selectedElementId === zone.id;
       const zoneTables = layout.tables.filter((t) => t.zoneId === zone.id);
       const hasTables = zoneTables.length > 0;
-      
+
       // Enhanced visual properties
       const fillPattern = zone.color;
       const strokeColor = isSelected ? "#3b82f6" : zone.color;
       const strokeWidth = isSelected ? 4 : 2;
       const shadowBlur = isSelected ? 10 : 5;
       const shadowOpacity = isSelected ? 0.4 : 0.2;
-      
+
       const baseProps = {
         x: zone.position.x,
         y: zone.position.y,
@@ -960,7 +978,7 @@ export function SeatingLayoutEditor({
     return layout.areas.map((area) => {
       const isSelected = selectedElementId === area.id;
       const areaColor = area.color || "#9ca3af";
-      
+
       // Enhanced visual properties
       const strokeColor = isSelected ? "#3b82f6" : areaColor;
       const strokeWidth = isSelected ? 4 : 2.5;
@@ -1124,7 +1142,7 @@ export function SeatingLayoutEditor({
           {viewMode === "edit" && (
             <div className="flex items-center gap-2">
               <Separator orientation="vertical" className="h-6" />
-              
+
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1196,7 +1214,7 @@ export function SeatingLayoutEditor({
                   </SelectItem>
                 </SelectContent>
               </Select>
-              
+
               {toolMode === "area" && (
                 <Select
                   value={selectedAreaType}
@@ -1300,7 +1318,12 @@ export function SeatingLayoutEditor({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="destructive" size="sm" onClick={handleDelete} className="gap-2">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleDelete}
+                      className="gap-2"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -1419,14 +1442,33 @@ export function SeatingLayoutEditor({
                 <div>
                   <h4 className="font-semibold mb-2">קיצורי מקשים</h4>
                   <ul className="space-y-1 text-muted-foreground">
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">V</kbd> - בחירה</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">Z</kbd> - אזור</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">T</kbd> - שולחן</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">G</kbd> - רשת</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">Delete</kbd> - מחק</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">Esc</kbd> - בטל בחירה</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">Ctrl+Z</kbd> - ביטול</li>
-                    <li><kbd className="px-1.5 py-0.5 bg-background border rounded">Ctrl+Shift+Z</kbd> - חזרה</li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">V</kbd> - בחירה
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">Z</kbd> - אזור
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">T</kbd> - שולחן
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">G</kbd> - רשת
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">Delete</kbd> - מחק
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">Esc</kbd> - בטל
+                      בחירה
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">Ctrl+Z</kbd> -
+                      ביטול
+                    </li>
+                    <li>
+                      <kbd className="px-1.5 py-0.5 bg-background border rounded">Ctrl+Shift+Z</kbd>{" "}
+                      - חזרה
+                    </li>
                   </ul>
                 </div>
                 <div>
@@ -1478,12 +1520,19 @@ export function SeatingLayoutEditor({
                 handleDrawingEnd();
               }
             }}
-            onWheel={(e: { evt: { preventDefault: () => void; deltaY: number }; target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+            onWheel={(e: {
+              evt: { preventDefault: () => void; deltaY: number };
+              target: {
+                getStage: () => {
+                  getPointerPosition: () => { x: number; y: number } | null;
+                } | null;
+              };
+            }) => {
               e.evt.preventDefault();
               const scaleBy = 1.1;
               const stage = e.target.getStage();
               if (!stage) return;
-              
+
               const oldScale = zoom;
               const pointer = stage.getPointerPosition();
 
@@ -1504,14 +1553,11 @@ export function SeatingLayoutEditor({
               });
             }}
             onClick={handleStageClick}
-            style={{ cursor: isPanning ? "grabbing" : toolMode === "select" ? "default" : "crosshair" }}
+            style={{
+              cursor: isPanning ? "grabbing" : toolMode === "select" ? "default" : "crosshair"
+            }}
           >
-            <Layer
-              x={panOffset.x}
-              y={panOffset.y}
-              scaleX={zoom}
-              scaleY={zoom}
-            >
+            <Layer x={panOffset.x} y={panOffset.y} scaleX={zoom} scaleY={zoom}>
               {/* Background */}
               <Rect
                 x={0}
@@ -1533,7 +1579,7 @@ export function SeatingLayoutEditor({
 
               {/* Areas */}
               {renderAreas()}
-              
+
               {/* Drawing preview */}
               {isDrawing && drawStart && drawEnd && (
                 <Rect
@@ -1550,7 +1596,7 @@ export function SeatingLayoutEditor({
               )}
             </Layer>
           </Stage>
-          
+
           {/* Element Config Dialog */}
           {pendingElement && (
             <ElementConfigDialog
@@ -1566,19 +1612,13 @@ export function SeatingLayoutEditor({
               elementType={pendingElement.type}
             />
           )}
-          
+
           {/* Canvas Info Overlay */}
           <div className="absolute bottom-4 left-4 rounded-lg bg-background/90 px-3 py-2 text-xs shadow-lg backdrop-blur-sm">
             <div className="flex items-center gap-4">
-              <Badge variant="outline">
-                {layout.zones.length} אזורים
-              </Badge>
-              <Badge variant="outline">
-                {layout.tables.length} שולחנות
-              </Badge>
-              <Badge variant="outline">
-                {layout.areas.length} אזורים מיוחדים
-              </Badge>
+              <Badge variant="outline">{layout.zones.length} אזורים</Badge>
+              <Badge variant="outline">{layout.tables.length} שולחנות</Badge>
+              <Badge variant="outline">{layout.areas.length} אזורים מיוחדים</Badge>
             </div>
           </div>
         </motion.div>

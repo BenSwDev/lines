@@ -29,10 +29,26 @@ import { Separator } from "@/components/ui/separator";
 import type { ZoneVisual, TableVisual, VenueAreaVisual, AreaType, ShapeType } from "../types";
 
 const COLOR_PALETTE = [
-  "#ef4444", "#f97316", "#f59e0b", "#eab308", "#84cc16",
-  "#22c55e", "#10b981", "#14b8a6", "#06b6d4", "#0ea5e9",
-  "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef",
-  "#ec4899", "#f43f5e", "#64748b", "#475569", "#334155"
+  "#ef4444",
+  "#f97316",
+  "#f59e0b",
+  "#eab308",
+  "#84cc16",
+  "#22c55e",
+  "#10b981",
+  "#14b8a6",
+  "#06b6d4",
+  "#0ea5e9",
+  "#3b82f6",
+  "#6366f1",
+  "#8b5cf6",
+  "#a855f7",
+  "#d946ef",
+  "#ec4899",
+  "#f43f5e",
+  "#64748b",
+  "#475569",
+  "#334155"
 ];
 
 const SHAPES: { value: ShapeType; label: string; icon: string }[] = [
@@ -102,9 +118,7 @@ export function ElementConfigDialog({
             {elementType === "table" && "הגדר שולחן"}
             {elementType === "area" && "הגדר אזור מיוחד"}
           </DialogTitle>
-          <DialogDescription>
-            הגדר את המאפיינים של האלמנט שיצרת
-          </DialogDescription>
+          <DialogDescription>הגדר את המאפיינים של האלמנט שיצרת</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -145,10 +159,7 @@ export function ElementConfigDialog({
               <Label>צבע</Label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-2"
-                  >
+                  <Button variant="outline" className="w-full justify-start gap-2">
                     <div
                       className="w-4 h-4 rounded-full border-2 border-border"
                       style={{ backgroundColor: color }}
@@ -235,12 +246,9 @@ export function ElementConfigDialog({
           <Button variant="outline" onClick={onClose}>
             ביטול
           </Button>
-          <Button onClick={handleSave}>
-            שמור
-          </Button>
+          <Button onClick={handleSave}>שמור</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-

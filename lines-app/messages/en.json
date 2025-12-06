@@ -131,7 +131,8 @@
     "open": "Open",
     "myAccount": "My Account",
     "logout": "Logout",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "seats": "Seats"
   },
   "errors": {
     "generic": "An unexpected error occurred",
@@ -242,5 +243,14 @@
     "zoneNameRequired": "Zone name is required",
     "tableNameRequired": "Table name is required",
     "menuNameRequired": "Menu name is required"
+  },
+  "floorPlan": {
+    "title": "Floor Plan",
+    "addTable": "Add Table",
+    "edit": "Edit",
+    "shape": "Shape",
+    "rotate": "Rotate",
+    "delete": "Delete",
+    "tables": "Tables"
   }
 }

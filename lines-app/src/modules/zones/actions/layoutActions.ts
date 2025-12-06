@@ -33,7 +33,7 @@ export async function loadVenueLayout(venueId: string) {
     const rawLayoutData = venue.layoutData
       ? (venue.layoutData as unknown as VenueLayout["layoutData"])
       : null;
-    
+
     const layout: VenueLayout = {
       layoutData: normalizeLayoutData(rawLayoutData),
       zones: venue.zones.map((zone) => ({

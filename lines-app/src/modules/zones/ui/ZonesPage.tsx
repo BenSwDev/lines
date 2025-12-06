@@ -3,19 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Layout, List } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
-import { SeatingLayoutEditor } from "./SeatingLayoutEditor";
-import { ZonesSection } from "./ZonesSection";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FloorPlanEditor, type TableItem } from "@/modules/venue-settings/ui/FloorPlanEditor";
+import { loadVenueTables } from "@/modules/venue-settings/actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
-import {
-  loadVenueLayout,
-  saveVenueLayout,
-  generateZonesFromLayout
-} from "../actions/layoutActions";
-import { normalizeLayout } from "../utils/layoutUtils";
-import type { VenueLayout } from "../types";
+import { translateError } from "@/utils/translateError";
 
 type ZonesPageProps = {
   venueId: string;
@@ -26,32 +19,27 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
   const router = useRouter();
   const { t } = useTranslations();
   const { toast } = useToast();
-  const [layout, setLayout] = useState<VenueLayout | null>(null);
-  const [zones, setZones] = useState<unknown[]>([]);
+  const [tables, setTables] = useState<TableItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"visual" | "list">("visual");
 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const layoutResult = await loadVenueLayout(venueId);
-      if (layoutResult.success) {
-        // Type assertion: when success is true, data is guaranteed to be VenueLayout
-        // Using unknown first as TypeScript requires for safe type conversion
-        const layoutData = (layoutResult as unknown as { success: true; data: VenueLayout }).data;
-        // Normalize ensures layoutData always exists with all required fields
-        const normalized = normalizeLayout(layoutData);
-        setLayout(normalized);
+      const result = await loadVenueTables(venueId);
+      if (result.success && "data" in result) {
+        setTables(result.data || []);
       } else {
-        // Error - use default (SeatingLayoutEditor will normalize)
-        setLayout(null);
+        const errorMsg = !result.success && "error" in result ? result.error : null;
+        toast({
+          title: t("errors.generic"),
+          description: errorMsg ? translateError(errorMsg, t) : t("errors.loadingVenues"),
+          variant: "destructive"
+        });
       }
-      // TODO: Load zones list
-      setZones([]);
-    } catch {
+    } catch (error) {
       toast({
-        title: "שגיאה",
-        description: "לא ניתן לטעון את הנתונים",
+        title: t("errors.generic"),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
         variant: "destructive"
       });
     } finally {
@@ -64,60 +52,16 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId]);
 
-  const handleSave = async (savedLayout: VenueLayout) => {
-    try {
-      const result = await saveVenueLayout(venueId, savedLayout);
-      if (result.success) {
-        setLayout(savedLayout);
-        toast({
-          title: "הצלחה",
-          description: "המבנה נשמר בהצלחה"
-        });
-      } else {
-        throw new Error(result.error || "שגיאה בשמירה");
-      }
-    } catch (error) {
-      toast({
-        title: "שגיאה",
-        description: error instanceof Error ? error.message : "לא ניתן לשמור את המבנה",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleGenerate = async (generatedLayout: VenueLayout) => {
-    try {
-      const result = await generateZonesFromLayout(venueId, generatedLayout);
-      if (result.success) {
-        toast({
-          title: "הצלחה",
-          description: "המבנה נוצר בהצלחה. עברו לתצוגת הרשימה כדי לראות את האזורים והשולחנות."
-        });
-        // Reload zones list
-        await loadData();
-        setViewMode("list");
-      } else {
-        throw new Error(result.error || "שגיאה ביצירת המבנה");
-      }
-    } catch (error) {
-      toast({
-        title: "שגיאה",
-        description: error instanceof Error ? error.message : "לא ניתן ליצור את המבנה",
-        variant: "destructive"
-      });
-    }
-  };
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-muted-foreground">טוען...</div>
+      <div className="flex h-96 items-center justify-center">
+        <div className="text-muted-foreground">{t("common.loading")}</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <Button
@@ -132,44 +76,11 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
           <h1 className="text-3xl font-bold tracking-tight">
             {t("settings.seating")} - {venueName}
           </h1>
-          <p className="text-muted-foreground">
-            {viewMode === "visual"
-              ? "צור את מבנה המקום שלך באופן ויזואלי"
-              : t("settings.seatingDescription")}
-          </p>
+          <p className="text-muted-foreground">{t("floorPlan.title")}</p>
         </div>
       </div>
 
-      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "visual" | "list")}>
-        <TabsList>
-          <TabsTrigger value="visual">
-            <Layout className="h-4 w-4 ml-2" />
-            תצוגה ויזואלית
-          </TabsTrigger>
-          <TabsTrigger value="list">
-            <List className="h-4 w-4 ml-2" />
-            תצוגת רשימה
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="visual" className="mt-4">
-          <SeatingLayoutEditor
-            venueId={venueId}
-            initialLayout={layout || undefined}
-            onSave={handleSave}
-            onGenerateZones={handleGenerate}
-          />
-        </TabsContent>
-
-        <TabsContent value="list" className="mt-4">
-          <ZonesSection
-            venueId={venueId}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            zones={zones as any}
-            onRefresh={loadData}
-          />
-        </TabsContent>
-      </Tabs>
+      <FloorPlanEditor venueId={venueId} initialTables={tables} />
     </div>
   );
 }

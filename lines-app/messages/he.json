@@ -131,7 +131,8 @@
     "open": "פתח",
     "myAccount": "החשבון שלי",
     "logout": "יציאה",
-    "saving": "שומר..."
+    "saving": "שומר...",
+    "seats": "מקומות ישיבה"
   },
   "errors": {
     "generic": "אירעה שגיאה לא צפויה",
@@ -242,5 +243,14 @@
     "zoneNameRequired": "שם האזור הוא שדה חובה",
     "tableNameRequired": "שם השולחן הוא שדה חובה",
     "menuNameRequired": "שם התפריט הוא שדה חובה"
+  },
+  "floorPlan": {
+    "title": "תכנון מקום",
+    "addTable": "הוסף שולחן",
+    "edit": "עריכה",
+    "shape": "צורה",
+    "rotate": "סיבוב",
+    "delete": "מחק",
+    "tables": "שולחנות"
   }
 }
