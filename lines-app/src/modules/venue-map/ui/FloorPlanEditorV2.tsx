@@ -60,7 +60,9 @@ import {
   HelpCircle,
   BookOpen,
   Hand,
-  Users
+  Users,
+  Wand2,
+  AlertCircle
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -953,52 +955,64 @@ export function FloorPlanEditorV2({
       e.stopPropagation();
       e.preventDefault();
 
-      // Multi-select with Ctrl/Cmd or Shift
-      if (e.ctrlKey || e.metaKey || e.shiftKey) {
-        const newSelection = new Set(selectedElementIds);
-        if (e.shiftKey && selectedElementIds.size > 0) {
-          // Shift+Click: Add range of elements
-          const selectedIds = Array.from(selectedElementIds);
-          const lastSelected = elements.find((el) => el.id === selectedIds[selectedIds.length - 1]);
-          if (lastSelected) {
-            // Add all elements between last selected and current
-            const startX = Math.min(lastSelected.x, element.x);
-            const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
-            const startY = Math.min(lastSelected.y, element.y);
-            const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
-            
-            elements.forEach((el) => {
-              if (
-                el.x >= startX &&
-                el.x + el.width <= endX &&
-                el.y >= startY &&
-                el.y + el.height <= endY
-              ) {
-                newSelection.add(el.id);
-              }
-            });
-          } else {
-            newSelection.add(element.id);
-          }
-        } else if (newSelection.has(element.id)) {
-          // Toggle off with Ctrl/Cmd
+      // Determine new selection based on modifier keys (Photoshop/Illustrator behavior)
+      let newSelection: Set<string>;
+      let newSelectedElementId: string | null;
+
+      if (e.shiftKey && selectedElementIds.size > 0) {
+        // Shift+Click: Add range of elements (like Photoshop/Illustrator)
+        newSelection = new Set(selectedElementIds);
+        const selectedIds = Array.from(selectedElementIds);
+        const lastSelected = elements.find((el) => el.id === selectedIds[selectedIds.length - 1]);
+        if (lastSelected) {
+          // Add all elements between last selected and current
+          const startX = Math.min(lastSelected.x, element.x);
+          const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
+          const startY = Math.min(lastSelected.y, element.y);
+          const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
+          
+          elements.forEach((el) => {
+            if (
+              el.x >= startX &&
+              el.x + el.width <= endX &&
+              el.y >= startY &&
+              el.y + el.height <= endY
+            ) {
+              newSelection.add(el.id);
+            }
+          });
+        } else {
+          newSelection.add(element.id);
+        }
+        newSelectedElementId = element.id;
+      } else if (e.ctrlKey || e.metaKey) {
+        // Ctrl/Cmd+Click: Toggle element in selection (add/remove)
+        newSelection = new Set(selectedElementIds);
+        if (newSelection.has(element.id)) {
+          // Remove from selection
           newSelection.delete(element.id);
           if (newSelection.size === 0) {
-            setSelectedElementId(null);
+            newSelectedElementId = null;
           } else if (newSelection.size === 1) {
-            setSelectedElementId(Array.from(newSelection)[0]);
+            newSelectedElementId = Array.from(newSelection)[0];
+          } else {
+            // Keep current selection, just remove this one
+            newSelectedElementId = selectedElementId === element.id ? null : selectedElementId;
           }
         } else {
           // Add to selection
           newSelection.add(element.id);
-          setSelectedElementId(element.id);
+          newSelectedElementId = element.id;
         }
-        setSelectedElementIds(newSelection);
       } else {
-        // Single select
-        setSelectedElementId(element.id);
-        setSelectedElementIds(new Set([element.id]));
+        // Regular click: Select only this element (clear previous selection)
+        newSelection = new Set([element.id]);
+        newSelectedElementId = element.id;
       }
+
+      // Apply selection immediately
+      setSelectedElementIds(newSelection);
+      setSelectedElementId(newSelectedElementId);
 
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const mouseX = canvasPos.x;
@@ -1007,8 +1021,8 @@ export function FloorPlanEditorV2({
       // Store drag start position
       dragStartPosRef.current = { x: mouseX, y: mouseY };
 
-      // Store initial positions of all selected elements
-      const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : new Set([element.id]);
+      // Store initial positions of all selected elements (use newSelection, not old selectedElementIds)
+      const selectedIds = newSelection;
       
       // If moving a zone, include all contained elements
       const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
@@ -1055,7 +1069,7 @@ export function FloorPlanEditorV2({
       setIsDragging(true);
       setDraggedElement(element);
     },
-    [viewMode, selectedElementIds, elements, isResizing, isRotating, screenToCanvas]
+    [viewMode, selectedElementIds, selectedElementId, elements, isResizing, isRotating, screenToCanvas]
   );
 
   // Handle canvas mouse down for selection box or pan
@@ -1138,8 +1152,9 @@ export function FloorPlanEditorV2({
         setSelectionBox({ startX, startY, endX: startX, endY: startY });
       }
 
-      // If not Ctrl/Cmd, clear selection
-      if (!e.ctrlKey && !e.metaKey) {
+      // Click on empty canvas: Clear selection (standard behavior like Photoshop/Illustrator)
+      // Only clear if not using modifier keys
+      if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
         setSelectedElementId(null);
         setSelectedElementIds(new Set());
       }
@@ -1816,13 +1831,18 @@ export function FloorPlanEditorV2({
         });
 
         if (selected.length > 0) {
+          // Standard behavior: selection box replaces previous selection
           const selectedIds = new Set(selected.map((el) => el.id));
           setSelectedElementIds(selectedIds);
           if (selected.length === 1) {
             setSelectedElementId(selected[0].id);
           } else {
-            setSelectedElementId(null);
+            setSelectedElementId(null); // Multi-select: no single selected element
           }
+        } else {
+          // Empty selection box on empty canvas: clear selection (standard behavior)
+          setSelectedElementId(null);
+          setSelectedElementIds(new Set());
         }
 
         setIsSelecting(false);
@@ -1830,9 +1850,11 @@ export function FloorPlanEditorV2({
       }
 
       // Clean up drag state (history already saved at start)
+      // IMPORTANT: After drag, keep selection (don't clear it) - standard behavior like Photoshop/Illustrator
       if (isDragging) {
         dragStartPosRef.current = null;
         dragElementsStartPosRef.current.clear();
+        // Selection is preserved - this is the standard behavior
       }
 
       // Clean up resize state (history already saved at start)
@@ -2123,6 +2145,214 @@ export function FloorPlanEditorV2({
   }, [elements, validateElementSize, validateElementPosition, checkCollisions]);
 
   const hasValidationErrors = validationErrors.length > 0;
+
+  // Auto-fix validation errors using smart algorithm
+  const handleAutoFix = useCallback(() => {
+    if (!hasValidationErrors) {
+      toast({
+        title: "אין שגיאות לתקן",
+        description: "המפה תקינה ואין צורך בתיקונים",
+        variant: "default"
+      });
+      return;
+    }
+
+    // Save current state to history before auto-fix
+    historyManagerRef.current.push(elements);
+
+    let fixedCount = 0;
+    const fixedElements: FloorPlanElement[] = [...elements];
+    const fixes: string[] = [];
+
+    // Fix 1: Size errors - resize elements that are too small
+    fixedElements.forEach((element, index) => {
+      const sizeError = validateElementSize(element);
+      if (sizeError) {
+        const newWidth = Math.max(MIN_ELEMENT_SIZE, element.width);
+        const newHeight = Math.max(MIN_ELEMENT_SIZE, element.height);
+        fixedElements[index] = {
+          ...element,
+          width: newWidth,
+          height: newHeight
+        };
+        fixes.push(`גודל "${element.name}" תוקן ל-${newWidth}x${newHeight}px`);
+        fixedCount++;
+      }
+    });
+
+    // Fix 2: Position errors - move elements inside canvas bounds
+    fixedElements.forEach((element, index) => {
+      const positionError = validateElementPosition(element);
+      if (positionError) {
+        let newX = element.x;
+        let newY = element.y;
+
+        // Fix X position
+        if (newX < 0) {
+          newX = 0;
+        } else if (newX + element.width > CANVAS_SIZE) {
+          newX = CANVAS_SIZE - element.width;
+        }
+
+        // Fix Y position
+        if (newY < 0) {
+          newY = 0;
+        } else if (newY + element.height > CANVAS_SIZE) {
+          newY = CANVAS_SIZE - element.height;
+        }
+
+        // Ensure element is not pushed outside (in case it's larger than canvas)
+        if (element.width > CANVAS_SIZE) {
+          fixedElements[index] = {
+            ...fixedElements[index],
+            width: CANVAS_SIZE,
+            x: 0
+          };
+        }
+        if (element.height > CANVAS_SIZE) {
+          fixedElements[index] = {
+            ...fixedElements[index],
+            height: CANVAS_SIZE,
+            y: 0
+          };
+        }
+
+        if (newX !== element.x || newY !== element.y) {
+          fixedElements[index] = {
+            ...fixedElements[index],
+            x: newX,
+            y: newY
+          };
+          fixes.push(`מיקום "${element.name}" תוקן ל-(${Math.round(newX)}, ${Math.round(newY)})`);
+          fixedCount++;
+        }
+      }
+    });
+
+    // Fix 3: Collision errors - resolve overlaps using smart algorithm
+    // Strategy: For each collision, move the smaller/less important element
+    const processedCollisions = new Set<string>();
+
+    fixedElements.forEach((element) => {
+      const collisions = checkCollisions(element);
+      
+      collisions.forEach((collidingElement) => {
+        const collisionKey = [element.id, collidingElement.id].sort().join("-");
+        if (processedCollisions.has(collisionKey)) return;
+        processedCollisions.add(collisionKey);
+
+        // Find indices
+        const elementIndex = fixedElements.findIndex((e) => e.id === element.id);
+        const collidingIndex = fixedElements.findIndex((e) => e.id === collidingElement.id);
+        
+        if (elementIndex === -1 || collidingIndex === -1) return;
+
+        // Determine which element to move (prefer moving smaller elements, then tables before zones)
+        let elementToMove = element;
+        let elementToMoveIndex = elementIndex;
+        let staticElement = collidingElement;
+
+        // Priority: Move smaller elements first, then tables before zones
+        const elementArea = element.width * element.height;
+        const collidingArea = collidingElement.width * collidingElement.height;
+
+        if (
+          elementArea > collidingArea ||
+          (elementArea === collidingArea && element.type === "zone" && collidingElement.type !== "zone")
+        ) {
+          elementToMove = collidingElement;
+          elementToMoveIndex = collidingIndex;
+          staticElement = element;
+        }
+
+        // Calculate overlap
+        const moveLeft = elementToMove.x;
+        const moveRight = elementToMove.x + elementToMove.width;
+        const moveTop = elementToMove.y;
+        const moveBottom = elementToMove.y + elementToMove.height;
+
+        const staticLeft = staticElement.x;
+        const staticRight = staticElement.x + staticElement.width;
+        const staticTop = staticElement.y;
+        const staticBottom = staticElement.y + staticElement.height;
+
+        // Find the smallest movement to resolve collision
+        const moveLeftDist = moveRight - staticLeft;
+        const moveRightDist = staticRight - moveLeft;
+        const moveUpDist = moveBottom - staticTop;
+        const moveDownDist = staticBottom - moveTop;
+
+        let newX = elementToMove.x;
+        let newY = elementToMove.y;
+        let moved = false;
+
+        // Choose the direction with minimum movement
+        const minDist = Math.min(
+          moveLeftDist > 0 ? moveLeftDist : Infinity,
+          moveRightDist > 0 ? moveRightDist : Infinity,
+          moveUpDist > 0 ? moveUpDist : Infinity,
+          moveDownDist > 0 ? moveDownDist : Infinity
+        );
+
+        if (minDist !== Infinity) {
+          if (minDist === moveLeftDist && moveLeftDist > 0) {
+            // Move left
+            newX = staticLeft - elementToMove.width - 10; // 10px spacing
+            moved = true;
+          } else if (minDist === moveRightDist && moveRightDist > 0) {
+            // Move right
+            newX = staticRight + 10; // 10px spacing
+            moved = true;
+          } else if (minDist === moveUpDist && moveUpDist > 0) {
+            // Move up
+            newY = staticTop - elementToMove.height - 10; // 10px spacing
+            moved = true;
+          } else if (minDist === moveDownDist && moveDownDist > 0) {
+            // Move down
+            newY = staticBottom + 10; // 10px spacing
+            moved = true;
+          }
+
+          // Ensure new position is within canvas bounds
+          newX = Math.max(0, Math.min(CANVAS_SIZE - elementToMove.width, newX));
+          newY = Math.max(0, Math.min(CANVAS_SIZE - elementToMove.height, newY));
+
+          if (moved) {
+            fixedElements[elementToMoveIndex] = {
+              ...fixedElements[elementToMoveIndex],
+              x: newX,
+              y: newY
+            };
+            fixes.push(
+              `התנגשות נפתרה: "${elementToMove.name}" הוזז ל-(${Math.round(newX)}, ${Math.round(newY)})`
+            );
+            fixedCount++;
+          }
+        }
+      });
+    });
+
+    // Apply fixes
+    updateElementsWithHistory(fixedElements, true); // Skip history since we already saved
+
+    // Show results
+    toast({
+      title: `תיקון אוטומטי הושלם`,
+      description: `תוקנו ${fixedCount} בעיות. ${fixes.length > 0 ? fixes.slice(0, 3).join(", ") : ""}${
+        fixes.length > 3 ? " ועוד..." : ""
+      }`,
+      variant: "default",
+      duration: 5000
+    });
+  }, [
+    hasValidationErrors,
+    elements,
+    validateElementSize,
+    validateElementPosition,
+    checkCollisions,
+    updateElementsWithHistory,
+    toast
+  ]);
 
   // Save confirmation dialog handler
   const handleSaveClick = useCallback(() => {
@@ -2912,31 +3142,52 @@ export function FloorPlanEditorV2({
               {totalCapacity} {t("common.seats")}
             </div>
             {hasValidationErrors && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
-                    <Info className="h-4 w-4" />
-                    {validationErrors.length} שגיאות
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto p-4">
-                  <div className="space-y-3">
-                    <div className="font-semibold text-base text-destructive">
-                      שגיאות Validation ({validationErrors.length}):
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAutoFix}
+                      className="gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <Wand2 className="h-4 w-4" />
+                      תיקון אוטומטי
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">תיקון אוטומטי של כל השגיאות</div>
+                      <div className="text-xs">תקן גודל, מיקום והתנגשויות אוטומטית</div>
                     </div>
-                    <ul className="list-disc list-inside text-sm space-y-2 text-left">
-                      {validationErrors.map((error, i) => (
-                        <li key={i} className="leading-relaxed">
-                          {error}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="text-xs text-muted-foreground pt-2 border-t">
-                      אנא תקן את השגיאות לפני שמירת המפה
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
+                      <AlertCircle className="h-4 w-4" />
+                      {validationErrors.length} שגיאות
                     </div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto p-4">
+                    <div className="space-y-3">
+                      <div className="font-semibold text-base text-destructive">
+                        שגיאות Validation ({validationErrors.length}):
+                      </div>
+                      <ul className="list-disc list-inside text-sm space-y-2 text-left">
+                        {validationErrors.map((error, i) => (
+                          <li key={i} className="leading-relaxed">
+                            {error}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="text-xs text-muted-foreground pt-2 border-t">
+                        לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן את כל השגיאות בבת אחת
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </>
             )}
             {/* Save Status & Progress */}
             {isSaving && (
@@ -4160,26 +4411,50 @@ export function FloorPlanEditorV2({
                     {totalCapacity} {t("common.seats")}
                   </div>
                   {hasValidationErrors && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
-                          <Info className="h-4 w-4" />
-                          {validationErrors.length} שגיאות
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-lg max-h-96 overflow-y-auto">
-                        <div className="space-y-2">
-                          <div className="font-semibold text-base">שגיאות Validation:</div>
-                          <ul className="list-disc list-inside text-sm space-y-1">
-                            {validationErrors.map((error, i) => (
-                              <li key={i} className="text-left">
-                                {error}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
+                    <>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAutoFix}
+                            className="gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            <Wand2 className="h-4 w-4" />
+                            תיקון אוטומטי
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            <div className="font-semibold">תיקון אוטומטי של כל השגיאות</div>
+                            <div className="text-xs">תקן גודל, מיקום והתנגשויות אוטומטית</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
+                            <AlertCircle className="h-4 w-4" />
+                            {validationErrors.length} שגיאות
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-lg max-h-96 overflow-y-auto">
+                          <div className="space-y-2">
+                            <div className="font-semibold text-base">שגיאות Validation:</div>
+                            <ul className="list-disc list-inside text-sm space-y-1">
+                              {validationErrors.map((error, i) => (
+                                <li key={i} className="text-left">
+                                  {error}
+                                </li>
+                              ))}
+                            </ul>
+                            <div className="text-xs text-muted-foreground pt-2 border-t">
+                              לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן את כל השגיאות בבת אחת
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </>
                   )}
                   <Tooltip>
                     <TooltipTrigger asChild>

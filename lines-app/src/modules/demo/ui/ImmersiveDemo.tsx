@@ -15,8 +15,9 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { DemoStep, OverlayCard } from "../types";
 
-const steps = [
+const steps: DemoStep[] = [
   {
     id: "brand",
     title: "מי אנחנו",
@@ -67,7 +68,7 @@ const steps = [
   },
 ];
 
-const overlayCards = [
+const overlayCards: OverlayCard[] = [
   {
     title: "אוטומציה שמסבירה את עצמה",
     body: "חלון קופץ מציג למה קיבלתם המלצה לשנות צוות ומתי זה קורה.",
@@ -96,6 +97,14 @@ export function ImmersiveDemo() {
 
   const currentStep = useMemo(() => steps[activeStep], [activeStep]);
   const progress = useMemo(() => ((activeStep + 1) / steps.length) * 100, [activeStep]);
+
+  const handleNextStep = () => {
+    setActiveStep((prev) => (prev + 1) % steps.length);
+  };
+
+  const handleStepClick = (index: number) => {
+    setActiveStep(index);
+  };
 
   return (
     <section className="relative overflow-hidden py-16">
@@ -143,7 +152,7 @@ export function ImmersiveDemo() {
             </div>
 
             <div className="relative z-10 mt-8 flex flex-wrap gap-3">
-              <Button size="lg" className="group gap-2" onClick={() => setActiveStep((prev) => (prev + 1) % steps.length)}>
+              <Button size="lg" className="group gap-2" onClick={handleNextStep}>
                 התחילו הדמיה חיה
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
@@ -202,7 +211,7 @@ export function ImmersiveDemo() {
               return (
                 <button
                   key={step.id}
-                  onClick={() => setActiveStep(index)}
+                  onClick={() => handleStepClick(index)}
                   className={`relative w-full overflow-hidden rounded-2xl border p-5 text-right transition-all duration-200 ${
                     isActive
                       ? "border-primary/70 bg-primary/10 shadow-[0_0_0_1px_rgba(99,102,241,0.3)]"
@@ -251,3 +260,4 @@ export function ImmersiveDemo() {
     </section>
   );
 }
+
