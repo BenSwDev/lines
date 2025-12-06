@@ -27,6 +27,10 @@ import {
 } from "../actions/reservationSettingsActions";
 import type { ReservationSettingsInput } from "../types";
 import { Calendar, Clock, Link2, List, Settings2 } from "lucide-react";
+import { ReservationFormBuilder } from "./ReservationFormBuilder";
+import { ReservationFormPreview } from "./ReservationFormPreview";
+import { ReservationFormDesigner } from "./ReservationFormDesigner";
+import type { ReservationFormFieldInput, ReservationFormDesignInput } from "../types";
 
 type Line = {
   id: string;
@@ -70,6 +74,9 @@ export function ReservationSettingsTab() {
       customerMessage: string | null;
     }>
   >([]);
+  const [formFields, setFormFields] = useState<ReservationFormFieldInput[]>([]);
+  const [formDesign, setFormDesign] = useState<ReservationFormDesignInput | undefined>(undefined);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -89,16 +96,45 @@ export function ReservationSettingsTab() {
         setManualRegistrationOnly(data.manualRegistrationOnly);
         setManageWaitlist(data.manageWaitlist);
         setExcludedLineIds(data.excludedLines.map((el) => el.lineId));
-        setDaySchedules(
-          data.daySchedules.map((ds) => ({
-            dayOfWeek: ds.dayOfWeek,
-            startTime: ds.startTime,
-            endTime: ds.endTime,
-            intervalMinutes: ds.intervalMinutes,
-            customerMessage: ds.customerMessage
-          }))
-        );
-      }
+            setDaySchedules(
+              data.daySchedules.map((ds) => ({
+                dayOfWeek: ds.dayOfWeek,
+                startTime: ds.startTime,
+                endTime: ds.endTime,
+                intervalMinutes: ds.intervalMinutes,
+                customerMessage: ds.customerMessage
+              }))
+            );
+            setFormFields(
+              data.formFields.map((ff) => ({
+                id: ff.id,
+                fieldType: ff.fieldType as ReservationFormFieldInput["fieldType"],
+                fieldKey: ff.fieldKey,
+                label: ff.label,
+                placeholder: ff.placeholder,
+                isRequired: ff.isRequired,
+                isEnabled: ff.isEnabled,
+                order: ff.order,
+                validationRules: ff.validationRules as ReservationFormFieldInput["validationRules"],
+                options: ff.options as ReservationFormFieldInput["options"]
+              }))
+            );
+            if (data.formDesign) {
+              setFormDesign({
+                primaryColor: data.formDesign.primaryColor,
+                secondaryColor: data.formDesign.secondaryColor,
+                backgroundColor: data.formDesign.backgroundColor,
+                textColor: data.formDesign.textColor,
+                buttonColor: data.formDesign.buttonColor,
+                buttonTextColor: data.formDesign.buttonTextColor,
+                borderRadius: data.formDesign.borderRadius,
+                fontFamily: data.formDesign.fontFamily,
+                headerText: data.formDesign.headerText,
+                footerText: data.formDesign.footerText,
+                logoUrl: data.formDesign.logoUrl
+              });
+            }
+          }
 
       // Load lines
       const linesResult = await getVenueLines(venueId);
@@ -130,7 +166,9 @@ export function ReservationSettingsTab() {
         excludedLineIds,
         daySchedules: daySchedules.filter(
           (ds) => ds.startTime && ds.endTime && ds.startTime < ds.endTime
-        )
+        ),
+        formFields: formFields.length > 0 ? formFields : undefined,
+        formDesign: formDesign
       };
 
       const result = await updateReservationSettings(venueId, input);
@@ -475,6 +513,21 @@ export function ReservationSettingsTab() {
         </Card>
       )}
 
+      {/* Form Builder */}
+      {acceptsReservations && (
+        <>
+          <ReservationFormBuilder
+            fields={formFields}
+            onChange={setFormFields}
+            onPreview={() => setShowPreview(true)}
+          />
+          <ReservationFormDesigner
+            design={formDesign}
+            onChange={setFormDesign}
+          />
+        </>
+      )}
+
       {/* Submit Button */}
       <div className={`flex ${rtlClasses.justifyEnd}`}>
         <Button type="submit" disabled={isSaving} size="lg" className={rtlClasses.flexReverse}>
@@ -491,6 +544,15 @@ export function ReservationSettingsTab() {
           )}
         </Button>
       </div>
+
+      {/* Preview Dialog */}
+      {showPreview && (
+        <ReservationFormPreview
+          fields={formFields}
+          design={formDesign}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </form>
   );
 }

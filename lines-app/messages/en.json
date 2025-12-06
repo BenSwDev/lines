@@ -193,7 +193,58 @@
     "customerMessage": "Customer Message",
     "customerMessagePlaceholder": "e.g., Entry for ages 18+ only",
     "optional": "Optional",
-    "settingsUpdated": "Reservation settings updated successfully"
+    "settingsUpdated": "Reservation settings updated successfully",
+    "formBuilder": {
+      "title": "Reservation Form Builder",
+      "description": "Configure what information to collect from customers when making a reservation",
+      "preview": "Preview",
+      "addName": "Add Name",
+      "addEmail": "Add Email",
+      "addPhone": "Add Phone",
+      "addCustom": "Add Custom Field",
+      "noFields": "No fields in form. Add fields to get started.",
+      "fieldType": "Field Type",
+      "label": "Label",
+      "labelPlaceholder": "e.g., Full Name",
+      "placeholder": "Placeholder",
+      "placeholderPlaceholder": "e.g., Enter full name",
+      "required": "Required",
+      "enabled": "Enabled",
+      "types": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "date": "Date",
+        "time": "Time",
+        "number": "Number",
+        "text": "Text",
+        "textarea": "Textarea",
+        "select": "Select",
+        "checkbox": "Checkbox",
+        "custom": "Custom"
+      }
+    },
+    "formPreview": {
+      "title": "Reservation Form",
+      "noFields": "No fields to display",
+      "submit": "Submit Reservation"
+    },
+    "formDesigner": {
+      "title": "Form Design",
+      "description": "Customize the look and feel of your reservation form",
+      "primaryColor": "Primary Color",
+      "backgroundColor": "Background Color",
+      "textColor": "Text Color",
+      "buttonColor": "Button Color",
+      "usePrimary": "Use primary color",
+      "borderRadius": "Border Radius",
+      "fontFamily": "Font Family",
+      "headerText": "Header Text",
+      "headerTextPlaceholder": "e.g., Make a Reservation",
+      "footerText": "Footer Text",
+      "footerTextPlaceholder": "Message to display at the bottom of the form",
+      "logoUrl": "Logo URL"
+    }
   },
   "venueInfo": {
     "title": "Venue Information",

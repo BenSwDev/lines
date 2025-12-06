@@ -198,7 +198,58 @@
     "customerMessage": "הודעה ללקוח",
     "customerMessagePlaceholder": "לדוגמה: כניסה מגיל 18 ומעלה בלבד",
     "optional": "אופציונלי",
-    "settingsUpdated": "הגדרות ההזמנות עודכנו בהצלחה"
+    "settingsUpdated": "הגדרות ההזמנות עודכנו בהצלחה",
+    "formBuilder": {
+      "title": "בניית טופס הזמנה",
+      "description": "הגדר איזה מידע יש לאסוף מהלקוח בעת ביצוע הזמנה",
+      "preview": "תצוגה מקדימה",
+      "addName": "הוסף שם",
+      "addEmail": "הוסף אימייל",
+      "addPhone": "הוסף טלפון",
+      "addCustom": "הוסף שדה מותאם",
+      "noFields": "אין שדות בטופס. הוסף שדות כדי להתחיל.",
+      "fieldType": "סוג שדה",
+      "label": "תווית",
+      "labelPlaceholder": "לדוגמה: שם מלא",
+      "placeholder": "טקסט מקדים",
+      "placeholderPlaceholder": "לדוגמה: הזן שם מלא",
+      "required": "חובה",
+      "enabled": "מופעל",
+      "types": {
+        "name": "שם",
+        "email": "אימייל",
+        "phone": "טלפון",
+        "date": "תאריך",
+        "time": "שעה",
+        "number": "מספר",
+        "text": "טקסט",
+        "textarea": "טקסט ארוך",
+        "select": "בחירה",
+        "checkbox": "תיבת סימון",
+        "custom": "מותאם אישית"
+      }
+    },
+    "formPreview": {
+      "title": "טופס הזמנה",
+      "noFields": "אין שדות להצגה",
+      "submit": "שלח הזמנה"
+    },
+    "formDesigner": {
+      "title": "עיצוב טופס הזמנה",
+      "description": "התאם אישית את המראה והתחושה של טופס ההזמנה",
+      "primaryColor": "צבע ראשי",
+      "backgroundColor": "צבע רקע",
+      "textColor": "צבע טקסט",
+      "buttonColor": "צבע כפתור",
+      "usePrimary": "השתמש בצבע ראשי",
+      "borderRadius": "רדיוס פינות",
+      "fontFamily": "משפחת גופן",
+      "headerText": "טקסט כותרת",
+      "headerTextPlaceholder": "לדוגמה: הזמנת מקום",
+      "footerText": "טקסט תחתון",
+      "footerTextPlaceholder": "הודעה שתוצג בתחתית הטופס",
+      "logoUrl": "כתובת לוגו"
+    }
   },
   "venueInfo": {
     "title": "פרטי מקום",

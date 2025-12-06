@@ -17,7 +17,11 @@ export class ReservationSettingsService {
         },
         daySchedules: {
           orderBy: { dayOfWeek: "asc" }
-        }
+        },
+        formFields: {
+          orderBy: { order: "asc" }
+        },
+        formDesign: true
       }
     });
 
@@ -40,7 +44,11 @@ export class ReservationSettingsService {
           },
           daySchedules: {
             orderBy: { dayOfWeek: "asc" }
-          }
+          },
+          formFields: {
+            orderBy: { order: "asc" }
+          },
+          formDesign: true
         }
       });
     }
@@ -144,6 +152,73 @@ export class ReservationSettingsService {
         });
       }
 
+      // Update form fields
+      if (validated.formFields !== undefined) {
+        await tx.reservationFormField.deleteMany({
+          where: { reservationSettingsId: settings.id }
+        });
+
+        if (validated.formFields.length > 0) {
+          await tx.reservationFormField.createMany({
+            data: validated.formFields.map((field) => ({
+              reservationSettingsId: settings.id,
+              fieldType: field.fieldType,
+              fieldKey: field.fieldKey,
+              label: field.label,
+              placeholder: field.placeholder ?? null,
+              isRequired: field.isRequired,
+              isEnabled: field.isEnabled,
+              order: field.order,
+              validationRules: field.validationRules ? JSON.parse(JSON.stringify(field.validationRules)) : null,
+              options: field.options ? JSON.parse(JSON.stringify(field.options)) : null
+            }))
+          });
+        }
+      }
+
+      // Update form design
+      if (validated.formDesign !== undefined) {
+        const existingDesign = await tx.reservationFormDesign.findUnique({
+          where: { reservationSettingsId: settings.id }
+        });
+
+        if (existingDesign) {
+          await tx.reservationFormDesign.update({
+            where: { id: existingDesign.id },
+            data: {
+              primaryColor: validated.formDesign.primaryColor ?? existingDesign.primaryColor,
+              secondaryColor: validated.formDesign.secondaryColor ?? existingDesign.secondaryColor,
+              backgroundColor: validated.formDesign.backgroundColor ?? existingDesign.backgroundColor,
+              textColor: validated.formDesign.textColor ?? existingDesign.textColor,
+              buttonColor: validated.formDesign.buttonColor ?? existingDesign.buttonColor,
+              buttonTextColor: validated.formDesign.buttonTextColor ?? existingDesign.buttonTextColor,
+              borderRadius: validated.formDesign.borderRadius ?? existingDesign.borderRadius,
+              fontFamily: validated.formDesign.fontFamily ?? existingDesign.fontFamily,
+              headerText: validated.formDesign.headerText ?? existingDesign.headerText,
+              footerText: validated.formDesign.footerText ?? existingDesign.footerText,
+              logoUrl: validated.formDesign.logoUrl ?? existingDesign.logoUrl
+            }
+          });
+        } else {
+          await tx.reservationFormDesign.create({
+            data: {
+              reservationSettingsId: settings.id,
+              primaryColor: validated.formDesign.primaryColor ?? "#3B82F6",
+              secondaryColor: validated.formDesign.secondaryColor ?? null,
+              backgroundColor: validated.formDesign.backgroundColor ?? "#FFFFFF",
+              textColor: validated.formDesign.textColor ?? "#000000",
+              buttonColor: validated.formDesign.buttonColor ?? null,
+              buttonTextColor: validated.formDesign.buttonTextColor ?? null,
+              borderRadius: validated.formDesign.borderRadius ?? "8px",
+              fontFamily: validated.formDesign.fontFamily ?? null,
+              headerText: validated.formDesign.headerText ?? null,
+              footerText: validated.formDesign.footerText ?? null,
+              logoUrl: validated.formDesign.logoUrl ?? null
+            }
+          });
+        }
+      }
+
       // Return updated settings with relations
       return await tx.reservationSettings.findUnique({
         where: { id: settings.id },
@@ -155,7 +230,11 @@ export class ReservationSettingsService {
           },
           daySchedules: {
             orderBy: { dayOfWeek: "asc" }
-          }
+          },
+          formFields: {
+            orderBy: { order: "asc" }
+          },
+          formDesign: true
         }
       });
     });

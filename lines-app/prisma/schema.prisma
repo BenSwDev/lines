@@ -297,6 +297,8 @@ model ReservationSettings {
   venue              Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
   excludedLines      ReservationSettingsLineExclusion[]
   daySchedules       ReservationSettingsDaySchedule[]
+  formFields         ReservationFormField[]
+  formDesign         ReservationFormDesign?
 
   @@index([venueId])
   @@map("reservation_settings")
@@ -359,6 +361,57 @@ model ReservationSettingsDaySchedule {
   @@unique([reservationSettingsId, dayOfWeek])
   @@index([reservationSettingsId])
   @@map("reservation_settings_day_schedules")
+}
+
+// ============================================================================
+// RESERVATION FORM FIELDS & DESIGN
+// ============================================================================
+
+model ReservationFormField {
+  id                    String   @id @default(cuid())
+  reservationSettingsId String   @map("reservation_settings_id")
+  fieldType            String   @map("field_type") // "name", "email", "phone", "custom"
+  fieldKey             String   @map("field_key") // Unique key for the field (e.g., "name", "email", "custom_1")
+  label                String   // Display label (e.g., "שם מלא", "אימייל")
+  placeholder          String?  // Placeholder text
+  isRequired           Boolean  @default(false) @map("is_required")
+  isEnabled            Boolean  @default(true) @map("is_enabled")
+  order                Int      @default(0) // Display order
+  validationRules      Json?    @map("validation_rules") // JSON: { minLength, maxLength, pattern, etc. }
+  options              Json?    // For select/radio fields: array of { value, label }
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
+
+  @@index([reservationSettingsId])
+  @@index([reservationSettingsId, order])
+  @@map("reservation_form_fields")
+}
+
+model ReservationFormDesign {
+  id                    String   @id @default(cuid())
+  reservationSettingsId String   @unique @map("reservation_settings_id")
+  primaryColor          String   @default("#3B82F6") @map("primary_color")
+  secondaryColor        String?  @map("secondary_color")
+  backgroundColor       String   @default("#FFFFFF") @map("background_color")
+  textColor             String   @default("#000000") @map("text_color")
+  buttonColor           String?  @map("button_color")
+  buttonTextColor       String?  @map("button_text_color")
+  borderRadius          String   @default("8px") @map("border_radius")
+  fontFamily            String?  @map("font_family")
+  headerText            String?  @map("header_text")
+  footerText            String?  @map("footer_text")
+  logoUrl               String?  @map("logo_url")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
+
+  @@index([reservationSettingsId])
+  @@map("reservation_form_design")
 }
 
 

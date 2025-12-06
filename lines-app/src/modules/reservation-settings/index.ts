@@ -4,6 +4,9 @@ export {
   updateReservationSettings,
   getVenueLines
 } from "./actions/reservationSettingsActions";
+
+export { ReservationFormBuilder } from "./ui/ReservationFormBuilder";
+export { ReservationFormPreview } from "./ui/ReservationFormPreview";
 export { reservationSettingsService } from "./services/reservationSettingsService";
 export type {
   ReservationSettingsWithRelations,

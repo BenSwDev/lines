@@ -16,6 +16,42 @@ export const reservationSettingsDayScheduleSchema = z.object({
   customerMessage: z.string().max(1000).nullable().optional()
 });
 
+export const reservationFormFieldSchema = z.object({
+  id: z.string().cuid().optional(),
+  fieldType: z.enum(["name", "email", "phone", "date", "time", "number", "text", "textarea", "select", "checkbox", "custom"]),
+  fieldKey: z.string().min(1).max(100),
+  label: z.string().min(1),
+  placeholder: z.string().nullable().optional(),
+  isRequired: z.boolean(),
+  isEnabled: z.boolean(),
+  order: z.number().int().min(0),
+  validationRules: z.object({
+    minLength: z.number().int().positive().optional(),
+    maxLength: z.number().int().positive().optional(),
+    pattern: z.string().optional(),
+    min: z.number().optional(),
+    max: z.number().optional()
+  }).nullable().optional(),
+  options: z.array(z.object({
+    value: z.string(),
+    label: z.string()
+  })).nullable().optional()
+});
+
+export const reservationFormDesignSchema = z.object({
+  primaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  secondaryColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).nullable().optional(),
+  backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  textColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  buttonColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).nullable().optional(),
+  buttonTextColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/).nullable().optional(),
+  borderRadius: z.string().optional(),
+  fontFamily: z.string().nullable().optional(),
+  headerText: z.string().nullable().optional(),
+  footerText: z.string().nullable().optional(),
+  logoUrl: z.string().url().nullable().optional()
+});
+
 export const reservationSettingsSchema = z.object({
   acceptsReservations: z.boolean(),
   allowPersonalLink: z.boolean(),
@@ -23,7 +59,9 @@ export const reservationSettingsSchema = z.object({
   manualRegistrationOnly: z.boolean(),
   manageWaitlist: z.boolean(),
   excludedLineIds: z.array(z.string().cuid()),
-  daySchedules: z.array(reservationSettingsDayScheduleSchema)
+  daySchedules: z.array(reservationSettingsDayScheduleSchema),
+  formFields: z.array(reservationFormFieldSchema).optional(),
+  formDesign: reservationFormDesignSchema.optional()
 });
 
 export const updateReservationSettingsSchema = reservationSettingsSchema.partial();
