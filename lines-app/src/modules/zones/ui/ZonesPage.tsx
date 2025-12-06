@@ -36,15 +36,11 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
       setIsLoading(true);
       const layoutResult = await loadVenueLayout(venueId);
       if (layoutResult.success) {
-        // Type guard: check if data exists
-        if ("data" in layoutResult && layoutResult.data) {
-          // Normalize ensures layoutData always exists
-          const normalized = normalizeLayout(layoutResult.data);
-          setLayout(normalized);
-        } else {
-          // No data - use default
-          setLayout(null);
-        }
+        // Type guard: when success is true, data exists
+        const layoutData = (layoutResult as { success: true; data: VenueLayout }).data;
+        // Normalize ensures layoutData always exists
+        const normalized = normalizeLayout(layoutData);
+        setLayout(normalized);
       } else {
         // Error - use default
         setLayout(null);
