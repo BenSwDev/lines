@@ -54,7 +54,11 @@ import {
   Redo2,
   Copy,
   Clipboard,
-  Files
+  Files,
+  Shield,
+  Bath,
+  ChefHat,
+  Triangle
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -611,12 +615,12 @@ export function FloorPlanEditorV2({
         setSelectedElementIds(new Set([element.id]));
       }
       
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      if (!containerRect) return;
       
-      // Calculate mouse position relative to canvas (accounting for zoom)
-      const mouseX = (e.clientX - rect.left) / zoom;
-      const mouseY = (e.clientY - rect.top) / zoom;
+      // Calculate mouse position relative to canvas (accounting for zoom and pan)
+      const mouseX = (e.clientX - containerRect.left - panOffset.x * zoom) / zoom;
+      const mouseY = (e.clientY - containerRect.top - panOffset.y * zoom) / zoom;
       
       // Store drag start position
       dragStartPosRef.current = { x: mouseX, y: mouseY };
@@ -2256,16 +2260,16 @@ function ElementRenderer({
   onResizeStart,
   onRotateStart
 }: ElementRendererProps) {
-  // Find the zone this table belongs to (for visual feedback)
-  const parentZone = element.type === "table" && element.zoneId
+  // Find the zone this element belongs to (for visual feedback and color inheritance)
+  const parentZone = element.zoneId
     ? allElements.find((el) => el.id === element.zoneId && el.type === "zone")
     : null;
 
   const getElementStyle = (): React.CSSProperties => {
-    // Determine border color based on zone membership
+    // Determine border color based on zone membership - inherit from zone
     let borderColor = isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)";
-    if (element.type === "table" && parentZone && !isSelected) {
-      // Use zone color for border if table is in a zone
+    if (parentZone && !isSelected) {
+      // Use zone color for border if element is in a zone - inherit zone color
       borderColor = parentZone.color || "rgba(59, 130, 246, 0.5)";
     }
 
@@ -2279,18 +2283,26 @@ function ElementRenderer({
       transformOrigin: "center center",
       cursor: isInteractive ? (isSelected ? "move" : "grab") : "default",
       border: isSelected ? `2px solid ${borderColor}` : `2px solid ${borderColor}`,
-      backgroundColor:
-        element.type === "zone"
-          ? element.color || `${AREA_TYPE_COLORS.zone}33` // 20% opacity
-          : element.type === "specialArea"
-            ? element.color || `${AREA_TYPE_COLORS[element.areaType || "other"]}33` // 20% opacity
-            : element.type === "security"
-              ? element.color || `${AREA_TYPE_COLORS.other}33` // 20% opacity
-              : element.type === "table" && parentZone
-                ? `${parentZone.color || AREA_TYPE_COLORS.zone}15` // Very light tint of zone color
-                : isSelected
-                  ? "rgba(59, 130, 246, 0.15)"
-                  : AREA_TYPE_COLORS.table, // White for tables
+      backgroundColor: (() => {
+        if (element.type === "zone") {
+          return element.color || `${AREA_TYPE_COLORS.zone}33`; // 20% opacity
+        }
+        if (element.type === "specialArea") {
+          return element.color || `${AREA_TYPE_COLORS[element.areaType || "other"]}33`; // 20% opacity
+        }
+        if (element.type === "security") {
+          return parentZone 
+            ? `${parentZone.color || AREA_TYPE_COLORS.zone}20` // Inherit zone color for security in zone
+            : element.color || `${AREA_TYPE_COLORS.other}33`; // 20% opacity
+        }
+        if (element.type === "table" && parentZone) {
+          return `${parentZone.color || AREA_TYPE_COLORS.zone}20`; // Inherit zone color for tables in zone
+        }
+        if (isSelected) {
+          return "rgba(59, 130, 246, 0.15)";
+        }
+        return AREA_TYPE_COLORS.table; // White for tables
+      })(),
       boxShadow: isSelected
         ? "0 4px 12px rgba(59, 130, 246, 0.3)"
         : element.type === "table" && parentZone
@@ -2305,6 +2317,9 @@ function ElementRenderer({
 
     if (element.shape === "circle") {
       return { ...baseStyle, borderRadius: "50%" };
+    }
+    if (element.shape === "square") {
+      return { ...baseStyle, borderRadius: "4px" };
     }
     if (element.shape === "triangle" || element.shape === "polygon") {
       // For triangle and polygon, we'll use SVG clipPath
@@ -2335,6 +2350,10 @@ function ElementRenderer({
     if (element.shape === "triangle") {
       return getRegularPolygonPath(3, element.width, element.height);
     }
+    if (element.shape === "square") {
+      // Square is handled by CSS, but we can add it here for consistency
+      return "";
+    }
     if (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) {
       // Convert normalized points (0-100%) to absolute coordinates
       const absolutePoints = element.polygonPoints.map((p) => ({
@@ -2348,7 +2367,8 @@ function ElementRenderer({
 
   const path = getPolygonPath();
   const needsSvg = element.shape === "triangle" || 
-                   (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3);
+                   (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) ||
+                   element.shape === "square";
 
   if (needsSvg && path) {
     return (
@@ -2390,9 +2410,11 @@ function ElementRenderer({
                   ? element.color || "rgba(16, 185, 129, 0.2)"
                   : element.type === "security"
                     ? element.color || "rgba(239, 68, 68, 0.2)"
-                    : isSelected
-                      ? "rgba(59, 130, 246, 0.15)"
-                      : "rgba(255, 255, 255, 0.95)"
+                    : parentZone
+                      ? `${parentZone.color || "#3B82F6"}20` // Inherit zone color
+                      : isSelected
+                        ? "rgba(59, 130, 246, 0.15)"
+                        : "rgba(255, 255, 255, 0.95)"
             }
             stroke={isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)"}
             strokeWidth={isSelected ? 2 : 2}
@@ -2414,11 +2436,21 @@ function ElementRenderer({
           )}
         </svg>
         <div
-          className="pointer-events-none text-center px-1 absolute inset-0 flex items-center justify-center"
+          className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center"
           style={{
             clipPath: `url(#polygon-${element.id})`
           }}
         >
+          {/* Icons for special areas */}
+          {element.type === "security" && (
+            <Shield className="h-6 w-6 mb-1" style={{ color: element.color || "#EF4444" }} />
+          )}
+          {element.type === "specialArea" && element.areaType === "restroom" && (
+            <Bath className="h-6 w-6 mb-1" style={{ color: element.color || "#06B6D4" }} />
+          )}
+          {element.type === "specialArea" && element.areaType === "kitchen" && (
+            <ChefHat className="h-6 w-6 mb-1" style={{ color: element.color || "#F59E0B" }} />
+          )}
           <div>
             <div 
               style={{
@@ -2557,7 +2589,17 @@ function ElementRenderer({
       onDoubleClick={onDoubleClick}
       className="group"
     >
-      <div className="pointer-events-none text-center px-1">
+      <div className="pointer-events-none text-center px-1 flex flex-col items-center justify-center h-full">
+        {/* Icons for special areas */}
+        {element.type === "security" && (
+          <Shield className="h-6 w-6 mb-1" style={{ color: element.color || "#EF4444" }} />
+        )}
+        {element.type === "specialArea" && element.areaType === "restroom" && (
+          <Bath className="h-6 w-6 mb-1" style={{ color: element.color || "#06B6D4" }} />
+        )}
+        {element.type === "specialArea" && element.areaType === "kitchen" && (
+          <ChefHat className="h-6 w-6 mb-1" style={{ color: element.color || "#F59E0B" }} />
+        )}
         <div 
           style={{
             fontSize: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontSize,
@@ -2724,9 +2766,15 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
                 {t("floorPlan.shapes.circle")}
               </div>
             </SelectItem>
+            <SelectItem value="square">
+              <div className="flex items-center gap-2">
+                <Square className="h-4 w-4" />
+                {t("floorPlan.shapes.square")}
+              </div>
+            </SelectItem>
             <SelectItem value="triangle">
               <div className="flex items-center gap-2">
-                <Hexagon className="h-4 w-4" />
+                <Triangle className="h-4 w-4" />
                 {t("floorPlan.shapes.triangle")}
               </div>
             </SelectItem>
