@@ -402,29 +402,137 @@ export function SeatingLayoutEditor({
     [viewMode, isPanning, isDrawing, selectElement]
   );
 
+  // Check if point is inside zone
+  const isPointInZone = useCallback(
+    (point: Position, zone: ZoneVisual): boolean => {
+      const { position, dimensions } = zone;
+      return (
+        point.x >= position.x &&
+        point.x <= position.x + dimensions.width &&
+        point.y >= position.y &&
+        point.y <= position.y + dimensions.height
+      );
+    },
+    []
+  );
+
+  // Calculate zone bounds from tables
+  const calculateZoneBounds = useCallback(
+    (zoneId: string, tables: TableVisual[]): { minX: number; minY: number; maxX: number; maxY: number } | null => {
+      const zoneTables = tables.filter((t) => t.zoneId === zoneId);
+      if (zoneTables.length === 0) return null;
+
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      zoneTables.forEach((table) => {
+        minX = Math.min(minX, table.position.x);
+        minY = Math.min(minY, table.position.y);
+        maxX = Math.max(maxX, table.position.x + table.dimensions.width);
+        maxY = Math.max(maxY, table.position.y + table.dimensions.height);
+      });
+
+      // Add padding
+      const padding = 20;
+      return {
+        minX: minX - padding,
+        minY: minY - padding,
+        maxX: maxX + padding,
+        maxY: maxY + padding
+      };
+    },
+    []
+  );
+
   // Handle element drag
   const handleElementDrag = useCallback(
     (elementId: string, newPosition: Position) => {
-      updateLayout((prev) => ({
-        ...prev,
-        zones: prev.zones.map((z) =>
-          z.id === elementId ? { ...z, position: newPosition } : z
-        ),
-        tables: prev.tables.map((t) =>
-          t.id === elementId ? { ...t, position: newPosition } : t
-        ),
-        areas: prev.areas.map((a) =>
-          a.id === elementId ? { ...a, position: newPosition } : a
-        )
-      }));
+      updateLayout((prev) => {
+        // Check if it's a table being dragged
+        const table = prev.tables.find((t) => t.id === elementId);
+        if (table) {
+          // Check if table is inside any zone
+          let newZoneId = table.zoneId || "";
+          for (const zone of prev.zones) {
+            const tableCenter = {
+              x: newPosition.x + table.dimensions.width / 2,
+              y: newPosition.y + table.dimensions.height / 2
+            };
+            if (isPointInZone(tableCenter, zone)) {
+              newZoneId = zone.id;
+              break;
+            }
+          }
+
+          // If table left all zones, remove zoneId
+          let foundZone = false;
+          for (const zone of prev.zones) {
+            const tableCenter = {
+              x: newPosition.x + table.dimensions.width / 2,
+              y: newPosition.y + table.dimensions.height / 2
+            };
+            if (isPointInZone(tableCenter, zone)) {
+              foundZone = true;
+              break;
+            }
+          }
+          if (!foundZone) {
+            newZoneId = "";
+          }
+
+          return {
+            ...prev,
+            tables: prev.tables.map((t) =>
+              t.id === elementId ? { ...t, position: newPosition, zoneId: newZoneId } : t
+            )
+          };
+        }
+
+        // For zones and areas, just update position
+        return {
+          ...prev,
+          zones: prev.zones.map((z) =>
+            z.id === elementId ? { ...z, position: newPosition } : z
+          ),
+          areas: prev.areas.map((a) =>
+            a.id === elementId ? { ...a, position: newPosition } : a
+          )
+        };
+      });
     },
-    [updateLayout]
+    [updateLayout, isPointInZone]
   );
 
-  // Handle element drag end
+  // Handle element drag end - auto-resize zones
   const handleElementDragEnd = useCallback(() => {
+    updateLayout((prev) => {
+      // Auto-resize zones to fit their tables
+      const updatedZones = prev.zones.map((zone) => {
+        const bounds = calculateZoneBounds(zone.id, prev.tables);
+        if (!bounds) return zone;
+
+        return {
+          ...zone,
+          position: {
+            x: bounds.minX,
+            y: bounds.minY
+          },
+          dimensions: {
+            width: bounds.maxX - bounds.minX,
+            height: bounds.maxY - bounds.minY
+          }
+        };
+      });
+
+      return {
+        ...prev,
+        zones: updatedZones
+      };
+    });
     pushToHistory();
-  }, [pushToHistory]);
+  }, [updateLayout, calculateZoneBounds, pushToHistory]);
 
   // Handle delete
   const handleDelete = useCallback(() => {
@@ -621,20 +729,34 @@ export function SeatingLayoutEditor({
     return <Group>{lines}</Group>;
   };
 
-  // Render zones
+  // Render zones with enhanced visuals
   const renderZones = () => {
     return layout.zones.map((zone) => {
       const isSelected = selectedElementId === zone.id;
+      const zoneTables = layout.tables.filter((t) => t.zoneId === zone.id);
+      const hasTables = zoneTables.length > 0;
+      
+      // Enhanced visual properties
+      const fillPattern = zone.color;
+      const strokeColor = isSelected ? "#3b82f6" : zone.color;
+      const strokeWidth = isSelected ? 4 : 2;
+      const shadowBlur = isSelected ? 10 : 5;
+      const shadowOpacity = isSelected ? 0.4 : 0.2;
+      
       const baseProps = {
         x: zone.position.x,
         y: zone.position.y,
         width: zone.dimensions.width,
         height: zone.dimensions.height,
-        fill: zone.color,
-        opacity: 0.2,
-        stroke: isSelected ? "#3b82f6" : zone.color,
-        strokeWidth: isSelected ? 3 : 2,
-        dash: isSelected ? [5, 5] : undefined,
+        fill: fillPattern,
+        opacity: hasTables ? 0.15 : 0.2,
+        stroke: strokeColor,
+        strokeWidth,
+        dash: isSelected ? [8, 4] : undefined,
+        shadowBlur,
+        shadowColor: strokeColor,
+        shadowOpacity,
+        shadowOffset: { x: 2, y: 2 },
         draggable: viewMode === "edit",
         onDragEnd: (e: { target: { x: () => number; y: () => number } }) => {
           const newPos = {
@@ -651,51 +773,126 @@ export function SeatingLayoutEditor({
       if (zone.shape === "circle") {
         const radius = Math.min(zone.dimensions.width, zone.dimensions.height) / 2;
         return (
-          <Circle
-            key={zone.id}
-            {...baseProps}
-            radius={radius}
-            x={zone.position.x + zone.dimensions.width / 2}
-            y={zone.position.y + zone.dimensions.height / 2}
-          />
+          <Group key={zone.id}>
+            <Circle
+              {...baseProps}
+              radius={radius}
+              x={zone.position.x + zone.dimensions.width / 2}
+              y={zone.position.y + zone.dimensions.height / 2}
+            />
+            <Text
+              x={zone.position.x + zone.dimensions.width / 2}
+              y={zone.position.y + zone.dimensions.height / 2}
+              text={zone.name}
+              fontSize={14}
+              fontFamily="Arial"
+              fill={zone.color}
+              fontWeight="bold"
+              align="center"
+              verticalAlign="middle"
+              listening={false}
+              offsetY={6}
+              shadowBlur={2}
+              shadowColor="rgba(0,0,0,0.3)"
+            />
+            {hasTables && (
+              <Text
+                x={zone.position.x + zone.dimensions.width / 2}
+                y={zone.position.y + zone.dimensions.height / 2 + 20}
+                text={`${zoneTables.length} שולחנות`}
+                fontSize={11}
+                fontFamily="Arial"
+                fill={zone.color}
+                opacity={0.7}
+                align="center"
+                verticalAlign="middle"
+                listening={false}
+                offsetY={6}
+              />
+            )}
+          </Group>
         );
       }
 
       return (
         <Group key={zone.id}>
-          <Rect {...baseProps} cornerRadius={zone.shape === "square" ? 0 : 4} />
+          <Rect {...baseProps} cornerRadius={zone.shape === "square" ? 0 : 8} />
+          {/* Gradient overlay effect - using opacity gradient */}
+          <Rect
+            x={zone.position.x}
+            y={zone.position.y}
+            width={zone.dimensions.width}
+            height={zone.dimensions.height}
+            fill={zone.color}
+            cornerRadius={zone.shape === "square" ? 0 : 8}
+            listening={false}
+            opacity={0.08}
+          />
           <Text
-            x={zone.position.x + 10}
-            y={zone.position.y + 10}
+            x={zone.position.x + 12}
+            y={zone.position.y + 12}
             text={zone.name}
-            fontSize={14}
+            fontSize={15}
             fontFamily="Arial"
             fill={zone.color}
             fontWeight="bold"
             listening={false}
+            shadowBlur={3}
+            shadowColor="rgba(0,0,0,0.3)"
           />
+          {hasTables && (
+            <Text
+              x={zone.position.x + 12}
+              y={zone.position.y + 30}
+              text={`${zoneTables.length} שולחנות`}
+              fontSize={11}
+              fontFamily="Arial"
+              fill={zone.color}
+              opacity={0.8}
+              listening={false}
+            />
+          )}
         </Group>
       );
     });
   };
 
-  // Render tables
+  // Render tables with enhanced visuals and zone detection
   const renderTables = () => {
     return layout.tables.map((table) => {
       const isSelected = selectedElementId === table.id;
       const zone = layout.zones.find((z) => z.id === table.zoneId);
       const color = zone?.color || "#6b7280";
+      const isInZone = !!zone;
+
+      // Enhanced visual properties
+      const fillColor = isInZone ? color : "#6b7280";
+      const strokeColor = isSelected ? "#3b82f6" : isInZone ? color : "#9ca3af";
+      const strokeWidth = isSelected ? 4 : isInZone ? 2.5 : 2;
+      const shadowBlur = isSelected ? 8 : isInZone ? 5 : 3;
+      const shadowOpacity = isSelected ? 0.4 : isInZone ? 0.3 : 0.2;
 
       const baseProps = {
         x: table.position.x,
         y: table.position.y,
         width: table.dimensions.width,
         height: table.dimensions.height,
-        fill: color,
-        opacity: 0.7,
-        stroke: isSelected ? "#3b82f6" : color,
-        strokeWidth: isSelected ? 3 : 2,
+        fill: fillColor,
+        opacity: isInZone ? 0.75 : 0.6,
+        stroke: strokeColor,
+        strokeWidth,
+        shadowBlur,
+        shadowColor: strokeColor,
+        shadowOpacity,
+        shadowOffset: { x: 1, y: 1 },
         draggable: viewMode === "edit",
+        onDragMove: (e: { target: { x: () => number; y: () => number } }) => {
+          const newPos = {
+            x: snapToGrid(e.target.x()),
+            y: snapToGrid(e.target.y())
+          };
+          handleElementDrag(table.id, newPos);
+        },
         onDragEnd: (e: { target: { x: () => number; y: () => number } }) => {
           const newPos = {
             x: snapToGrid(e.target.x()),
@@ -758,10 +955,18 @@ export function SeatingLayoutEditor({
     });
   };
 
-  // Render areas
+  // Render areas with enhanced visuals
   const renderAreas = () => {
     return layout.areas.map((area) => {
       const isSelected = selectedElementId === area.id;
+      const areaColor = area.color || "#9ca3af";
+      
+      // Enhanced visual properties
+      const strokeColor = isSelected ? "#3b82f6" : areaColor;
+      const strokeWidth = isSelected ? 4 : 2.5;
+      const shadowBlur = isSelected ? 10 : 6;
+      const shadowOpacity = isSelected ? 0.4 : 0.3;
+
       return (
         <Group key={area.id}>
           <Rect
@@ -769,12 +974,16 @@ export function SeatingLayoutEditor({
             y={area.position.y}
             width={area.dimensions.width}
             height={area.dimensions.height}
-            fill={area.color || "#9ca3af"}
-            opacity={0.4}
-            stroke={isSelected ? "#3b82f6" : area.color || "#6b7280"}
-            strokeWidth={isSelected ? 3 : 2}
-            dash={isSelected ? [5, 5] : undefined}
-            cornerRadius={4}
+            fill={areaColor}
+            opacity={0.35}
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            dash={isSelected ? [8, 4] : [4, 4]}
+            cornerRadius={6}
+            shadowBlur={shadowBlur}
+            shadowColor={strokeColor}
+            shadowOpacity={shadowOpacity}
+            shadowOffset={{ x: 2, y: 2 }}
             draggable={viewMode === "edit"}
             onDragEnd={(e: { target: { x: () => number; y: () => number } }) => {
               const newPos = {
@@ -787,19 +996,31 @@ export function SeatingLayoutEditor({
             onClick={() => selectElement(area.id)}
             onTap={() => selectElement(area.id)}
           />
+          {/* Gradient overlay - using opacity gradient */}
+          <Rect
+            x={area.position.x}
+            y={area.position.y}
+            width={area.dimensions.width}
+            height={area.dimensions.height}
+            fill={areaColor}
+            cornerRadius={6}
+            listening={false}
+            opacity={0.15}
+          />
           <Text
             x={area.position.x + area.dimensions.width / 2}
             y={area.position.y + area.dimensions.height / 2}
             text={area.name}
-            fontSize={12}
+            fontSize={13}
             fontFamily="Arial"
-            fill="currentColor"
-            fontWeight="semibold"
+            fill="white"
+            fontWeight="bold"
             align="center"
             verticalAlign="middle"
             listening={false}
-            offsetX={area.name.length * 3}
             offsetY={6}
+            shadowBlur={3}
+            shadowColor="rgba(0,0,0,0.5)"
           />
         </Group>
       );
