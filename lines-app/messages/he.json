@@ -159,7 +159,15 @@
   "success": {
     "detailsUpdated": "הפרטים עודכנו בהצלחה",
     "venueCreated": "המקום נוצר בהצלחה",
-    "venueDeleted": "המקום נמחק בהצלחה"
+    "venueDeleted": "המקום נמחק בהצלחה",
+    "copied": "הועתק",
+    "copiedDescription": "{count} אלמנטים הועתקו",
+    "pasted": "הודבק",
+    "pastedDescription": "{count} אלמנטים הודבקו",
+    "duplicated": "שוכפל",
+    "duplicatedDescription": "{count} אלמנטים שוכפלו",
+    "templateLoaded": "טמפלט נטען",
+    "templateLoadedDescription": "הטמפלט {name} נטען בהצלחה"
   },
   "reservations": {
     "title": "הגדרות הזמנות",

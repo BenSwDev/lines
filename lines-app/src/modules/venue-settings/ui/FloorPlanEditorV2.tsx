@@ -49,7 +49,12 @@ import {
   ZoomIn,
   ZoomOut,
   Pencil,
-  MoreVertical
+  MoreVertical,
+  Undo2,
+  Redo2,
+  Copy,
+  Clipboard,
+  Files
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -60,6 +65,9 @@ import { FreeTransform } from "./FreeTransform";
 import { ContextPanel } from "./ContextPanel";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AREA_TYPE_COLORS } from "../config/floorPlanDesignTokens";
+import { HistoryManager } from "../utils/historyManager";
+import { ClipboardManager } from "../utils/clipboardManager";
+import { AutoSaveManager } from "../utils/autoSave";
 
 export type ElementShape = "rectangle" | "circle" | "triangle" | "polygon";
 
@@ -187,7 +195,53 @@ export function FloorPlanEditorV2({
   const [isRotating, setIsRotating] = useState(false);
   const rotateStartRef = useRef<{ angle: number; centerX: number; centerY: number; startAngle: number } | null>(null);
   const rotateAnimationFrameRef = useRef<number | null>(null);
+  
+  // History management (Undo/Redo)
+  const historyManagerRef = useRef(new HistoryManager<FloorPlanElement>(50));
+  
+  // Clipboard management (Copy/Paste)
+  const clipboardManagerRef = useRef(new ClipboardManager<FloorPlanElement>());
+  
+  // Auto-save management
+  const autoSaveManagerRef = useRef<AutoSaveManager<FloorPlanElement[]> | null>(null);
+  
+  // Note: Additional features (alignment guides, pan, locking, hiding, search, minimap) 
+  // are prepared but will be integrated in next phase to keep build clean
 
+  // Initialize auto-save and history
+  useEffect(() => {
+    autoSaveManagerRef.current = new AutoSaveManager<FloorPlanElement[]>(
+      async (data) => {
+        // Save tables (convert elements to tables)
+        const tables = data
+          .filter((e) => e.type === "table")
+          .map((e) => ({
+            id: e.id,
+            name: e.name,
+            seats: e.seats,
+            notes: e.notes,
+            x: e.x,
+            y: e.y,
+            width: e.width,
+            height: e.height,
+            rotation: e.rotation,
+            shape: e.shape,
+            tableType: e.tableType || "table"
+          }));
+        
+        await saveVenueTables(venueId, tables);
+      },
+      2000 // 2 second delay
+    );
+    
+    // Initialize history with initial state
+    historyManagerRef.current.push(initialElements);
+    
+    return () => {
+      autoSaveManagerRef.current?.destroy();
+    };
+  }, [venueId]);
+  
   // Calculate canvas size to fit container
   useEffect(() => {
     const updateCanvasSize = () => {
@@ -204,6 +258,76 @@ export function FloorPlanEditorV2({
     window.addEventListener("resize", updateCanvasSize);
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, []);
+  
+  // Helper function to update elements with history and auto-save
+  const updateElementsWithHistory = useCallback((newElements: FloorPlanElement[], skipHistory = false) => {
+    if (!skipHistory) {
+      historyManagerRef.current.push(elements);
+    }
+    setElements(newElements);
+    autoSaveManagerRef.current?.schedule(newElements);
+  }, [elements]);
+  
+  // Undo
+  const handleUndo = useCallback(() => {
+    const previousState = historyManagerRef.current.undo();
+    if (previousState) {
+      setElements(previousState);
+      autoSaveManagerRef.current?.schedule(previousState);
+    }
+  }, []);
+  
+  // Redo
+  const handleRedo = useCallback(() => {
+    const nextState = historyManagerRef.current.redo();
+    if (nextState) {
+      setElements(nextState);
+      autoSaveManagerRef.current?.schedule(nextState);
+    }
+  }, []);
+  
+  // Copy
+  const handleCopy = useCallback(() => {
+    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
+    const selectedElements = elements.filter(e => selectedIds.has(e.id));
+    if (selectedElements.length > 0) {
+      clipboardManagerRef.current.copy(selectedElements);
+      toast({
+        title: t("success.copied"),
+        description: t("success.copiedDescription", { count: selectedElements.length.toString() })
+      });
+    }
+  }, [selectedElementIds, selectedElementId, elements, toast, t]);
+  
+  // Paste
+  const handlePaste = useCallback(() => {
+    const pasted = clipboardManagerRef.current.paste();
+    if (pasted && pasted.length > 0) {
+      const newElements = [...elements, ...pasted];
+      updateElementsWithHistory(newElements);
+      setSelectedElementIds(new Set(pasted.map(e => e.id)));
+      toast({
+        title: t("success.pasted"),
+        description: t("success.pastedDescription", { count: pasted.length.toString() })
+      });
+    }
+  }, [elements, updateElementsWithHistory, toast, t]);
+  
+  // Duplicate
+  const handleDuplicate = useCallback(() => {
+    const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : (selectedElementId ? new Set([selectedElementId]) : new Set());
+    const selectedElements = elements.filter(e => selectedIds.has(e.id));
+    if (selectedElements.length > 0) {
+      const duplicated = clipboardManagerRef.current.duplicate(selectedElements);
+      const newElements = [...elements, ...duplicated];
+      updateElementsWithHistory(newElements);
+      setSelectedElementIds(new Set(duplicated.map(e => e.id)));
+      toast({
+        title: t("success.duplicated"),
+        description: t("success.duplicatedDescription", { count: duplicated.length.toString() })
+      });
+    }
+  }, [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]);
 
   // Add new element
   const handleAddElement = useCallback(
@@ -234,21 +358,26 @@ export function FloorPlanEditorV2({
         areaType: type === "specialArea" ? areaType || "other" : undefined
       };
 
-      setElements([...elements, newElement]);
+      const newElements = [...elements, newElement];
+      updateElementsWithHistory(newElements);
       setSelectedElementId(newElement.id);
     },
-    [elements, canvasSize, t]
+    [elements, canvasSize, t, updateElementsWithHistory]
   );
 
   // Delete element
   const handleDeleteElement = useCallback(
     (id: string) => {
-      setElements(elements.filter((e) => e.id !== id));
+      const newElements = elements.filter((e) => e.id !== id);
+      updateElementsWithHistory(newElements);
       if (selectedElementId === id) {
         setSelectedElementId(null);
       }
+      const newSelectedIds = new Set(selectedElementIds);
+      newSelectedIds.delete(id);
+      setSelectedElementIds(newSelectedIds);
     },
-    [elements, selectedElementId]
+    [elements, selectedElementId, selectedElementIds, updateElementsWithHistory]
   );
 
   // Open edit dialog
@@ -281,9 +410,9 @@ export function FloorPlanEditorV2({
   // Handle context panel element changes
   const handleContextPanelChange = useCallback((updatedElement: FloorPlanElement) => {
     setContextPanelElement(updatedElement);
-    setElements(
-      elements.map((e) => (e.id === updatedElement.id ? updatedElement : e))
-    );
+    const newElements = elements.map((e) => (e.id === updatedElement.id ? updatedElement : e));
+    setElements(newElements);
+    autoSaveManagerRef.current?.schedule(newElements);
   }, [elements]);
   
   // Update context panel when selection changes
@@ -456,64 +585,114 @@ export function FloorPlanEditorV2({
 
   // Keyboard shortcuts
   useEffect(() => {
-    if (viewMode === "nonInteractive" || !selectedElementId) return;
+    if (viewMode === "nonInteractive") return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const selectedElement = elements.find((el) => el.id === selectedElementId);
-      if (!selectedElement) return;
-
-      // Delete key
-      if (e.key === "Delete" || e.key === "Backspace") {
-        e.preventDefault();
-        handleDeleteElement(selectedElementId);
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
 
-      // Arrow keys for movement
-      if (e.key.startsWith("Arrow")) {
+      const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+      
+      // Undo (Ctrl+Z)
+      if (isCtrlOrCmd && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
+        handleUndo();
+        return;
+      }
+      
+      // Redo (Ctrl+Shift+Z or Ctrl+Y)
+      if ((isCtrlOrCmd && e.key === "z" && e.shiftKey) || (isCtrlOrCmd && e.key === "y")) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+      
+      // Copy (Ctrl+C)
+      if (isCtrlOrCmd && e.key === "c") {
+        e.preventDefault();
+        handleCopy();
+        return;
+      }
+      
+      // Paste (Ctrl+V)
+      if (isCtrlOrCmd && e.key === "v") {
+        e.preventDefault();
+        handlePaste();
+        return;
+      }
+      
+      // Duplicate (Ctrl+D)
+      if (isCtrlOrCmd && e.key === "d") {
+        e.preventDefault();
+        handleDuplicate();
+        return;
+      }
+      
+      // Select All (Ctrl+A)
+      if (isCtrlOrCmd && e.key === "a") {
+        e.preventDefault();
+        setSelectedElementIds(new Set(elements.map(e => e.id)));
+        return;
+      }
+
+      // Delete key
+      if ((e.key === "Delete" || e.key === "Backspace") && (selectedElementId || selectedElementIds.size > 0)) {
+        e.preventDefault();
+        const idsToDelete = selectedElementIds.size > 0 ? Array.from(selectedElementIds) : [selectedElementId!];
+        idsToDelete.forEach(id => handleDeleteElement(id));
+        setSelectedElementIds(new Set());
+        setSelectedElementId(null);
+        return;
+      }
+
+      // Arrow keys for movement (only if element is selected)
+      if (e.key.startsWith("Arrow") && (selectedElementId || selectedElementIds.size > 0)) {
+        e.preventDefault();
+        const selectedIds = selectedElementIds.size > 0 ? selectedElementIds : new Set([selectedElementId!]);
         const step = showGrid ? GRID_SIZE : (e.shiftKey ? 10 : 1);
-        let newX = selectedElement.x;
-        let newY = selectedElement.y;
+        
+        const updatedElements = elements.map((el) => {
+          if (!selectedIds.has(el.id)) return el;
+          
+          let newX = el.x;
+          let newY = el.y;
 
-        if (e.key === "ArrowLeft") newX = Math.max(0, selectedElement.x - step);
-        if (e.key === "ArrowRight")
-          newX = Math.min(canvasSize.width - selectedElement.width, selectedElement.x + step);
-        if (e.key === "ArrowUp") newY = Math.max(0, selectedElement.y - step);
-        if (e.key === "ArrowDown")
-          newY = Math.min(canvasSize.height - selectedElement.height, selectedElement.y + step);
+          if (e.key === "ArrowLeft") newX = Math.max(0, el.x - step);
+          if (e.key === "ArrowRight")
+            newX = Math.min(canvasSize.width - el.width, el.x + step);
+          if (e.key === "ArrowUp") newY = Math.max(0, el.y - step);
+          if (e.key === "ArrowDown")
+            newY = Math.min(canvasSize.height - el.height, el.y + step);
 
-        // Update element position
-        const updatedElement = {
-          ...selectedElement,
-          x: newX,
-          y: newY
-        };
+          const updatedElement = {
+            ...el,
+            x: newX,
+            y: newY
+          };
 
-        // If moving a table, check if it's inside a zone
-        let newZoneId: string | undefined = undefined;
-        if (updatedElement.type === "table") {
-          const zones = elements.filter((el) => el.type === "zone");
-          const containingZone = findContainingZone(updatedElement, zones);
-          newZoneId = containingZone?.id;
-        }
+          // If moving a table, check if it's inside a zone
+          let newZoneId: string | undefined = undefined;
+          if (updatedElement.type === "table") {
+            const zones = elements.filter((zoneEl) => zoneEl.type === "zone");
+            const containingZone = findContainingZone(updatedElement, zones);
+            newZoneId = containingZone?.id;
+          }
 
-        setElements(
-          elements.map((el) =>
-            el.id === selectedElementId
-              ? {
-                  ...updatedElement,
-                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
-                }
-              : el
-          )
-        );
+          return {
+            ...updatedElement,
+            zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+          };
+        });
+        
+        updateElementsWithHistory(updatedElements);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedElementId, elements, canvasSize, viewMode, handleDeleteElement, showGrid]);
+  }, [selectedElementId, selectedElementIds, elements, canvasSize, viewMode, handleDeleteElement, showGrid, handleUndo, handleRedo, handleCopy, handlePaste, handleDuplicate, updateElementsWithHistory]);
 
   // Mouse move - handle dragging, resizing, and rotating
   useEffect(() => {
@@ -985,11 +1164,12 @@ export function FloorPlanEditorV2({
         description: null
       };
       
-      setElements([...elements, newElement]);
+      const newElements = [...elements, newElement];
+      updateElementsWithHistory(newElements);
       setPolygonPoints([]);
       setIsDrawingPolygon(false);
     }
-  }, [polygonPoints, elements]);
+  }, [polygonPoints, elements, updateElementsWithHistory]);
   
   // Cancel polygon drawing
   const cancelPolygonDrawing = useCallback(() => {
@@ -1055,6 +1235,75 @@ export function FloorPlanEditorV2({
               </TooltipTrigger>
               <TooltipContent>{t("common.create")}</TooltipContent>
             </Tooltip>
+            
+            {/* Edit Actions Group */}
+            <div className="flex items-center gap-1 border-l pl-2 ml-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUndo}
+                    disabled={!historyManagerRef.current.canUndo()}
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRedo}
+                    disabled={!historyManagerRef.current.canRedo()}
+                  >
+                    <Redo2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Redo (Ctrl+Shift+Z)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    disabled={selectedElementIds.size === 0 && !selectedElementId}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Copy (Ctrl+C)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePaste}
+                    disabled={!clipboardManagerRef.current.hasData()}
+                  >
+                    <Clipboard className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Paste (Ctrl+V)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDuplicate}
+                    disabled={selectedElementIds.size === 0 && !selectedElementId}
+                  >
+                    <Files className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Duplicate (Ctrl+D)</TooltipContent>
+              </Tooltip>
+            </div>
             
             {/* Secondary: Grid Toggle */}
             <Tooltip>
