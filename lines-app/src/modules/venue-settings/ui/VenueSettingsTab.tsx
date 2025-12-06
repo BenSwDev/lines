@@ -50,7 +50,7 @@ export function VenueSettingsTab() {
 
         <Card
           className="group relative cursor-pointer overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 transition-all duration-300 hover:scale-[1.02] hover:border-primary/50 hover:shadow-xl"
-          onClick={() => router.push(`/venues/${venueId}/zones`)}
+          onClick={() => router.push(`/venues/${venueId}/map`)}
         >
           {/* Decorative glow */}
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

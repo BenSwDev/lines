@@ -7,18 +7,18 @@ import {
   type FloorPlanElement,
   type ElementShape,
   type SpecialAreaType
-} from "@/modules/venue-settings/ui/FloorPlanEditorV2";
-import { loadVenueFloorPlan } from "@/modules/venue-settings/actions/floorPlanActions";
+} from "./FloorPlanEditorV2";
+import { loadVenueFloorPlan } from "../actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
 
-type ZonesPageProps = {
+type VenueMapPageProps = {
   venueId: string;
   venueName: string;
   userId: string;
 };
 
-export function ZonesPage({ venueId, venueName, userId }: ZonesPageProps) {
+export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) {
   const { t } = useTranslations();
   const { toast } = useToast();
   const [elements, setElements] = useState<FloorPlanElement[]>([]);
@@ -120,9 +120,9 @@ export function ZonesPage({ venueId, venueName, userId }: ZonesPageProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {t("settings.venueMap") || t("settings.seating")} - {venueName}
+            {t("settings.venueMap") || "מפת המקום"} - {venueName}
           </h1>
-          <p className="text-muted-foreground">{t("settings.seatingDescription")}</p>
+          <p className="text-muted-foreground">{t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}</p>
         </div>
       </div>
 
@@ -130,3 +130,4 @@ export function ZonesPage({ venueId, venueName, userId }: ZonesPageProps) {
     </div>
   );
 }
+

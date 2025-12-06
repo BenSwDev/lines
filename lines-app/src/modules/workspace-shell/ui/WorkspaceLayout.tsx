@@ -18,9 +18,9 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
       href: `/venues/${venue.id}/info`
     },
     {
-      id: "zones",
+      id: "map",
       label: "מפת המקום",
-      href: `/venues/${venue.id}/zones`
+      href: `/venues/${venue.id}/map`
     },
     {
       id: "menus",

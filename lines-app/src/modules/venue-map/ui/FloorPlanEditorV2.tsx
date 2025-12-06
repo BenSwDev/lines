@@ -2798,7 +2798,8 @@ export function FloorPlanEditorV2({
                         height: "30px",
                         backgroundColor: "rgba(255, 255, 255, 0.9)",
                         borderBottom: "1px solid rgba(0,0,0,0.1)",
-                        zIndex: 1001,
+                        zIndex: 10,
+                        pointerEvents: "none",
                         display: "flex",
                         alignItems: "center",
                         paddingLeft: `${panOffset.x}px`,
@@ -2837,7 +2838,8 @@ export function FloorPlanEditorV2({
                         width: "30px",
                         backgroundColor: "rgba(255, 255, 255, 0.9)",
                         borderRight: "1px solid rgba(0,0,0,0.1)",
-                        zIndex: 1001,
+                        zIndex: 10,
+                        pointerEvents: "none",
                         display: "flex",
                         flexDirection: "column",
                         paddingTop: `${panOffset.y}px`,
@@ -2869,8 +2871,11 @@ export function FloorPlanEditorV2({
                   )}
                   <div
                     ref={canvasRef}
-                    className="absolute cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
+                    className="absolute bg-background"
                     style={{
+                      cursor: panMode 
+                        ? (isPanning ? "grabbing" : "grab")
+                        : "default",
                       minWidth: "2000px",
                       minHeight: "2000px",
                       width: "2000px",
@@ -3062,7 +3067,7 @@ export function FloorPlanEditorV2({
                   pointerEvents: "none"
                 }}
               >
-                <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md">
+                <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md" style={{ pointerEvents: "auto" }}>
                   <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
                   <h3 className="text-xl font-semibold mb-2">{t("floorPlan.emptyCanvasTitle")}</h3>
                   <p className="text-muted-foreground mb-4">{t("floorPlan.emptyCanvasDescription")}</p>
@@ -3070,6 +3075,7 @@ export function FloorPlanEditorV2({
                     onClick={() => setTemplateDialogOpen(true)}
                     className="gap-2"
                     size="lg"
+                    style={{ pointerEvents: "auto" }}
                   >
                     <Plus className="h-5 w-5" />
                     {t("floorPlan.createMap")}
@@ -3526,8 +3532,11 @@ export function FloorPlanEditorV2({
               </div>
               <div
                 ref={canvasRef}
-                className="absolute cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
+                className="absolute bg-background"
                 style={{
+                  cursor: panMode 
+                    ? (isPanning ? "grabbing" : "grab")
+                    : "default",
                   minWidth: "2000px",
                   minHeight: "2000px",
                   width: "2000px",
@@ -3625,7 +3634,7 @@ export function FloorPlanEditorV2({
                       pointerEvents: "none"
                     }}
                   >
-                    <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md">
+                    <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md" style={{ pointerEvents: "auto" }}>
                       <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
                       <h3 className="text-xl font-semibold mb-2">{t("floorPlan.emptyCanvasTitle")}</h3>
                       <p className="text-muted-foreground mb-4">{t("floorPlan.emptyCanvasDescription")}</p>
@@ -3636,6 +3645,7 @@ export function FloorPlanEditorV2({
                         }}
                         className="gap-2"
                         size="lg"
+                        style={{ pointerEvents: "auto" }}
                       >
                         <Plus className="h-5 w-5" />
                         {t("floorPlan.createMap")}

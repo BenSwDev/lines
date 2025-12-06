@@ -1,4 +1,4 @@
-import { ZonesPage } from "@/modules/zones/ui/ZonesPage";
+import { VenueMapPage } from "@/modules/venue-map/ui/VenueMapPage";
 import { getVenue } from "@/modules/venues/actions/getVenue";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/core/auth/session";
@@ -7,7 +7,7 @@ type Props = {
   params: Promise<{ venueId: string }>;
 };
 
-export default async function VenueZonesPage({ params }: Props) {
+export default async function VenueMapRoute({ params }: Props) {
   const { venueId } = await params;
   const user = await getCurrentUser();
 
@@ -20,5 +20,6 @@ export default async function VenueZonesPage({ params }: Props) {
     redirect("/dashboard");
   }
 
-  return <ZonesPage venueId={venueId} venueName={venueResult.data.name} userId={user.id || ""} />;
+  return <VenueMapPage venueId={venueId} venueName={venueResult.data.name} userId={user.id || ""} />;
 }
+
