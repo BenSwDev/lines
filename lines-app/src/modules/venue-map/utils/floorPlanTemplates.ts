@@ -7,6 +7,7 @@ export type VenueTemplateType =
   | "restaurant"
   | "conference_hall"
   | "concert_hall"
+  | "shalvata"
   | "empty";
 
 export interface VenueTemplate {
@@ -582,6 +583,568 @@ export const concertHallTemplate: VenueTemplate = {
   elements: scaleToCanvas(concertHallTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
 };
 
+// Shalvata Club Template - Based on actual floor plan
+const shalvataTemplateRaw: VenueTemplate = {
+  id: "shalvata",
+  name: "שלוותה",
+  description: "תבנית מועדון שלוותה - כולל כל האזורים והשולחנות הממוספרים",
+  defaultCapacity: 500,
+  elements: [
+    // Entrance (top right)
+    {
+      id: "entrance-1",
+      type: "specialArea" as ElementType,
+      name: "כניסה",
+      x: 1400,
+      y: 50,
+      width: 150,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "entrance" as SpecialAreaType,
+      color: "#10B981"
+    },
+    // Restroom near entrance (top right)
+    {
+      id: "restroom-1",
+      type: "specialArea" as ElementType,
+      name: "שירותים",
+      x: 1400,
+      y: 180,
+      width: 100,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "restroom" as SpecialAreaType,
+      color: "#06B6D4"
+    },
+    // Upper left seating area - booths 100-270
+    // Zone for upper left area
+    {
+      id: "zone-upper-left",
+      type: "zone" as ElementType,
+      name: "אזור ישיבה עליון שמאל",
+      x: 50,
+      y: 50,
+      width: 600,
+      height: 700,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "seating_area",
+      color: "#3B82F6"
+    },
+    // Booths 100-130 (top row)
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `table-${130 - i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${130 - i * 10}`,
+      x: 100 + i * 120,
+      y: 100,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-upper-left"
+    })),
+    // Booths 140-190 (middle vertical)
+    ...Array.from({ length: 6 }, (_, i) => ({
+      id: `table-${140 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${140 + i * 10}`,
+      x: 200,
+      y: 200 + i * 80,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-upper-left"
+    })),
+    // Booths 210-270 (left vertical)
+    ...Array.from({ length: 7 }, (_, i) => ({
+      id: `table-${210 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${210 + i * 10}`,
+      x: 100,
+      y: 200 + i * 80,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-upper-left"
+    })),
+    // Upper right seating area - tables 600-660
+    // Zone for upper right area
+    {
+      id: "zone-upper-right",
+      type: "zone" as ElementType,
+      name: "אזור ישיבה עליון ימין",
+      x: 1200,
+      y: 50,
+      width: 200,
+      height: 500,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "seating_area",
+      color: "#3B82F6"
+    },
+    // Tables 600-660 (vertical row)
+    ...Array.from({ length: 6 }, (_, i) => ({
+      id: `table-${600 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${600 + i * 10}`,
+      x: 1250,
+      y: 100 + i * 70,
+      width: 60,
+      height: 60,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4,
+      zoneId: "zone-upper-right"
+    })),
+    // Tables 605, 615 (clusters near entrance)
+    ...Array.from({ length: 3 }, (_, i) => ({
+      id: `table-${605 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${605 + i * 10}`,
+      x: 1350 + (i % 2) * 30,
+      y: 300 + Math.floor(i / 2) * 30,
+      width: 50,
+      height: 50,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4,
+      zoneId: "zone-upper-right"
+    })),
+    // UPER BAR (center top) - oval bar
+    {
+      id: "zone-uper-bar",
+      type: "zone" as ElementType,
+      name: "בר עליון",
+      x: 650,
+      y: 100,
+      width: 500,
+      height: 400,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "bar_area",
+      color: "#EF4444"
+    },
+    // UPER BAR counter (oval shape approximated as rectangle)
+    {
+      id: "bar-uper",
+      type: "table" as ElementType,
+      name: "בר עליון",
+      x: 700,
+      y: 200,
+      width: 400,
+      height: 200,
+      rotation: 0,
+      shape: "rectangle",
+      tableType: "bar",
+      seats: 30,
+      zoneId: "zone-uper-bar"
+    },
+    // Bar stools around UPER BAR
+    ...Array.from({ length: 20 }, (_, i) => {
+      const angle = (i / 20) * Math.PI * 2;
+      const radius = 120;
+      return {
+        id: `stool-uper-${i + 1}`,
+        type: "table" as ElementType,
+        name: `כיסא בר ${i + 1}`,
+        x: 850 + Math.cos(angle) * radius - 15,
+        y: 300 + Math.sin(angle) * radius - 15,
+        width: 30,
+        height: 30,
+        rotation: 0,
+        shape: "circle" as const,
+        tableType: "bar" as const,
+        seats: 1,
+        zoneId: "zone-uper-bar"
+      };
+    }),
+    // Tables near UPER BAR (10, 20, 30, 40, 50, 90)
+    ...Array.from({ length: 5 }, (_, i) => ({
+      id: `table-${10 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${10 + i * 10}`,
+      x: 550 + (i % 3) * 60,
+      y: 150 + Math.floor(i / 3) * 60,
+      width: 50,
+      height: 50,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4
+    })),
+    {
+      id: "table-90",
+      type: "table" as ElementType,
+      name: "שולחן 90",
+      x: 1150,
+      y: 550,
+      width: 50,
+      height: 50,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4
+    },
+    // MAIN BARS (center) - two rectangular bars
+    {
+      id: "zone-main-bars",
+      type: "zone" as ElementType,
+      name: "בר ראשי",
+      x: 600,
+      y: 550,
+      width: 600,
+      height: 300,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "bar_area",
+      color: "#EF4444"
+    },
+    // Main bar counter 1
+    {
+      id: "bar-main-1",
+      type: "table" as ElementType,
+      name: "בר ראשי 1",
+      x: 650,
+      y: 600,
+      width: 250,
+      height: 80,
+      rotation: -15,
+      shape: "rectangle",
+      tableType: "bar",
+      seats: 15,
+      zoneId: "zone-main-bars"
+    },
+    // Main bar counter 2
+    {
+      id: "bar-main-2",
+      type: "table" as ElementType,
+      name: "בר ראשי 2",
+      x: 900,
+      y: 650,
+      width: 250,
+      height: 80,
+      rotation: 15,
+      shape: "rectangle",
+      tableType: "bar",
+      seats: 15,
+      zoneId: "zone-main-bars"
+    },
+    // Bar stools around MAIN BARS
+    ...Array.from({ length: 30 }, (_, i) => {
+      const barIndex = i < 15 ? 0 : 1;
+      const offset = barIndex * 50;
+      const angle = ((i % 15) / 15) * Math.PI;
+      return {
+        id: `stool-main-${i + 1}`,
+        type: "table" as ElementType,
+        name: `כיסא בר ${i + 1}`,
+        x: 700 + offset + Math.cos(angle) * 100 - 15,
+        y: 640 + Math.sin(angle) * 100 - 15,
+        width: 30,
+        height: 30,
+        rotation: 0,
+        shape: "circle" as const,
+        tableType: "bar" as const,
+        seats: 1,
+        zoneId: "zone-main-bars"
+      };
+    }),
+    // DJ area (center bottom)
+    {
+      id: "dj-area",
+      type: "specialArea" as ElementType,
+      name: "דיג'יי",
+      x: 800,
+      y: 900,
+      width: 200,
+      height: 150,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "dj_booth" as SpecialAreaType,
+      color: "#8B5CF6"
+    },
+    // GOLDEN sections around DJ
+    {
+      id: "zone-golden-left",
+      type: "zone" as ElementType,
+      name: "גולדן שמאל",
+      x: 550,
+      y: 900,
+      width: 200,
+      height: 200,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "vip_zone",
+      color: "#F59E0B"
+    },
+    // Golden booths left (410, 415, 420)
+    ...Array.from({ length: 3 }, (_, i) => ({
+      id: `table-${410 + i * 5}`,
+      type: "table" as ElementType,
+      name: `שולחן ${410 + i * 5}`,
+      x: 600 + i * 50,
+      y: 950,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-golden-left"
+    })),
+    {
+      id: "zone-golden-right",
+      type: "zone" as ElementType,
+      name: "גולדן ימין",
+      x: 1050,
+      y: 900,
+      width: 250,
+      height: 200,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "vip_zone",
+      color: "#F59E0B"
+    },
+    // Golden booths right (430, 440, 450, 460)
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `table-${430 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${430 + i * 10}`,
+      x: 1100 + i * 50,
+      y: 950,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-golden-right"
+    })),
+    // Left vertical seating (310, 320)
+    {
+      id: "zone-left-vertical",
+      type: "zone" as ElementType,
+      name: "אזור שמאל",
+      x: 50,
+      y: 800,
+      width: 200,
+      height: 300,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "seating_area",
+      color: "#3B82F6"
+    },
+    ...Array.from({ length: 2 }, (_, i) => ({
+      id: `table-${310 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${310 + i * 10}`,
+      x: 100,
+      y: 850 + i * 100,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-left-vertical"
+    })),
+    // Restroom left side
+    {
+      id: "restroom-2",
+      type: "specialArea" as ElementType,
+      name: "שירותים",
+      x: 50,
+      y: 1150,
+      width: 100,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "restroom" as SpecialAreaType,
+      color: "#06B6D4"
+    },
+    // Central lower seating (510-570)
+    {
+      id: "zone-central-lower",
+      type: "zone" as ElementType,
+      name: "אזור מרכז תחתון",
+      x: 300,
+      y: 1150,
+      width: 900,
+      height: 150,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "seating_area",
+      color: "#3B82F6"
+    },
+    // Tables 510-570 (horizontal row)
+    ...Array.from({ length: 12 }, (_, i) => {
+      const tableNumbers = [510, 515, 520, 525, 530, 535, 540, 545, 550, 555, 560, 570];
+      return {
+        id: `table-${tableNumbers[i]}`,
+        type: "table" as ElementType,
+        name: `שולחן ${tableNumbers[i]}`,
+        x: 350 + i * 70,
+        y: 1200,
+        width: 60,
+        height: 60,
+        rotation: 0,
+        shape: "rectangle" as const,
+        seats: 4,
+        zoneId: "zone-central-lower"
+      };
+    }),
+    // Exit left
+    {
+      id: "exit-1",
+      type: "specialArea" as ElementType,
+      name: "יציאה",
+      x: 250,
+      y: 1150,
+      width: 50,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "exit" as SpecialAreaType,
+      color: "#EF4444"
+    },
+    // Exit right
+    {
+      id: "exit-2",
+      type: "specialArea" as ElementType,
+      name: "יציאה",
+      x: 1200,
+      y: 1150,
+      width: 50,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "exit" as SpecialAreaType,
+      color: "#EF4444"
+    },
+    // NORTH BAR (bottom left)
+    {
+      id: "zone-north-bar",
+      type: "zone" as ElementType,
+      name: "בר צפון",
+      x: 50,
+      y: 1300,
+      width: 400,
+      height: 300,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "bar_area",
+      color: "#EF4444"
+    },
+    // North bar counter
+    {
+      id: "bar-north",
+      type: "table" as ElementType,
+      name: "בר צפון",
+      x: 200,
+      y: 1450,
+      width: 200,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle",
+      tableType: "bar",
+      seats: 12,
+      zoneId: "zone-north-bar"
+    },
+    // Tables near NORTH BAR (810, 820, 830, 840, 850)
+    ...Array.from({ length: 5 }, (_, i) => ({
+      id: `table-${810 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${810 + i * 10}`,
+      x: 100 + (i % 3) * 60,
+      y: 1350 + Math.floor(i / 3) * 60,
+      width: 50,
+      height: 50,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4,
+      zoneId: "zone-north-bar"
+    })),
+    // SOUTH BAR (bottom right)
+    {
+      id: "zone-south-bar",
+      type: "zone" as ElementType,
+      name: "בר דרום",
+      x: 1000,
+      y: 1300,
+      width: 400,
+      height: 300,
+      rotation: 0,
+      shape: "rectangle",
+      zoneType: "bar_area",
+      color: "#EF4444"
+    },
+    // South bar counter
+    {
+      id: "bar-south",
+      type: "table" as ElementType,
+      name: "בר דרום",
+      x: 1150,
+      y: 1450,
+      width: 200,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle",
+      tableType: "bar",
+      seats: 12,
+      zoneId: "zone-south-bar"
+    },
+    // Tables near SOUTH BAR (710, 720, 730, 740, 750, 760, 770)
+    ...Array.from({ length: 3 }, (_, i) => ({
+      id: `table-${710 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${710 + i * 10}`,
+      x: 1050 + i * 60,
+      y: 1350,
+      width: 60,
+      height: 60,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 4,
+      zoneId: "zone-south-bar"
+    })),
+    {
+      id: "table-740",
+      type: "table" as ElementType,
+      name: "שולחן 740",
+      x: 1200,
+      y: 1420,
+      width: 80,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 6,
+      zoneId: "zone-south-bar"
+    },
+    ...Array.from({ length: 3 }, (_, i) => ({
+      id: `table-${750 + i * 10}`,
+      type: "table" as ElementType,
+      name: `שולחן ${750 + i * 10}`,
+      x: 1050 + i * 60,
+      y: 1520,
+      width: 50,
+      height: 50,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4,
+      zoneId: "zone-south-bar"
+    }))
+  ]
+};
+
+// Scale Shalvata template to fit default canvas size
+export const shalvataTemplate: VenueTemplate = {
+  ...shalvataTemplateRaw,
+  elements: scaleToCanvas(shalvataTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
 // Empty template
 export const emptyTemplate: VenueTemplate = {
   id: "empty",
@@ -598,6 +1161,7 @@ export const templates: Record<VenueTemplateType, VenueTemplate> = {
   restaurant: restaurantTemplate,
   conference_hall: conferenceHallTemplate,
   concert_hall: concertHallTemplate,
+  shalvata: shalvataTemplate,
   empty: emptyTemplate
 };
 
