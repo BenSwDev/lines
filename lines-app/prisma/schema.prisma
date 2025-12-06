@@ -29,9 +29,10 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relationships
-  accounts Account[]
-  sessions Session[]
-  venues   Venue[]
+  accounts            Account[]
+  sessions            Session[]
+  venues              Venue[]
+  floorPlanTemplates  FloorPlanTemplate[]
 
   @@map("users")
 }
@@ -100,6 +101,7 @@ model Venue {
   occurrences         LineOccurrence[]
   areas               VenueArea[]
   reservationSettings ReservationSettings?
+  floorPlanTemplates  FloorPlanTemplate[]
 
   @@index([userId])
   @@map("venues")
@@ -297,6 +299,30 @@ model ReservationSettings {
 
   @@index([venueId])
   @@map("reservation_settings")
+}
+
+// ============================================================================
+// FLOOR PLAN TEMPLATES (Custom user templates)
+// ============================================================================
+
+model FloorPlanTemplate {
+  id          String   @id @default(cuid())
+  userId      String   // Owner of the template
+  venueId     String?  // Optional: template can be venue-specific or global
+  name        String
+  description String?
+  elements    Json     // Array of FloorPlanElement objects
+  defaultCapacity Int? @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  venue Venue? @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([venueId])
+  @@map("floor_plan_templates")
 }
 
 model ReservationSettingsLineExclusion {

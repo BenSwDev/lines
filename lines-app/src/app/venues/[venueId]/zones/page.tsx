@@ -20,6 +20,6 @@ export default async function VenueZonesPage({ params }: Props) {
     redirect("/dashboard");
   }
 
-  return <ZonesPage venueId={venueId} venueName={venueResult.data.name} />;
+  return <ZonesPage venueId={venueId} venueName={venueResult.data.name} userId={user.id || ""} />;
 }
 

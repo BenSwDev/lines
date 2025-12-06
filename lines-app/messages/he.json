@@ -355,6 +355,8 @@
     "exitFullscreen": "יציאה ממסך מלא",
     "moreOptions": "אפשרויות נוספות",
     "emptyCanvasTitle": "המפה ריקה",
-    "emptyCanvasDescription": "לחץ על 'יצירת מפה' כדי להתחיל. תוכל לבחור תבנית מקצועית או להתחיל מאפס."
+    "emptyCanvasDescription": "לחץ על 'יצירת מפה' כדי להתחיל. תוכל לבחור תבנית מקצועית או להתחיל מאפס.",
+    "saveMap": "שמירת מפה",
+    "saveMapDescription": "האם לשמור את כל השינויים במפה?"
   }
 }
