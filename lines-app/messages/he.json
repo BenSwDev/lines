@@ -130,7 +130,8 @@
     "close": "סגור",
     "open": "פתח",
     "myAccount": "החשבון שלי",
-    "logout": "יציאה"
+    "logout": "יציאה",
+    "saving": "שומר..."
   },
   "errors": {
     "generic": "אירעה שגיאה לא צפויה",
@@ -153,6 +154,35 @@
     "detailsUpdated": "הפרטים עודכנו בהצלחה",
     "venueCreated": "המקום נוצר בהצלחה",
     "venueDeleted": "המקום נמחק בהצלחה"
+  },
+  "reservations": {
+    "title": "הגדרות הזמנות",
+    "subtitle": "הגדר כיצד המקום שלך מטפל בהזמנות",
+    "generalSettings": "הגדרות כלליות",
+    "generalSettingsDescription": "הגדרות בסיסיות להזמנות",
+    "acceptsReservations": "מקבל הזמנות",
+    "acceptsReservationsDescription": "הפעל או בטל הזמנות עבור המקום הזה",
+    "manageWaitlist": "נהל רשימת המתנה",
+    "manageWaitlistDescription": "נהל אוטומטית רשימת המתנה כאשר הקיבולת מלאה",
+    "personalLinkSettings": "הגדרות לינק אישי",
+    "personalLinkSettingsDescription": "הגדר אפשרויות הזמנה דרך לינק אישי",
+    "allowPersonalLink": "אפשר הזמנות דרך לינק אישי",
+    "allowPersonalLinkDescription": "אפשר ללקוחות להזמין דרך לינקים אישיים",
+    "requireApproval": "דורש אישור",
+    "requireApprovalDescription": "דורש אישור ידני להזמנות דרך לינק אישי",
+    "manualRegistrationOnly": "רישום ידני בלבד",
+    "manualRegistrationOnlyDescription": "כל ההזמנות חייבות להיווצר ידנית מהמערכת",
+    "linesExclusions": "ליינים ללא הזמנות",
+    "linesExclusionsDescription": "בחר ליינים שלא יקבלו הזמנות",
+    "daySchedules": "לוח זמנים יומי",
+    "daySchedulesDescription": "הגדר טווחי שעות הזמנה לכל יום בשבוע",
+    "startTime": "שעת התחלה",
+    "endTime": "שעת סיום",
+    "intervalMinutes": "מרווח (דקות)",
+    "customerMessage": "הודעה ללקוח",
+    "customerMessagePlaceholder": "לדוגמה: כניסה מגיל 18 ומעלה בלבד",
+    "optional": "אופציונלי",
+    "settingsUpdated": "הגדרות ההזמנות עודכנו בהצלחה"
   },
   "venueInfo": {
     "title": "פרטי מקום",

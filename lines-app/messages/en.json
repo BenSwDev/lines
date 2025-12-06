@@ -130,7 +130,8 @@
     "close": "Close",
     "open": "Open",
     "myAccount": "My Account",
-    "logout": "Logout"
+    "logout": "Logout",
+    "saving": "Saving..."
   },
   "errors": {
     "generic": "An unexpected error occurred",
@@ -153,6 +154,35 @@
     "detailsUpdated": "Details updated successfully",
     "venueCreated": "Venue created successfully",
     "venueDeleted": "Venue deleted successfully"
+  },
+  "reservations": {
+    "title": "Reservation Settings",
+    "subtitle": "Configure how your venue handles reservations",
+    "generalSettings": "General Settings",
+    "generalSettingsDescription": "Basic reservation configuration",
+    "acceptsReservations": "Accept Reservations",
+    "acceptsReservationsDescription": "Enable or disable reservations for this venue",
+    "manageWaitlist": "Manage Waitlist",
+    "manageWaitlistDescription": "Automatically manage a waitlist when capacity is full",
+    "personalLinkSettings": "Personal Link Settings",
+    "personalLinkSettingsDescription": "Configure personal link booking options",
+    "allowPersonalLink": "Allow Personal Link Bookings",
+    "allowPersonalLinkDescription": "Allow customers to book through personal links",
+    "requireApproval": "Require Approval",
+    "requireApprovalDescription": "Require manual approval for personal link bookings",
+    "manualRegistrationOnly": "Manual Registration Only",
+    "manualRegistrationOnlyDescription": "All reservations must be created manually from the system",
+    "linesExclusions": "Lines Exclusions",
+    "linesExclusionsDescription": "Select lines that should not accept reservations",
+    "daySchedules": "Day Schedules",
+    "daySchedulesDescription": "Configure booking time ranges for each day of the week",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "intervalMinutes": "Interval (minutes)",
+    "customerMessage": "Customer Message",
+    "customerMessagePlaceholder": "e.g., Entry for ages 18+ only",
+    "optional": "Optional",
+    "settingsUpdated": "Reservation settings updated successfully"
   },
   "venueInfo": {
     "title": "Venue Information",

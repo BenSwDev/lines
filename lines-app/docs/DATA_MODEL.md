@@ -268,3 +268,80 @@ NextAuth.js standard models for OAuth and session management.
 - Cascade delete when user is deleted
 
 ---
+
+## Reservation Settings Models (v1.2.0+)
+
+### ReservationSettings
+
+Main reservation configuration for a venue (1:1 with Venue).
+
+| Field                  | Type     | Nullable | Description                                  |
+| ---------------------- | -------- | -------- | -------------------------------------------- |
+| id                     | String   | No       | Unique identifier (cuid)                     |
+| venueId                | String   | No       | Foreign key to Venue (unique)                |
+| acceptsReservations    | Boolean  | No       | Whether venue accepts reservations           |
+| allowPersonalLink      | Boolean  | No       | Whether personal link bookings are allowed   |
+| requireApproval        | Boolean  | No       | Whether personal link bookings need approval |
+| manualRegistrationOnly | Boolean  | No       | Whether only manual registration is allowed  |
+| manageWaitlist         | Boolean  | No       | Whether waitlist management is enabled       |
+| createdAt              | DateTime | No       | Creation timestamp                           |
+| updatedAt              | DateTime | No       | Last update timestamp                        |
+
+**Relationships:**
+
+- Belongs to one `Venue` (1:1)
+- Has many `ReservationSettingsLineExclusion` (1:N)
+- Has many `ReservationSettingsDaySchedule` (1:N)
+
+### ReservationSettingsLineExclusion
+
+Lines that should not accept reservations.
+
+| Field                 | Type     | Nullable | Description                        |
+| --------------------- | -------- | -------- | ---------------------------------- |
+| id                    | String   | No       | Unique identifier (cuid)           |
+| reservationSettingsId | String   | No       | Foreign key to ReservationSettings |
+| lineId                | String   | No       | Foreign key to Line                |
+| createdAt             | DateTime | No       | Creation timestamp                 |
+
+**Relationships:**
+
+- Belongs to one `ReservationSettings` (N:1)
+- Belongs to one `Line` (N:1)
+
+**Constraints:**
+
+- Unique constraint on (reservationSettingsId, lineId)
+
+### ReservationSettingsDaySchedule
+
+Day-specific booking schedules for personal link reservations.
+
+| Field                 | Type     | Nullable | Description                                       |
+| --------------------- | -------- | -------- | ------------------------------------------------- |
+| id                    | String   | No       | Unique identifier (cuid)                          |
+| reservationSettingsId | String   | No       | Foreign key to ReservationSettings                |
+| dayOfWeek             | Int      | No       | Day of week (0=Sunday, 1=Monday, ..., 6=Saturday) |
+| startTime             | String   | No       | Start time (HH:MM format, 24-hour)                |
+| endTime               | String   | No       | End time (HH:MM format, 24-hour)                  |
+| intervalMinutes       | Int      | Yes      | Booking interval in minutes (optional)            |
+| customerMessage       | String   | Yes      | Custom message for customers (optional)           |
+| createdAt             | DateTime | No       | Creation timestamp                                |
+| updatedAt             | DateTime | No       | Last update timestamp                             |
+
+**Relationships:**
+
+- Belongs to one `ReservationSettings` (N:1)
+
+**Constraints:**
+
+- Unique constraint on (reservationSettingsId, dayOfWeek)
+- dayOfWeek must be between 0 and 6
+- endTime must be after startTime
+
+**Updated Relationships:**
+
+- `Venue` now has one `ReservationSettings` (1:1)
+- `Line` now has many `ReservationSettingsLineExclusion` (1:N)
+
+---

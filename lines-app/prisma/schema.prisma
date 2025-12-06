@@ -92,13 +92,14 @@ model Venue {
   updatedAt  DateTime @updatedAt
 
   // Relationships
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  details      VenueDetails?
-  menus        Menu[]
-  zones        Zone[]
-  lines        Line[]
-  occurrences  LineOccurrence[]
-  areas        VenueArea[]
+  user                User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  details             VenueDetails?
+  menus               Menu[]
+  zones               Zone[]
+  lines               Line[]
+  occurrences         LineOccurrence[]
+  areas               VenueArea[]
+  reservationSettings ReservationSettings?
 
   @@index([userId])
   @@map("venues")
@@ -210,8 +211,9 @@ model Line {
   updatedAt DateTime @updatedAt
 
   // Relationships
-  venue       Venue            @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  occurrences LineOccurrence[]
+  venue                    Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  occurrences              LineOccurrence[]
+  reservationExclusions    ReservationSettingsLineExclusion[]
 
   @@index([venueId])
   @@index([venueId, color])
@@ -271,6 +273,65 @@ model VenueArea {
 
   @@index([venueId])
   @@map("venue_areas")
+}
+
+// ============================================================================
+// RESERVATION SETTINGS
+// ============================================================================
+
+model ReservationSettings {
+  id                    String   @id @default(cuid())
+  venueId               String   @unique
+  acceptsReservations    Boolean  @default(false) // האם מקבל הזמנות
+  allowPersonalLink      Boolean  @default(false) // האם מאפשר הזמנה דרך לינק אישי
+  requireApproval        Boolean  @default(false) // אם מאפשר לינק אישי, האם צריך לאשר
+  manualRegistrationOnly Boolean  @default(true)  // אם לא לינק אישי, רישום ידני בלבד
+  manageWaitlist        Boolean  @default(false) // האם לנהל רשימת המתנה
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relationships
+  venue              Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  excludedLines      ReservationSettingsLineExclusion[]
+  daySchedules       ReservationSettingsDaySchedule[]
+
+  @@index([venueId])
+  @@map("reservation_settings")
+}
+
+model ReservationSettingsLineExclusion {
+  id                    String   @id @default(cuid())
+  reservationSettingsId String
+  lineId                String
+  createdAt             DateTime @default(now())
+
+  // Relationships
+  reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
+  line                Line                @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  @@unique([reservationSettingsId, lineId])
+  @@index([reservationSettingsId])
+  @@index([lineId])
+  @@map("reservation_settings_line_exclusions")
+}
+
+model ReservationSettingsDaySchedule {
+  id                    String   @id @default(cuid())
+  reservationSettingsId String
+  dayOfWeek             Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime             String   // HH:MM format (24-hour)
+  endTime               String   // HH:MM format (24-hour)
+  intervalMinutes       Int?     // מרווחים בדקות (אופציונלי)
+  customerMessage       String?  @db.Text // טקסט חופשי שיוצג ללקוח
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relationships
+  reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
+
+  @@unique([reservationSettingsId, dayOfWeek])
+  @@index([reservationSettingsId])
+  @@map("reservation_settings_day_schedules")
 }
 
 

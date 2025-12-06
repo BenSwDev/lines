@@ -126,7 +126,9 @@ export async function saveVenueLayout(venueId: string, layout: VenueLayout) {
           width: zone.dimensions.width,
           height: zone.dimensions.height,
           shape: zone.shape,
-          polygonPoints: zone.polygonPoints ? (zone.polygonPoints as unknown as Prisma.InputJsonValue) : undefined
+          polygonPoints: zone.polygonPoints
+            ? (zone.polygonPoints as unknown as Prisma.InputJsonValue)
+            : undefined
         }
       });
     }
@@ -197,7 +199,9 @@ export async function generateZonesFromLayout(venueId: string, layout: VenueLayo
           width: zoneVisual.dimensions.width,
           height: zoneVisual.dimensions.height,
           shape: zoneVisual.shape,
-          polygonPoints: zoneVisual.polygonPoints ? (zoneVisual.polygonPoints as unknown as Prisma.InputJsonValue) : undefined
+          polygonPoints: zoneVisual.polygonPoints
+            ? (zoneVisual.polygonPoints as unknown as Prisma.InputJsonValue)
+            : undefined
         }
       });
 

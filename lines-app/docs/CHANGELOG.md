@@ -4,6 +4,56 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.2.2] – 2025-01-15 (Reservation Settings Foundation)
+
+### 🎉 New Feature
+
+#### Added
+
+- **Reservation Settings Module** (`src/modules/reservation-settings`)
+  - Foundation for reservation system infrastructure
+  - General settings: accept reservations, manage waitlist
+  - Personal link settings: allow personal links, require approval, manual registration only
+  - Lines exclusions: select lines that don't accept reservations
+  - Day schedules: configure booking time ranges per day of week with intervals and customer messages
+  - Full CRUD operations via server actions
+  - Complete validation with Zod schemas
+
+- **Database Models**
+  - `ReservationSettings` - Main settings (1:1 with Venue)
+  - `ReservationSettingsLineExclusion` - Lines excluded from reservations
+  - `ReservationSettingsDaySchedule` - Day-specific booking schedules
+  - Migration file: `prisma/migrations/add_reservation_settings.sql`
+
+- **UI Components**
+  - `ReservationSettingsTab` - Complete settings interface
+  - Conditional display based on settings state
+  - Form validation and error handling
+  - Loading and saving states
+
+- **Route**
+  - `/venues/[venueId]/reservations` - Reservation settings page
+  - Added to workspace navigation menu
+
+- **Translations**
+  - Added reservation settings translations in English and Hebrew
+  - All UI strings localized
+
+#### Documentation
+
+- Created `docs/FEATURE_SPECS/reservations.md` - Complete feature specification
+- Updated `docs/DATA_MODEL.md` - Added reservation settings models
+- Updated module README with full documentation
+
+#### Technical Details
+
+- Service layer with transaction support for atomic updates
+- Automatic default settings creation on first access
+- Validation for time ranges, line ownership, day of week
+- Cascade deletes when venue or line is deleted
+
+---
+
 ## [1.2.1] – 2025-01-15 (AI Quality Improvements)
 
 ### 🔧 Code Quality & Infrastructure

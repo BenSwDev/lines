@@ -28,6 +28,11 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
       href: `/venues/${venue.id}/menus`
     },
     {
+      id: "reservations",
+      label: "הזמנות",
+      href: `/venues/${venue.id}/reservations`
+    },
+    {
       id: "lines",
       label: "ליינים",
       href: `/venues/${venue.id}/lines`
