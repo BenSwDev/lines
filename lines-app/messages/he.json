@@ -300,6 +300,10 @@
       "bars": "מפת ברים",
       "general": "מפה כללית",
       "security": "מפת אבטחה"
-    }
+    },
+    "templates": "טמפלטים",
+    "selectTemplate": "בחר טמפלט",
+    "selectTemplateDescription": "בחר טמפלט להתחלה מהירה או התחל מאפס",
+    "elements": "אלמנטים"
   }
 }

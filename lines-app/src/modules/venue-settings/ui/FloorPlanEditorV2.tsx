@@ -41,11 +41,13 @@ import {
   Utensils,
   Circle,
   Hexagon,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
+import { getAllTemplates } from "../utils/floorPlanTemplates";
 
 export type ElementShape = "rectangle" | "circle" | "oval" | "square" | "triangle" | "pentagon" | "hexagon" | "polygon";
 
@@ -126,6 +128,7 @@ export function FloorPlanEditorV2({
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingElement, setEditingElement] = useState<FloorPlanElement | null>(null);
   const [currentMapType, setCurrentMapType] = useState<MapType>(mapType);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
 
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -179,8 +182,6 @@ export function FloorPlanEditorV2({
 
       setElements([...elements, newElement]);
       setSelectedElementId(newElement.id);
-      setEditingElement(newElement);
-      setEditDialogOpen(true);
     },
     [elements, canvasSize, t]
   );
@@ -349,13 +350,19 @@ export function FloorPlanEditorV2({
     [viewMode]
   );
 
-  const selectedElement = elements.find((e) => e.id === selectedElementId);
-
   return (
     <div className="flex h-[calc(100vh-250px)] flex-col gap-4">
       {/* Toolbar */}
       <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3">
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setTemplateDialogOpen(true)}
+          >
+            <Sparkles className="ml-2 h-4 w-4" />
+            {t("floorPlan.templates")}
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm">
@@ -468,23 +475,21 @@ export function FloorPlanEditorV2({
 
       {/* Main Content */}
       {viewMode === "interactive" ? (
-        <div className="flex flex-1 gap-4 overflow-hidden">
-          {/* Canvas */}
-          <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
-            <div
-              ref={canvasRef}
-              className="relative h-full w-full cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
-              style={{
-                width: `${canvasSize.width || 800}px`,
-                height: `${canvasSize.height || 600}px`,
-                backgroundImage: showGrid
-                  ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                     linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
-                  : undefined,
-                backgroundSize: "20px 20px"
-              }}
-              onClick={handleCanvasClick}
-            >
+        <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
+          <div
+            ref={canvasRef}
+            className="relative h-full w-full cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
+            style={{
+              width: `${canvasSize.width || 800}px`,
+              height: `${canvasSize.height || 600}px`,
+              backgroundImage: showGrid
+                ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                   linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
+                : undefined,
+              backgroundSize: "20px 20px"
+            }}
+            onClick={handleCanvasClick}
+          >
             {/* Render Elements - Filter by map type */}
             {elements
               .filter((element) => {
@@ -502,56 +507,23 @@ export function FloorPlanEditorV2({
                   onMouseDown={(e) => handleElementMouseDown(e, element)}
                   onDoubleClick={() => handleEditElement(element)}
                   onDelete={() => handleDeleteElement(element.id)}
+                  onVertexDrag={(vertexIndex, newPoint) => {
+                    setElements(
+                      elements.map((e) =>
+                        e.id === element.id && e.polygonPoints
+                          ? {
+                              ...e,
+                              polygonPoints: e.polygonPoints.map((p, i) => (i === vertexIndex ? newPoint : p))
+                            }
+                          : e
+                      )
+                    );
+                  }}
+                  allElements={elements}
                 />
               ))}
-            </div>
-          </Card>
-
-          {/* Properties Panel */}
-          {selectedElement && (
-            <Card className="w-80 shrink-0 overflow-y-auto">
-              <div className="space-y-4 p-4">
-                <h3 className="font-semibold">{t("floorPlan.edit")}</h3>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t("common.name")}</Label>
-                  <div className="text-sm">{selectedElement.name}</div>
-                </div>
-                {selectedElement.type === "table" && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">{t("common.seats")}</Label>
-                    <div className="text-sm">{selectedElement.seats || "-"}</div>
-                  </div>
-                )}
-                {selectedElement.type === "zone" && selectedElement.color && (
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">{t("common.color")}</Label>
-                    <div
-                      className="h-8 w-full rounded border"
-                      style={{ backgroundColor: selectedElement.color }}
-                    />
-                  </div>
-                )}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditElement(selectedElement)}
-                    className="flex-1"
-                  >
-                    {t("common.edit")}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteElement(selectedElement.id)}
-                  >
-                    <Trash2 className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          )}
-        </div>
+          </div>
+        </Card>
       ) : (
         <NonInteractiveView
           elements={elements}
@@ -559,6 +531,41 @@ export function FloorPlanEditorV2({
           onDelete={handleDeleteElement}
         />
       )}
+
+      {/* Template Selection Dialog */}
+      <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("floorPlan.selectTemplate")}</DialogTitle>
+            <DialogDescription>{t("floorPlan.selectTemplateDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4 py-4">
+            {getAllTemplates().map((template) => (
+              <Card
+                key={template.id}
+                className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg"
+                onClick={() => {
+                  setElements(template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` })));
+                  setVenueCapacity(template.defaultCapacity);
+                  setTemplateDialogOpen(false);
+                  toast({
+                    title: t("success.templateLoaded"),
+                    description: t("success.templateLoadedDescription", { name: template.name })
+                  });
+                }}
+              >
+                <div className="p-4">
+                  <h4 className="font-semibold mb-1">{template.name}</h4>
+                  <p className="text-sm text-muted-foreground">{template.description}</p>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    {template.elements.length} {t("floorPlan.elements")} • {template.defaultCapacity} {t("common.seats")}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

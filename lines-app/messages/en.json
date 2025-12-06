@@ -159,7 +159,9 @@
   "success": {
     "detailsUpdated": "Details updated successfully",
     "venueCreated": "Venue created successfully",
-    "venueDeleted": "Venue deleted successfully"
+    "venueDeleted": "Venue deleted successfully",
+    "templateLoaded": "Template loaded",
+    "templateLoadedDescription": "Template {name} loaded successfully"
   },
   "reservations": {
     "title": "Reservation Settings",
@@ -301,6 +303,10 @@
       "bars": "Bars Map",
       "general": "General Map",
       "security": "Security Map"
-    }
+    },
+    "templates": "Templates",
+    "selectTemplate": "Select Template",
+    "selectTemplateDescription": "Choose a template to get started quickly or start from scratch",
+    "elements": "elements"
   }
 }
