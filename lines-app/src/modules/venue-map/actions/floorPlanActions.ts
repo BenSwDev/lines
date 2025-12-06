@@ -358,7 +358,7 @@ export async function saveVenueFloorPlan(
       }
     }
 
-    revalidatePath(`/venues/${venueId}/settings/zones`);
+    revalidatePath(`/venues/${venueId}/map`);
     return {
       success: true,
       data: {
@@ -468,7 +468,7 @@ export async function saveVenueTables(venueId: string, tables: TableItem[]) {
       }
     }
 
-    revalidatePath(`/venues/${venueId}/settings/zones`);
+    revalidatePath(`/venues/${venueId}/map`);
     return { success: true, data: { count: tables.length } };
   } catch (error) {
     if (error instanceof Error) {

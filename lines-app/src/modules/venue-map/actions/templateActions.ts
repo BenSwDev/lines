@@ -66,7 +66,7 @@ export async function saveTemplate(
       }
     });
 
-    revalidatePath(`/venues/${venueId || ""}/settings/zones`);
+    revalidatePath(`/venues/${venueId || ""}/map`);
     return { success: true, data: template };
   } catch (error) {
     if (error instanceof Error) {

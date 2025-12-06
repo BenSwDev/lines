@@ -137,10 +137,10 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname?.includes("/zones")}>
-                          <Link href={`/venues/${currentVenue.id}/zones`}>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/map")}>
+                          <Link href={`/venues/${currentVenue.id}/map`}>
                             <MapPin className="h-4 w-4" />
-                            <span>סידורי הושבה</span>
+                            <span>מפת המקום</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
