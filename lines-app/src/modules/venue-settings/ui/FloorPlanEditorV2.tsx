@@ -1448,11 +1448,11 @@ export function FloorPlanEditorV2({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
-                  size="sm" 
+                  size="default" 
                   className="gap-2"
                   onClick={() => setTemplateDialogOpen(true)}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-5 w-5" />
                   {t("floorPlan.createMap")}
                 </Button>
               </TooltipTrigger>
@@ -1726,6 +1726,8 @@ export function FloorPlanEditorV2({
                     ref={canvasRef}
                     className="absolute cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
                     style={{
+                      minWidth: "2000px",
+                      minHeight: "2000px",
                       width: "2000px",
                       height: "2000px",
                       left: "50%",
@@ -1888,6 +1890,35 @@ export function FloorPlanEditorV2({
               />
             ))}
             
+            {/* Empty Canvas Message */}
+            {elements.length === 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  textAlign: "center",
+                  zIndex: 10,
+                  pointerEvents: "none"
+                }}
+              >
+                <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md">
+                  <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+                  <h3 className="text-xl font-semibold mb-2">{t("floorPlan.emptyCanvasTitle")}</h3>
+                  <p className="text-muted-foreground mb-4">{t("floorPlan.emptyCanvasDescription")}</p>
+                  <Button
+                    onClick={() => setTemplateDialogOpen(true)}
+                    className="gap-2"
+                    size="lg"
+                  >
+                    <Plus className="h-5 w-5" />
+                    {t("floorPlan.createMap")}
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Render Elements - Zones first (lower z-index), then other elements */}
             {filteredElements
               .filter((element) => !hiddenElements.has(element.id))
@@ -1963,8 +1994,15 @@ export function FloorPlanEditorV2({
                       key={template.id}
                       className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
                       onClick={() => {
-                        setElements(template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` })));
+                        const newElements = template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` }));
+                        setElements(newElements);
                         setVenueCapacity(template.defaultCapacity);
+                        // Reset zoom and pan to center on template
+                        setZoom(1);
+                        setPanOffset({ x: 0, y: 0 });
+                        // Clear selection
+                        setSelectedElementId(null);
+                        setSelectedElementIds(new Set());
                         setTemplateDialogOpen(false);
                         toast({
                           title: t("success.templateLoaded"),
@@ -1996,8 +2034,15 @@ export function FloorPlanEditorV2({
                       key={template.id}
                       className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
                       onClick={() => {
-                        setElements(template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` })));
+                        const newElements = template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` }));
+                        setElements(newElements);
                         setVenueCapacity(template.defaultCapacity);
+                        // Reset zoom and pan to center on template
+                        setZoom(1);
+                        setPanOffset({ x: 0, y: 0 });
+                        // Clear selection
+                        setSelectedElementId(null);
+                        setSelectedElementIds(new Set());
                         setTemplateDialogOpen(false);
                         toast({
                           title: t("success.templateLoaded"),
@@ -2031,6 +2076,12 @@ export function FloorPlanEditorV2({
                       onClick={() => {
                         setElements([]);
                         setVenueCapacity(0);
+                        // Reset zoom and pan
+                        setZoom(1);
+                        setPanOffset({ x: 0, y: 0 });
+                        // Clear selection
+                        setSelectedElementId(null);
+                        setSelectedElementIds(new Set());
                         setTemplateDialogOpen(false);
                         toast({
                           title: t("success.templateLoaded"),
@@ -2067,15 +2118,22 @@ export function FloorPlanEditorV2({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="flex-1 overflow-auto p-4">
+            <div 
+              className="flex-1 overflow-hidden relative"
+              style={{ cursor: isPanning ? "grabbing" : "grab" }}
+            >
               <div
                 ref={canvasRef}
-                className="relative cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40 mx-auto"
+                className="absolute cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
                 style={{
-                  width: `${canvasSize.width || 800}px`,
-                  height: `${canvasSize.height || 600}px`,
-                  transform: `scale(${zoom})`,
-                  transformOrigin: "top left",
+                  minWidth: "2000px",
+                  minHeight: "2000px",
+                  width: "2000px",
+                  height: "2000px",
+                  left: "50%",
+                  top: "50%",
+                  transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
+                  transformOrigin: "center center",
                   backgroundImage: showGrid
                     ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
                        linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
@@ -2083,6 +2141,7 @@ export function FloorPlanEditorV2({
                   backgroundSize: `${20 / zoom}px ${20 / zoom}px`
                 }}
                 onClick={handleCanvasClick}
+                onMouseDown={handleCanvasMouseDown}
               >
                 {/* Polygon drawing preview */}
                 {isDrawingPolygon && polygonPoints.length > 0 && (
@@ -2146,8 +2205,41 @@ export function FloorPlanEditorV2({
                     </Button>
                   </div>
                 )}
+                {/* Empty Canvas Message */}
+                {elements.length === 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      textAlign: "center",
+                      zIndex: 10,
+                      pointerEvents: "none"
+                    }}
+                  >
+                    <div className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md">
+                      <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+                      <h3 className="text-xl font-semibold mb-2">{t("floorPlan.emptyCanvasTitle")}</h3>
+                      <p className="text-muted-foreground mb-4">{t("floorPlan.emptyCanvasDescription")}</p>
+                      <Button
+                        onClick={() => {
+                          setIsFullscreen(false);
+                          setTemplateDialogOpen(true);
+                        }}
+                        className="gap-2"
+                        size="lg"
+                      >
+                        <Plus className="h-5 w-5" />
+                        {t("floorPlan.createMap")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Render Elements - Zones first (lower z-index), then other elements */}
                 {elements
+                  .filter((element) => !hiddenElements.has(element.id))
                   .sort((a, b) => {
                     // Zones first (z-index 1), then other elements (z-index 10)
                     if (a.type === "zone" && b.type !== "zone") return -1;
@@ -2162,7 +2254,25 @@ export function FloorPlanEditorV2({
                       isInteractive={true}
                       onMouseDown={(e) => handleElementMouseDown(e, element)}
                       onDoubleClick={() => handleEditElement(element)}
+                      onEdit={() => {
+                        const elementToEdit = elements.find(e => e.id === element.id);
+                        if (elementToEdit) {
+                          handleEditElement(elementToEdit);
+                        }
+                      }}
                       onDelete={() => handleDeleteElement(element.id)}
+                      onVertexDrag={(vertexIndex, newPoint) => {
+                        setElements(
+                          elements.map((e) =>
+                            e.id === element.id && e.polygonPoints
+                              ? {
+                                  ...e,
+                                  polygonPoints: e.polygonPoints.map((p, i) => (i === vertexIndex ? newPoint : p))
+                                }
+                              : e
+                          )
+                        );
+                      }}
                       allElements={elements}
                       onResizeStart={(e, handle) => {
                         if (handle === "rotate") {

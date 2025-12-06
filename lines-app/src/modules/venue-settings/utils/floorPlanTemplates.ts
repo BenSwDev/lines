@@ -40,9 +40,9 @@ function scaleToCanvas(elements: FloorPlanElement[], targetWidth: number, target
   const scaleY = (targetHeight - padding * 2) / sourceHeight;
   const scale = Math.min(scaleX, scaleY);
   
-  // Scale all elements and center on infinite canvas (2500x2500 center)
-  const centerX = 2500;
-  const centerY = 2500;
+  // Scale all elements and center on infinite canvas (1000x1000 center - middle of 2000x2000 canvas)
+  const centerX = 1000;
+  const centerY = 1000;
   
   return elements.map(el => ({
     ...el,

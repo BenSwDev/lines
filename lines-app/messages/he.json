@@ -353,6 +353,8 @@
     "resetZoom": "איפוס זום",
     "fullscreen": "מסך מלא",
     "exitFullscreen": "יציאה ממסך מלא",
-    "moreOptions": "אפשרויות נוספות"
+    "moreOptions": "אפשרויות נוספות",
+    "emptyCanvasTitle": "המפה ריקה",
+    "emptyCanvasDescription": "לחץ על 'יצירת מפה' כדי להתחיל. תוכל לבחור תבנית מקצועית או להתחיל מאפס."
   }
 }

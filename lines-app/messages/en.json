@@ -348,6 +348,8 @@
     "resetZoom": "Reset Zoom",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen",
-    "moreOptions": "More options"
+    "moreOptions": "More options",
+    "emptyCanvasTitle": "Canvas is Empty",
+    "emptyCanvasDescription": "Click 'Create Map' to get started. You can choose a professional template or start from scratch."
   }
 }
