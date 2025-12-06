@@ -39,8 +39,6 @@ import {
   Layout,
   List,
   MapPin,
-  Circle,
-  Hexagon,
   X,
   Sparkles,
   Minimize2,
@@ -56,12 +54,12 @@ import {
   Shield,
   Bath,
   ChefHat,
-  Triangle,
   CheckCircle2,
   Info,
   HelpCircle,
   BookOpen,
-  Hand
+  Hand,
+  Users
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -4972,467 +4970,626 @@ interface EditElementFormProps {
   onChange: (element: FloorPlanElement) => void;
   onSave: () => void;
   onCancel: () => void;
-  allElements: FloorPlanElement[]; // All elements for zone connection/disconnection
+  allElements?: FloorPlanElement[]; // All elements for zone connection/disconnection (optional now)
 }
 
 function EditElementForm({
   element,
   onChange,
   onSave,
-  onCancel,
-  allElements
+  onCancel
 }: EditElementFormProps) {
-  const { t } = useTranslations();
+  const [editMode, setEditMode] = useState<"select" | "name" | "color" | "seats" | "price" | "pricePerSeat" | "zonePrice" | "showStools" | "description">("select");
+  const [tempValue, setTempValue] = useState<string>("");
 
-  // Initialize polygon points if shape is polygon and points don't exist
+  // Reset to selection when element changes
   useEffect(() => {
-    if (element.shape === "polygon" && !element.polygonPoints) {
-      // Create default rectangle polygon
-      const defaultPoints: Point[] = [
-        { x: 0, y: 0 },
-        { x: element.width, y: 0 },
-        { x: element.width, y: element.height },
-        { x: 0, y: element.height }
-      ];
-      onChange({ ...element, polygonPoints: defaultPoints });
+    setEditMode("select");
+    setTempValue("");
+  }, [element.id]);
+
+  const handleSaveField = () => {
+    switch (editMode) {
+      case "name": {
+        if (tempValue.trim()) {
+          onChange({ ...element, name: tempValue.trim() });
+        }
+        break;
+      }
+      case "seats": {
+        const seats = parseInt(tempValue);
+        if (!isNaN(seats) && seats > 0) {
+          onChange({ ...element, seats });
+        }
+        break;
+      }
+      case "price": {
+        const price = parseFloat(tempValue);
+        if (!isNaN(price) && price >= 0) {
+          onChange({ ...element, minimumPrice: price || null });
+        }
+        break;
+      }
+      case "pricePerSeat": {
+        const pricePerSeat = parseFloat(tempValue);
+        if (!isNaN(pricePerSeat) && pricePerSeat >= 0) {
+          onChange({ ...element, pricePerSeat: pricePerSeat || null });
+        }
+        break;
+      }
+      case "zonePrice": {
+        const zonePrice = parseFloat(tempValue);
+        if (!isNaN(zonePrice) && zonePrice >= 0) {
+          onChange({ ...element, zoneMinimumPrice: zonePrice || null });
+        }
+        break;
+      }
+      case "description": {
+        onChange({ ...element, description: tempValue.trim() || null });
+        break;
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [element.shape]);
-
-  const handleAddPolygonVertex = () => {
-    if (!element.polygonPoints) return;
-    const newPoint: Point = {
-      x: element.width / 2,
-      y: element.height / 2
-    };
-    onChange({
-      ...element,
-      polygonPoints: [...element.polygonPoints, newPoint]
-    });
+    setEditMode("select");
+    setTempValue("");
   };
 
-  const handleRemovePolygonVertex = (index: number) => {
-    if (!element.polygonPoints || element.polygonPoints.length <= 3) return;
-    onChange({
-      ...element,
-      polygonPoints: element.polygonPoints.filter((_, i) => i !== index)
-    });
+  const handleStartEdit = (mode: typeof editMode) => {
+    setEditMode(mode);
+    switch (mode) {
+      case "name":
+        setTempValue(element.name);
+        break;
+      case "seats":
+        setTempValue(element.seats?.toString() || "");
+        break;
+      case "price":
+        setTempValue(element.minimumPrice?.toString() || "");
+        break;
+      case "pricePerSeat":
+        setTempValue(element.pricePerSeat?.toString() || "");
+        break;
+      case "zonePrice":
+        setTempValue(element.zoneMinimumPrice?.toString() || "");
+        break;
+      case "description":
+        setTempValue(element.description || "");
+        break;
+      case "showStools":
+        onChange({ ...element, showStools: !element.showStools });
+        setEditMode("select");
+        return;
+      case "color":
+        // Color picker opens directly
+        break;
+    }
   };
 
-  const handleUpdatePolygonVertex = (index: number, point: Point) => {
-    if (!element.polygonPoints) return;
-    const updated = [...element.polygonPoints];
-    updated[index] = point;
-    onChange({ ...element, polygonPoints: updated });
+  const handleCancelEdit = () => {
+    setEditMode("select");
+    setTempValue("");
   };
 
-  return (
-    <div className="space-y-4 max-h-[70vh] overflow-y-auto">
-      {/* Name */}
-      <div className="space-y-2">
-        <Label htmlFor="edit-name">{t("common.name")}</Label>
-        <Input
-          id="edit-name"
-          value={element.name}
-          onChange={(e) => onChange({ ...element, name: e.target.value })}
-        />
-      </div>
+  // Selection Menu - What do you want to edit?
+  if (editMode === "select") {
+    return (
+      <div className="space-y-4">
+        <div className="text-center py-2">
+          <h3 className="text-lg font-semibold mb-1">מה תרצה לערוך?</h3>
+          <p className="text-sm text-muted-foreground">בחר מה לשנות</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3">
+          {/* Name */}
+          <Button
+            variant="outline"
+            className="h-20 flex flex-col items-center justify-center gap-2"
+            onClick={() => handleStartEdit("name")}
+          >
+            <Pencil className="h-6 w-6" />
+            <span className="text-sm font-medium">שם</span>
+            <span className="text-xs text-muted-foreground truncate w-full">{element.name}</span>
+          </Button>
 
-      {/* Shape Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="edit-shape">{t("floorPlan.shape")}</Label>
-        <Select
-          value={element.shape}
-          onValueChange={(value) => {
-            const newShape = value as ElementShape;
-            if (newShape === "polygon" && !element.polygonPoints) {
-              // Initialize polygon points
-              const defaultPoints: Point[] = [
-                { x: 0, y: 0 },
-                { x: element.width, y: 0 },
-                { x: element.width, y: element.height },
-                { x: 0, y: element.height }
-              ];
-              onChange({ ...element, shape: newShape, polygonPoints: defaultPoints });
-            } else {
-              onChange({ ...element, shape: newShape });
-            }
-          }}
-        >
-          <SelectTrigger id="edit-shape">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="rectangle">
-              <div className="flex items-center gap-2">
-                <Square className="h-4 w-4" />
-                {t("floorPlan.shapes.rectangle")}
-              </div>
-            </SelectItem>
-            <SelectItem value="circle">
-              <div className="flex items-center gap-2">
-                <Circle className="h-4 w-4" />
-                {t("floorPlan.shapes.circle")}
-              </div>
-            </SelectItem>
-            <SelectItem value="square">
-              <div className="flex items-center gap-2">
-                <Square className="h-4 w-4" />
-                {t("floorPlan.shapes.square")}
-              </div>
-            </SelectItem>
-            <SelectItem value="triangle">
-              <div className="flex items-center gap-2">
-                <Triangle className="h-4 w-4" />
-                {t("floorPlan.shapes.triangle")}
-              </div>
-            </SelectItem>
-            <SelectItem value="polygon">
-              <div className="flex items-center gap-2">
-                <Hexagon className="h-4 w-4" />
-                {t("floorPlan.shapes.polygon")}
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Polygon Editor */}
-      {element.shape === "polygon" && element.polygonPoints && (
-        <div className="space-y-2 border rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <Label>
-              {t("floorPlan.polygonVertices")} ({element.polygonPoints.length})
-            </Label>
+          {/* Color (for zones) */}
+          {element.type === "zone" && (
             <Button
-              type="button"
               variant="outline"
-              size="sm"
-              onClick={handleAddPolygonVertex}
-              disabled={element.polygonPoints.length >= 20}
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("color")}
             >
-              <Plus className="h-4 w-4" />
+              <div
+                className="h-6 w-6 rounded border-2 border-gray-300"
+                style={{ backgroundColor: element.color || "#3B82F6" }}
+              />
+              <span className="text-sm font-medium">צבע</span>
             </Button>
+          )}
+
+          {/* Seats (for tables) */}
+          {element.type === "table" && (
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("seats")}
+            >
+              <Users className="h-6 w-6" />
+              <span className="text-sm font-medium">מספר מקומות</span>
+              <span className="text-xs text-muted-foreground">
+                {element.seats || "לא הוגדר"}
+              </span>
+            </Button>
+          )}
+
+          {/* Minimum Price (for tables) */}
+          {element.type === "table" && (
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("price")}
+            >
+              <Sparkles className="h-6 w-6" />
+              <span className="text-sm font-medium">מחיר מינימום</span>
+              <span className="text-xs text-muted-foreground">
+                {element.minimumPrice ? `₪${element.minimumPrice}` : "לא הוגדר"}
+              </span>
+            </Button>
+          )}
+
+          {/* Price per Seat (for bars) */}
+          {element.type === "table" && element.tableType === "bar" && (
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("pricePerSeat")}
+            >
+              <Users className="h-6 w-6" />
+              <span className="text-sm font-medium">מחיר לכסא</span>
+              <span className="text-xs text-muted-foreground">
+                {element.pricePerSeat ? `₪${element.pricePerSeat}` : "לא הוגדר"}
+              </span>
+            </Button>
+          )}
+
+          {/* Show Stools (for bars) */}
+          {element.type === "table" && element.tableType === "bar" && (
+            <Button
+              variant={element.showStools ? "default" : "outline"}
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("showStools")}
+            >
+              <Layout className="h-6 w-6" />
+              <span className="text-sm font-medium">הצג כיסאות</span>
+              <span className="text-xs">
+                {element.showStools ? "מוצגים" : "מוסתרים"}
+              </span>
+            </Button>
+          )}
+
+          {/* Zone Minimum Price */}
+          {element.type === "zone" && (
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("zonePrice")}
+            >
+              <Sparkles className="h-6 w-6" />
+              <span className="text-sm font-medium">מחיר לאזור</span>
+              <span className="text-xs text-muted-foreground">
+                {element.zoneMinimumPrice ? `₪${element.zoneMinimumPrice}` : "לא הוגדר"}
+              </span>
+            </Button>
+          )}
+
+          {/* Description (for zones) */}
+          {element.type === "zone" && (
+            <Button
+              variant="outline"
+              className="h-20 flex flex-col items-center justify-center gap-2"
+              onClick={() => handleStartEdit("description")}
+            >
+              <BookOpen className="h-6 w-6" />
+              <span className="text-sm font-medium">תיאור</span>
+              <span className="text-xs text-muted-foreground truncate w-full">
+                {element.description || "לא הוגדר"}
+              </span>
+            </Button>
+          )}
+        </div>
+
+        <DialogFooter className="mt-6">
+          <Button variant="outline" onClick={onCancel}>
+            ביטול
+          </Button>
+          <Button onClick={onSave}>שמור הכל</Button>
+        </DialogFooter>
+      </div>
+    );
+  }
+
+  // Single Field Editing - Focused, one field at a time
+  return (
+    <div className="space-y-6">
+      {/* Back button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleCancelEdit}
+        className="w-full justify-start"
+      >
+        <X className="h-4 w-4 mr-2" />
+        חזרה לבחירה
+      </Button>
+
+      {/* Name Editing */}
+      {editMode === "name" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <Pencil className="h-12 w-12 mx-auto mb-3 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">עריכת שם</h3>
+            <p className="text-sm text-muted-foreground">הזן שם חדש לאובייקט</p>
           </div>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {element.polygonPoints.map((point, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span className="text-xs w-8">{index + 1}</span>
-                <Input
-                  type="number"
-                  value={Math.round(point.x)}
-                  onChange={(e) =>
-                    handleUpdatePolygonVertex(index, {
-                      ...point,
-                      x: parseInt(e.target.value) || 0
-                    })
-                  }
-                  className="w-20"
-                  placeholder="X"
-                />
-                <Input
-                  type="number"
-                  value={Math.round(point.y)}
-                  onChange={(e) =>
-                    handleUpdatePolygonVertex(index, {
-                      ...point,
-                      y: parseInt(e.target.value) || 0
-                    })
-                  }
-                  className="w-20"
-                  placeholder="Y"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemovePolygonVertex(index)}
-                  disabled={element.polygonPoints!.length <= 3}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+          <div className="space-y-2">
+            <Label htmlFor="edit-name-field" className="text-base font-medium">
+              שם האובייקט
+            </Label>
+            <Input
+              id="edit-name-field"
+              value={tempValue}
+              onChange={(e) => setTempValue(e.target.value)}
+              placeholder="הזן שם..."
+              className="text-lg h-12"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveField();
+                } else if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+            />
+            {tempValue.trim() && (
+              <p className="text-xs text-muted-foreground">
+                ✓ השם החדש: <strong>{tempValue.trim()}</strong>
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+              ביטול
+            </Button>
+            <Button
+              onClick={handleSaveField}
+              disabled={!tempValue.trim()}
+              className="flex-1"
+            >
+              שמור שם
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Table specific: Seats */}
-      {element.type === "table" && (
-        <div className="space-y-2">
-          <Label htmlFor="edit-seats">{t("common.seats")}</Label>
-          <Input
-            id="edit-seats"
-            type="number"
-            min="1"
-            value={element.seats || ""}
-            onChange={(e) =>
-              onChange({
-                ...element,
-                seats: e.target.value ? parseInt(e.target.value) : null
-              })
-            }
-          />
-          
-          {/* Bar specific: Show stools */}
-          {element.tableType === "bar" && (
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="edit-show-stools"
-                  checked={element.showStools || false}
-                  onChange={(e) =>
-                    onChange({
-                      ...element,
-                      showStools: e.target.checked
-                    })
-                  }
-                  className="rounded"
-                />
-                <Label htmlFor="edit-show-stools" className="cursor-pointer">
-                  הצג כיסאות בר
-                </Label>
-              </div>
-            </div>
-          )}
-          
-          {/* Minimum price */}
+      {/* Seats Editing */}
+      {editMode === "seats" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <Users className="h-12 w-12 mx-auto mb-3 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">מספר מקומות ישיבה</h3>
+            <p className="text-sm text-muted-foreground">כמה אנשים יכולים לשבת כאן?</p>
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-minimum-price">מחיר מינימום הזמנה</Label>
+            <Label htmlFor="edit-seats-field" className="text-base font-medium">
+              מספר מקומות
+            </Label>
             <Input
-              id="edit-minimum-price"
+              id="edit-seats-field"
+              type="number"
+              min="1"
+              value={tempValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || (!isNaN(parseInt(val)) && parseInt(val) > 0)) {
+                  setTempValue(val);
+                }
+              }}
+              placeholder="הזן מספר..."
+              className="text-lg h-12"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveField();
+                } else if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+            />
+            {tempValue && parseInt(tempValue) > 0 && (
+              <p className="text-xs text-muted-foreground">
+                ✓ מספר מקומות: <strong>{tempValue}</strong>
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+              ביטול
+            </Button>
+            <Button
+              onClick={handleSaveField}
+              disabled={!tempValue || parseInt(tempValue) <= 0}
+              className="flex-1"
+            >
+              שמור מספר
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Price Editing */}
+      {editMode === "price" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <Sparkles className="h-12 w-12 mx-auto mb-3 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">מחיר מינימום הזמנה</h3>
+            <p className="text-sm text-muted-foreground">מה הסכום המינימלי להזמנה?</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-price-field" className="text-base font-medium">
+              מחיר מינימום (₪)
+            </Label>
+            <Input
+              id="edit-price-field"
               type="number"
               min="0"
               step="0.01"
-              value={element.minimumPrice || ""}
-              onChange={(e) =>
-                onChange({
-                  ...element,
-                  minimumPrice: e.target.value ? parseFloat(e.target.value) : null
-                })
-              }
-              placeholder="אופציונלי"
-            />
-          </div>
-          
-          {/* Price per seat (for bars) */}
-          {element.tableType === "bar" && (
-            <div className="space-y-2">
-              <Label htmlFor="edit-price-per-seat">מחיר לכסא</Label>
-              <Input
-                id="edit-price-per-seat"
-                type="number"
-                min="0"
-                step="0.01"
-                value={element.pricePerSeat || ""}
-                onChange={(e) =>
-                  onChange({
-                    ...element,
-                    pricePerSeat: e.target.value ? parseFloat(e.target.value) : null
-                  })
+              value={tempValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0)) {
+                  setTempValue(val);
                 }
-                placeholder="אופציונלי"
-              />
-            </div>
-          )}
+              }}
+              placeholder="הזן סכום..."
+              className="text-lg h-12"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveField();
+                } else if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+            />
+            {tempValue && parseFloat(tempValue) >= 0 && (
+              <p className="text-xs text-muted-foreground">
+                ✓ מחיר מינימום: <strong>₪{parseFloat(tempValue).toFixed(2)}</strong>
+              </p>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setTempValue("");
+                onChange({ ...element, minimumPrice: null });
+              }}
+              className="w-full"
+            >
+              הסר מחיר מינימום
+            </Button>
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+              ביטול
+            </Button>
+            <Button
+              onClick={handleSaveField}
+              disabled={tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)}
+              className="flex-1"
+            >
+              שמור מחיר
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Zone specific: Color, Description, and Connected Elements */}
-      {element.type === "zone" && (
-        <>
+      {/* Price Per Seat Editing */}
+      {editMode === "pricePerSeat" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <Users className="h-12 w-12 mx-auto mb-3 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">מחיר לכסא</h3>
+            <p className="text-sm text-muted-foreground">מה המחיר לכל כסא בבר?</p>
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-color">{t("common.color")}</Label>
+            <Label htmlFor="edit-price-per-seat-field" className="text-base font-medium">
+              מחיר לכסא (₪)
+            </Label>
             <Input
-              id="edit-color"
+              id="edit-price-per-seat-field"
+              type="number"
+              min="0"
+              step="0.01"
+              value={tempValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0)) {
+                  setTempValue(val);
+                }
+              }}
+              placeholder="הזן מחיר לכסא..."
+              className="text-lg h-12"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveField();
+                } else if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+            />
+            {tempValue && parseFloat(tempValue) >= 0 && element.seats && (
+              <p className="text-xs text-muted-foreground">
+                ✓ מחיר כולל ({element.seats} כסאות): <strong>₪{(parseFloat(tempValue) * element.seats).toFixed(2)}</strong>
+              </p>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setTempValue("");
+                onChange({ ...element, pricePerSeat: null });
+              }}
+              className="w-full"
+            >
+              הסר מחיר לכסא
+            </Button>
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+              ביטול
+            </Button>
+            <Button
+              onClick={handleSaveField}
+              disabled={tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)}
+              className="flex-1"
+            >
+              שמור מחיר
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Zone Price Editing */}
+      {editMode === "zonePrice" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <Sparkles className="h-12 w-12 mx-auto mb-3 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">מחיר מינימום לאזור</h3>
+            <p className="text-sm text-muted-foreground">מה הסכום המינימלי לכל השולחנות באזור?</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-zone-price-field" className="text-base font-medium">
+              מחיר מינימום לאזור (₪)
+            </Label>
+            <Input
+              id="edit-zone-price-field"
+              type="number"
+              min="0"
+              step="0.01"
+              value={tempValue}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0)) {
+                  setTempValue(val);
+                }
+              }}
+              placeholder="הזן סכום..."
+              className="text-lg h-12"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSaveField();
+                } else if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+            />
+            {tempValue && parseFloat(tempValue) >= 0 && (
+              <p className="text-xs text-muted-foreground">
+                ✓ מחיר מינימום לאזור: <strong>₪{parseFloat(tempValue).toFixed(2)}</strong>
+              </p>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setTempValue("");
+                onChange({ ...element, zoneMinimumPrice: null });
+              }}
+              className="w-full"
+            >
+              הסר מחיר מינימום
+            </Button>
+          </div>
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+              ביטול
+            </Button>
+            <Button
+              onClick={handleSaveField}
+              disabled={tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)}
+              className="flex-1"
+            >
+              שמור מחיר
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Color Editing */}
+      {editMode === "color" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <div
+              className="h-16 w-16 mx-auto mb-3 rounded-lg border-4 border-gray-300 shadow-lg"
+              style={{ backgroundColor: element.color || "#3B82F6" }}
+            />
+            <h3 className="text-xl font-semibold mb-2">בחירת צבע</h3>
+            <p className="text-sm text-muted-foreground">בחר צבע לאזור</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-color-field" className="text-base font-medium">
+              צבע האזור
+            </Label>
+            <Input
+              id="edit-color-field"
               type="color"
               value={element.color || "#3B82F6"}
               onChange={(e) => onChange({ ...element, color: e.target.value })}
+              className="h-16 w-full cursor-pointer"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-description">{t("common.description")}</Label>
-            <Textarea
-              id="edit-description"
-              value={element.description || ""}
-              onChange={(e) => onChange({ ...element, description: e.target.value })}
-              rows={3}
-            />
-          </div>
-          
-          {/* Zone minimum price */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-zone-minimum-price">מחיר מינימום לאזור (לכל השולחנות)</Label>
-            <Input
-              id="edit-zone-minimum-price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={element.zoneMinimumPrice || ""}
-              onChange={(e) =>
-                onChange({
-                  ...element,
-                  zoneMinimumPrice: e.target.value ? parseFloat(e.target.value) : null
-                })
-              }
-              placeholder="אופציונלי"
-            />
-          </div>
-
-          {/* Connected Elements in Zone */}
-          <div className="space-y-2 border rounded-lg p-3">
-            <div className="flex items-center justify-between">
-              <Label>
-                אובייקטים באזור ({allElements.filter((e) => e.zoneId === element.id).length})
-              </Label>
-            </div>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {allElements
-                .filter(
-                  (e) => e.zoneId === element.id && (e.type === "table" || e.type === "security")
-                )
-                .map((connectedElement) => (
-                  <div
-                    key={connectedElement.id}
-                    className="flex items-center justify-between p-2 bg-muted rounded"
-                  >
-                    <span className="text-sm">{connectedElement.name}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        // Disconnect element from zone - update it in allElements
-                        // This will be reflected when the form is saved
-                        const disconnectedElement = allElements.find(
-                          (e) => e.id === connectedElement.id
-                        );
-                        if (disconnectedElement) {
-                          onChange({ ...element }); // Trigger re-render
-                        }
-                      }}
-                      title="הסר מהאזור"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              {allElements.filter(
-                (e) => e.zoneId === element.id && (e.type === "table" || e.type === "security")
-              ).length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-2">
-                  אין אובייקטים באזור זה
-                </p>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Element connection to Zone (for tables and security) */}
-      {(element.type === "table" || element.type === "security") && (
-        <div className="space-y-2 border rounded-lg p-3">
-          <Label>חיבור לאזור</Label>
-          <Select
-            value={element.zoneId || "none"}
-            onValueChange={(value) => {
-              onChange({
-                ...element,
-                zoneId: value === "none" ? undefined : value
-              });
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="בחר אזור" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">ללא אזור</SelectItem>
-              {allElements
-                .filter((e) => e.type === "zone")
-                .map((zone) => (
-                  <SelectItem key={zone.id} value={zone.id}>
-                    {zone.name}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-          {element.zoneId && (
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-muted-foreground">
-                מחובר לאזור: {allElements.find((z) => z.id === element.zoneId)?.name || "לא ידוע"}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onChange({ ...element, zoneId: undefined })}
-              >
-                <X className="h-4 w-4" />
+            <div className="flex gap-2 pt-4">
+              <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+                ביטול
+              </Button>
+              <Button onClick={() => setEditMode("select")} className="flex-1">
+                שמור צבע
               </Button>
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Security specific */}
-      {element.type === "security" && (
-        <div className="space-y-2">
-          <Label htmlFor="edit-security-color">{t("common.color")}</Label>
-          <Input
-            id="edit-security-color"
-            type="color"
-            value={element.color || "#EF4444"}
-            onChange={(e) => onChange({ ...element, color: e.target.value })}
-          />
-        </div>
-      )}
-
-      {/* Special Area specific: Color and Type */}
-      {element.type === "specialArea" && (
-        <>
-          <div className="space-y-2">
-            <Label htmlFor="edit-area-type">{t("floorPlan.areaType")}</Label>
-            <Select
-              value={element.areaType || "other"}
-              onValueChange={(value) =>
-                onChange({ ...element, areaType: value as SpecialAreaType })
-              }
-            >
-              <SelectTrigger id="edit-area-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entrance">{t("floorPlan.specialAreas.entrance")}</SelectItem>
-                <SelectItem value="exit">{t("floorPlan.specialAreas.exit")}</SelectItem>
-                <SelectItem value="kitchen">{t("floorPlan.specialAreas.kitchen")}</SelectItem>
-                <SelectItem value="restroom">{t("floorPlan.specialAreas.restroom")}</SelectItem>
-                <SelectItem value="bar">{t("floorPlan.specialAreas.bar")}</SelectItem>
-                <SelectItem value="stage">{t("floorPlan.specialAreas.stage")}</SelectItem>
-                <SelectItem value="storage">{t("floorPlan.specialAreas.storage")}</SelectItem>
-                <SelectItem value="dj_booth">{t("floorPlan.specialAreas.dj_booth")}</SelectItem>
-                <SelectItem value="other">{t("floorPlan.specialAreas.other")}</SelectItem>
-              </SelectContent>
-            </Select>
+      {/* Description Editing */}
+      {editMode === "description" && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <BookOpen className="h-12 w-12 mx-auto mb-3 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">תיאור האזור</h3>
+            <p className="text-sm text-muted-foreground">הוסף תיאור לאזור (אופציונלי)</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-area-color">{t("common.color")}</Label>
-            <Input
-              id="edit-area-color"
-              type="color"
-              value={element.color || "#10B981"}
-              onChange={(e) => onChange({ ...element, color: e.target.value })}
+            <Label htmlFor="edit-description-field" className="text-base font-medium">
+              תיאור
+            </Label>
+            <Textarea
+              id="edit-description-field"
+              value={tempValue}
+              onChange={(e) => setTempValue(e.target.value)}
+              placeholder="הזן תיאור..."
+              rows={4}
+              className="text-base"
+              autoFocus
             />
           </div>
-        </>
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
+              ביטול
+            </Button>
+            <Button onClick={handleSaveField} className="flex-1">
+              שמור תיאור
+            </Button>
+          </div>
+        </div>
       )}
-
-      <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>
-          {t("common.cancel")}
-        </Button>
-        <Button onClick={onSave}>{t("common.save")}</Button>
-      </DialogFooter>
     </div>
   );
 }
