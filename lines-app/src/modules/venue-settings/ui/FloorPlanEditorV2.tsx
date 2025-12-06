@@ -62,7 +62,8 @@ import {
   CheckCircle2,
   Info,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Hand
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -253,6 +254,9 @@ export function FloorPlanEditorV2({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
+  
+  // Pan mode vs Select mode
+  const [panMode, setPanMode] = useState(false); // false = select mode, true = pan mode
   
   // Element locking and hiding
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -848,9 +852,8 @@ export function FloorPlanEditorV2({
       const startX = canvasPos.x;
       const startY = canvasPos.y;
       
-      // If no elements are selected and clicking on empty canvas, start panning
-      const hasSelection = selectedElementId !== null || selectedElementIds.size > 0;
-      if (!hasSelection) {
+      // If pan mode is active, always start panning on empty canvas
+      if (panMode) {
         // Double-check that we're not clicking on an element
         const clickedElement = elements.find(el => {
           if (el.type === "zone" && el.polygonPoints) {
@@ -873,8 +876,11 @@ export function FloorPlanEditorV2({
         }
       }
       
-      setIsSelecting(true);
-      setSelectionBox({ startX, startY, endX: startX, endY: startY });
+      // In select mode, start selection box
+      if (!panMode) {
+        setIsSelecting(true);
+        setSelectionBox({ startX, startY, endX: startX, endY: startY });
+      }
       
       // If not Ctrl/Cmd, clear selection
       if (!e.ctrlKey && !e.metaKey) {
@@ -883,7 +889,7 @@ export function FloorPlanEditorV2({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viewMode, isDrawingPolygon, screenToCanvas, selectedElementId, selectedElementIds, elements]
+    [viewMode, isDrawingPolygon, screenToCanvas, selectedElementId, selectedElementIds, elements, panMode]
   );
   
   // Mouse wheel zoom - professional implementation like Excalidraw
@@ -2668,7 +2674,9 @@ export function FloorPlanEditorV2({
                 <div
                   className="relative w-full h-full overflow-hidden"
                   style={{ 
-                    cursor: isPanning ? "grabbing" : "grab",
+                    cursor: panMode 
+                      ? (isPanning ? "grabbing" : "grab")
+                      : (isPanning ? "grabbing" : "default"),
                     position: "relative"
                   }}
                 >
@@ -2677,6 +2685,25 @@ export function FloorPlanEditorV2({
                     className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
                     style={{ pointerEvents: "auto" }}
                   >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={panMode ? "default" : "ghost"}
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setPanMode(!panMode)}
+                        >
+                          <Hand className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{panMode ? "מצב גרירה" : "מצב בחירה"}</div>
+                          <div className="text-xs">{panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <div className="h-6 w-px bg-border mx-1" />
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -3392,13 +3419,34 @@ export function FloorPlanEditorV2({
             </div>
             <div 
               className="flex-1 overflow-hidden relative"
-              style={{ cursor: isPanning ? "grabbing" : "grab" }}
+              style={{ cursor: panMode 
+                ? (isPanning ? "grabbing" : "grab")
+                : (isPanning ? "grabbing" : "default") }}
             >
               {/* Canvas Controls - Top Right (Same position as normal view) */}
               <div
                 className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
                 style={{ pointerEvents: "auto" }}
               >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={panMode ? "default" : "ghost"}
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setPanMode(!panMode)}
+                    >
+                      <Hand className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{panMode ? "מצב גרירה" : "מצב בחירה"}</div>
+                      <div className="text-xs">{panMode ? "לחץ כדי לעבור למצב בחירה" : "לחץ כדי לעבור למצב גרירה"}</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <div className="h-6 w-px bg-border mx-1" />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
