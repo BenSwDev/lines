@@ -21,6 +21,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Plus,
   Square,
   Trash2,
@@ -30,7 +38,10 @@ import {
   List,
   MapPin,
   DoorOpen,
-  Utensils
+  Utensils,
+  Circle,
+  Hexagon,
+  X
 } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
@@ -437,83 +448,91 @@ export function FloorPlanEditorV2({
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 gap-4 overflow-hidden">
-        {/* Canvas */}
-        <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
-          <div
-            ref={canvasRef}
-            className="relative h-full w-full cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
-            style={{
-              width: `${canvasSize.width || 800}px`,
-              height: `${canvasSize.height || 600}px`,
-              backgroundImage: showGrid
-                ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                   linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
-                : undefined,
-              backgroundSize: "20px 20px"
-            }}
-            onClick={handleCanvasClick}
-          >
-            {/* Render Elements */}
-            {elements.map((element) => (
-              <ElementRenderer
-                key={element.id}
-                element={element}
-                isSelected={selectedElementId === element.id}
-                isInteractive={viewMode === "interactive"}
-                onMouseDown={(e) => handleElementMouseDown(e, element)}
-                onDoubleClick={() => handleEditElement(element)}
-                onDelete={() => handleDeleteElement(element.id)}
-              />
-            ))}
-          </div>
-        </Card>
-
-        {/* Properties Panel - Only in interactive mode */}
-        {viewMode === "interactive" && selectedElement && (
-          <Card className="w-80 shrink-0 overflow-y-auto">
-            <div className="space-y-4 p-4">
-              <h3 className="font-semibold">{t("floorPlan.edit")}</h3>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">{t("common.name")}</Label>
-                <div className="text-sm">{selectedElement.name}</div>
-              </div>
-              {selectedElement.type === "table" && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t("common.seats")}</Label>
-                  <div className="text-sm">{selectedElement.seats || "-"}</div>
-                </div>
-              )}
-              {selectedElement.type === "zone" && selectedElement.color && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">{t("common.color")}</Label>
-                  <div
-                    className="h-8 w-full rounded border"
-                    style={{ backgroundColor: selectedElement.color }}
-                  />
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditElement(selectedElement)}
-                  className="flex-1"
-                >
-                  {t("common.edit")}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteElement(selectedElement.id)}
-                >
-                  <Trash2 className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
+      {viewMode === "interactive" ? (
+        <div className="flex flex-1 gap-4 overflow-hidden">
+          {/* Canvas */}
+          <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
+            <div
+              ref={canvasRef}
+              className="relative h-full w-full cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
+              style={{
+                width: `${canvasSize.width || 800}px`,
+                height: `${canvasSize.height || 600}px`,
+                backgroundImage: showGrid
+                  ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                     linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
+                  : undefined,
+                backgroundSize: "20px 20px"
+              }}
+              onClick={handleCanvasClick}
+            >
+              {/* Render Elements */}
+              {elements.map((element) => (
+                <ElementRenderer
+                  key={element.id}
+                  element={element}
+                  isSelected={selectedElementId === element.id}
+                  isInteractive={true}
+                  onMouseDown={(e) => handleElementMouseDown(e, element)}
+                  onDoubleClick={() => handleEditElement(element)}
+                  onDelete={() => handleDeleteElement(element.id)}
+                />
+              ))}
             </div>
           </Card>
-        )}
-      </div>
+
+          {/* Properties Panel */}
+          {selectedElement && (
+            <Card className="w-80 shrink-0 overflow-y-auto">
+              <div className="space-y-4 p-4">
+                <h3 className="font-semibold">{t("floorPlan.edit")}</h3>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">{t("common.name")}</Label>
+                  <div className="text-sm">{selectedElement.name}</div>
+                </div>
+                {selectedElement.type === "table" && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">{t("common.seats")}</Label>
+                    <div className="text-sm">{selectedElement.seats || "-"}</div>
+                  </div>
+                )}
+                {selectedElement.type === "zone" && selectedElement.color && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">{t("common.color")}</Label>
+                    <div
+                      className="h-8 w-full rounded border"
+                      style={{ backgroundColor: selectedElement.color }}
+                    />
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditElement(selectedElement)}
+                    className="flex-1"
+                  >
+                    {t("common.edit")}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteElement(selectedElement.id)}
+                  >
+                    <Trash2 className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      ) : (
+        <NonInteractiveView
+          elements={elements}
+          onEdit={handleEditElement}
+          onDelete={handleDeleteElement}
+        />
+      )}
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -597,8 +616,83 @@ function ElementRenderer({
     if (element.shape === "square") {
       return { ...baseStyle, borderRadius: "4px" };
     }
+    if (element.shape === "polygon") {
+      // For polygon, we'll use SVG clipPath
+      return baseStyle;
+    }
     return { ...baseStyle, borderRadius: "8px" };
   };
+
+  const getPolygonPath = (): string => {
+    if (element.shape !== "polygon" || !element.polygonPoints || element.polygonPoints.length < 3) {
+      return "";
+    }
+    return element.polygonPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
+  };
+
+  if (element.shape === "polygon" && element.polygonPoints && element.polygonPoints.length >= 3) {
+    const path = getPolygonPath();
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: `${element.x}px`,
+          top: `${element.y}px`,
+          width: `${element.width}px`,
+          height: `${element.height}px`,
+          transform: `rotate(${element.rotation}deg)`,
+          transformOrigin: "center center",
+          cursor: isInteractive ? (isSelected ? "move" : "grab") : "default"
+        }}
+        onMouseDown={isInteractive ? onMouseDown : undefined}
+        onDoubleClick={onDoubleClick}
+        className="group"
+      >
+        <svg
+          width={element.width}
+          height={element.height}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0
+          }}
+        >
+          <defs>
+            <clipPath id={`polygon-${element.id}`}>
+              <path d={path} />
+            </clipPath>
+          </defs>
+          <path
+            d={path}
+            fill={
+              element.type === "zone"
+                ? element.color || "rgba(59, 130, 246, 0.2)"
+                : element.type === "specialArea"
+                  ? element.color || "rgba(16, 185, 129, 0.2)"
+                  : isSelected
+                    ? "rgba(59, 130, 246, 0.15)"
+                    : "rgba(255, 255, 255, 0.95)"
+            }
+            stroke={isSelected ? "#3B82F6" : "rgba(0,0,0,0.3)"}
+            strokeWidth={isSelected ? 2 : 2}
+          />
+        </svg>
+        <div
+          className="pointer-events-none text-center px-1 absolute inset-0 flex items-center justify-center"
+          style={{
+            clipPath: `url(#polygon-${element.id})`
+          }}
+        >
+          <div>
+            <div className="text-xs font-semibold truncate">{element.name}</div>
+            {element.type === "table" && element.seats && (
+              <div className="text-[10px] text-muted-foreground mt-0.5">{element.seats}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -628,8 +722,50 @@ interface EditElementFormProps {
 function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFormProps) {
   const { t } = useTranslations();
 
+  // Initialize polygon points if shape is polygon and points don't exist
+  useEffect(() => {
+    if (element.shape === "polygon" && !element.polygonPoints) {
+      // Create default rectangle polygon
+      const defaultPoints: Point[] = [
+        { x: 0, y: 0 },
+        { x: element.width, y: 0 },
+        { x: element.width, y: element.height },
+        { x: 0, y: element.height }
+      ];
+      onChange({ ...element, polygonPoints: defaultPoints });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [element.shape]);
+
+  const handleAddPolygonVertex = () => {
+    if (!element.polygonPoints) return;
+    const newPoint: Point = {
+      x: element.width / 2,
+      y: element.height / 2
+    };
+    onChange({
+      ...element,
+      polygonPoints: [...element.polygonPoints, newPoint]
+    });
+  };
+
+  const handleRemovePolygonVertex = (index: number) => {
+    if (!element.polygonPoints || element.polygonPoints.length <= 3) return;
+    onChange({
+      ...element,
+      polygonPoints: element.polygonPoints.filter((_, i) => i !== index)
+    });
+  };
+
+  const handleUpdatePolygonVertex = (index: number, point: Point) => {
+    if (!element.polygonPoints) return;
+    const updated = [...element.polygonPoints];
+    updated[index] = point;
+    onChange({ ...element, polygonPoints: updated });
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-h-[70vh] overflow-y-auto">
       {/* Name */}
       <div className="space-y-2">
         <Label htmlFor="edit-name">{t("common.name")}</Label>
@@ -639,6 +775,123 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
           onChange={(e) => onChange({ ...element, name: e.target.value })}
         />
       </div>
+
+      {/* Shape Selection */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-shape">{t("floorPlan.shape")}</Label>
+        <Select
+          value={element.shape}
+          onValueChange={(value) => {
+            const newShape = value as ElementShape;
+            if (newShape === "polygon" && !element.polygonPoints) {
+              // Initialize polygon points
+              const defaultPoints: Point[] = [
+                { x: 0, y: 0 },
+                { x: element.width, y: 0 },
+                { x: element.width, y: element.height },
+                { x: 0, y: element.height }
+              ];
+              onChange({ ...element, shape: newShape, polygonPoints: defaultPoints });
+            } else {
+              onChange({ ...element, shape: newShape });
+            }
+          }}
+        >
+          <SelectTrigger id="edit-shape">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="rectangle">
+              <div className="flex items-center gap-2">
+                <Square className="h-4 w-4" />
+                {t("floorPlan.shapes.rectangle")}
+              </div>
+            </SelectItem>
+            <SelectItem value="square">
+              <div className="flex items-center gap-2">
+                <Square className="h-4 w-4" />
+                {t("floorPlan.shapes.square")}
+              </div>
+            </SelectItem>
+            <SelectItem value="circle">
+              <div className="flex items-center gap-2">
+                <Circle className="h-4 w-4" />
+                {t("floorPlan.shapes.circle")}
+              </div>
+            </SelectItem>
+            <SelectItem value="oval">
+              <div className="flex items-center gap-2">
+                <Circle className="h-4 w-4" />
+                {t("floorPlan.shapes.oval")}
+              </div>
+            </SelectItem>
+            <SelectItem value="polygon">
+              <div className="flex items-center gap-2">
+                <Hexagon className="h-4 w-4" />
+                {t("floorPlan.shapes.polygon")}
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Polygon Editor */}
+      {element.shape === "polygon" && element.polygonPoints && (
+        <div className="space-y-2 border rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <Label>{t("floorPlan.polygonVertices")} ({element.polygonPoints.length})</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddPolygonVertex}
+              disabled={element.polygonPoints.length >= 20}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {element.polygonPoints.map((point, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <span className="text-xs w-8">{index + 1}</span>
+                <Input
+                  type="number"
+                  value={Math.round(point.x)}
+                  onChange={(e) =>
+                    handleUpdatePolygonVertex(index, {
+                      ...point,
+                      x: parseInt(e.target.value) || 0
+                    })
+                  }
+                  className="w-20"
+                  placeholder="X"
+                />
+                <Input
+                  type="number"
+                  value={Math.round(point.y)}
+                  onChange={(e) =>
+                    handleUpdatePolygonVertex(index, {
+                      ...point,
+                      y: parseInt(e.target.value) || 0
+                    })
+                  }
+                  className="w-20"
+                  placeholder="Y"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemovePolygonVertex(index)}
+                  disabled={element.polygonPoints!.length <= 3}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Table specific: Seats */}
       {element.type === "table" && (
@@ -659,22 +912,57 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
         </div>
       )}
 
-      {/* Zone specific: Color */}
+      {/* Zone specific: Color and Description */}
       {element.type === "zone" && (
-        <div className="space-y-2">
-          <Label htmlFor="edit-color">{t("common.color")}</Label>
-          <Input
-            id="edit-color"
-            type="color"
-            value={element.color || "#3B82F6"}
-            onChange={(e) => onChange({ ...element, color: e.target.value })}
-          />
-        </div>
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="edit-color">{t("common.color")}</Label>
+            <Input
+              id="edit-color"
+              type="color"
+              value={element.color || "#3B82F6"}
+              onChange={(e) => onChange({ ...element, color: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-description">{t("common.description")}</Label>
+            <Textarea
+              id="edit-description"
+              value={element.description || ""}
+              onChange={(e) => onChange({ ...element, description: e.target.value })}
+              rows={3}
+            />
+          </div>
+        </>
       )}
 
       {/* Special Area specific: Color and Type */}
       {element.type === "specialArea" && (
         <>
+          <div className="space-y-2">
+            <Label htmlFor="edit-area-type">{t("floorPlan.areaType")}</Label>
+            <Select
+              value={element.areaType || "other"}
+              onValueChange={(value) =>
+                onChange({ ...element, areaType: value as SpecialAreaType })
+              }
+            >
+              <SelectTrigger id="edit-area-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="entrance">{t("floorPlan.specialAreas.entrance")}</SelectItem>
+                <SelectItem value="exit">{t("floorPlan.specialAreas.exit")}</SelectItem>
+                <SelectItem value="kitchen">{t("floorPlan.specialAreas.kitchen")}</SelectItem>
+                <SelectItem value="restroom">{t("floorPlan.specialAreas.restroom")}</SelectItem>
+                <SelectItem value="bar">{t("floorPlan.specialAreas.bar")}</SelectItem>
+                <SelectItem value="stage">{t("floorPlan.specialAreas.stage")}</SelectItem>
+                <SelectItem value="storage">{t("floorPlan.specialAreas.storage")}</SelectItem>
+                <SelectItem value="dj_booth">{t("floorPlan.specialAreas.dj_booth")}</SelectItem>
+                <SelectItem value="other">{t("floorPlan.specialAreas.other")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="edit-area-color">{t("common.color")}</Label>
             <Input
@@ -687,12 +975,181 @@ function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFor
         </>
       )}
 
+      {/* Position and Size */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-2">
+          <Label htmlFor="edit-x">X</Label>
+          <Input
+            id="edit-x"
+            type="number"
+            value={Math.round(element.x)}
+            onChange={(e) => onChange({ ...element, x: parseInt(e.target.value) || 0 })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-y">Y</Label>
+          <Input
+            id="edit-y"
+            type="number"
+            value={Math.round(element.y)}
+            onChange={(e) => onChange({ ...element, y: parseInt(e.target.value) || 0 })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-width">{t("floorPlan.width")}</Label>
+          <Input
+            id="edit-width"
+            type="number"
+            min="10"
+            value={Math.round(element.width)}
+            onChange={(e) => onChange({ ...element, width: parseInt(e.target.value) || 10 })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit-height">{t("floorPlan.height")}</Label>
+          <Input
+            id="edit-height"
+            type="number"
+            min="10"
+            value={Math.round(element.height)}
+            onChange={(e) => onChange({ ...element, height: parseInt(e.target.value) || 10 })}
+          />
+        </div>
+      </div>
+
+      {/* Rotation */}
+      <div className="space-y-2">
+        <Label htmlFor="edit-rotation">{t("floorPlan.rotation")} (°)</Label>
+        <Input
+          id="edit-rotation"
+          type="number"
+          min="0"
+          max="360"
+          value={element.rotation}
+          onChange={(e) => onChange({ ...element, rotation: parseInt(e.target.value) || 0 })}
+        />
+      </div>
+
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
           {t("common.cancel")}
         </Button>
         <Button onClick={onSave}>{t("common.save")}</Button>
       </DialogFooter>
+    </div>
+  );
+}
+
+// Non-Interactive View Component
+interface NonInteractiveViewProps {
+  elements: FloorPlanElement[];
+  onEdit: (element: FloorPlanElement) => void;
+  onDelete: (id: string) => void;
+}
+
+function NonInteractiveView({ elements, onEdit, onDelete }: NonInteractiveViewProps) {
+  const { t } = useTranslations();
+  const [filterType, setFilterType] = useState<ElementType | "all">("all");
+
+  const filteredElements = elements.filter(
+    (e) => filterType === "all" || e.type === filterType
+  );
+
+  const tables = elements.filter((e) => e.type === "table");
+  const zones = elements.filter((e) => e.type === "zone");
+  const specialAreas = elements.filter((e) => e.type === "specialArea");
+
+  return (
+    <div className="flex flex-1 gap-4 overflow-hidden">
+      {/* List View */}
+      <Card className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-4">
+          {/* Filter Tabs */}
+          <div className="flex gap-2 border-b pb-2">
+            <Button
+              variant={filterType === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilterType("all")}
+            >
+              {t("common.all")}
+            </Button>
+            <Button
+              variant={filterType === "table" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilterType("table")}
+            >
+              {t("floorPlan.tables")} ({tables.length})
+            </Button>
+            <Button
+              variant={filterType === "zone" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilterType("zone")}
+            >
+              {t("floorPlan.zones")} ({zones.length})
+            </Button>
+            <Button
+              variant={filterType === "specialArea" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilterType("specialArea")}
+            >
+              {t("floorPlan.specialAreas.other")} ({specialAreas.length})
+            </Button>
+          </div>
+
+          {/* Elements List */}
+          <div className="space-y-2">
+            {filteredElements.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {t("common.empty")}
+              </div>
+            ) : (
+              filteredElements.map((element) => (
+                <Card key={element.id} className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div
+                        className="w-12 h-12 rounded border flex items-center justify-center text-xs font-semibold"
+                        style={{
+                          backgroundColor:
+                            element.type === "zone"
+                              ? element.color || "#3B82F6"
+                              : element.type === "specialArea"
+                                ? element.color || "#10B981"
+                                : "rgba(255, 255, 255, 0.95)",
+                          color:
+                            element.type === "zone" || element.type === "specialArea"
+                              ? "white"
+                              : "inherit"
+                        }}
+                      >
+                        {element.name.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold">{element.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {element.type === "table" && element.seats
+                            ? `${element.seats} ${t("common.seats")}`
+                            : element.type === "zone"
+                              ? `${t("floorPlan.zones")}`
+                              : t(`floorPlan.specialAreas.${element.areaType || "other"}`)}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => onEdit(element)}>
+                        {t("common.edit")}
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => onDelete(element.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

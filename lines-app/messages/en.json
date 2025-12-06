@@ -134,7 +134,10 @@
     "saving": "Saving...",
     "seats": "Seats",
     "name": "Name",
-    "color": "Color"
+    "color": "Color",
+    "all": "All",
+    "empty": "No items",
+    "description": "Description"
   },
   "errors": {
     "generic": "An unexpected error occurred",
@@ -274,6 +277,18 @@
     "venueCapacity": "Venue Capacity",
     "capacityTooSmall": "Venue capacity is smaller than total seating capacity",
     "interactiveView": "Interactive View",
-    "nonInteractiveView": "Non-Interactive View"
+    "nonInteractiveView": "Non-Interactive View",
+    "areaType": "Area Type",
+    "width": "Width",
+    "height": "Height",
+    "rotation": "Rotation",
+    "polygonVertices": "Polygon Vertices",
+    "shapes": {
+      "rectangle": "Rectangle",
+      "square": "Square",
+      "circle": "Circle",
+      "oval": "Oval",
+      "polygon": "Polygon"
+    }
   }
 }
