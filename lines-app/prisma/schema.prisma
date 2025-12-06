@@ -281,14 +281,14 @@ model VenueArea {
 
 model ReservationSettings {
   id                    String   @id @default(cuid())
-  venueId               String   @unique
-  acceptsReservations    Boolean  @default(false) // האם מקבל הזמנות
-  allowPersonalLink      Boolean  @default(false) // האם מאפשר הזמנה דרך לינק אישי
-  requireApproval        Boolean  @default(false) // אם מאפשר לינק אישי, האם צריך לאשר
-  manualRegistrationOnly Boolean  @default(true)  // אם לא לינק אישי, רישום ידני בלבד
-  manageWaitlist        Boolean  @default(false) // האם לנהל רשימת המתנה
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  venueId               String   @unique @map("venue_id")
+  acceptsReservations    Boolean  @default(false) @map("accepts_reservations") // האם מקבל הזמנות
+  allowPersonalLink      Boolean  @default(false) @map("allow_personal_link") // האם מאפשר הזמנה דרך לינק אישי
+  requireApproval        Boolean  @default(false) @map("require_approval") // אם מאפשר לינק אישי, האם צריך לאשר
+  manualRegistrationOnly Boolean  @default(true) @map("manual_registration_only") // אם לא לינק אישי, רישום ידני בלבד
+  manageWaitlist        Boolean  @default(false) @map("manage_waitlist") // האם לנהל רשימת המתנה
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
   // Relationships
   venue              Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
@@ -301,9 +301,9 @@ model ReservationSettings {
 
 model ReservationSettingsLineExclusion {
   id                    String   @id @default(cuid())
-  reservationSettingsId String
-  lineId                String
-  createdAt             DateTime @default(now())
+  reservationSettingsId String   @map("reservation_settings_id")
+  lineId                String   @map("line_id")
+  createdAt             DateTime @default(now()) @map("created_at")
 
   // Relationships
   reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
@@ -317,14 +317,14 @@ model ReservationSettingsLineExclusion {
 
 model ReservationSettingsDaySchedule {
   id                    String   @id @default(cuid())
-  reservationSettingsId String
-  dayOfWeek             Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
-  startTime             String   // HH:MM format (24-hour)
-  endTime               String   // HH:MM format (24-hour)
-  intervalMinutes       Int?     // מרווחים בדקות (אופציונלי)
-  customerMessage       String?  @db.Text // טקסט חופשי שיוצג ללקוח
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  reservationSettingsId String   @map("reservation_settings_id")
+  dayOfWeek             Int      @map("day_of_week") // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime             String   @map("start_time") // HH:MM format (24-hour)
+  endTime               String   @map("end_time") // HH:MM format (24-hour)
+  intervalMinutes       Int?     @map("interval_minutes") // מרווחים בדקות (אופציונלי)
+  customerMessage       String?  @db.Text @map("customer_message") // טקסט חופשי שיוצג ללקוח
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
   // Relationships
   reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
