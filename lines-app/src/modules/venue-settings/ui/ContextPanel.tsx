@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Edit, Trash2, X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import type { FloorPlanElement, SpecialAreaType } from "./FloorPlanEditorV2";
 import { AREA_TYPE_COLORS } from "../config/floorPlanDesignTokens";
@@ -21,7 +21,6 @@ interface ContextPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onToggle: () => void;
-  onEdit: (element: FloorPlanElement) => void;
   onDelete: (id: string) => void;
   onChange: (element: FloorPlanElement) => void;
   onSave: () => void;
@@ -30,7 +29,6 @@ interface ContextPanelProps {
 export function ContextPanel({
   element,
   onClose,
-  onEdit,
   onDelete,
   onChange,
   onSave
@@ -182,86 +180,7 @@ export function ContextPanel({
               </>
             )}
 
-            {/* Position & Size */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor="context-x" className="text-xs font-medium">
-                  X
-                </Label>
-                <Input
-                  id="context-x"
-                  type="number"
-                  value={Math.round(element.x)}
-                  onChange={(e) =>
-                    onChange({ ...element, x: parseFloat(e.target.value) || 0 })
-                  }
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="context-y" className="text-xs font-medium">
-                  Y
-                </Label>
-                <Input
-                  id="context-y"
-                  type="number"
-                  value={Math.round(element.y)}
-                  onChange={(e) =>
-                    onChange({ ...element, y: parseFloat(e.target.value) || 0 })
-                  }
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label htmlFor="context-width" className="text-xs font-medium">
-                  {t("floorPlan.width")}
-                </Label>
-                <Input
-                  id="context-width"
-                  type="number"
-                  min="20"
-                  value={Math.round(element.width)}
-                  onChange={(e) =>
-                    onChange({ ...element, width: parseFloat(e.target.value) || 20 })
-                  }
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="context-height" className="text-xs font-medium">
-                  {t("floorPlan.height")}
-                </Label>
-                <Input
-                  id="context-height"
-                  type="number"
-                  min="20"
-                  value={Math.round(element.height)}
-                  onChange={(e) =>
-                    onChange({ ...element, height: parseFloat(e.target.value) || 20 })
-                  }
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            {/* Rotation */}
-            <div>
-              <Label htmlFor="context-rotation" className="text-xs font-medium">
-                {t("floorPlan.rotation")} (°)
-              </Label>
-              <Input
-                id="context-rotation"
-                type="number"
-                value={Math.round(element.rotation || 0)}
-                onChange={(e) =>
-                  onChange({ ...element, rotation: parseFloat(e.target.value) || 0 })
-                }
-                className="mt-1"
-              />
-            </div>
+            {/* Position, Size, and Rotation are controlled by drag/resize - not editable here */}
 
             {/* Description */}
             <div>
@@ -283,26 +202,15 @@ export function ContextPanel({
             <Button onClick={onSave} className="w-full" size="sm">
               {t("common.save")}
             </Button>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => onEdit(element)}
-                className="flex-1"
-                size="sm"
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                {t("common.edit")}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => onDelete(element.id)}
-                className="flex-1"
-                size="sm"
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                {t("common.delete")}
-              </Button>
-            </div>
+            <Button
+              variant="destructive"
+              onClick={() => onDelete(element.id)}
+              className="w-full"
+              size="sm"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {t("common.delete")}
+            </Button>
           </div>
         </div>
     </div>

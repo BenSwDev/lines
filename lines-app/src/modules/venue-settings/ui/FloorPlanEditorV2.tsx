@@ -62,7 +62,6 @@ import { saveVenueTables } from "../actions/floorPlanActions";
 import { getAllTemplates } from "../utils/floorPlanTemplates";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
-import { ContextPanel } from "./ContextPanel";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AREA_TYPE_COLORS } from "../config/floorPlanDesignTokens";
 import { HistoryManager } from "../utils/historyManager";
@@ -166,11 +165,7 @@ export function FloorPlanEditorV2({
   // Zoom state
   const [zoom, setZoom] = useState(1);
   
-  // Right panel state (for collapsible panel)
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
-  
-  // Context panel state (opens when selecting an element)
-  const [contextPanelElement, setContextPanelElement] = useState<FloorPlanElement | null>(null);
+  // Context panel removed - using Edit Dialog instead
 
   // Drag state
   const [draggedElement, setDraggedElement] = useState<FloorPlanElement | null>(null);
@@ -581,33 +576,7 @@ export function FloorPlanEditorV2({
     setEditingElement(null);
   }, [editingElement, elements]);
   
-  // Save context panel element
-  const handleContextPanelSave = useCallback(() => {
-    // Element is already updated via handleContextPanelChange
-    // Just close the panel
-    setContextPanelElement(null);
-  }, []);
-  
-  // Handle context panel element changes
-  const handleContextPanelChange = useCallback((updatedElement: FloorPlanElement) => {
-    setContextPanelElement(updatedElement);
-    const newElements = elements.map((e) => (e.id === updatedElement.id ? updatedElement : e));
-    setElements(newElements);
-    autoSaveManagerRef.current?.schedule(newElements);
-  }, [elements]);
-  
-  // Update context panel when selection changes
-  useEffect(() => {
-    if (selectedElementId && selectedElementIds.size <= 1) {
-      const element = elements.find(e => e.id === selectedElementId);
-      setContextPanelElement(element || null);
-      if (element) {
-        setIsRightPanelOpen(true);
-      }
-    } else if (selectedElementIds.size === 0) {
-      setContextPanelElement(null);
-    }
-  }, [selectedElementId, selectedElementIds, elements]);
+  // Context panel removed - using Edit Dialog instead
 
   // Mouse down on element
   const handleElementMouseDown = useCallback(
@@ -1889,6 +1858,12 @@ export function FloorPlanEditorV2({
                   isInteractive={true}
                   onMouseDown={(e) => handleElementMouseDown(e, element)}
                   onDoubleClick={() => handleEditElement(element)}
+                  onEdit={() => {
+                    const elementToEdit = elements.find(e => e.id === element.id);
+                    if (elementToEdit) {
+                      handleEditElement(elementToEdit);
+                    }
+                  }}
                   onDelete={() => handleDeleteElement(element.id)}
                   onVertexDrag={(vertexIndex, newPoint) => {
                     setElements(
@@ -1919,37 +1894,7 @@ export function FloorPlanEditorV2({
           )}
         </div>
 
-      {/* Context Panel - Overlay Dialog (doesn't expand screen width) */}
-      {contextPanelElement && (
-        <Dialog open={isRightPanelOpen} onOpenChange={setIsRightPanelOpen}>
-          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {contextPanelElement.type === "table"
-                  ? t("floorPlan.editTable")
-                  : contextPanelElement.type === "zone"
-                    ? t("floorPlan.editZone")
-                    : t("floorPlan.editSpecialArea")}
-              </DialogTitle>
-            </DialogHeader>
-            <ContextPanel
-              element={contextPanelElement}
-              isOpen={true}
-              onClose={() => {
-                setIsRightPanelOpen(false);
-                setContextPanelElement(null);
-                setSelectedElementId(null);
-                setSelectedElementIds(new Set());
-              }}
-              onToggle={() => setIsRightPanelOpen(!isRightPanelOpen)}
-              onEdit={handleEditElement}
-              onDelete={handleDeleteElement}
-              onChange={handleContextPanelChange}
-              onSave={handleContextPanelSave}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Context Panel removed - using Edit Dialog instead when edit button is clicked */}
 
       {/* Template Selection Dialog */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
@@ -2156,6 +2101,7 @@ interface ElementRendererProps {
   onMouseDown: (e: React.MouseEvent) => void;
   onDoubleClick: () => void;
   onDelete: () => void;
+  onEdit?: () => void;
   onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;
   allElements?: FloorPlanElement[];
   onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate") => void;
@@ -2168,6 +2114,7 @@ function ElementRenderer({
   isInteractive,
   onMouseDown,
   onDoubleClick,
+  onEdit,
   onVertexDrag,
   allElements = [],
   onResizeStart,
@@ -2500,6 +2447,25 @@ function ElementRenderer({
           </div>
         )}
       </div>
+      {/* Edit button - always visible on hover/selection */}
+      {isInteractive && onEdit && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            onEdit();
+          }}
+          className="absolute top-1 right-1 z-20 flex items-center justify-center w-7 h-7 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:scale-110 transition-all duration-200 opacity-0 group-hover:opacity-100 data-[selected]:opacity-100 border-2 border-white"
+          data-selected={isSelected ? "" : undefined}
+          title="עריכה"
+          style={{
+            opacity: isSelected ? 1 : undefined
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      )}
       {isSelected && isInteractive && (
         <FreeTransform
           element={element}
