@@ -70,7 +70,7 @@ import { AutoSaveManager } from "../utils/autoSave";
 import { findAlignmentGuides, snapToGuides, calculateBounds, type AlignmentGuide } from "../utils/alignmentGuides";
 import { alignElements, distributeElements, resizeToSameSize, type AlignmentType, type DistributionType } from "../utils/bulkOperations";
 
-export type ElementShape = "rectangle" | "circle" | "triangle" | "polygon";
+export type ElementShape = "rectangle" | "circle" | "triangle" | "square" | "polygon";
 
 export type ElementType = "table" | "zone" | "specialArea" | "security" | "line";
 
@@ -643,8 +643,8 @@ export function FloorPlanEditorV2({
       if (!canvasRef.current || viewMode !== "interactive" || isDrawingPolygon) return;
       if (e.target !== canvasRef.current) return; // Only on canvas, not on elements
       
-      // Middle mouse button or Space + left click for panning
-      if (e.button === 1 || (e.button === 0 && (e as unknown as KeyboardEvent).code === "Space")) {
+      // Middle mouse button, right click, or Space + left click for panning
+      if (e.button === 1 || e.button === 2 || (e.button === 0 && (e as unknown as KeyboardEvent).code === "Space")) {
         e.preventDefault();
         setIsPanning(true);
         panStartRef.current = { x: e.clientX, y: e.clientY };
@@ -653,9 +653,10 @@ export function FloorPlanEditorV2({
       
       if (e.button !== 0) return; // Only left mouse button for selection
       
-      const rect = canvasRef.current.getBoundingClientRect();
-      const startX = (e.clientX - rect.left) / zoom;
-      const startY = (e.clientY - rect.top) / zoom;
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      if (!containerRect) return;
+      const startX = (e.clientX - containerRect.left - panOffset.x * zoom) / zoom;
+      const startY = (e.clientY - containerRect.top - panOffset.y * zoom) / zoom;
       
       setIsSelecting(true);
       setSelectionBox({ startX, startY, endX: startX, endY: startY });
@@ -669,22 +670,51 @@ export function FloorPlanEditorV2({
     [viewMode, isDrawingPolygon, zoom]
   );
   
-  // Mouse wheel zoom
+  // Mouse wheel zoom - improved with pan support
   useEffect(() => {
-    if (viewMode === "nonInteractive" || !canvasRef.current) return;
+    if (viewMode === "nonInteractive" || !containerRef.current) return;
     
     const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.1 : 0.1;
-        setZoom(prev => Math.max(0.5, Math.min(2, prev + delta)));
+      e.preventDefault();
+      
+      // Zoom with Ctrl/Cmd or Shift, Pan with regular wheel
+      if (e.ctrlKey || e.metaKey || e.shiftKey) {
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        const newZoom = Math.max(0.1, Math.min(5, zoom + delta));
+        
+        // Zoom towards mouse position
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          // Calculate zoom point in canvas coordinates
+          const zoomPointX = (mouseX / zoom - panOffset.x);
+          const zoomPointY = (mouseY / zoom - panOffset.y);
+          
+          // Adjust pan to keep zoom point under mouse
+          const newPanX = mouseX / newZoom - zoomPointX;
+          const newPanY = mouseY / newZoom - zoomPointY;
+          
+          setPanOffset({ x: newPanX, y: newPanY });
+        }
+        
+        setZoom(newZoom);
+      } else {
+        // Pan with regular wheel
+        const deltaX = e.deltaX * 0.5;
+        const deltaY = e.deltaY * 0.5;
+        setPanOffset(prev => ({
+          x: prev.x - deltaX / zoom,
+          y: prev.y - deltaY / zoom
+        }));
       }
     };
     
-    const canvas = canvasRef.current;
-    canvas.addEventListener("wheel", handleWheel, { passive: false });
-    return () => canvas.removeEventListener("wheel", handleWheel);
-  }, [viewMode]);
+    const container = containerRef.current;
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, [viewMode, zoom, panOffset]);
 
   // Handle rotate start
   const handleRotateStart = useCallback(
@@ -876,13 +906,14 @@ export function FloorPlanEditorV2({
     if (viewMode === "nonInteractive") return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
+      const containerRect = containerRef.current?.getBoundingClientRect();
+      if (!containerRect) return;
 
-      const canvasX = (e.clientX - rect.left) / zoom - panOffset.x;
-      const canvasY = (e.clientY - rect.top) / zoom - panOffset.y;
+      // Calculate canvas coordinates accounting for pan and zoom
+      const canvasX = (e.clientX - containerRect.left - panOffset.x * zoom) / zoom;
+      const canvasY = (e.clientY - containerRect.top - panOffset.y * zoom) / zoom;
       
-      // Handle panning (Space + drag or middle mouse button)
+      // Handle panning (Space + drag or middle mouse button or right click drag)
       if (isPanning && panStartRef.current) {
         const deltaX = (e.clientX - panStartRef.current.x) / zoom;
         const deltaY = (e.clientY - panStartRef.current.y) / zoom;
@@ -1233,9 +1264,11 @@ export function FloorPlanEditorV2({
       setIsResizing(false);
       setResizeHandle(null);
       setIsRotating(false);
+      setIsPanning(false);
+      panStartRef.current = null;
     };
 
-    if (isDragging || isResizing || isRotating || isSelecting) {
+    if (isDragging || isResizing || isRotating || isSelecting || isPanning) {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
 
@@ -1697,22 +1730,28 @@ export function FloorPlanEditorV2({
             <>
               <Card ref={containerRef} className="relative flex-1 overflow-hidden p-4">
                 <div
-            ref={canvasRef}
-            className="relative h-full w-full cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
-            style={{
-              width: `${canvasSize.width || 800}px`,
-              height: `${canvasSize.height || 600}px`,
-              transform: `scale(${zoom})`,
-              transformOrigin: "top left",
-              backgroundImage: showGrid
-                ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                   linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
-                : undefined,
-              backgroundSize: `${20 / zoom}px ${20 / zoom}px`
-            }}
-            onClick={handleCanvasClick}
-            onMouseDown={handleCanvasMouseDown}
-          >
+                  className="relative w-full h-full overflow-auto"
+                  style={{ cursor: isPanning ? "grabbing" : "grab" }}
+                >
+                  <div
+                    ref={canvasRef}
+                    className="relative cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
+                    style={{
+                      minWidth: "5000px",
+                      minHeight: "5000px",
+                      width: "5000px",
+                      height: "5000px",
+                      transform: `translate(${panOffset.x * zoom}px, ${panOffset.y * zoom}px) scale(${zoom})`,
+                      transformOrigin: "0 0",
+                      backgroundImage: showGrid
+                        ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                           linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
+                        : undefined,
+                      backgroundSize: `${20 / zoom}px ${20 / zoom}px`
+                    }}
+                    onClick={handleCanvasClick}
+                    onMouseDown={handleCanvasMouseDown}
+                  >
             {/* Selection Box */}
             {isSelecting && selectionBox && (
               <div
@@ -1904,6 +1943,7 @@ export function FloorPlanEditorV2({
                   onRotateStart={(e) => handleRotateStart(e, element)}
                 />
               ))}
+                  </div>
                 </div>
               </Card>
             </>

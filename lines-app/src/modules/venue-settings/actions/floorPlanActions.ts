@@ -14,7 +14,7 @@ export type TableItem = {
   width: number;
   height: number;
   rotation: number;
-  shape: "rectangle" | "circle" | "triangle" | "polygon";
+  shape: "rectangle" | "circle" | "triangle" | "square" | "polygon";
   zoneId?: string;
   color?: string;
   polygonPoints?: { x: number; y: number }[];

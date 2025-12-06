@@ -11,6 +11,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
+
+// Helper to get RTL-aware classes
+const getRTLClasses = (dir: "ltr" | "rtl") => ({
+  flexReverse: dir === "rtl" ? "flex-row-reverse" : "",
+  spaceX: dir === "rtl" ? "space-x-reverse" : "",
+  iconMargin: dir === "rtl" ? "ml-2" : "mr-2",
+  justifyEnd: dir === "rtl" ? "justify-start" : "justify-end",
+  textAlign: dir === "rtl" ? "text-right" : "text-left"
+});
 import {
   getReservationSettings,
   updateReservationSettings,
@@ -38,7 +47,8 @@ export function ReservationSettingsTab() {
   const params = useParams();
   const venueId = params.venueId as string;
   const { toast } = useToast();
-  const { t } = useTranslations();
+  const { t, dir } = useTranslations();
+  const rtlClasses = getRTLClasses(dir);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -226,8 +236,8 @@ export function ReservationSettingsTab() {
           <CardDescription>{t("reservations.generalSettingsDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
+          <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
+            <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
               <Label htmlFor="acceptsReservations" className="text-base">
                 {t("reservations.acceptsReservations")}
               </Label>
@@ -244,8 +254,8 @@ export function ReservationSettingsTab() {
 
           {acceptsReservations && (
             <>
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+              <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
+                <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
                   <Label htmlFor="manageWaitlist" className="text-base">
                     {t("reservations.manageWaitlist")}
                   </Label>
@@ -278,8 +288,8 @@ export function ReservationSettingsTab() {
             <CardDescription>{t("reservations.personalLinkSettingsDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="relative z-10 space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
+            <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
+              <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
                 <Label htmlFor="allowPersonalLink" className="text-base">
                   {t("reservations.allowPersonalLink")}
                 </Label>
@@ -303,8 +313,8 @@ export function ReservationSettingsTab() {
             </div>
 
             {allowPersonalLink && (
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
+              <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
+                <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
                   <Label htmlFor="requireApproval" className="text-base">
                     {t("reservations.requireApproval")}
                   </Label>
@@ -349,7 +359,7 @@ export function ReservationSettingsTab() {
           </CardHeader>
           <CardContent className="relative z-10 space-y-3">
             {lines.map((line) => (
-              <div key={line.id} className="flex items-center space-x-3">
+              <div key={line.id} className={`flex items-center ${rtlClasses.flexReverse} ${rtlClasses.spaceX} gap-3`}>
                 <Checkbox
                   id={`line-${line.id}`}
                   checked={excludedLineIds.includes(line.id)}
@@ -357,7 +367,7 @@ export function ReservationSettingsTab() {
                 />
                 <Label
                   htmlFor={`line-${line.id}`}
-                  className="flex-1 cursor-pointer text-sm font-medium"
+                  className={`flex-1 cursor-pointer text-sm font-medium ${rtlClasses.textAlign}`}
                 >
                   {line.name}
                 </Label>
@@ -385,11 +395,11 @@ export function ReservationSettingsTab() {
               const schedule = getDaySchedule(day.value);
               return (
                 <div key={day.value} className="space-y-4 rounded-lg border p-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-semibold">{day.label}</Label>
+                  <div className={`flex items-center justify-between ${rtlClasses.textAlign}`}>
+                    <Label className={`text-base font-semibold ${rtlClasses.textAlign}`}>{day.label}</Label>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${rtlClasses.textAlign}`}>
                       <Label htmlFor={`startTime-${day.value}`} className="text-sm">
                         {t("reservations.startTime")}
                       </Label>
@@ -398,9 +408,11 @@ export function ReservationSettingsTab() {
                         type="time"
                         value={schedule.startTime}
                         onChange={(e) => updateDaySchedule(day.value, "startTime", e.target.value)}
+                        dir="ltr"
+                        className={rtlClasses.textAlign}
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${rtlClasses.textAlign}`}>
                       <Label htmlFor={`endTime-${day.value}`} className="text-sm">
                         {t("reservations.endTime")}
                       </Label>
@@ -409,9 +421,11 @@ export function ReservationSettingsTab() {
                         type="time"
                         value={schedule.endTime}
                         onChange={(e) => updateDaySchedule(day.value, "endTime", e.target.value)}
+                        dir="ltr"
+                        className={rtlClasses.textAlign}
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className={`space-y-2 ${rtlClasses.textAlign}`}>
                       <Label htmlFor={`interval-${day.value}`} className="text-sm">
                         {t("reservations.intervalMinutes")} ({t("reservations.optional")})
                       </Label>
@@ -428,9 +442,11 @@ export function ReservationSettingsTab() {
                             e.target.value ? parseInt(e.target.value, 10) : null
                           )
                         }
+                        dir="ltr"
+                        className={rtlClasses.textAlign}
                       />
                     </div>
-                    <div className="space-y-2 md:col-span-2">
+                    <div className={`space-y-2 md:col-span-2 ${rtlClasses.textAlign}`}>
                       <Label htmlFor={`message-${day.value}`} className="text-sm">
                         {t("reservations.customerMessage")} ({t("reservations.optional")})
                       </Label>
@@ -442,6 +458,8 @@ export function ReservationSettingsTab() {
                           updateDaySchedule(day.value, "customerMessage", e.target.value || null)
                         }
                         rows={2}
+                        dir={dir}
+                        className={rtlClasses.textAlign}
                       />
                     </div>
                   </div>
@@ -453,16 +471,16 @@ export function ReservationSettingsTab() {
       )}
 
       {/* Submit Button */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isSaving} size="lg">
+      <div className={`flex ${rtlClasses.justifyEnd}`}>
+        <Button type="submit" disabled={isSaving} size="lg" className={rtlClasses.flexReverse}>
           {isSaving ? (
             <>
-              <Clock className="mr-2 h-4 w-4 animate-spin" />
+              <Clock className={`${rtlClasses.iconMargin} h-4 w-4 animate-spin`} />
               {t("common.saving")}
             </>
           ) : (
             <>
-              <Settings2 className="mr-2 h-4 w-4" />
+              <Settings2 className={`${rtlClasses.iconMargin} h-4 w-4`} />
               {t("common.save")}
             </>
           )}
