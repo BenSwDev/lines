@@ -166,16 +166,27 @@ export function FloorPlanEditorV2({
   const [draggedElement, setDraggedElement] = useState<FloorPlanElement | null>(null);
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const dragElementsStartPosRef = useRef<Map<string, { x: number; y: number }>>(new Map());
-  const animationFrameRef = useRef<number | null>(null);
+  const dragAnimationFrameRef = useRef<number | null>(null);
   
   // Resize state - support all 8 handles
   const [isResizing, setIsResizing] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<"nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | null>(null);
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0, elementX: 0, elementY: 0 });
+  const resizeStartRef = useRef<{ 
+    mouseX: number; 
+    mouseY: number; 
+    width: number; 
+    height: number; 
+    elementX: number; 
+    elementY: number;
+    elementWidth: number;
+    elementHeight: number;
+  } | null>(null);
+  const resizeAnimationFrameRef = useRef<number | null>(null);
   
   // Rotate state
   const [isRotating, setIsRotating] = useState(false);
-  const [rotateStart, setRotateStart] = useState({ angle: 0, centerX: 0, centerY: 0 });
+  const rotateStartRef = useRef<{ angle: number; centerX: number; centerY: number; startAngle: number } | null>(null);
+  const rotateAnimationFrameRef = useRef<number | null>(null);
 
   // Calculate canvas size to fit container
   useEffect(() => {
@@ -292,6 +303,10 @@ export function FloorPlanEditorV2({
   const handleElementMouseDown = useCallback(
     (e: React.MouseEvent, element: FloorPlanElement) => {
       if (viewMode === "nonInteractive") return;
+      
+      // Don't start drag if we're already resizing or rotating
+      if (isResizing || isRotating) return;
+      
       e.stopPropagation();
       e.preventDefault();
       
@@ -339,7 +354,7 @@ export function FloorPlanEditorV2({
       setIsDragging(true);
       setDraggedElement(element);
     },
-    [viewMode, selectedElementIds, elements, zoom]
+    [viewMode, selectedElementIds, elements, zoom, isResizing, isRotating]
   );
   
   // Handle canvas mouse down for selection box
@@ -373,18 +388,30 @@ export function FloorPlanEditorV2({
       setSelectedElementId(element.id);
       setIsRotating(true);
       setDraggedElement(element);
+      
       const rect = canvasRef.current?.getBoundingClientRect();
       if (rect) {
+        // Calculate mouse position relative to canvas (accounting for zoom)
+        const mouseX = (e.clientX - rect.left) / zoom;
+        const mouseY = (e.clientY - rect.top) / zoom;
+        
         const centerX = element.x + element.width / 2;
         const centerY = element.y + element.height / 2;
-        setRotateStart({
+        
+        // Calculate initial angle from center to mouse
+        const dx = mouseX - centerX;
+        const dy = mouseY - centerY;
+        const startAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        rotateStartRef.current = {
           angle: element.rotation,
           centerX: centerX,
-          centerY: centerY
-        });
+          centerY: centerY,
+          startAngle: startAngle
+        };
       }
     },
-    []
+    [zoom]
   );
 
   // Handle resize start - support all 8 handles (not rotate)
@@ -396,20 +423,35 @@ export function FloorPlanEditorV2({
       }
       e.stopPropagation();
       e.preventDefault();
+      
+      // Prevent drag when resizing
+      setIsDragging(false);
+      dragStartPosRef.current = null;
+      
       setSelectedElementId(element.id);
       setIsResizing(true);
       setResizeHandle(handle);
       setDraggedElement(element);
-      setResizeStart({
-        x: e.clientX,
-        y: e.clientY,
-        width: element.width,
-        height: element.height,
-        elementX: element.x,
-        elementY: element.y
-      });
+      
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (rect) {
+        // Calculate mouse position relative to canvas (accounting for zoom)
+        const mouseX = (e.clientX - rect.left) / zoom;
+        const mouseY = (e.clientY - rect.top) / zoom;
+        
+        resizeStartRef.current = {
+          mouseX: mouseX,
+          mouseY: mouseY,
+          width: element.width,
+          height: element.height,
+          elementX: element.x,
+          elementY: element.y,
+          elementWidth: element.width,
+          elementHeight: element.height
+        };
+      }
     },
-    [handleRotateStart]
+    [handleRotateStart, zoom]
   );
 
   // Keyboard shortcuts
@@ -495,14 +537,14 @@ export function FloorPlanEditorV2({
       }
 
       // Handle dragging with requestAnimationFrame for smooth performance
-      if (isDragging && draggedElement && dragStartPosRef.current) {
+      if (isDragging && draggedElement && dragStartPosRef.current && !isResizing && !isRotating) {
         // Cancel previous animation frame
-        if (animationFrameRef.current !== null) {
-          cancelAnimationFrame(animationFrameRef.current);
+        if (dragAnimationFrameRef.current !== null) {
+          cancelAnimationFrame(dragAnimationFrameRef.current);
         }
         
         // Use requestAnimationFrame for smooth dragging
-        animationFrameRef.current = requestAnimationFrame(() => {
+        dragAnimationFrameRef.current = requestAnimationFrame(() => {
           // Calculate delta from drag start
           const deltaX = canvasX - dragStartPosRef.current!.x;
           const deltaY = canvasY - dragStartPosRef.current!.y;
@@ -582,130 +624,179 @@ export function FloorPlanEditorV2({
         return;
       }
 
-      // Handle resizing - support all 8 handles
-      if (isResizing && resizeHandle && draggedElement) {
-        const deltaX = canvasX - resizeStart.x;
-        const deltaY = canvasY - resizeStart.y;
-        let newWidth = resizeStart.width;
-        let newHeight = resizeStart.height;
-        let newX = resizeStart.elementX;
-        let newY = resizeStart.elementY;
-
-        // Handle corner resizing
-        if (resizeHandle === "se") {
-          // Southeast - bottom right
-          newWidth = Math.max(20, resizeStart.width + deltaX);
-          newHeight = Math.max(20, resizeStart.height + deltaY);
-        } else if (resizeHandle === "sw") {
-          // Southwest - bottom left
-          newWidth = Math.max(20, resizeStart.width - deltaX);
-          newHeight = Math.max(20, resizeStart.height + deltaY);
-          newX = resizeStart.elementX + deltaX;
-        } else if (resizeHandle === "ne") {
-          // Northeast - top right
-          newWidth = Math.max(20, resizeStart.width + deltaX);
-          newHeight = Math.max(20, resizeStart.height - deltaY);
-          newY = resizeStart.elementY + deltaY;
-        } else if (resizeHandle === "nw") {
-          // Northwest - top left
-          newWidth = Math.max(20, resizeStart.width - deltaX);
-          newHeight = Math.max(20, resizeStart.height - deltaY);
-          newX = resizeStart.elementX + deltaX;
-          newY = resizeStart.elementY + deltaY;
+      // Handle resizing - support all 8 handles with requestAnimationFrame
+      if (isResizing && resizeHandle && draggedElement && resizeStartRef.current) {
+        // Cancel previous animation frame
+        if (resizeAnimationFrameRef.current !== null) {
+          cancelAnimationFrame(resizeAnimationFrameRef.current);
         }
-        // Handle edge resizing
-        else if (resizeHandle === "n") {
-          // North - top edge
-          newHeight = Math.max(20, resizeStart.height - deltaY);
-          newY = resizeStart.elementY + deltaY;
-        } else if (resizeHandle === "s") {
-          // South - bottom edge
-          newHeight = Math.max(20, resizeStart.height + deltaY);
-        } else if (resizeHandle === "e") {
-          // East - right edge
-          newWidth = Math.max(20, resizeStart.width + deltaX);
-        } else if (resizeHandle === "w") {
-          // West - left edge
-          newWidth = Math.max(20, resizeStart.width - deltaX);
-          newX = resizeStart.elementX + deltaX;
-        }
+        
+        // Use requestAnimationFrame for smooth resizing
+        resizeAnimationFrameRef.current = requestAnimationFrame(() => {
+          const start = resizeStartRef.current!;
+          const deltaX = canvasX - start.mouseX;
+          const deltaY = canvasY - start.mouseY;
+          
+          let newWidth = start.elementWidth;
+          let newHeight = start.elementHeight;
+          let newX = start.elementX;
+          let newY = start.elementY;
 
-        // Snap to grid if enabled
-        if (showGrid) {
-          newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
-          newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
-          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-        }
+          // Handle corner resizing
+          if (resizeHandle === "se") {
+            // Southeast - bottom right
+            newWidth = Math.max(20, start.elementWidth + deltaX);
+            newHeight = Math.max(20, start.elementHeight + deltaY);
+          } else if (resizeHandle === "sw") {
+            // Southwest - bottom left
+            newWidth = Math.max(20, start.elementWidth - deltaX);
+            newHeight = Math.max(20, start.elementHeight + deltaY);
+            newX = start.elementX + deltaX;
+          } else if (resizeHandle === "ne") {
+            // Northeast - top right
+            newWidth = Math.max(20, start.elementWidth + deltaX);
+            newHeight = Math.max(20, start.elementHeight - deltaY);
+            newY = start.elementY + deltaY;
+          } else if (resizeHandle === "nw") {
+            // Northwest - top left
+            newWidth = Math.max(20, start.elementWidth - deltaX);
+            newHeight = Math.max(20, start.elementHeight - deltaY);
+            newX = start.elementX + deltaX;
+            newY = start.elementY + deltaY;
+          }
+          // Handle edge resizing
+          else if (resizeHandle === "n") {
+            // North - top edge
+            newHeight = Math.max(20, start.elementHeight - deltaY);
+            newY = start.elementY + deltaY;
+          } else if (resizeHandle === "s") {
+            // South - bottom edge
+            newHeight = Math.max(20, start.elementHeight + deltaY);
+          } else if (resizeHandle === "e") {
+            // East - right edge
+            newWidth = Math.max(20, start.elementWidth + deltaX);
+          } else if (resizeHandle === "w") {
+            // West - left edge
+            newWidth = Math.max(20, start.elementWidth - deltaX);
+            newX = start.elementX + deltaX;
+          }
 
-        // Constrain to canvas bounds
-        newX = Math.max(0, newX);
-        newY = Math.max(0, newY);
-        if (newX + newWidth > canvasSize.width) {
-          newWidth = canvasSize.width - newX;
-        }
-        if (newY + newHeight > canvasSize.height) {
-          newHeight = canvasSize.height - newY;
-        }
+          // Snap to grid if enabled
+          if (showGrid) {
+            newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
+            newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
+            newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+            newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+          }
 
-        // Update element position and size
-        const updatedElement = {
-          ...draggedElement,
-          x: newX,
-          y: newY,
-          width: newWidth,
-          height: newHeight
-        };
+          // Constrain to canvas bounds
+          newX = Math.max(0, newX);
+          newY = Math.max(0, newY);
+          if (newX + newWidth > canvasSize.width) {
+            newWidth = canvasSize.width - newX;
+          }
+          if (newY + newHeight > canvasSize.height) {
+            newHeight = canvasSize.height - newY;
+          }
 
-        // If resizing a table, check if it's still inside a zone
-        let newZoneId: string | undefined = undefined;
-        if (updatedElement.type === "table") {
-          const zones = elements.filter((el) => el.type === "zone");
-          const containingZone = findContainingZone(updatedElement, zones);
-          newZoneId = containingZone?.id;
-        }
+          // Update element position and size
+          const updatedElement = {
+            ...draggedElement,
+            x: newX,
+            y: newY,
+            width: newWidth,
+            height: newHeight
+          };
 
-        setElements(
-          elements.map((el) =>
-            el.id === draggedElement.id
-              ? {
-                  ...updatedElement,
-                  zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
-                }
-              : el
-          )
-        );
+          // If resizing a table, check if it's still inside a zone
+          let newZoneId: string | undefined = undefined;
+          if (updatedElement.type === "table") {
+            const zones = elements.filter((el) => el.type === "zone");
+            const containingZone = findContainingZone(updatedElement, zones);
+            newZoneId = containingZone?.id;
+          }
+
+          setElements((prevElements) =>
+            prevElements.map((el) =>
+              el.id === draggedElement.id
+                ? {
+                    ...updatedElement,
+                    zoneId: newZoneId !== undefined ? newZoneId : el.zoneId
+                  }
+                : el
+            )
+          );
+          
+          // Update dragged element for visual feedback
+          setDraggedElement((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              x: newX,
+              y: newY,
+              width: newWidth,
+              height: newHeight
+            };
+          });
+        });
         return;
       }
 
-      // Handle rotating
-      if (isRotating && draggedElement && rotateStart) {
-        const centerX = rotateStart.centerX;
-        const centerY = rotateStart.centerY;
-        const dx = canvasX - centerX;
-        const dy = canvasY - centerY;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90; // +90 to start from top
-        const normalizedAngle = ((angle % 360) + 360) % 360;
+      // Handle rotating with requestAnimationFrame
+      if (isRotating && draggedElement && rotateStartRef.current) {
+        // Cancel previous animation frame
+        if (rotateAnimationFrameRef.current !== null) {
+          cancelAnimationFrame(rotateAnimationFrameRef.current);
+        }
+        
+        // Use requestAnimationFrame for smooth rotation
+        rotateAnimationFrameRef.current = requestAnimationFrame(() => {
+          const start = rotateStartRef.current!;
+          const centerX = start.centerX;
+          const centerY = start.centerY;
+          const dx = canvasX - centerX;
+          const dy = canvasY - centerY;
+          const currentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+          const angleDelta = currentAngle - start.startAngle;
+          const normalizedAngle = ((start.angle + angleDelta) % 360 + 360) % 360;
 
-        setElements(
-          elements.map((el) =>
-            el.id === draggedElement.id
-              ? {
-                  ...el,
-                  rotation: normalizedAngle
-                }
-              : el
-          )
-        );
+          setElements((prevElements) =>
+            prevElements.map((el) =>
+              el.id === draggedElement.id
+                ? {
+                    ...el,
+                    rotation: normalizedAngle
+                  }
+                : el
+            )
+          );
+          
+          // Update dragged element for visual feedback
+          setDraggedElement((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              rotation: normalizedAngle
+            };
+          });
+        });
         return;
       }
     };
 
     const handleMouseUp = () => {
-      // Cancel any pending animation frame
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
+      // Cancel any pending animation frames
+      if (dragAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(dragAnimationFrameRef.current);
+        dragAnimationFrameRef.current = null;
+      }
+      if (resizeAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(resizeAnimationFrameRef.current);
+        resizeAnimationFrameRef.current = null;
+      }
+      if (rotateAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(rotateAnimationFrameRef.current);
+        rotateAnimationFrameRef.current = null;
       }
       
       // Handle selection box completion
@@ -742,6 +833,16 @@ export function FloorPlanEditorV2({
         dragElementsStartPosRef.current.clear();
       }
       
+      // Clean up resize state
+      if (isResizing) {
+        resizeStartRef.current = null;
+      }
+      
+      // Clean up rotate state
+      if (isRotating) {
+        rotateStartRef.current = null;
+      }
+      
       setIsDragging(false);
       setDraggedElement(null);
       setIsResizing(false);
@@ -758,13 +859,19 @@ export function FloorPlanEditorV2({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, isRotating, isSelecting, selectionBox, draggedElement, resizeHandle, resizeStart, rotateStart, elements, canvasSize, viewMode, showGrid, zoom, selectedElementIds, selectedElementId]);
+  }, [isDragging, isResizing, isRotating, isSelecting, selectionBox, draggedElement, resizeHandle, elements, canvasSize, viewMode, showGrid, zoom, selectedElementIds, selectedElementId]);
   
   // Cleanup animation frame on unmount
   useEffect(() => {
     return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (dragAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(dragAnimationFrameRef.current);
+      }
+      if (resizeAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(resizeAnimationFrameRef.current);
+      }
+      if (rotateAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(rotateAnimationFrameRef.current);
       }
     };
   }, []);
