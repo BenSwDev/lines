@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +48,7 @@ import {
 } from "lucide-react";
 import { useLayoutStore } from "../store/layoutStore";
 import { DEFAULT_LAYOUT_DATA } from "../utils/layoutUtils";
+import { ElementConfigDialog } from "./ElementConfigDialog";
 import type {
   VenueLayout,
   ZoneVisual,
@@ -85,6 +85,17 @@ export function SeatingLayoutEditor({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedAreaType, setSelectedAreaType] = useState<AreaType>("kitchen");
+  
+  // New state for improved flow
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawStart, setDrawStart] = useState<Position | null>(null);
+  const [drawEnd, setDrawEnd] = useState<Position | null>(null);
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [pendingElement, setPendingElement] = useState<{
+    element: ZoneVisual | TableVisual | VenueAreaVisual;
+    type: "zone" | "table" | "area";
+  } | null>(null);
+  const [isCanvasExpanded, setIsCanvasExpanded] = useState(true);
 
   const {
     layout,
@@ -194,7 +205,9 @@ export function SeatingLayoutEditor({
     selectElement,
     setToolMode,
     toggleGrid,
-    setZoom
+    setZoom,
+    updateLayout,
+    pushToHistory
   ]);
 
   // Snap to grid helper
@@ -206,120 +219,187 @@ export function SeatingLayoutEditor({
     [showGrid]
   );
 
-  // Create element at point
-  const createElementAtPoint = useCallback(
-    (point: Position) => {
+  // Create element by drawing (drag to draw)
+  const createElementByDrawing = useCallback(
+    (start: Position, end: Position) => {
+      const width = Math.abs(end.x - start.x);
+      const height = Math.abs(end.y - start.y);
+      const minSize = 20;
+      
+      if (width < minSize || height < minSize) return;
+      
+      const position = {
+        x: Math.min(start.x, end.x),
+        y: Math.min(start.y, end.y)
+      };
+      
+      // Collapse canvas when drawing
+      setIsCanvasExpanded(false);
+      
       if (toolMode === "zone") {
         const newZone: ZoneVisual = {
           id: `zone-${Date.now()}`,
           name: `אזור ${layout.zones.length + 1}`,
-          color: `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`,
-          position: point,
-          dimensions: { width: 200, height: 150 },
+          color: "#3b82f6",
+          position,
+          dimensions: { width, height },
           rotation: 0,
           shape: "rectangle"
         };
-        updateLayout((prev) => ({
-          ...prev,
-          zones: [...prev.zones, newZone]
-        }));
-        selectElement(newZone.id);
-        pushToHistory();
-        setToolMode("select");
+        setPendingElement({ element: newZone, type: "zone" });
+        setConfigDialogOpen(true);
       } else if (toolMode === "table") {
         const newTable: TableVisual = {
           id: `table-${Date.now()}`,
           name: `שולחן ${layout.tables.length + 1}`,
           seats: 4,
-          position: point,
-          dimensions: { width: 80, height: 80 },
+          position,
+          dimensions: { width, height },
           rotation: 0,
           shape: "rectangle",
           tableType: "table",
           zoneId: ""
         };
-        updateLayout((prev) => ({
-          ...prev,
-          tables: [...prev.tables, newTable]
-        }));
-        selectElement(newTable.id);
-        pushToHistory();
-        setToolMode("select");
+        setPendingElement({ element: newTable, type: "table" });
+        setConfigDialogOpen(true);
       } else if (toolMode === "entrance" || toolMode === "exit") {
         const newArea: VenueAreaVisual = {
           id: `area-${Date.now()}`,
           name: toolMode === "entrance" ? "כניסה" : "יציאה",
           areaType: toolMode === "entrance" ? "entrance" : "exit",
-          position: point,
-          dimensions: { width: 100, height: 40 },
+          position,
+          dimensions: { width, height },
           rotation: 0,
           shape: "rectangle",
           icon: "door-open",
           color: toolMode === "entrance" ? "#10b981" : "#ef4444"
         };
-        updateLayout((prev) => ({
-          ...prev,
-          areas: [...prev.areas, newArea]
-        }));
-        selectElement(newArea.id);
-        pushToHistory();
-        setToolMode("select");
+        setPendingElement({ element: newArea, type: "area" });
+        setConfigDialogOpen(true);
       } else if (toolMode === "area") {
         const newArea: VenueAreaVisual = {
           id: `area-${Date.now()}`,
           name: getAreaTypeLabel(selectedAreaType),
           areaType: selectedAreaType,
-          position: point,
-          dimensions: { width: 150, height: 150 },
+          position,
+          dimensions: { width, height },
           rotation: 0,
           shape: "rectangle",
           icon: getAreaIcon(selectedAreaType),
           color: getAreaColor(selectedAreaType)
         };
-        updateLayout((prev) => ({
-          ...prev,
-          areas: [...prev.areas, newArea]
-        }));
-        selectElement(newArea.id);
-        pushToHistory();
-        setToolMode("select");
+        setPendingElement({ element: newArea, type: "area" });
+        setConfigDialogOpen(true);
       }
     },
-    [toolMode, layout, selectedAreaType, updateLayout, selectElement, pushToHistory, setToolMode]
+    [toolMode, layout, selectedAreaType]
+  );
+  
+  // Handle config dialog save
+  const handleConfigSave = useCallback(
+    (config: Partial<ZoneVisual | TableVisual | VenueAreaVisual>) => {
+      if (!pendingElement) return;
+      
+      const updatedElement = { ...pendingElement.element, ...config };
+      
+      if (pendingElement.type === "zone") {
+        updateLayout((prev) => ({
+          ...prev,
+          zones: [...prev.zones, updatedElement as ZoneVisual]
+        }));
+        selectElement(updatedElement.id);
+      } else if (pendingElement.type === "table") {
+        updateLayout((prev) => ({
+          ...prev,
+          tables: [...prev.tables, updatedElement as TableVisual]
+        }));
+        selectElement(updatedElement.id);
+      } else if (pendingElement.type === "area") {
+        updateLayout((prev) => ({
+          ...prev,
+          areas: [...prev.areas, updatedElement as VenueAreaVisual]
+        }));
+        selectElement(updatedElement.id);
+      }
+      
+      pushToHistory();
+      setToolMode("select");
+      setPendingElement(null);
+      setConfigDialogOpen(false);
+      setIsCanvasExpanded(true);
+    },
+    [pendingElement, updateLayout, selectElement, pushToHistory, setToolMode]
   );
 
-  // Get mouse position relative to stage
-  const getStagePoint = useCallback(
-    (e: { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }): Position => {
+
+  // Handle drawing start
+  const handleDrawingStart = useCallback(
+    (e: { evt: { button: number }; target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+      if (viewMode === "view" || isPanning || toolMode === "select") return;
+      if (e.evt.button !== 0) return; // Only left mouse button
+      
       const stage = e.target.getStage();
-      if (!stage) return { x: 0, y: 0 };
+      if (!stage) return;
       const point = stage.getPointerPosition();
-      if (!point) return { x: 0, y: 0 };
-      return {
+      if (!point) return;
+      
+      const canvasPoint = {
         x: snapToGrid((point.x - panOffset.x) / zoom),
         y: snapToGrid((point.y - panOffset.y) / zoom)
       };
+      
+      setIsDrawing(true);
+      setDrawStart(canvasPoint);
+      setDrawEnd(canvasPoint);
     },
-    [zoom, panOffset, snapToGrid]
+    [viewMode, isPanning, toolMode, zoom, panOffset, snapToGrid]
   );
-
-  // Handle stage click
+  
+  // Handle drawing move
+  const handleDrawingMove = useCallback(
+    (e: { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
+      if (!isDrawing || !drawStart) return;
+      
+      const stage = e.target.getStage();
+      if (!stage) return;
+      const point = stage.getPointerPosition();
+      if (!point) return;
+      
+      const canvasPoint = {
+        x: snapToGrid((point.x - panOffset.x) / zoom),
+        y: snapToGrid((point.y - panOffset.y) / zoom)
+      };
+      
+      setDrawEnd(canvasPoint);
+    },
+    [isDrawing, drawStart, zoom, panOffset, snapToGrid]
+  );
+  
+  // Handle drawing end
+  const handleDrawingEnd = useCallback(() => {
+      if (!isDrawing || !drawStart || !drawEnd) return;
+      
+      createElementByDrawing(drawStart, drawEnd);
+      
+      setIsDrawing(false);
+      setDrawStart(null);
+      setDrawEnd(null);
+    },
+    [isDrawing, drawStart, drawEnd, createElementByDrawing]
+  );
+  
+  // Handle stage click (for selection only)
   const handleStageClick = useCallback(
     (e: { target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
-      if (viewMode === "view" || isPanning) return;
+      if (viewMode === "view" || isPanning || isDrawing) return;
 
-      // Check if clicked on stage (not on an element) - in Konva, if target is stage, getStage() returns the stage itself
       const stage = e.target.getStage();
       const clickedOnEmpty = stage && (e.target as unknown) === stage;
       if (clickedOnEmpty) {
         selectElement(null);
-
-        // Create new element based on tool mode
-        const point = getStagePoint(e);
-        createElementAtPoint(point);
       }
     },
-    [viewMode, isPanning, getStagePoint, selectElement, createElementAtPoint]
+    [viewMode, isPanning, isDrawing, selectElement]
   );
 
   // Handle element drag
@@ -358,6 +438,82 @@ export function SeatingLayoutEditor({
     selectElement(null);
     pushToHistory();
   }, [selectedElementId, updateLayout, selectElement, pushToHistory]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (viewMode === "view") return;
+
+      // Ctrl/Cmd + Z: Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo()) undo();
+      }
+
+      // Ctrl/Cmd + Shift + Z: Redo
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) {
+        e.preventDefault();
+        if (canRedo()) redo();
+      }
+
+      // Delete: Remove selected element
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedElementId) {
+        handleDelete();
+      }
+
+      // Escape: Deselect
+      if (e.key === "Escape") {
+        selectElement(null);
+        setToolMode("select");
+      }
+
+      // V: Select tool
+      if (e.key === "v" && !e.ctrlKey && !e.metaKey) {
+        setToolMode("select");
+      }
+
+      // Z: Zone tool
+      if (e.key === "z" && !e.ctrlKey && !e.metaKey) {
+        setToolMode("zone");
+      }
+
+      // T: Table tool
+      if (e.key === "t" && !e.ctrlKey && !e.metaKey) {
+        setToolMode("table");
+      }
+
+      // G: Toggle grid
+      if (e.key === "g" && !e.ctrlKey && !e.metaKey) {
+        toggleGrid();
+      }
+
+      // +/-: Zoom
+      if (e.key === "+" || e.key === "=") {
+        setZoom(zoom + ZOOM_STEP);
+      }
+      if (e.key === "-") {
+        setZoom(zoom - ZOOM_STEP);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    viewMode,
+    selectedElementId,
+    zoom,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+    selectElement,
+    setToolMode,
+    toggleGrid,
+    setZoom,
+    updateLayout,
+    pushToHistory,
+    handleDelete
+  ]);
 
   // Handle save
   const handleSave = async () => {
@@ -656,7 +812,13 @@ export function SeatingLayoutEditor({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex h-[calc(100vh-200px)] flex-col gap-4">
+      <motion.div
+        className="flex flex-col gap-4"
+        animate={{
+          height: isCanvasExpanded ? "calc(100vh - 200px)" : "calc(100vh - 400px)"
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
         {/* Professional Toolbar */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -737,11 +899,11 @@ export function SeatingLayoutEditor({
             </TooltipProvider>
           </div>
 
-          {/* Center: Tools */}
+          {/* Center: Element Type Dropdown */}
           {viewMode === "edit" && (
             <div className="flex items-center gap-2">
               <Separator orientation="vertical" className="h-6" />
-
+              
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -759,110 +921,83 @@ export function SeatingLayoutEditor({
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={toolMode === "zone" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setToolMode("zone")}
-                      className="gap-2"
-                    >
+              <Select
+                value={toolMode === "select" ? "select" : toolMode}
+                onValueChange={(v) => {
+                  if (v === "select") {
+                    setToolMode("select");
+                  } else if (v === "zone") {
+                    setToolMode("zone");
+                  } else if (v === "table") {
+                    setToolMode("table");
+                  } else if (v === "entrance") {
+                    setToolMode("entrance");
+                  } else if (v === "exit") {
+                    setToolMode("exit");
+                  } else if (v === "area") {
+                    setToolMode("area");
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="בחר סוג אלמנט" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="zone">
+                    <div className="flex items-center gap-2">
                       <Square className="h-4 w-4" />
-                      אזור
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>הוסף אזור (Z)</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={toolMode === "table" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setToolMode("table")}
-                      className="gap-2"
-                    >
+                      <span>אזור</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="table">
+                    <div className="flex items-center gap-2">
                       <RectangleHorizontal className="h-4 w-4" />
-                      שולחן
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>הוסף שולחן (T)</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={toolMode === "entrance" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setToolMode("entrance")}
-                      className="gap-2"
-                    >
+                      <span>שולחן</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="entrance">
+                    <div className="flex items-center gap-2">
                       <DoorOpen className="h-4 w-4" />
-                      כניסה
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>הוסף כניסה</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={toolMode === "exit" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setToolMode("exit")}
-                      className="gap-2"
-                    >
+                      <span>כניסה</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="exit">
+                    <div className="flex items-center gap-2">
                       <DoorOpen className="h-4 w-4 rotate-180" />
-                      יציאה
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>הוסף יציאה</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant={toolMode === "area" ? "default" : "outline"} size="sm" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    אזורים
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64">
-                  <div className="space-y-3">
-                    <Label>סוג אזור</Label>
-                    <Select
-                      value={selectedAreaType}
-                      onValueChange={(v) => setSelectedAreaType(v as AreaType)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="kitchen">מטבח</SelectItem>
-                        <SelectItem value="restroom">שירותים</SelectItem>
-                        <SelectItem value="dj_booth">עמדת דיג׳יי</SelectItem>
-                        <SelectItem value="stage">במה</SelectItem>
-                        <SelectItem value="storage">מחסן</SelectItem>
-                        <SelectItem value="bar">בר</SelectItem>
-                        <SelectItem value="dance_floor">רחבת ריקודים</SelectItem>
-                        <SelectItem value="vip">VIP</SelectItem>
-                        <SelectItem value="outdoor">חוץ</SelectItem>
-                        <SelectItem value="other">אחר</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button className="w-full" onClick={() => setToolMode("area")}>
-                      הוסף אזור
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                      <span>יציאה</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="area">
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span>אזור מיוחד</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {toolMode === "area" && (
+                <Select
+                  value={selectedAreaType}
+                  onValueChange={(v) => setSelectedAreaType(v as AreaType)}
+                >
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kitchen">מטבח</SelectItem>
+                    <SelectItem value="restroom">שירותים</SelectItem>
+                    <SelectItem value="dj_booth">עמדת דיג׳יי</SelectItem>
+                    <SelectItem value="stage">במה</SelectItem>
+                    <SelectItem value="storage">מחסן</SelectItem>
+                    <SelectItem value="bar">בר</SelectItem>
+                    <SelectItem value="dance_floor">רחבת ריקודים</SelectItem>
+                    <SelectItem value="vip">VIP</SelectItem>
+                    <SelectItem value="outdoor">חוץ</SelectItem>
+                    <SelectItem value="other">אחר</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
 
@@ -1088,18 +1223,40 @@ export function SeatingLayoutEditor({
           )}
         </AnimatePresence>
 
-        {/* Canvas Container */}
-        <div
+        {/* Canvas Container - Takes almost full page */}
+        <motion.div
           ref={containerRef}
           className="relative flex-1 overflow-hidden rounded-lg border-2 border-border/50 bg-gradient-to-br from-muted/30 to-muted/10 shadow-xl"
+          animate={{
+            minHeight: isCanvasExpanded ? "calc(100vh - 300px)" : "400px"
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
         >
           <Stage
             ref={stageRef}
             width={containerRef.current?.clientWidth || canvasWidth}
             height={containerRef.current?.clientHeight || canvasHeight}
-            onMouseDown={handlePanStart}
-            onMouseMove={handlePanMove}
-            onMouseUp={handlePanEnd}
+            onMouseDown={(e) => {
+              if (e.evt.ctrlKey || e.evt.metaKey) {
+                handlePanStart(e);
+              } else if (toolMode !== "select") {
+                handleDrawingStart(e);
+              }
+            }}
+            onMouseMove={(e) => {
+              if (isPanning) {
+                handlePanMove(e);
+              } else if (isDrawing) {
+                handleDrawingMove(e);
+              }
+            }}
+            onMouseUp={() => {
+              if (isPanning) {
+                handlePanEnd();
+              } else if (isDrawing) {
+                handleDrawingEnd();
+              }
+            }}
             onWheel={(e: { evt: { preventDefault: () => void; deltaY: number }; target: { getStage: () => { getPointerPosition: () => { x: number; y: number } | null } | null } }) => {
               e.evt.preventDefault();
               const scaleBy = 1.1;
@@ -1155,9 +1312,40 @@ export function SeatingLayoutEditor({
 
               {/* Areas */}
               {renderAreas()}
+              
+              {/* Drawing preview */}
+              {isDrawing && drawStart && drawEnd && (
+                <Rect
+                  x={Math.min(drawStart.x, drawEnd.x)}
+                  y={Math.min(drawStart.y, drawEnd.y)}
+                  width={Math.abs(drawEnd.x - drawStart.x)}
+                  height={Math.abs(drawEnd.y - drawStart.y)}
+                  fill="rgba(59, 130, 246, 0.2)"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dash={[5, 5]}
+                  listening={false}
+                />
+              )}
             </Layer>
           </Stage>
-
+          
+          {/* Element Config Dialog */}
+          {pendingElement && (
+            <ElementConfigDialog
+              open={configDialogOpen}
+              onClose={() => {
+                setConfigDialogOpen(false);
+                setPendingElement(null);
+                setIsCanvasExpanded(true);
+                setToolMode("select");
+              }}
+              onSave={handleConfigSave}
+              element={pendingElement.element}
+              elementType={pendingElement.type}
+            />
+          )}
+          
           {/* Canvas Info Overlay */}
           <div className="absolute bottom-4 left-4 rounded-lg bg-background/90 px-3 py-2 text-xs shadow-lg backdrop-blur-sm">
             <div className="flex items-center gap-4">
@@ -1172,7 +1360,7 @@ export function SeatingLayoutEditor({
               </Badge>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Properties Panel */}
         <AnimatePresence>
@@ -1223,7 +1411,7 @@ export function SeatingLayoutEditor({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </motion.div>
     </DndProvider>
   );
 
