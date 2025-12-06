@@ -44,3 +44,4 @@ CREATE TABLE IF NOT EXISTS reservation_settings_day_schedules (
 
 CREATE INDEX IF NOT EXISTS idx_reservation_settings_day_schedules_settings_id ON reservation_settings_day_schedules(reservation_settings_id);
 
+

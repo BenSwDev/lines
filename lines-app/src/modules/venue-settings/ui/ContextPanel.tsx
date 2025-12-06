@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { ChevronRight, ChevronLeft, Edit, Trash2, X } from "lucide-react";
+import { Edit, Trash2, X } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import type { FloorPlanElement, SpecialAreaType } from "./FloorPlanEditorV2";
 import { AREA_TYPE_COLORS } from "../config/floorPlanDesignTokens";
@@ -30,9 +29,7 @@ interface ContextPanelProps {
 
 export function ContextPanel({
   element,
-  isOpen,
   onClose,
-  onToggle,
   onEdit,
   onDelete,
   onChange,
@@ -42,18 +39,9 @@ export function ContextPanel({
 
   if (!element) return null;
 
-  const panelWidth = isOpen ? "280px" : "48px";
-
   return (
-    <Card
-      className="flex-shrink-0 transition-all duration-300 overflow-hidden"
-      style={{
-        width: panelWidth,
-        boxShadow: "2px 0 8px rgba(0, 0, 0, 0.1)"
-      }}
-    >
-      {isOpen ? (
-        <div className="flex flex-col h-full">
+    <div className="w-full">
+      <div className="flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <h3 className="font-semibold text-sm">
@@ -63,24 +51,14 @@ export function ContextPanel({
                   ? t("floorPlan.editZone")
                   : t("floorPlan.editSpecialArea")}
             </h3>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onToggle}
-                className="h-6 w-6 p-0"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Content */}
@@ -327,19 +305,7 @@ export function ContextPanel({
             </div>
           </div>
         </div>
-      ) : (
-        <div className="flex flex-col items-center p-2 h-full">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggle}
-            className="h-8 w-8 p-0"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-    </Card>
+    </div>
   );
 }
 

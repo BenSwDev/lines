@@ -94,3 +94,4 @@ export function validateLayout(layout: unknown): layout is VenueLayout {
     Array.isArray(obj.areas)
   );
 }
+

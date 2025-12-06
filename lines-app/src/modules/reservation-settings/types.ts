@@ -35,3 +35,4 @@ export type ReservationSettingsInput = {
   excludedLineIds: string[];
   daySchedules: ReservationSettingsDayScheduleInput[];
 };
+

@@ -80,3 +80,4 @@ export default function ReservationsPage() {
 - `docs/FEATURE_SPECS/reservations.md` - Full feature specification
 - `docs/DATA_MODEL.md` - Database schema
 - `docs/API_REFERENCE.md` - API endpoints
+

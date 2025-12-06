@@ -167,7 +167,9 @@
     "duplicated": "שוכפל",
     "duplicatedDescription": "{count} אלמנטים שוכפלו",
     "templateLoaded": "טמפלט נטען",
-    "templateLoadedDescription": "הטמפלט {name} נטען בהצלחה"
+    "templateLoadedDescription": "הטמפלט {name} נטען בהצלחה",
+    "exported": "הוצא",
+    "exportedDescription": "המפה הוצאה בהצלחה"
   },
   "reservations": {
     "title": "הגדרות הזמנות",

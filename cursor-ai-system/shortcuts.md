@@ -91,3 +91,4 @@ To add new shortcuts:
 - Shortcuts can be combined with file paths (e.g., "review code quality on src/modules/auth")
 - All shortcuts respect the approval workflow
 
+

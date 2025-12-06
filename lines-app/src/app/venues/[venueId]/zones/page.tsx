@@ -22,3 +22,4 @@ export default async function VenueZonesPage({ params }: Props) {
 
   return <ZonesPage venueId={venueId} venueName={venueResult.data.name} />;
 }
+

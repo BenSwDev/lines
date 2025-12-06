@@ -6,3 +6,4 @@ Capture rules for keeping product documentation up to date when agents run.
 - Update `../setup.md` if introducing new mandatory doc-sync behaviors.
 
 
+

@@ -162,7 +162,9 @@
     "venueCreated": "Venue created successfully",
     "venueDeleted": "Venue deleted successfully",
     "templateLoaded": "Template loaded",
-    "templateLoadedDescription": "Template {name} loaded successfully"
+    "templateLoadedDescription": "Template {name} loaded successfully",
+    "exported": "Exported",
+    "exportedDescription": "Floor plan exported successfully"
   },
   "reservations": {
     "title": "Reservation Settings",

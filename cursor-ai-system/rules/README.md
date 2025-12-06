@@ -6,3 +6,4 @@ Store strong/global rules and guardrails for Cursor here.
 - If rule changes affect the master behavior, reflect the update in `../setup.md`.
 
 
+
