@@ -25,9 +25,9 @@ interface FreeTransformProps {
   scale?: number; // Zoom scale
 }
 
-const HANDLE_SIZE = 8;
+const HANDLE_SIZE = 10; // Increased from 8 for better interactivity
 const HANDLE_OFFSET = -HANDLE_SIZE / 2;
-const ROTATE_HANDLE_OFFSET = 25;
+const ROTATE_HANDLE_OFFSET = 30; // Increased from 25 for better reach
 
 export function FreeTransform({
   element,
@@ -96,7 +96,9 @@ export function FreeTransform({
     borderRadius: "50%",
     cursor: "nwse-resize",
     zIndex: 1000,
-    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    transition: "all 0.1s ease",
+    userSelect: "none"
   };
 
   const edgeHandleStyle: React.CSSProperties = {
@@ -107,7 +109,9 @@ export function FreeTransform({
   const rotateHandleStyle: React.CSSProperties = {
     ...handleStyle,
     backgroundColor: "#10B981",
-    cursor: "grab"
+    cursor: "grab",
+    width: `${handleSize * 1.2}px`, // Slightly larger for better visibility
+    height: `${handleSize * 1.2}px`
   };
 
   return (

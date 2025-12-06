@@ -806,7 +806,32 @@ export function FloorPlanEditorV2({
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (!canvasRef.current || viewMode !== "interactive" || isDrawingPolygon) return;
-      if (e.target !== canvasRef.current) return; // Only on canvas, not on elements
+      
+      // Check if click is on canvas (not on an element)
+      // If target is not the canvas itself, it might be an element - check by position
+      const target = e.target as HTMLElement;
+      const isDirectCanvasClick = target === canvasRef.current;
+      
+      // If not direct canvas click, check if we clicked on empty space
+      if (!isDirectCanvasClick) {
+        // Check if click is on an element by position
+        const canvasPos = screenToCanvas(e.clientX, e.clientY);
+        const clickedElement = elements.find(el => {
+          if (el.type === "zone" && el.polygonPoints) {
+            // For polygon zones, we'll handle separately if needed
+            return false;
+          }
+          return (
+            canvasPos.x >= el.x &&
+            canvasPos.x <= el.x + el.width &&
+            canvasPos.y >= el.y &&
+            canvasPos.y <= el.y + el.height
+          );
+        });
+        
+        // If clicked on an element, let element handler deal with it
+        if (clickedElement) return;
+      }
       
       // Middle mouse button, right click, or Space + left click for panning
       if (e.button === 1 || e.button === 2 || (e.button === 0 && (e as unknown as KeyboardEvent).code === "Space")) {
@@ -818,9 +843,35 @@ export function FloorPlanEditorV2({
       
       if (e.button !== 0) return; // Only left mouse button for selection
       
+      // Get canvas position for selection box or panning
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const startX = canvasPos.x;
       const startY = canvasPos.y;
+      
+      // If no elements are selected and clicking on empty canvas, start panning
+      const hasSelection = selectedElementId !== null || selectedElementIds.size > 0;
+      if (!hasSelection) {
+        // Double-check that we're not clicking on an element
+        const clickedElement = elements.find(el => {
+          if (el.type === "zone" && el.polygonPoints) {
+            // For polygon zones, simplified check
+            return false;
+          }
+          return (
+            startX >= el.x &&
+            startX <= el.x + el.width &&
+            startY >= el.y &&
+            startY <= el.y + el.height
+          );
+        });
+        
+        if (!clickedElement) {
+          e.preventDefault();
+          setIsPanning(true);
+          panStartRef.current = { x: e.clientX, y: e.clientY };
+          return;
+        }
+      }
       
       setIsSelecting(true);
       setSelectionBox({ startX, startY, endX: startX, endY: startY });
@@ -832,7 +883,7 @@ export function FloorPlanEditorV2({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [viewMode, isDrawingPolygon, screenToCanvas]
+    [viewMode, isDrawingPolygon, screenToCanvas, selectedElementId, selectedElementIds, elements]
   );
   
   // Mouse wheel zoom - professional implementation like Excalidraw
@@ -855,11 +906,11 @@ export function FloorPlanEditorV2({
         const worldX = (mouseX - panOffset.x) / zoom;
         const worldY = (mouseY - panOffset.y) / zoom;
         
-        // Calculate new zoom (smooth zoom factor)
+        // Calculate new zoom (smooth zoom factor) - no minimum limit for infinite canvas
         const zoomFactor = 1.1;
         const newZoom = e.deltaY > 0 
-          ? Math.max(0.1, zoom / zoomFactor)
-          : Math.min(5, zoom * zoomFactor);
+          ? Math.max(0.01, zoom / zoomFactor) // Allow very small zoom for infinite canvas
+          : Math.min(10, zoom * zoomFactor); // Increased max zoom
         
         // Adjust pan to keep zoom point under mouse
         const newPanX = mouseX - worldX * newZoom;
@@ -2379,14 +2430,6 @@ export function FloorPlanEditorV2({
                       <Pencil className="mr-2 h-4 w-4" />
                       {t("floorPlan.shapes.polygon")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsFullscreen(!isFullscreen)}>
-                      {isFullscreen ? (
-                        <Minimize2 className="mr-2 h-4 w-4" />
-                      ) : (
-                        <Maximize2 className="mr-2 h-4 w-4" />
-                      )}
-                      {isFullscreen ? t("floorPlan.exitFullscreen") : t("floorPlan.fullscreen")}
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TooltipTrigger>
@@ -2629,6 +2672,94 @@ export function FloorPlanEditorV2({
                     position: "relative"
                   }}
                 >
+                  {/* Canvas Controls - Top Right */}
+                  <div
+                    className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setZoom(prev => Math.min(10, prev * 1.2))}
+                        >
+                          <ZoomIn className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
+                          <div className="text-xs">Ctrl/Cmd + Scroll</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setZoom(prev => Math.max(0.01, prev / 1.2))}
+                        >
+                          <ZoomOut className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
+                          <div className="text-xs">Ctrl/Cmd + Scroll</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => {
+                            setZoom(1);
+                            setPanOffset({ x: 0, y: 0 });
+                          }}
+                        >
+                          <Grid className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">איפוס זום</div>
+                          <div className="text-xs">החזר לזום 100%</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <div className="h-6 w-px bg-border mx-1" />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => setIsFullscreen(!isFullscreen)}
+                        >
+                          {isFullscreen ? (
+                            <Minimize2 className="h-4 w-4" />
+                          ) : (
+                            <Maximize2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">
+                            {isFullscreen ? t("floorPlan.exitFullscreen") : t("floorPlan.fullscreen")}
+                          </div>
+                          <div className="text-xs">F11</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   {/* Ruler - Top */}
                   {showRuler && (
                     <div
@@ -3263,6 +3394,88 @@ export function FloorPlanEditorV2({
               className="flex-1 overflow-hidden relative"
               style={{ cursor: isPanning ? "grabbing" : "grab" }}
             >
+              {/* Canvas Controls - Top Right (Same position as normal view) */}
+              <div
+                className="absolute top-2 right-2 z-[1002] flex items-center gap-2 bg-background/90 backdrop-blur-sm border rounded-lg p-1 shadow-lg"
+                style={{ pointerEvents: "auto" }}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setZoom(prev => Math.min(10, prev * 1.2))}
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
+                      <div className="text-xs">Ctrl/Cmd + Scroll</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setZoom(prev => Math.max(0.01, prev / 1.2))}
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
+                      <div className="text-xs">Ctrl/Cmd + Scroll</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        setZoom(1);
+                        setPanOffset({ x: 0, y: 0 });
+                      }}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">איפוס זום</div>
+                      <div className="text-xs">החזר לזום 100%</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <div className="h-6 w-px bg-border mx-1" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setIsFullscreen(false)}
+                    >
+                      <Minimize2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.exitFullscreen")}</div>
+                      <div className="text-xs">F11</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <div
                 ref={canvasRef}
                 className="absolute cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40"
