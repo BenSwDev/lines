@@ -10,8 +10,48 @@ export interface VenueTemplate {
   defaultCapacity: number;
 }
 
+// Default canvas size
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
+
+// Helper function to scale coordinates to fit canvas
+function scaleToCanvas(elements: FloorPlanElement[], targetWidth: number, targetHeight: number): FloorPlanElement[] {
+  if (elements.length === 0) return elements;
+  
+  // Find bounds of all elements
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  
+  elements.forEach(el => {
+    minX = Math.min(minX, el.x);
+    minY = Math.min(minY, el.y);
+    maxX = Math.max(maxX, el.x + el.width);
+    maxY = Math.max(maxY, el.y + el.height);
+  });
+  
+  const sourceWidth = maxX - minX;
+  const sourceHeight = maxY - minY;
+  
+  // Calculate scale factor (with padding)
+  const padding = 40;
+  const scaleX = (targetWidth - padding * 2) / sourceWidth;
+  const scaleY = (targetHeight - padding * 2) / sourceHeight;
+  const scale = Math.min(scaleX, scaleY);
+  
+  // Scale all elements
+  return elements.map(el => ({
+    ...el,
+    x: (el.x - minX) * scale + padding,
+    y: (el.y - minY) * scale + padding,
+    width: el.width * scale,
+    height: el.height * scale
+  }));
+}
+
 // Event Hall Template - Large space with round tables
-export const eventHallTemplate: VenueTemplate = {
+const eventHallTemplateRaw: VenueTemplate = {
   id: "event_hall",
   name: "אולם אירועים",
   description: "מבנה בסיסי לאולם אירועים עם שולחנות עגולים",
@@ -44,13 +84,13 @@ export const eventHallTemplate: VenueTemplate = {
       shape: "rectangle",
       color: "#3B82F6"
     },
-    // Round tables (8 seats each)
-    ...Array.from({ length: 20 }, (_, i) => ({
+    // Round tables (8 seats each) - reduced to 12 tables
+    ...Array.from({ length: 12 }, (_, i) => ({
       id: `table-${i + 1}`,
       type: "table" as ElementType,
       name: `שולחן ${i + 1}`,
-      x: 300 + (i % 5) * 150,
-      y: 100 + Math.floor(i / 5) * 120,
+      x: 300 + (i % 4) * 180,
+      y: 100 + Math.floor(i / 4) * 150,
       width: 100,
       height: 100,
       rotation: 0,
@@ -104,7 +144,7 @@ export const eventHallTemplate: VenueTemplate = {
 };
 
 // Bar Template - Bar counters and high tables
-export const barTemplate: VenueTemplate = {
+const barTemplateRaw: VenueTemplate = {
   id: "bar",
   name: "בר",
   description: "מבנה בסיסי לבר עם דלפקים ושולחנות גבוהים",
@@ -138,8 +178,8 @@ export const barTemplate: VenueTemplate = {
       tableType: "bar",
       seats: 20
     },
-    // High tables
-    ...Array.from({ length: 12 }, (_, i) => ({
+    // High tables - reduced to 8 tables
+    ...Array.from({ length: 8 }, (_, i) => ({
       id: `table-${i + 1}`,
       type: "table" as ElementType,
       name: `שולחן ${i + 1}`,
@@ -170,7 +210,7 @@ export const barTemplate: VenueTemplate = {
 };
 
 // Club Template - Dance floor and VIP areas
-export const clubTemplate: VenueTemplate = {
+const clubTemplateRaw: VenueTemplate = {
   id: "club",
   name: "מועדון",
   description: "מבנה בסיסי למועדון עם רחבת ריקודים ואזורי VIP",
@@ -217,13 +257,13 @@ export const clubTemplate: VenueTemplate = {
       areaType: "dj_booth" as SpecialAreaType,
       color: "#8B5CF6"
     },
-    // VIP tables
-    ...Array.from({ length: 8 }, (_, i) => ({
+    // VIP tables - reduced to 6 tables
+    ...Array.from({ length: 6 }, (_, i) => ({
       id: `table-vip-${i + 1}`,
       type: "table" as ElementType,
       name: `VIP ${i + 1}`,
-      x: 750 + (i % 4) * 120,
-      y: 250 + Math.floor(i / 4) * 150,
+      x: 750 + (i % 3) * 120,
+      y: 250 + Math.floor(i / 3) * 150,
       width: 80,
       height: 80,
       rotation: 0,
@@ -248,7 +288,7 @@ export const clubTemplate: VenueTemplate = {
 };
 
 // Restaurant Template - Tables and booths
-export const restaurantTemplate: VenueTemplate = {
+const restaurantTemplateRaw: VenueTemplate = {
   id: "restaurant",
   name: "מסעדה",
   description: "מבנה בסיסי למסעדה עם שולחנות וקיוסקים",
@@ -281,13 +321,13 @@ export const restaurantTemplate: VenueTemplate = {
       shape: "rectangle",
       color: "#3B82F6"
     },
-    // Tables (2-4 seats)
-    ...Array.from({ length: 24 }, (_, i) => ({
+    // Tables (2-4 seats) - reduced to 15 tables
+    ...Array.from({ length: 15 }, (_, i) => ({
       id: `table-${i + 1}`,
       type: "table" as ElementType,
       name: `שולחן ${i + 1}`,
-      x: 250 + (i % 6) * 120,
-      y: 150 + Math.floor(i / 6) * 100,
+      x: 250 + (i % 5) * 120,
+      y: 150 + Math.floor(i / 5) * 100,
       width: 80,
       height: 80,
       rotation: 0,
@@ -326,6 +366,27 @@ export const restaurantTemplate: VenueTemplate = {
   ]
 };
 
+// Scale all templates to fit default canvas size
+export const eventHallTemplate: VenueTemplate = {
+  ...eventHallTemplateRaw,
+  elements: scaleToCanvas(eventHallTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
+export const barTemplate: VenueTemplate = {
+  ...barTemplateRaw,
+  elements: scaleToCanvas(barTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
+export const clubTemplate: VenueTemplate = {
+  ...clubTemplateRaw,
+  elements: scaleToCanvas(clubTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
+export const restaurantTemplate: VenueTemplate = {
+  ...restaurantTemplateRaw,
+  elements: scaleToCanvas(restaurantTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
 // Empty template
 export const emptyTemplate: VenueTemplate = {
   id: "empty",
@@ -350,4 +411,3 @@ export function getTemplate(type: VenueTemplateType): VenueTemplate {
 export function getAllTemplates(): VenueTemplate[] {
   return Object.values(templates);
 }
-
