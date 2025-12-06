@@ -36,8 +36,9 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
       setIsLoading(true);
       const layoutResult = await loadVenueLayout(venueId);
       if (layoutResult.success) {
-        // Type guard: when success is true, data exists and is VenueLayout
-        const layoutData = (layoutResult as { success: true; data: VenueLayout }).data;
+        // Type assertion: when success is true, data is guaranteed to be VenueLayout
+        // Using unknown first as TypeScript requires for safe type conversion
+        const layoutData = (layoutResult as unknown as { success: true; data: VenueLayout }).data;
         // Normalize ensures layoutData always exists with all required fields
         const normalized = normalizeLayout(layoutData);
         setLayout(normalized);
