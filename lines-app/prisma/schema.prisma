@@ -84,11 +84,12 @@ model VerificationToken {
 // ============================================================================
 
 model Venue {
-  id        String   @id @default(cuid())
-  name      String
-  userId    String   // Owner of the venue
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  userId     String   // Owner of the venue
+  layoutData Json?    // Overall floor plan dimensions, scale, grid settings
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relationships
   user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -97,6 +98,7 @@ model Venue {
   zones        Zone[]
   lines        Line[]
   occurrences  LineOccurrence[]
+  areas        VenueArea[]
 
   @@index([userId])
   @@map("venues")
@@ -142,19 +144,27 @@ model Menu {
 // ============================================================================
 
 model Zone {
-  id          String   @id @default(cuid())
-  venueId     String
-  name        String
-  color       String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  venueId       String
+  name          String
+  color         String
+  description   String?
+  // Visual layout properties
+  positionX     Decimal? @db.Decimal(10, 2)
+  positionY     Decimal? @db.Decimal(10, 2)
+  width         Decimal? @db.Decimal(10, 2)
+  height        Decimal? @db.Decimal(10, 2)
+  shape         String?  @default("rectangle") // rectangle, circle, polygon
+  polygonPoints Json?    // For custom polygon shapes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relationships
   venue  Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
   tables Table[]
 
   @@index([venueId])
+  @@index([venueId, positionX, positionY])
   @@map("zones")
 }
 
@@ -164,6 +174,14 @@ model Table {
   name      String
   seats     Int?
   notes     String?
+  // Visual layout properties
+  positionX Decimal? @db.Decimal(10, 2)
+  positionY Decimal? @db.Decimal(10, 2)
+  width     Decimal? @db.Decimal(10, 2)
+  height    Decimal? @db.Decimal(10, 2)
+  rotation  Decimal? @default(0) @db.Decimal(5, 2) // Rotation in degrees
+  shape     String?  @default("rectangle") // rectangle, circle, oval, square
+  tableType String?  @default("table") // table, bar, counter
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -171,6 +189,7 @@ model Table {
   zone Zone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
 
   @@index([zoneId])
+  @@index([zoneId, positionX, positionY])
   @@map("tables")
 }
 
@@ -225,6 +244,33 @@ model LineOccurrence {
   @@index([lineId])
   @@index([date])
   @@map("line_occurrences")
+}
+
+// ============================================================================
+// VENUE AREAS (Special areas: entrances, exits, kitchen, restrooms, etc.)
+// ============================================================================
+
+model VenueArea {
+  id        String   @id @default(cuid())
+  venueId   String
+  areaType  String   // entrance, exit, kitchen, restroom, dj_booth, stage, storage, bar, etc.
+  name      String
+  positionX Decimal  @db.Decimal(10, 2)
+  positionY Decimal  @db.Decimal(10, 2)
+  width     Decimal  @db.Decimal(10, 2)
+  height    Decimal  @db.Decimal(10, 2)
+  rotation  Decimal? @default(0) @db.Decimal(5, 2)
+  shape     String?  @default("rectangle")
+  icon      String?  // Icon identifier for UI
+  color     String?  // Hex color
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
+  @@map("venue_areas")
 }
 
 
