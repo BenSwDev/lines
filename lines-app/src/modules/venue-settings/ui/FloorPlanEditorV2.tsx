@@ -1069,6 +1069,135 @@ export function FloorPlanEditorV2({
         </DialogContent>
       </Dialog>
 
+      {/* Fullscreen Modal */}
+      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-4 border-b">
+              <DialogTitle>{t("floorPlan.title")}</DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsFullscreen(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <div
+                ref={canvasRef}
+                className="relative cursor-crosshair bg-gradient-to-br from-muted/20 to-muted/40 mx-auto"
+                style={{
+                  width: `${canvasSize.width || 800}px`,
+                  height: `${canvasSize.height || 600}px`,
+                  transform: `scale(${zoom})`,
+                  transformOrigin: "top left",
+                  backgroundImage: showGrid
+                    ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                       linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
+                    : undefined,
+                  backgroundSize: `${20 / zoom}px ${20 / zoom}px`
+                }}
+                onClick={handleCanvasClick}
+              >
+                {/* Polygon drawing preview */}
+                {isDrawingPolygon && polygonPoints.length > 0 && (
+                  <svg
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      pointerEvents: "none",
+                      zIndex: 999
+                    }}
+                  >
+                    <polyline
+                      points={polygonPoints.map(p => `${p.x},${p.y}`).join(" ")}
+                      fill="none"
+                      stroke="#3B82F6"
+                      strokeWidth="2"
+                      strokeDasharray="5,5"
+                    />
+                    {polygonPoints.map((point, i) => (
+                      <circle
+                        key={i}
+                        cx={point.x}
+                        cy={point.y}
+                        r="4"
+                        fill="#3B82F6"
+                      />
+                    ))}
+                  </svg>
+                )}
+                {isDrawingPolygon && polygonPoints.length >= 3 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "20px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      backgroundColor: "rgba(0, 0, 0, 0.8)",
+                      color: "white",
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      zIndex: 1000
+                    }}
+                  >
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={finishPolygonDrawing}
+                      className="mr-2"
+                    >
+                      {t("common.save")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={cancelPolygonDrawing}
+                    >
+                      {t("common.cancel")}
+                    </Button>
+                  </div>
+                )}
+                {/* Render Elements - Filter by map type */}
+                {elements
+                  .filter((element) => {
+                    if (currentMapType === "tables") return element.type === "table" && element.tableType !== "bar" && element.tableType !== "counter";
+                    if (currentMapType === "bars") return element.type === "table" && element.tableType === "bar";
+                    if (currentMapType === "security") return element.type === "security";
+                    if (currentMapType === "lines") return element.type === "line" || (element.type === "table" && element.tableType === "counter");
+                    if (currentMapType === "entrances") return element.type === "specialArea" && (element.areaType === "entrance" || element.areaType === "exit");
+                    return true;
+                  })
+                  .map((element) => (
+                    <ElementRenderer
+                      key={element.id}
+                      element={element}
+                      isSelected={selectedElementId === element.id}
+                      isInteractive={true}
+                      onMouseDown={(e) => handleElementMouseDown(e, element)}
+                      onDoubleClick={() => handleEditElement(element)}
+                      onDelete={() => handleDeleteElement(element.id)}
+                      allElements={elements}
+                      onResizeStart={(e, handle) => {
+                        if (handle === "rotate") {
+                          handleRotateStart(e, element);
+                        } else {
+                          handleResizeStart(e, element, handle as "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w");
+                        }
+                      }}
+                      onRotateStart={(e) => handleRotateStart(e, element)}
+                    />
+                  ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
@@ -1111,7 +1240,7 @@ interface ElementRendererProps {
   onDelete: () => void;
   onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;
   allElements?: FloorPlanElement[];
-  onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w") => void;
+  onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se" | "n" | "e" | "s" | "w" | "rotate") => void;
   onRotateStart?: (e: React.MouseEvent) => void;
 }
 
