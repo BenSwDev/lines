@@ -317,6 +317,27 @@
     "templates": "טמפלטים",
     "selectTemplate": "בחר טמפלט",
     "selectTemplateDescription": "בחר טמפלט להתחלה מהירה או התחל מאפס",
+    "createMap": "יצירת מפה",
+    "createMapDescription": "בחר תבנית מקצועית לפי סוג המקום שלך או התחל מאפס",
+    "createMapTooltip": "יצירת מפה חדשה מתבנית",
+    "addElement": "הוסף אלמנט",
+    "addElementTooltip": "הוסף אלמנטים למפה הקיימת",
+    "startFromScratch": "התחל מאפס",
+    "filterByVenueType": "סינון לפי סוג מקום",
+    "allVenueTypes": "כל סוגי המקומות",
+    "categories": {
+      "eventVenues": "אולמות אירועים",
+      "diningEntertainment": "אוכל ובידור",
+      "custom": "מותאם אישית"
+    },
+    "venueTypes": {
+      "eventHall": "אולם אירועים",
+      "conferenceHall": "אולם כנסים",
+      "concertHall": "אולם הופעות",
+      "restaurant": "מסעדה",
+      "bar": "בר",
+      "club": "מועדון"
+    },
     "elements": "אלמנטים",
     "name": "שם",
     "seats": "מקומות",
@@ -330,6 +351,7 @@
     "zoomOut": "הקטן",
     "resetZoom": "איפוס זום",
     "fullscreen": "מסך מלא",
-    "exitFullscreen": "יציאה ממסך מלא"
+    "exitFullscreen": "יציאה ממסך מלא",
+    "moreOptions": "אפשרויות נוספות"
   }
 }

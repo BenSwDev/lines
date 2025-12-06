@@ -1,6 +1,6 @@
 import type { FloorPlanElement, ElementType, SpecialAreaType } from "../ui/FloorPlanEditorV2";
 
-export type VenueTemplateType = "event_hall" | "bar" | "club" | "restaurant" | "empty";
+export type VenueTemplateType = "event_hall" | "bar" | "club" | "restaurant" | "conference_hall" | "concert_hall" | "empty";
 
 export interface VenueTemplate {
   id: string;
@@ -387,6 +387,229 @@ export const restaurantTemplate: VenueTemplate = {
   elements: scaleToCanvas(restaurantTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
 };
 
+// Conference Hall Template - Rows of seats facing a stage
+const conferenceHallTemplateRaw: VenueTemplate = {
+  id: "conference_hall",
+  name: "אולם כנסים",
+  description: "מבנה בסיסי לאולם כנסים עם שורות מושבים ובמה",
+  defaultCapacity: 300,
+  elements: [
+    // Entrance
+    {
+      id: "entrance-1",
+      type: "specialArea" as ElementType,
+      name: "כניסה",
+      x: 50,
+      y: 50,
+      width: 200,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "entrance" as SpecialAreaType,
+      color: "#10B981"
+    },
+    // Main hall area
+    {
+      id: "zone-main",
+      type: "zone" as ElementType,
+      name: "אולם כנסים",
+      x: 300,
+      y: 50,
+      width: 1000,
+      height: 700,
+      rotation: 0,
+      shape: "rectangle",
+      color: "#3B82F6"
+    },
+    // Stage
+    {
+      id: "stage-1",
+      type: "specialArea" as ElementType,
+      name: "במה",
+      x: 300,
+      y: 800,
+      width: 1000,
+      height: 120,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "stage" as SpecialAreaType,
+      color: "#8B5CF6"
+    },
+    // Rows of seats (rectangular tables representing rows)
+    ...Array.from({ length: 15 }, (_, i) => ({
+      id: `row-${i + 1}`,
+      type: "table" as ElementType,
+      name: `שורה ${i + 1}`,
+      x: 350 + (i % 5) * 180,
+      y: 100 + Math.floor(i / 5) * 120,
+      width: 150,
+      height: 80,
+      rotation: 0,
+      shape: "rectangle" as const,
+      seats: 20,
+      zoneId: "zone-main"
+    })),
+    // Exit
+    {
+      id: "exit-1",
+      type: "specialArea" as ElementType,
+      name: "יציאה",
+      x: 1350,
+      y: 50,
+      width: 200,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "exit" as SpecialAreaType,
+      color: "#EF4444"
+    },
+    // Restrooms
+    {
+      id: "restroom-1",
+      type: "specialArea" as ElementType,
+      name: "שירותים",
+      x: 1350,
+      y: 200,
+      width: 200,
+      height: 200,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "restroom" as SpecialAreaType,
+      color: "#06B6D4"
+    }
+  ]
+};
+
+// Concert Hall Template - Stage with standing area and VIP sections
+const concertHallTemplateRaw: VenueTemplate = {
+  id: "concert_hall",
+  name: "אולם הופעות",
+  description: "מבנה בסיסי לאולם הופעות עם אזור עמידה, במה ואזורי VIP",
+  defaultCapacity: 500,
+  elements: [
+    // Entrance
+    {
+      id: "entrance-1",
+      type: "specialArea" as ElementType,
+      name: "כניסה",
+      x: 50,
+      y: 300,
+      width: 150,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "entrance" as SpecialAreaType,
+      color: "#10B981"
+    },
+    // Main standing area
+    {
+      id: "zone-standing",
+      type: "zone" as ElementType,
+      name: "אזור עמידה",
+      x: 250,
+      y: 200,
+      width: 800,
+      height: 600,
+      rotation: 0,
+      shape: "rectangle",
+      color: "#EC4899"
+    },
+    // Stage
+    {
+      id: "stage-1",
+      type: "specialArea" as ElementType,
+      name: "במה",
+      x: 250,
+      y: 850,
+      width: 800,
+      height: 150,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "stage" as SpecialAreaType,
+      color: "#8B5CF6"
+    },
+    // VIP area 1
+    {
+      id: "zone-vip-1",
+      type: "zone" as ElementType,
+      name: "VIP 1",
+      x: 1100,
+      y: 200,
+      width: 300,
+      height: 250,
+      rotation: 0,
+      shape: "rectangle",
+      color: "#F59E0B"
+    },
+    // VIP area 2
+    {
+      id: "zone-vip-2",
+      type: "zone" as ElementType,
+      name: "VIP 2",
+      x: 1100,
+      y: 500,
+      width: 300,
+      height: 250,
+      rotation: 0,
+      shape: "rectangle",
+      color: "#F59E0B"
+    },
+    // VIP tables
+    ...Array.from({ length: 8 }, (_, i) => ({
+      id: `table-vip-${i + 1}`,
+      type: "table" as ElementType,
+      name: `VIP ${i + 1}`,
+      x: 1150 + (i % 4) * 60,
+      y: 250 + Math.floor(i / 4) * 550,
+      width: 50,
+      height: 50,
+      rotation: 0,
+      shape: "circle" as const,
+      seats: 4,
+      zoneId: i < 4 ? "zone-vip-1" : "zone-vip-2"
+    })),
+    // Bar
+    {
+      id: "bar-1",
+      type: "specialArea" as ElementType,
+      name: "בר",
+      x: 1100,
+      y: 800,
+      width: 300,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "bar" as SpecialAreaType,
+      color: "#F59E0B"
+    },
+    // Exit
+    {
+      id: "exit-1",
+      type: "specialArea" as ElementType,
+      name: "יציאה",
+      x: 1450,
+      y: 300,
+      width: 150,
+      height: 100,
+      rotation: 0,
+      shape: "rectangle",
+      areaType: "exit" as SpecialAreaType,
+      color: "#EF4444"
+    }
+  ]
+};
+
+// Scale all templates to fit default canvas size
+export const conferenceHallTemplate: VenueTemplate = {
+  ...conferenceHallTemplateRaw,
+  elements: scaleToCanvas(conferenceHallTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
+export const concertHallTemplate: VenueTemplate = {
+  ...concertHallTemplateRaw,
+  elements: scaleToCanvas(concertHallTemplateRaw.elements, CANVAS_WIDTH, CANVAS_HEIGHT)
+};
+
 // Empty template
 export const emptyTemplate: VenueTemplate = {
   id: "empty",
@@ -401,6 +624,8 @@ export const templates: Record<VenueTemplateType, VenueTemplate> = {
   bar: barTemplate,
   club: clubTemplate,
   restaurant: restaurantTemplate,
+  conference_hall: conferenceHallTemplate,
+  concert_hall: concertHallTemplate,
   empty: emptyTemplate
 };
 

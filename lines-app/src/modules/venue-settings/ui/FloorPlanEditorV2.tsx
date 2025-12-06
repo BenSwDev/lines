@@ -59,7 +59,7 @@ import {
 import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueTables } from "../actions/floorPlanActions";
-import { getAllTemplates } from "../utils/floorPlanTemplates";
+import { getAllTemplates, type VenueTemplateType } from "../utils/floorPlanTemplates";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -146,13 +146,14 @@ export function FloorPlanEditorV2({
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [viewMode, setViewMode] = useState<"interactive" | "nonInteractive">("interactive");
   const [venueCapacity, setVenueCapacity] = useState(initialCapacity);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingElement, setEditingElement] = useState<FloorPlanElement | null>(null);
   const [currentMapType, setCurrentMapType] = useState<MapType>(mapType);
+  const [venueTypeFilter, setVenueTypeFilter] = useState<VenueTemplateType | "all">("all");
   const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   
   // Polygon drawing mode
@@ -1389,57 +1390,72 @@ export function FloorPlanEditorV2({
         {/* Simplified Toolbar - Only Primary Actions */}
         <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
           <div className="flex items-center gap-2">
-            {/* Primary Action: Create */}
+            {/* Primary Action: Create Map */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => setTemplateDialogOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("floorPlan.createMap")}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t("floorPlan.createMapTooltip")}</TooltipContent>
+            </Tooltip>
+            
+            {/* Secondary: Quick Add Elements */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" className="gap-2">
+                    <Button variant="outline" size="sm" className="gap-2">
                       <Plus className="h-4 w-4" />
-                      {t("common.create")}
+                      {t("floorPlan.addElement")}
                     </Button>
                   </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuItem onClick={() => handleAddElement("table")}>
-                <Square className="ml-2 h-4 w-4" />
-                {t("floorPlan.addTable")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("zone")}>
-                <MapPin className="ml-2 h-4 w-4" />
-                {t("floorPlan.addZone")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "entrance")}>
-                <DoorOpen className="ml-2 h-4 w-4" />
-                {t("floorPlan.specialAreas.entrance")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "exit")}>
-                <DoorOpen className="ml-2 h-4 w-4" />
-                {t("floorPlan.specialAreas.exit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "kitchen")}>
-                <Utensils className="ml-2 h-4 w-4" />
-                {t("floorPlan.specialAreas.kitchen")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "restroom")}>
-                <MapPin className="ml-2 h-4 w-4" />
-                {t("floorPlan.specialAreas.restroom")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "bar")}>
-                {t("floorPlan.specialAreas.bar")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "stage")}>
-                {t("floorPlan.specialAreas.stage")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "storage")}>
-                {t("floorPlan.specialAreas.storage")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement("specialArea", "other")}>
-                {t("floorPlan.specialAreas.other")}
-              </DropdownMenuItem>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => handleAddElement("table")}>
+                      <Square className="ml-2 h-4 w-4" />
+                      {t("floorPlan.addTable")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("zone")}>
+                      <MapPin className="ml-2 h-4 w-4" />
+                      {t("floorPlan.addZone")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "entrance")}>
+                      <DoorOpen className="ml-2 h-4 w-4" />
+                      {t("floorPlan.specialAreas.entrance")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "exit")}>
+                      <DoorOpen className="ml-2 h-4 w-4" />
+                      {t("floorPlan.specialAreas.exit")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "kitchen")}>
+                      <Utensils className="ml-2 h-4 w-4" />
+                      {t("floorPlan.specialAreas.kitchen")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "restroom")}>
+                      <MapPin className="ml-2 h-4 w-4" />
+                      {t("floorPlan.specialAreas.restroom")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "bar")}>
+                      {t("floorPlan.specialAreas.bar")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "stage")}>
+                      {t("floorPlan.specialAreas.stage")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "storage")}>
+                      {t("floorPlan.specialAreas.storage")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAddElement("specialArea", "other")}>
+                      {t("floorPlan.specialAreas.other")}
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TooltipTrigger>
-              <TooltipContent>{t("common.create")}</TooltipContent>
+              <TooltipContent>{t("floorPlan.addElementTooltip")}</TooltipContent>
             </Tooltip>
             
             {/* Edit Actions Group */}
@@ -1568,43 +1584,43 @@ export function FloorPlanEditorV2({
             </div>
             
             {/* Overflow Menu for Secondary Actions */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Tooltip>
-                  <TooltipTrigger asChild>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
                       <MoreVertical className="h-4 w-4" />
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>More options</TooltipContent>
-                </Tooltip>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => setTemplateDialogOpen(true)}>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {t("floorPlan.templates")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setIsDrawingPolygon(!isDrawingPolygon);
-                    if (isDrawingPolygon) {
-                      cancelPolygonDrawing();
-                    }
-                  }}
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  {t("floorPlan.shapes.polygon")}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setIsFullscreen(!isFullscreen)}>
-                  {isFullscreen ? (
-                    <Minimize2 className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Maximize2 className="mr-2 h-4 w-4" />
-                  )}
-                  {isFullscreen ? t("floorPlan.exitFullscreen") : t("floorPlan.fullscreen")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => setTemplateDialogOpen(true)}>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      {t("floorPlan.templates")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setIsDrawingPolygon(!isDrawingPolygon);
+                        if (isDrawingPolygon) {
+                          cancelPolygonDrawing();
+                        }
+                      }}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      {t("floorPlan.shapes.polygon")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setIsFullscreen(!isFullscreen)}>
+                      {isFullscreen ? (
+                        <Minimize2 className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Maximize2 className="mr-2 h-4 w-4" />
+                      )}
+                      {isFullscreen ? t("floorPlan.exitFullscreen") : t("floorPlan.fullscreen")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TooltipTrigger>
+              <TooltipContent>{t("floorPlan.moreOptions")}</TooltipContent>
+            </Tooltip>
           </div>
           {/* Right Side: Stats and Save */}
           <div className="flex items-center gap-4">
@@ -1645,13 +1661,6 @@ export function FloorPlanEditorV2({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-xs"
           />
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <Input
-            placeholder="Search elements..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-          />
           <Select value={currentMapType} onValueChange={(v) => setCurrentMapType(v as MapType)}>
             <SelectTrigger className="w-40">
               <SelectValue />
@@ -1665,8 +1674,21 @@ export function FloorPlanEditorV2({
               <SelectItem value="entrances">{t("floorPlan.mapTypes.entrances")}</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={venueTypeFilter} onValueChange={(v) => setVenueTypeFilter(v as VenueTemplateType | "all")}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t("floorPlan.filterByVenueType")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t("floorPlan.allVenueTypes")}</SelectItem>
+              <SelectItem value="event_hall">{t("floorPlan.venueTypes.eventHall")}</SelectItem>
+              <SelectItem value="conference_hall">{t("floorPlan.venueTypes.conferenceHall")}</SelectItem>
+              <SelectItem value="concert_hall">{t("floorPlan.venueTypes.concertHall")}</SelectItem>
+              <SelectItem value="restaurant">{t("floorPlan.venueTypes.restaurant")}</SelectItem>
+              <SelectItem value="bar">{t("floorPlan.venueTypes.bar")}</SelectItem>
+              <SelectItem value="club">{t("floorPlan.venueTypes.club")}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
       </div>
 
         {/* Main Content - Canvas Only (Panel moved to overlay) */}
@@ -1896,37 +1918,111 @@ export function FloorPlanEditorV2({
 
       {/* Context Panel removed - using Edit Dialog instead when edit button is clicked */}
 
-      {/* Template Selection Dialog */}
+      {/* Template Selection Dialog - Professional Map Creation */}
       <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("floorPlan.selectTemplate")}</DialogTitle>
-            <DialogDescription>{t("floorPlan.selectTemplateDescription")}</DialogDescription>
+            <DialogTitle>{t("floorPlan.createMap")}</DialogTitle>
+            <DialogDescription>{t("floorPlan.createMapDescription")}</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4 py-4">
-            {getAllTemplates().map((template) => (
-              <Card
-                key={template.id}
-                className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg"
-                onClick={() => {
-                  setElements(template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` })));
-                  setVenueCapacity(template.defaultCapacity);
-                  setTemplateDialogOpen(false);
-                  toast({
-                    title: t("success.templateLoaded"),
-                    description: t("success.templateLoadedDescription", { name: template.name })
-                  });
-                }}
-              >
-                <div className="p-4">
-                  <h4 className="font-semibold mb-1">{template.name}</h4>
-                  <p className="text-sm text-muted-foreground">{template.description}</p>
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    {template.elements.length} {t("floorPlan.elements")} • {template.defaultCapacity} {t("common.seats")}
-                  </div>
-                </div>
-              </Card>
-            ))}
+          <div className="space-y-6 py-4">
+            {/* Event Venues Category */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.eventVenues")}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getAllTemplates()
+                  .filter(t => ["event_hall", "conference_hall", "concert_hall"].includes(t.id))
+                  .map((template) => (
+                    <Card
+                      key={template.id}
+                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
+                      onClick={() => {
+                        setElements(template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` })));
+                        setVenueCapacity(template.defaultCapacity);
+                        setTemplateDialogOpen(false);
+                        toast({
+                          title: t("success.templateLoaded"),
+                          description: t("success.templateLoadedDescription", { name: template.name })
+                        });
+                      }}
+                    >
+                      <div className="p-4">
+                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{template.elements.length} {t("floorPlan.elements")}</span>
+                          <span>{template.defaultCapacity} {t("common.seats")}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+
+            {/* Dining & Entertainment Category */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.diningEntertainment")}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getAllTemplates()
+                  .filter(t => ["restaurant", "bar", "club"].includes(t.id))
+                  .map((template) => (
+                    <Card
+                      key={template.id}
+                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
+                      onClick={() => {
+                        setElements(template.elements.map((el) => ({ ...el, id: `${el.id}-${Date.now()}` })));
+                        setVenueCapacity(template.defaultCapacity);
+                        setTemplateDialogOpen(false);
+                        toast({
+                          title: t("success.templateLoaded"),
+                          description: t("success.templateLoadedDescription", { name: template.name })
+                        });
+                      }}
+                    >
+                      <div className="p-4">
+                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{template.elements.length} {t("floorPlan.elements")}</span>
+                          <span>{template.defaultCapacity} {t("common.seats")}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+
+            {/* Start from Scratch */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.custom")}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getAllTemplates()
+                  .filter(t => t.id === "empty")
+                  .map((template) => (
+                    <Card
+                      key={template.id}
+                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary border-dashed"
+                      onClick={() => {
+                        setElements([]);
+                        setVenueCapacity(0);
+                        setTemplateDialogOpen(false);
+                        toast({
+                          title: t("success.templateLoaded"),
+                          description: t("success.templateLoadedDescription", { name: template.name })
+                        });
+                      }}
+                    >
+                      <div className="p-4">
+                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{t("floorPlan.startFromScratch")}</span>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

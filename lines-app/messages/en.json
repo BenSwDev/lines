@@ -312,6 +312,27 @@
     "templates": "Templates",
     "selectTemplate": "Select Template",
     "selectTemplateDescription": "Choose a template to get started quickly or start from scratch",
+    "createMap": "Create Map",
+    "createMapDescription": "Choose a professional template based on your venue type or start from scratch",
+    "createMapTooltip": "Create a new map from template",
+    "addElement": "Add Element",
+    "addElementTooltip": "Add elements to existing map",
+    "startFromScratch": "Start from scratch",
+    "filterByVenueType": "Filter by venue type",
+    "allVenueTypes": "All venue types",
+    "categories": {
+      "eventVenues": "Event Venues",
+      "diningEntertainment": "Dining & Entertainment",
+      "custom": "Custom"
+    },
+    "venueTypes": {
+      "eventHall": "Event Hall",
+      "conferenceHall": "Conference Hall",
+      "concertHall": "Concert Hall",
+      "restaurant": "Restaurant",
+      "bar": "Bar",
+      "club": "Club"
+    },
     "elements": "Elements",
     "name": "Name",
     "seats": "Seats",
@@ -325,6 +346,7 @@
     "zoomOut": "Zoom Out",
     "resetZoom": "Reset Zoom",
     "fullscreen": "Fullscreen",
-    "exitFullscreen": "Exit Fullscreen"
+    "exitFullscreen": "Exit Fullscreen",
+    "moreOptions": "More options"
   }
 }
