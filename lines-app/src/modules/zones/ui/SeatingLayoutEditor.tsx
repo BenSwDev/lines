@@ -65,22 +65,31 @@ export function SeatingLayoutEditor({
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
 
-  // Layout state
-  const [layout, setLayout] = useState<VenueLayout>(
-    initialLayout || {
-      layoutData: {
-        width: DEFAULT_CANVAS_SIZE.width,
-        height: DEFAULT_CANVAS_SIZE.height,
-        scale: 1,
-        gridSize: GRID_SIZE,
-        showGrid: true,
-        backgroundColor: "#f8f9fa"
-      },
-      zones: [],
-      tables: [],
-      areas: []
+  // Default layout
+  const defaultLayout: VenueLayout = {
+    layoutData: {
+      width: DEFAULT_CANVAS_SIZE.width,
+      height: DEFAULT_CANVAS_SIZE.height,
+      scale: 1,
+      gridSize: GRID_SIZE,
+      showGrid: true,
+      backgroundColor: "#f8f9fa"
+    },
+    zones: [],
+    tables: [],
+    areas: []
+  };
+
+  // Layout state - ensure layoutData always exists
+  const [layout, setLayout] = useState<VenueLayout>(() => {
+    if (initialLayout) {
+      return {
+        ...initialLayout,
+        layoutData: initialLayout.layoutData || defaultLayout.layoutData
+      };
     }
-  );
+    return defaultLayout;
+  });
 
   // Tool settings
   const [selectedAreaType, setSelectedAreaType] = useState<AreaType>("kitchen");
@@ -131,7 +140,7 @@ export function SeatingLayoutEditor({
       if (toolMode === "zone") {
         const newZone: ZoneVisual = {
           id: `zone-${Date.now()}`,
-          name: `אזור ${layout.zones.length + 1}`,
+          name: `אזור ${(layout?.zones?.length || 0) + 1}`,
           color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
           position: point,
           dimensions: { width: 200, height: 150 },
@@ -148,7 +157,7 @@ export function SeatingLayoutEditor({
           selectedTableType === "bar" ? { width: 300, height: 60 } : { width: 80, height: 80 };
         const newTable: TableVisual = {
           id: `table-${Date.now()}`,
-          name: `שולחן ${layout.tables.length + 1}`,
+          name: `שולחן ${(layout?.tables?.length || 0) + 1}`,
           seats: 4,
           position: point,
           dimensions: size,
@@ -268,7 +277,7 @@ export function SeatingLayoutEditor({
 
   // Render grid
   const renderGrid = () => {
-    if (!showGrid || viewMode === "view") return null;
+    if (!showGrid || viewMode === "view" || !layout?.layoutData) return null;
     const { width, height } = layout.layoutData;
     const lines = [];
     for (let x = 0; x <= width; x += GRID_SIZE) {
@@ -304,6 +313,7 @@ export function SeatingLayoutEditor({
 
   // Render zones
   const renderZones = () => {
+    if (!layout?.zones) return null;
     return layout.zones.map((zone) => {
       const isSelected = selectedElement === zone.id;
       const baseProps = {
@@ -343,9 +353,10 @@ export function SeatingLayoutEditor({
 
   // Render tables
   const renderTables = () => {
+    if (!layout?.tables) return null;
     return layout.tables.map((table) => {
       const isSelected = selectedElement === table.id;
-      const zone = layout.zones.find((z) => z.id === table.zoneId);
+      const zone = layout.zones?.find((z) => z.id === table.zoneId);
       const color = zone?.color || "#6b7280";
 
       const baseProps = {
@@ -407,6 +418,7 @@ export function SeatingLayoutEditor({
 
   // Render areas
   const renderAreas = () => {
+    if (!layout?.areas) return null;
     return layout.areas.map((area) => {
       const isSelected = selectedElement === area.id;
       return (
@@ -440,10 +452,12 @@ export function SeatingLayoutEditor({
   };
 
   const handleSave = async () => {
+    if (!layout) return;
     await onSave(layout);
   };
 
   const handleGenerate = async () => {
+    if (!layout) return;
     await onGenerateZones(layout);
   };
 
@@ -589,16 +603,16 @@ export function SeatingLayoutEditor({
       <div className="flex-1 overflow-auto rounded-lg border bg-muted/20">
         <svg
           ref={canvasRef}
-          width={layout.layoutData.width * zoom}
-          height={layout.layoutData.height * zoom}
-          viewBox={`0 0 ${layout.layoutData.width} ${layout.layoutData.height}`}
+          width={(layout?.layoutData?.width || DEFAULT_CANVAS_SIZE.width) * zoom}
+          height={(layout?.layoutData?.height || DEFAULT_CANVAS_SIZE.height) * zoom}
+          viewBox={`0 0 ${layout?.layoutData?.width || DEFAULT_CANVAS_SIZE.width} ${layout?.layoutData?.height || DEFAULT_CANVAS_SIZE.height}`}
           className="cursor-crosshair"
           onClick={handleCanvasClick}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          style={{ backgroundColor: layout.layoutData.backgroundColor }}
+          style={{ backgroundColor: layout?.layoutData?.backgroundColor || "#f8f9fa" }}
         >
           {renderGrid()}
           {renderZones()}
@@ -630,11 +644,11 @@ export function SeatingLayoutEditor({
   );
 
   function getSelectedElement() {
-    if (!selectedElement) return null;
+    if (!selectedElement || !layout) return null;
     return (
-      layout.zones.find((z) => z.id === selectedElement) ||
-      layout.tables.find((t) => t.id === selectedElement) ||
-      layout.areas.find((a) => a.id === selectedElement) ||
+      layout.zones?.find((z) => z.id === selectedElement) ||
+      layout.tables?.find((t) => t.id === selectedElement) ||
+      layout.areas?.find((a) => a.id === selectedElement) ||
       null
     );
   }

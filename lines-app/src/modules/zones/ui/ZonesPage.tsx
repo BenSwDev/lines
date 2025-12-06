@@ -148,14 +148,12 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
         </TabsList>
 
         <TabsContent value="visual" className="mt-4">
-          {layout && (
-            <SeatingLayoutEditor
-              venueId={venueId}
-              initialLayout={layout}
-              onSave={handleSave}
-              onGenerateZones={handleGenerate}
-            />
-          )}
+          <SeatingLayoutEditor
+            venueId={venueId}
+            initialLayout={layout || undefined}
+            onSave={handleSave}
+            onGenerateZones={handleGenerate}
+          />
         </TabsContent>
 
         <TabsContent value="list" className="mt-4">
