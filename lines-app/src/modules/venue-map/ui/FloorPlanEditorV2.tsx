@@ -2220,8 +2220,9 @@ export function FloorPlanEditorV2({
   return (
     <TooltipProvider>
       <div className="flex h-[calc(100vh-250px)] flex-col gap-4">
-        {/* Organized Toolbar - Clear Groups */}
-        <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3 shadow-sm gap-3">
+        {/* Organized Toolbar - Clear Groups - Hidden in fullscreen */}
+        {!isFullscreen && (
+          <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3 shadow-sm gap-3">
           <div className="flex items-center gap-3 flex-wrap">
             {/* Group 1: Create & Add */}
             <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
@@ -2801,9 +2802,11 @@ export function FloorPlanEditorV2({
             </Tooltip>
           </div>
         </div>
+        )}
 
-        {/* View Mode Tabs and Map Type Selector */}
-        <div className="flex shrink-0 items-center justify-between gap-4">
+        {/* View Mode Tabs and Map Type Selector - Hidden in fullscreen */}
+        {!isFullscreen && (
+          <div className="flex shrink-0 items-center justify-between gap-4">
           <Tabs
             value={viewMode}
             onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}
@@ -2875,6 +2878,7 @@ export function FloorPlanEditorV2({
             )}
           </div>
         </div>
+        )}
 
         {/* Main Content - Canvas Only (Panel moved to overlay) */}
         <div className="flex flex-1 overflow-hidden">
@@ -3583,7 +3587,7 @@ export function FloorPlanEditorV2({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {getAllTemplates()
-                    .filter((t) => ["restaurant", "bar", "club"].includes(t.id))
+                    .filter((t) => ["restaurant", "bar", "club", "shalvata"].includes(t.id))
                     .map((template) => (
                       <Card
                         key={template.id}
