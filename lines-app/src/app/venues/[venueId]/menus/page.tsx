@@ -1,4 +1,4 @@
-import { MenusPage } from "@/modules/menus/ui/MenusPage";
+import { MenusPage } from "@/modules/venue-menus/ui/MenusPage";
 import { getVenue } from "@/modules/venues/actions/getVenue";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/core/auth/session";
