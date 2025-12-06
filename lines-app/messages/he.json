@@ -276,6 +276,18 @@
     "venueCapacity": "תכולת מקום",
     "capacityTooSmall": "תכולת המקום קטנה מסכום מקומות הישיבה",
     "interactiveView": "תצוגה אינטראקטיבית",
-    "nonInteractiveView": "תצוגה לא אינטראקטיבית"
+    "nonInteractiveView": "תצוגה לא אינטראקטיבית",
+    "areaType": "סוג אזור",
+    "width": "רוחב",
+    "height": "גובה",
+    "rotation": "סיבוב",
+    "polygonVertices": "קודקודי פוליגון",
+    "shapes": {
+      "rectangle": "מלבן",
+      "square": "ריבוע",
+      "circle": "עיגול",
+      "oval": "אליפסה",
+      "polygon": "פוליגון"
+    }
   }
 }
