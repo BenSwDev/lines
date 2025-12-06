@@ -114,8 +114,14 @@ export function FreeTransform({
     height: `${handleSize * 1.2}px`
   };
 
+  const rotation = element.rotation || 0;
+  const transformStyle: React.CSSProperties = {
+    transform: `rotate(${rotation}deg)`,
+    transformOrigin: "center center"
+  };
+
   return (
-    <>
+    <div style={transformStyle}>
       {/* Corner handles */}
       {(["nw", "ne", "se", "sw"] as TransformHandle[]).map((handle) => {
         const pos = getHandlePosition(handle);
@@ -173,6 +179,6 @@ export function FreeTransform({
           zIndex: 999
         }}
       />
-    </>
+    </div>
   );
 }

@@ -1243,8 +1243,7 @@ export function FloorPlanEditorV2({
               newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
             }
             
-            newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, newX));
-            newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, newY));
+            // No canvas bounds constraint for infinite canvas - allow free movement
             
             setDraggedElement((prev) => {
               if (!prev) return null;
@@ -1277,7 +1276,7 @@ export function FloorPlanEditorV2({
           let newX = start.elementX;
           let newY = start.elementY;
 
-          // Handle corner resizing
+          // Handle corner resizing - simple 2D calculations
           if (resizeHandle === "se") {
             // Southeast - bottom right
             newWidth = Math.max(20, start.elementWidth + deltaX);
@@ -1324,15 +1323,8 @@ export function FloorPlanEditorV2({
             newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
           }
 
-          // Constrain to canvas bounds
-          newX = Math.max(0, newX);
-          newY = Math.max(0, newY);
-          if (newX + newWidth > canvasSize.width) {
-            newWidth = canvasSize.width - newX;
-          }
-          if (newY + newHeight > canvasSize.height) {
-            newHeight = canvasSize.height - newY;
-          }
+          // No canvas bounds constraint for infinite canvas - allow free resizing
+          // Ensure minimum size (already done above)
 
           // Update element position and size
           const updatedElement = {
@@ -1699,9 +1691,10 @@ export function FloorPlanEditorV2({
     setSaveStatus("מכין נתונים...");
     
     try {
-      // Convert elements to their respective types
+      // Split heavy computation to prevent blocking UI - yield to browser between operations
       setSaveProgress(20);
       setSaveStatus("מעבד שולחנות...");
+      await new Promise(resolve => setTimeout(resolve, 0)); // Yield to browser
       const tables = elements
         .filter((e) => e.type === "table")
         .map((e) => ({
@@ -1721,6 +1714,7 @@ export function FloorPlanEditorV2({
 
       setSaveProgress(40);
       setSaveStatus("מעבד אזורים...");
+      await new Promise(resolve => setTimeout(resolve, 0)); // Yield to browser
       const zones = elements
         .filter((e) => e.type === "zone")
         .map((e) => ({
@@ -1738,6 +1732,7 @@ export function FloorPlanEditorV2({
 
       setSaveProgress(60);
       setSaveStatus("מעבד אזורים מיוחדים...");
+      await new Promise(resolve => setTimeout(resolve, 0)); // Yield to browser
       const venueAreas = elements
         .filter((e) => e.type === "specialArea")
         .map((e) => ({
