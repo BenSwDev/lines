@@ -106,6 +106,7 @@ interface FloorPlanEditorV2Props {
 const DEFAULT_TABLE_SIZE = 80;
 const DEFAULT_ZONE_SIZE = 200;
 const DEFAULT_AREA_SIZE = 100;
+const GRID_SIZE = 20;
 
 export function FloorPlanEditorV2({
   venueId,
@@ -133,6 +134,15 @@ export function FloorPlanEditorV2({
   // Drag state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [draggedElement, setDraggedElement] = useState<FloorPlanElement | null>(null);
+  
+  // Resize state
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<"nw" | "ne" | "sw" | "se" | null>(null);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  
+  // Rotate state
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotateStart, setRotateStart] = useState({ angle: 0, centerX: 0, centerY: 0 });
 
   // Calculate canvas size to fit container
   useEffect(() => {
@@ -240,9 +250,97 @@ export function FloorPlanEditorV2({
     [viewMode]
   );
 
-  // Mouse move - handle dragging
+  // Handle resize start
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent, element: FloorPlanElement, handle: "nw" | "ne" | "sw" | "se") => {
+      e.stopPropagation();
+      e.preventDefault();
+      setSelectedElementId(element.id);
+      setIsResizing(true);
+      setResizeHandle(handle);
+      setDraggedElement(element);
+      setResizeStart({
+        x: e.clientX,
+        y: e.clientY,
+        width: element.width,
+        height: element.height
+      });
+    },
+    []
+  );
+
+  // Handle rotate start
+  const handleRotateStart = useCallback(
+    (e: React.MouseEvent, element: FloorPlanElement) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setSelectedElementId(element.id);
+      setIsRotating(true);
+      setDraggedElement(element);
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (rect) {
+        const centerX = element.x + element.width / 2;
+        const centerY = element.y + element.height / 2;
+        setRotateStart({
+          angle: element.rotation,
+          centerX: centerX,
+          centerY: centerY
+        });
+      }
+    },
+    []
+  );
+
+  // Keyboard shortcuts
   useEffect(() => {
-    if (!isDragging || !draggedElement || !canvasRef.current || viewMode === "nonInteractive") return;
+    if (viewMode === "nonInteractive" || !selectedElementId) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const selectedElement = elements.find((el) => el.id === selectedElementId);
+      if (!selectedElement) return;
+
+      // Delete key
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        handleDeleteElement(selectedElementId);
+        return;
+      }
+
+      // Arrow keys for movement
+      if (e.key.startsWith("Arrow")) {
+        e.preventDefault();
+        const step = showGrid ? GRID_SIZE : (e.shiftKey ? 10 : 1);
+        let newX = selectedElement.x;
+        let newY = selectedElement.y;
+
+        if (e.key === "ArrowLeft") newX = Math.max(0, selectedElement.x - step);
+        if (e.key === "ArrowRight")
+          newX = Math.min(canvasSize.width - selectedElement.width, selectedElement.x + step);
+        if (e.key === "ArrowUp") newY = Math.max(0, selectedElement.y - step);
+        if (e.key === "ArrowDown")
+          newY = Math.min(canvasSize.height - selectedElement.height, selectedElement.y + step);
+
+        setElements(
+          elements.map((el) =>
+            el.id === selectedElementId
+              ? {
+                  ...el,
+                  x: newX,
+                  y: newY
+                }
+              : el
+          )
+        );
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedElementId, elements, canvasSize, viewMode, handleDeleteElement, showGrid]);
+
+  // Mouse move - handle dragging, resizing, and rotating
+  useEffect(() => {
+    if (viewMode === "nonInteractive") return;
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -251,35 +349,141 @@ export function FloorPlanEditorV2({
       const canvasX = e.clientX - rect.left;
       const canvasY = e.clientY - rect.top;
 
-      const newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, canvasX - dragOffset.x));
-      const newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, canvasY - dragOffset.y));
+      // Handle dragging
+      if (isDragging && draggedElement) {
+        let newX = canvasX - dragOffset.x;
+        let newY = canvasY - dragOffset.y;
+        
+        // Snap to grid if enabled
+        if (showGrid) {
+          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+        }
+        
+        // Constrain to canvas bounds
+        newX = Math.max(0, Math.min(canvasSize.width - draggedElement.width, newX));
+        newY = Math.max(0, Math.min(canvasSize.height - draggedElement.height, newY));
 
-      setElements(
-        elements.map((e) =>
-          e.id === draggedElement.id
-            ? {
-                ...e,
-                x: newX,
-                y: newY
-              }
-            : e
-        )
-      );
+        setElements(
+          elements.map((el) =>
+            el.id === draggedElement.id
+              ? {
+                  ...el,
+                  x: newX,
+                  y: newY
+                }
+              : el
+          )
+        );
+        return;
+      }
+
+      // Handle resizing
+      if (isResizing && resizeHandle && draggedElement) {
+        const deltaX = canvasX - resizeStart.x;
+        const deltaY = canvasY - resizeStart.y;
+        let newWidth = resizeStart.width;
+        let newHeight = resizeStart.height;
+        let newX = draggedElement.x;
+        let newY = draggedElement.y;
+
+        if (resizeHandle === "se") {
+          // Southeast - bottom right
+          newWidth = Math.max(20, resizeStart.width + deltaX);
+          newHeight = Math.max(20, resizeStart.height + deltaY);
+        } else if (resizeHandle === "sw") {
+          // Southwest - bottom left
+          newWidth = Math.max(20, resizeStart.width - deltaX);
+          newHeight = Math.max(20, resizeStart.height + deltaY);
+          newX = draggedElement.x + deltaX;
+        } else if (resizeHandle === "ne") {
+          // Northeast - top right
+          newWidth = Math.max(20, resizeStart.width + deltaX);
+          newHeight = Math.max(20, resizeStart.height - deltaY);
+          newY = draggedElement.y + deltaY;
+        } else if (resizeHandle === "nw") {
+          // Northwest - top left
+          newWidth = Math.max(20, resizeStart.width - deltaX);
+          newHeight = Math.max(20, resizeStart.height - deltaY);
+          newX = draggedElement.x + deltaX;
+          newY = draggedElement.y + deltaY;
+        }
+
+        // Snap to grid if enabled
+        if (showGrid) {
+          newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
+          newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
+          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+        }
+
+        // Constrain to canvas bounds
+        newX = Math.max(0, newX);
+        newY = Math.max(0, newY);
+        if (newX + newWidth > canvasSize.width) {
+          newWidth = canvasSize.width - newX;
+        }
+        if (newY + newHeight > canvasSize.height) {
+          newHeight = canvasSize.height - newY;
+        }
+
+        setElements(
+          elements.map((el) =>
+            el.id === draggedElement.id
+              ? {
+                  ...el,
+                  x: newX,
+                  y: newY,
+                  width: newWidth,
+                  height: newHeight
+                }
+              : el
+          )
+        );
+        return;
+      }
+
+      // Handle rotating
+      if (isRotating && draggedElement && rotateStart) {
+        const centerX = rotateStart.centerX;
+        const centerY = rotateStart.centerY;
+        const dx = canvasX - centerX;
+        const dy = canvasY - centerY;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90; // +90 to start from top
+        const normalizedAngle = ((angle % 360) + 360) % 360;
+
+        setElements(
+          elements.map((el) =>
+            el.id === draggedElement.id
+              ? {
+                  ...el,
+                  rotation: normalizedAngle
+                }
+              : el
+          )
+        );
+        return;
+      }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
       setDraggedElement(null);
+      setIsResizing(false);
+      setResizeHandle(null);
+      setIsRotating(false);
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    if (isDragging || isResizing || isRotating) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
 
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, [isDragging, draggedElement, dragOffset, elements, canvasSize, viewMode]);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, isRotating, draggedElement, dragOffset, resizeHandle, resizeStart, rotateStart, elements, canvasSize, viewMode, showGrid]);
 
   // Calculate total capacity from tables
   const totalCapacity = elements
@@ -490,6 +694,40 @@ export function FloorPlanEditorV2({
             }}
             onClick={handleCanvasClick}
           >
+            {/* Visual Feedback Overlay */}
+            {(isDragging || isResizing || isRotating) && draggedElement && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: `${draggedElement.y - 30}px`,
+                  left: `${draggedElement.x}px`,
+                  backgroundColor: "rgba(0, 0, 0, 0.8)",
+                  color: "white",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  pointerEvents: "none",
+                  zIndex: 1000,
+                  whiteSpace: "nowrap"
+                }}
+              >
+                {isDragging && (
+                  <>
+                    X: {Math.round(draggedElement.x)}px, Y: {Math.round(draggedElement.y)}px
+                  </>
+                )}
+                {isResizing && (
+                  <>
+                    {Math.round(draggedElement.width)}×{Math.round(draggedElement.height)}px
+                  </>
+                )}
+                {isRotating && (
+                  <>
+                    {Math.round(draggedElement.rotation)}°
+                  </>
+                )}
+              </div>
+            )}
             {/* Render Elements - Filter by map type */}
             {elements
               .filter((element) => {
@@ -520,6 +758,8 @@ export function FloorPlanEditorV2({
                     );
                   }}
                   allElements={elements}
+                  onResizeStart={(e, handle) => handleResizeStart(e, element, handle)}
+                  onRotateStart={(e) => handleRotateStart(e, element)}
                 />
               ))}
           </div>
@@ -609,6 +849,8 @@ interface ElementRendererProps {
   onDelete: () => void;
   onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;
   allElements?: FloorPlanElement[];
+  onResizeStart?: (e: React.MouseEvent, handle: "nw" | "ne" | "sw" | "se") => void;
+  onRotateStart?: (e: React.MouseEvent) => void;
 }
 
 function ElementRenderer({
@@ -618,7 +860,9 @@ function ElementRenderer({
   onMouseDown,
   onDoubleClick,
   onVertexDrag,
-  allElements = []
+  allElements = [],
+  onResizeStart,
+  onRotateStart
 }: ElementRendererProps) {
   const getElementStyle = (): React.CSSProperties => {
     const baseStyle: React.CSSProperties = {
@@ -777,9 +1021,212 @@ function ElementRenderer({
             )}
           </div>
         </div>
+        {/* Resize handles for polygon shapes */}
+        {isInteractive && isSelected && onResizeStart && (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                top: "-4px",
+                left: "-4px",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "#3B82F6",
+                border: "2px solid white",
+                borderRadius: "50%",
+                cursor: "nwse-resize",
+                zIndex: 10
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                onResizeStart(e, "nw");
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: "-4px",
+                right: "-4px",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "#3B82F6",
+                border: "2px solid white",
+                borderRadius: "50%",
+                cursor: "nesw-resize",
+                zIndex: 10
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                onResizeStart(e, "ne");
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-4px",
+                left: "-4px",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "#3B82F6",
+                border: "2px solid white",
+                borderRadius: "50%",
+                cursor: "nesw-resize",
+                zIndex: 10
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                onResizeStart(e, "sw");
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-4px",
+                right: "-4px",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "#3B82F6",
+                border: "2px solid white",
+                borderRadius: "50%",
+                cursor: "nwse-resize",
+                zIndex: 10
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                onResizeStart(e, "se");
+              }}
+            />
+          </>
+        )}
+        {/* Rotate handle for polygon shapes */}
+        {isInteractive && isSelected && onRotateStart && (
+          <div
+            style={{
+              position: "absolute",
+              top: "-20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "8px",
+              height: "8px",
+              backgroundColor: "#10B981",
+              border: "2px solid white",
+              borderRadius: "50%",
+              cursor: "grab",
+              zIndex: 10
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              onRotateStart(e);
+            }}
+          />
+        )}
       </div>
     );
   }
+
+  // Resize handles component
+  const ResizeHandles = () => {
+    if (!isSelected || !isInteractive || !onResizeStart) return null;
+    
+    const handleSize = 8;
+    const handleStyle: React.CSSProperties = {
+      position: "absolute",
+      width: `${handleSize}px`,
+      height: `${handleSize}px`,
+      backgroundColor: "#3B82F6",
+      border: "2px solid white",
+      borderRadius: "50%",
+      cursor: "nwse-resize",
+      zIndex: 10
+    };
+
+    return (
+      <>
+        {/* Top-left */}
+        <div
+          style={{
+            ...handleStyle,
+            top: `-${handleSize / 2}px`,
+            left: `-${handleSize / 2}px`,
+            cursor: "nwse-resize"
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            onResizeStart(e, "nw");
+          }}
+        />
+        {/* Top-right */}
+        <div
+          style={{
+            ...handleStyle,
+            top: `-${handleSize / 2}px`,
+            right: `-${handleSize / 2}px`,
+            cursor: "nesw-resize"
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            onResizeStart(e, "ne");
+          }}
+        />
+        {/* Bottom-left */}
+        <div
+          style={{
+            ...handleStyle,
+            bottom: `-${handleSize / 2}px`,
+            left: `-${handleSize / 2}px`,
+            cursor: "nesw-resize"
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            onResizeStart(e, "sw");
+          }}
+        />
+        {/* Bottom-right */}
+        <div
+          style={{
+            ...handleStyle,
+            bottom: `-${handleSize / 2}px`,
+            right: `-${handleSize / 2}px`,
+            cursor: "nwse-resize"
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            onResizeStart(e, "se");
+          }}
+        />
+      </>
+    );
+  };
+
+  // Rotate handle component
+  const RotateHandle = () => {
+    if (!isSelected || !isInteractive || !onRotateStart) return null;
+    
+    const handleSize = 8;
+    const handleOffset = 20;
+    
+    return (
+      <div
+        style={{
+          position: "absolute",
+          top: `-${handleOffset}px`,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: `${handleSize}px`,
+          height: `${handleSize}px`,
+          backgroundColor: "#10B981",
+          border: "2px solid white",
+          borderRadius: "50%",
+          cursor: "grab",
+          zIndex: 10
+        }}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          onRotateStart(e);
+        }}
+      />
+    );
+  };
 
   return (
     <div
@@ -794,6 +1241,8 @@ function ElementRenderer({
           <div className="text-[10px] text-muted-foreground mt-0.5">{element.seats}</div>
         )}
       </div>
+      <ResizeHandles />
+      <RotateHandle />
     </div>
   );
 }

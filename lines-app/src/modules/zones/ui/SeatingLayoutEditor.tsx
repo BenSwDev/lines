@@ -135,6 +135,19 @@ export function SeatingLayoutEditor({
     }
   }, [initialLayout, setLayout]);
 
+  // Handle delete
+  const handleDelete = useCallback(() => {
+    if (!selectedElementId) return;
+    updateLayout((prev) => ({
+      ...prev,
+      zones: prev.zones.filter((z) => z.id !== selectedElementId),
+      tables: prev.tables.filter((t) => t.id !== selectedElementId),
+      areas: prev.areas.filter((a) => a.id !== selectedElementId)
+    }));
+    selectElement(null);
+    pushToHistory();
+  }, [selectedElementId, updateLayout, selectElement, pushToHistory]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -207,7 +220,8 @@ export function SeatingLayoutEditor({
     toggleGrid,
     setZoom,
     updateLayout,
-    pushToHistory
+    pushToHistory,
+    handleDelete
   ]);
 
   // Snap to grid helper
@@ -539,19 +553,6 @@ export function SeatingLayoutEditor({
     });
     pushToHistory();
   }, [updateLayout, calculateZoneBounds, pushToHistory]);
-
-  // Handle delete
-  const handleDelete = useCallback(() => {
-    if (!selectedElementId) return;
-    updateLayout((prev) => ({
-      ...prev,
-      zones: prev.zones.filter((z) => z.id !== selectedElementId),
-      tables: prev.tables.filter((t) => t.id !== selectedElementId),
-      areas: prev.areas.filter((a) => a.id !== selectedElementId)
-    }));
-    selectElement(null);
-    pushToHistory();
-  }, [selectedElementId, updateLayout, selectElement, pushToHistory]);
 
   // Keyboard shortcuts
   useEffect(() => {
