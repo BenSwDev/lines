@@ -14,6 +14,7 @@ import {
   saveVenueLayout,
   generateZonesFromLayout
 } from "../actions/layoutActions";
+import { normalizeLayout } from "../utils/layoutUtils";
 import type { VenueLayout } from "../types";
 
 type ZonesPageProps = {
@@ -34,11 +35,12 @@ export function ZonesPage({ venueId, venueName }: ZonesPageProps) {
     try {
       setIsLoading(true);
       const layoutResult = await loadVenueLayout(venueId);
-      if (layoutResult.success) {
-        // Type assertion: we know layoutResult has data when success is true
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        setLayout((layoutResult as any).data || null);
+      if (layoutResult.success && "data" in layoutResult && layoutResult.data) {
+        // Normalize ensures layoutData always exists
+        const normalized = normalizeLayout(layoutResult.data);
+        setLayout(normalized);
       } else {
+        // Set to null - SeatingLayoutEditor will use default
         setLayout(null);
       }
       // TODO: Load zones list
