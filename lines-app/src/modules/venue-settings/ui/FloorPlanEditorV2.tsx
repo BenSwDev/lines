@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { FLOOR_PLAN_TYPOGRAPHY } from "../config/floorPlanDesignTokens";
 import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -1533,9 +1534,29 @@ function ElementRenderer({
           }}
         >
           <div>
-            <div className="text-xs font-semibold truncate">{element.name}</div>
+            <div 
+              style={{
+                fontSize: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontSize,
+                fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontWeight,
+                lineHeight: FLOOR_PLAN_TYPOGRAPHY.tableNumber.lineHeight,
+                color: FLOOR_PLAN_TYPOGRAPHY.tableNumber.color
+              }}
+              className="truncate"
+            >
+              {element.name}
+            </div>
             {element.type === "table" && element.seats && (
-              <div className="text-[10px] text-muted-foreground mt-0.5">{element.seats}</div>
+              <div 
+                style={{
+                  fontSize: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontSize,
+                  fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontWeight,
+                  lineHeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.lineHeight,
+                  color: FLOOR_PLAN_TYPOGRAPHY.tableSeats.color,
+                  marginTop: "2px"
+                }}
+              >
+                Places: {element.seats}
+              </div>
             )}
           </div>
         </div>
@@ -1651,9 +1672,29 @@ function ElementRenderer({
       className="group"
     >
       <div className="pointer-events-none text-center px-1">
-        <div className="text-xs font-semibold truncate">{element.name}</div>
+        <div 
+          style={{
+            fontSize: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontSize,
+            fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableNumber.fontWeight,
+            lineHeight: FLOOR_PLAN_TYPOGRAPHY.tableNumber.lineHeight,
+            color: FLOOR_PLAN_TYPOGRAPHY.tableNumber.color
+          }}
+          className="truncate"
+        >
+          {element.name}
+        </div>
         {element.type === "table" && element.seats && (
-          <div className="text-[10px] text-muted-foreground mt-0.5">{element.seats}</div>
+          <div 
+            style={{
+              fontSize: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontSize,
+              fontWeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.fontWeight,
+              lineHeight: FLOOR_PLAN_TYPOGRAPHY.tableSeats.lineHeight,
+              color: FLOOR_PLAN_TYPOGRAPHY.tableSeats.color,
+              marginTop: "2px"
+            }}
+          >
+            Places: {element.seats}
+          </div>
         )}
       </div>
       {isSelected && isInteractive && (
