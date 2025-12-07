@@ -795,17 +795,12 @@ export function FloorPlanEditorV2({
           return element; // Don't link zones or special areas
         }
 
-        // Check if element is already linked to a zone that still contains it
-        if (element.zoneId) {
-          const currentZone = zones.find((z) => z.id === element.zoneId);
-          if (currentZone && findContainingZone(element, [currentZone])) {
-            return element; // Already correctly linked
-          }
-        }
-
-        // Find containing zone
+        // Always find the current containing zone (even if already linked to another)
+        // This ensures that if an element is moved from zone A to zone B, it gets updated to zone B
         const containingZone = findContainingZone(element, zones);
+        
         if (containingZone) {
+          // Element is in a zone - link to it (even if it was linked to a different zone before)
           return {
             ...element,
             zoneId: containingZone.id
