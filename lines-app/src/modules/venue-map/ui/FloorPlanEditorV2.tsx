@@ -2300,80 +2300,43 @@ export function FloorPlanEditorV2({
   // Validate capacity
   const capacityError = venueCapacity > 0 && venueCapacity < totalCapacity;
 
-  // Validation functions
-  const MIN_ELEMENT_SIZE = 20;
+  // Validation constants
   const CANVAS_SIZE = 2000;
 
-  const validateElementSize = useCallback((element: FloorPlanElement): string | null => {
-    if (element.width < MIN_ELEMENT_SIZE || element.height < MIN_ELEMENT_SIZE) {
-      return `גודל מינימלי: ${MIN_ELEMENT_SIZE}px. האלמנט "${element.name}" קטן מדי`;
-    }
-    return null;
-  }, []);
+  // Collision checking removed - users can overlap elements if they want
 
-  const validateElementPosition = useCallback((element: FloorPlanElement): string | null => {
-    if (
-      element.x < 0 ||
-      element.y < 0 ||
-      element.x + element.width > CANVAS_SIZE ||
-      element.y + element.height > CANVAS_SIZE
-    ) {
-      return `האלמנט "${element.name}" נמצא מחוץ לגבולות הקנבס`;
-    }
-    return null;
-  }, []);
-
-  const checkCollisions = useCallback(
-    (element: FloorPlanElement, excludeId?: string): FloorPlanElement[] => {
-      return elements.filter((e) => {
-        if (e.id === element.id || e.id === excludeId || e.type === "zone") return false;
-
-        // Simple bounding box collision check
-        const e1Left = element.x;
-        const e1Right = element.x + element.width;
-        const e1Top = element.y;
-        const e1Bottom = element.y + element.height;
-
-        const e2Left = e.x;
-        const e2Right = e.x + e.width;
-        const e2Top = e.y;
-        const e2Bottom = e.y + e.height;
-
-        return !(e1Right < e2Left || e1Left > e2Right || e1Bottom < e2Top || e1Top > e2Bottom);
-      });
-    },
-    [elements]
-  );
-
-  // Validate all elements
-  const validationErrors = useMemo(() => {
-    const errors: string[] = [];
+  // Simplified validation - only critical errors (warnings, not blocking)
+  const validationWarnings = useMemo(() => {
+    const warnings: string[] = [];
     elements.forEach((element) => {
-      const sizeError = validateElementSize(element);
-      if (sizeError) errors.push(sizeError);
-
-      const positionError = validateElementPosition(element);
-      if (positionError) errors.push(positionError);
-
-      // Check collisions (warn but don't block)
-      const collisions = checkCollisions(element);
-      if (collisions.length > 0) {
-        errors.push(
-          `האלמנט "${element.name}" חופף עם: ${collisions.map((c) => c.name).join(", ")}`
+      // Only check for extremely small elements (less than 10px is probably a mistake)
+      if (element.width < 10 || element.height < 10) {
+        warnings.push(
+          `האלמנט "${element.name}" קטן מאוד (${Math.round(element.width)}x${Math.round(element.height)}px)`
         );
       }
+
+      // Only warn if element is completely outside canvas (partial overlap is OK)
+      if (
+        element.x + element.width < 0 ||
+        element.y + element.height < 0 ||
+        element.x > CANVAS_SIZE ||
+        element.y > CANVAS_SIZE
+      ) {
+        warnings.push(`האלמנט "${element.name}" נמצא מחוץ לגבולות המפה`);
+      }
     });
-    return errors;
-  }, [elements, validateElementSize, validateElementPosition, checkCollisions]);
+    return warnings;
+  }, [elements]);
 
-  const hasValidationErrors = validationErrors.length > 0;
+  const hasValidationWarnings = validationWarnings.length > 0;
 
-  // Auto-fix validation errors using smart algorithm
+  // Auto-fix validation warnings (optional - not blocking)
   const handleAutoFix = useCallback(() => {
-    if (!hasValidationErrors) {
+    if (!hasValidationWarnings) {
       toast({
-        title: "אין שגיאות לתקן",
-        description: "המפה תקינה ואין צורך בתיקונים",
+        title: "אין אזהרות",
+        description: "המפה תקינה",
         variant: "default"
       });
       return;
@@ -2386,12 +2349,11 @@ export function FloorPlanEditorV2({
     const fixedElements: FloorPlanElement[] = [...elements];
     const fixes: string[] = [];
 
-    // Fix 1: Size errors - resize elements that are too small
+    // Fix 1: Size warnings - resize elements that are extremely small (< 10px)
     fixedElements.forEach((element, index) => {
-      const sizeError = validateElementSize(element);
-      if (sizeError) {
-        const newWidth = Math.max(MIN_ELEMENT_SIZE, element.width);
-        const newHeight = Math.max(MIN_ELEMENT_SIZE, element.height);
+      if (element.width < 10 || element.height < 10) {
+        const newWidth = Math.max(20, element.width);
+        const newHeight = Math.max(20, element.height);
         fixedElements[index] = {
           ...element,
           width: newWidth,
@@ -2402,10 +2364,15 @@ export function FloorPlanEditorV2({
       }
     });
 
-    // Fix 2: Position errors - move elements inside canvas bounds
+    // Fix 2: Position warnings - move elements that are completely outside canvas
     fixedElements.forEach((element, index) => {
-      const positionError = validateElementPosition(element);
-      if (positionError) {
+      const isCompletelyOutside =
+        element.x + element.width < 0 ||
+        element.y + element.height < 0 ||
+        element.x > CANVAS_SIZE ||
+        element.y > CANVAS_SIZE;
+
+      if (isCompletelyOutside) {
         let newX = element.x;
         let newY = element.y;
 
@@ -2451,110 +2418,7 @@ export function FloorPlanEditorV2({
       }
     });
 
-    // Fix 3: Collision errors - resolve overlaps using smart algorithm
-    // Strategy: For each collision, move the smaller/less important element
-    const processedCollisions = new Set<string>();
-
-    fixedElements.forEach((element) => {
-      const collisions = checkCollisions(element);
-
-      collisions.forEach((collidingElement) => {
-        const collisionKey = [element.id, collidingElement.id].sort().join("-");
-        if (processedCollisions.has(collisionKey)) return;
-        processedCollisions.add(collisionKey);
-
-        // Find indices
-        const elementIndex = fixedElements.findIndex((e) => e.id === element.id);
-        const collidingIndex = fixedElements.findIndex((e) => e.id === collidingElement.id);
-
-        if (elementIndex === -1 || collidingIndex === -1) return;
-
-        // Determine which element to move (prefer moving smaller elements, then tables before zones)
-        let elementToMove = element;
-        let elementToMoveIndex = elementIndex;
-        let staticElement = collidingElement;
-
-        // Priority: Move smaller elements first, then tables before zones
-        const elementArea = element.width * element.height;
-        const collidingArea = collidingElement.width * collidingElement.height;
-
-        if (
-          elementArea > collidingArea ||
-          (elementArea === collidingArea &&
-            element.type === "zone" &&
-            collidingElement.type !== "zone")
-        ) {
-          elementToMove = collidingElement;
-          elementToMoveIndex = collidingIndex;
-          staticElement = element;
-        }
-
-        // Calculate overlap
-        const moveLeft = elementToMove.x;
-        const moveRight = elementToMove.x + elementToMove.width;
-        const moveTop = elementToMove.y;
-        const moveBottom = elementToMove.y + elementToMove.height;
-
-        const staticLeft = staticElement.x;
-        const staticRight = staticElement.x + staticElement.width;
-        const staticTop = staticElement.y;
-        const staticBottom = staticElement.y + staticElement.height;
-
-        // Find the smallest movement to resolve collision
-        const moveLeftDist = moveRight - staticLeft;
-        const moveRightDist = staticRight - moveLeft;
-        const moveUpDist = moveBottom - staticTop;
-        const moveDownDist = staticBottom - moveTop;
-
-        let newX = elementToMove.x;
-        let newY = elementToMove.y;
-        let moved = false;
-
-        // Choose the direction with minimum movement
-        const minDist = Math.min(
-          moveLeftDist > 0 ? moveLeftDist : Infinity,
-          moveRightDist > 0 ? moveRightDist : Infinity,
-          moveUpDist > 0 ? moveUpDist : Infinity,
-          moveDownDist > 0 ? moveDownDist : Infinity
-        );
-
-        if (minDist !== Infinity) {
-          if (minDist === moveLeftDist && moveLeftDist > 0) {
-            // Move left
-            newX = staticLeft - elementToMove.width - 10; // 10px spacing
-            moved = true;
-          } else if (minDist === moveRightDist && moveRightDist > 0) {
-            // Move right
-            newX = staticRight + 10; // 10px spacing
-            moved = true;
-          } else if (minDist === moveUpDist && moveUpDist > 0) {
-            // Move up
-            newY = staticTop - elementToMove.height - 10; // 10px spacing
-            moved = true;
-          } else if (minDist === moveDownDist && moveDownDist > 0) {
-            // Move down
-            newY = staticBottom + 10; // 10px spacing
-            moved = true;
-          }
-
-          // Ensure new position is within canvas bounds
-          newX = Math.max(0, Math.min(CANVAS_SIZE - elementToMove.width, newX));
-          newY = Math.max(0, Math.min(CANVAS_SIZE - elementToMove.height, newY));
-
-          if (moved) {
-            fixedElements[elementToMoveIndex] = {
-              ...fixedElements[elementToMoveIndex],
-              x: newX,
-              y: newY
-            };
-            fixes.push(
-              `התנגשות נפתרה: "${elementToMove.name}" הוזז ל-(${Math.round(newX)}, ${Math.round(newY)})`
-            );
-            fixedCount++;
-          }
-        }
-      });
-    });
+    // No collision fixing - collisions/overlaps are allowed (users can place elements as they want)
 
     // Apply fixes
     updateElementsWithHistory(fixedElements, true); // Skip history since we already saved
@@ -2568,15 +2432,7 @@ export function FloorPlanEditorV2({
       variant: "default",
       duration: 5000
     });
-  }, [
-    hasValidationErrors,
-    elements,
-    validateElementSize,
-    validateElementPosition,
-    checkCollisions,
-    updateElementsWithHistory,
-    toast
-  ]);
+  }, [hasValidationWarnings, elements, updateElementsWithHistory, toast]);
 
   // Save confirmation dialog handler
   const handleSaveClick = useCallback(() => {
@@ -2594,15 +2450,14 @@ export function FloorPlanEditorV2({
       return;
     }
 
-    // Check validation errors
-    if (hasValidationErrors) {
+    // Show warnings but allow saving
+    if (hasValidationWarnings) {
       toast({
-        title: t("errors.validation"),
-        description: `יש ${validationErrors.length} שגיאות validation. אנא תקן לפני שמירה.`,
-        variant: "destructive",
-        duration: 5000
+        title: "שימו לב",
+        description: `יש ${validationWarnings.length} אזהרות במפה. המפה תישמר בכל מקרה.`,
+        variant: "default",
+        duration: 3000
       });
-      return;
     }
 
     setIsSaving(true);
@@ -2712,7 +2567,15 @@ export function FloorPlanEditorV2({
         setSaveStatus("");
       }, 1000);
     }
-  }, [elements, venueId, capacityError, toast, t, hasValidationErrors, validationErrors.length]);
+  }, [
+    elements,
+    venueId,
+    capacityError,
+    toast,
+    t,
+    hasValidationWarnings,
+    validationWarnings.length
+  ]);
 
   // Save as template
   const handleSaveTemplate = useCallback(
@@ -3473,48 +3336,44 @@ export function FloorPlanEditorV2({
                 {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")} •{" "}
                 {totalCapacity} {t("common.seats")}
               </div>
-              {hasValidationErrors && (
+              {hasValidationWarnings && (
                 <>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAutoFix}
-                        className="gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      >
+                      <Button variant="outline" size="sm" onClick={handleAutoFix} className="gap-2">
                         <Wand2 className="h-4 w-4" />
                         תיקון אוטומטי
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <div className="space-y-1">
-                        <div className="font-semibold">תיקון אוטומטי של כל השגיאות</div>
-                        <div className="text-xs">תקן גודל, מיקום והתנגשויות אוטומטית</div>
+                        <div className="font-semibold">תיקון אוטומטי של אזהרות</div>
+                        <div className="text-xs">תקן גודל ומיקום אוטומטית (אופציונלי)</div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
+                      <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500 text-sm cursor-help">
                         <AlertCircle className="h-4 w-4" />
-                        {validationErrors.length} שגיאות
+                        {validationWarnings.length} אזהרות
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto p-4">
                       <div className="space-y-3">
-                        <div className="font-semibold text-base text-destructive">
-                          שגיאות Validation ({validationErrors.length}):
+                        <div className="font-semibold text-base text-yellow-600 dark:text-yellow-500">
+                          אזהרות ({validationWarnings.length}):
                         </div>
                         <ul className="list-disc list-inside text-sm space-y-2 text-left">
-                          {validationErrors.map((error, i) => (
+                          {validationWarnings.map((warning, i) => (
                             <li key={i} className="leading-relaxed">
-                              {error}
+                              {warning}
                             </li>
                           ))}
                         </ul>
                         <div className="text-xs text-muted-foreground pt-2 border-t">
-                          לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן את כל השגיאות בבת אחת
+                          ניתן לשמור את המפה גם עם אזהרות. לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן
+                          אוטומטית.
                         </div>
                       </div>
                     </TooltipContent>
@@ -3539,10 +3398,10 @@ export function FloorPlanEditorV2({
                 <TooltipTrigger asChild>
                   <Button
                     onClick={handleSaveClick}
-                    disabled={isSaving || hasValidationErrors}
+                    disabled={isSaving}
                     size="sm"
                     className="gap-2"
-                    variant={hasValidationErrors ? "destructive" : "default"}
+                    variant="default"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? t("common.loading") : t("common.save")}
@@ -3559,9 +3418,9 @@ export function FloorPlanEditorV2({
                         נשמר לאחרונה: {lastSaveTime.toLocaleString("he-IL")}
                       </div>
                     )}
-                    {hasValidationErrors && (
-                      <div className="text-xs text-destructive mt-1">
-                        יש שגיאות validation - אנא תקן לפני שמירה
+                    {hasValidationWarnings && (
+                      <div className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                        יש {validationWarnings.length} אזהרות - ניתן לשמור בכל מקרה
                       </div>
                     )}
                   </div>
@@ -4775,7 +4634,7 @@ export function FloorPlanEditorV2({
                     {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")} •{" "}
                     {totalCapacity} {t("common.seats")}
                   </div>
-                  {hasValidationErrors && (
+                  {hasValidationWarnings && (
                     <>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -4783,7 +4642,7 @@ export function FloorPlanEditorV2({
                             variant="outline"
                             size="sm"
                             onClick={handleAutoFix}
-                            className="gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                            className="gap-2"
                           >
                             <Wand2 className="h-4 w-4" />
                             תיקון אוטומטי
@@ -4791,30 +4650,33 @@ export function FloorPlanEditorV2({
                         </TooltipTrigger>
                         <TooltipContent>
                           <div className="space-y-1">
-                            <div className="font-semibold">תיקון אוטומטי של כל השגיאות</div>
-                            <div className="text-xs">תקן גודל, מיקום והתנגשויות אוטומטית</div>
+                            <div className="font-semibold">תיקון אוטומטי של אזהרות</div>
+                            <div className="text-xs">תקן גודל ומיקום אוטומטית (אופציונלי)</div>
                           </div>
                         </TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
+                          <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-500 text-sm cursor-help">
                             <AlertCircle className="h-4 w-4" />
-                            {validationErrors.length} שגיאות
+                            {validationWarnings.length} אזהרות
                           </div>
                         </TooltipTrigger>
                         <TooltipContent className="max-w-lg max-h-96 overflow-y-auto">
                           <div className="space-y-2">
-                            <div className="font-semibold text-base">שגיאות Validation:</div>
+                            <div className="font-semibold text-base text-yellow-600 dark:text-yellow-500">
+                              אזהרות:
+                            </div>
                             <ul className="list-disc list-inside text-sm space-y-1">
-                              {validationErrors.map((error, i) => (
+                              {validationWarnings.map((warning, i) => (
                                 <li key={i} className="text-left">
-                                  {error}
+                                  {warning}
                                 </li>
                               ))}
                             </ul>
                             <div className="text-xs text-muted-foreground pt-2 border-t">
-                              לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן את כל השגיאות בבת אחת
+                              ניתן לשמור את המפה גם עם אזהרות. לחץ על &quot;תיקון אוטומטי&quot; כדי
+                              לתקן אוטומטית.
                             </div>
                           </div>
                         </TooltipContent>
@@ -4828,10 +4690,10 @@ export function FloorPlanEditorV2({
                           setIsFullscreen(false);
                           handleSaveClick();
                         }}
-                        disabled={isSaving || hasValidationErrors}
+                        disabled={isSaving}
                         size="sm"
                         className="gap-2"
-                        variant={hasValidationErrors ? "destructive" : "default"}
+                        variant="default"
                       >
                         <Save className="h-4 w-4" />
                         {isSaving ? t("common.loading") : t("common.save")}
@@ -4840,9 +4702,9 @@ export function FloorPlanEditorV2({
                     <TooltipContent>
                       <div className="space-y-1">
                         <div className="font-semibold">שמירת מפה</div>
-                        {hasValidationErrors && (
-                          <div className="text-xs text-destructive mt-1">
-                            יש שגיאות validation - אנא תקן לפני שמירה
+                        {hasValidationWarnings && (
+                          <div className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
+                            יש {validationWarnings.length} אזהרות - ניתן לשמור בכל מקרה
                           </div>
                         )}
                       </div>
