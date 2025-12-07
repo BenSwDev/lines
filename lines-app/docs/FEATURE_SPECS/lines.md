@@ -165,10 +165,12 @@ Each line that accepts reservations (not in exclusions) can have personalized re
 ### Server Actions
 
 **`getLineReservationSettings(lineId: string)`**
+
 - Get or create default settings for a line
 - Returns error if line is excluded or reservations not enabled
 
 **`updateLineReservationSettings(lineId: string, input: LineReservationSettingsInput)`**
+
 - Update settings for a line
 - Validates line eligibility before updating
 

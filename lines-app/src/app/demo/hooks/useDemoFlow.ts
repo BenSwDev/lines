@@ -9,7 +9,9 @@ import type { DemoFlow, DemoSlide } from "../utils/demoSchema";
  */
 export function useDemoFlow(flow: DemoFlow) {
   const [currentSlideId, setCurrentSlideId] = useState<string>(flow.slides[0]?.id || "");
-  const [visitedSlides, setVisitedSlides] = useState<Set<string>>(new Set([flow.slides[0]?.id || ""]));
+  const [visitedSlides, setVisitedSlides] = useState<Set<string>>(
+    new Set([flow.slides[0]?.id || ""])
+  );
   const [selectedBranches, setSelectedBranches] = useState<Record<string, string>>({});
 
   // Get current slide
@@ -43,7 +45,9 @@ export function useDemoFlow(flow: DemoFlow) {
     if (currentSlide.type === "question") {
       const selectedOption = selectedBranches[currentSlide.id];
       if (selectedOption) {
-        const option = currentSlide.options?.find((opt: { id: string; nextSlide: string }) => opt.id === selectedOption);
+        const option = currentSlide.options?.find(
+          (opt: { id: string; nextSlide: string }) => opt.id === selectedOption
+        );
         if (option?.nextSlide) {
           goToSlide(option.nextSlide);
           return;
@@ -78,7 +82,9 @@ export function useDemoFlow(flow: DemoFlow) {
       setSelectedBranches((prev) => ({ ...prev, [slideId]: optionId }));
       const slide = flow.slides.find((s) => s.id === slideId);
       if (slide && slide.type === "question") {
-        const option = slide.options?.find((opt: { id: string; nextSlide: string }) => opt.id === optionId);
+        const option = slide.options?.find(
+          (opt: { id: string; nextSlide: string }) => opt.id === optionId
+        );
         if (option?.nextSlide) {
           // Auto-advance to selected branch
           setTimeout(() => {
@@ -139,7 +145,6 @@ export function useDemoFlow(flow: DemoFlow) {
     isVisited,
     getSlide,
     totalSlides: flow.slides.length,
-    currentIndex: flow.slides.findIndex((slide) => slide.id === currentSlideId),
+    currentIndex: flow.slides.findIndex((slide) => slide.id === currentSlideId)
   };
 }
-

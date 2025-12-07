@@ -175,4 +175,3 @@ export function ReservationFormDesigner({ design, onChange }: ReservationFormDes
     </Card>
   );
 }
-

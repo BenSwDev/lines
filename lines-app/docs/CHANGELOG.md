@@ -4,6 +4,56 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.6.0] – 2025-01-15 (Roles & Hierarchy Management)
+
+### ✨ Features
+
+#### Added
+
+- **Roles & Hierarchy Module** (`src/modules/roles-hierarchy`)
+  - Department management (create, edit, delete)
+  - Role management (create, edit, delete)
+  - Visual hierarchy tree view
+  - Department hierarchy support (parent/child departments)
+  - Color and icon customization for departments and roles
+
+- **Database Models**
+  - `Department` model with hierarchy support
+  - `Role` model linked to departments
+  - Full Prisma schema with relationships and indexes
+
+- **UI Components**
+  - `RolesHierarchyPage` - Main page with tabs
+  - `DepartmentsTab` - Department management interface
+  - `RolesTab` - Role management interface
+  - `HierarchyView` - Visual tree representation
+  - Dialog components for create/edit operations
+  - Card components for departments and roles
+
+- **Server Actions**
+  - Full CRUD operations for departments
+  - Full CRUD operations for roles
+  - Hierarchy tree building service
+
+- **Navigation**
+  - Added "תפקידים והיררכיה" link to DashboardLayout sidebar
+
+#### Technical Details
+
+- **Route**: `/venues/[venueId]/roles`
+- **Module Structure**: Follows project conventions (ui/, actions/, services/, schemas/)
+- **Validation**: Zod schemas for all inputs
+- **Business Logic**: Service layer with validation and error handling
+- **Database**: Migration `add_roles_hierarchy.sql` created
+
+#### Documentation
+
+- Added `FEATURE_SPECS/roles-hierarchy.md`
+- Updated `DATA_MODEL.md` with Department and Role models
+- Updated module `README.md`
+
+---
+
 ## [1.4.1] – 2025-01-16 (CI/CD Pipeline & Database Sync)
 
 ### 🔧 Infrastructure & DevOps

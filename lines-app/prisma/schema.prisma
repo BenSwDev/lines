@@ -102,6 +102,8 @@ model Venue {
   areas               VenueArea[]
   reservationSettings ReservationSettings?
   floorPlanTemplates  FloorPlanTemplate[]
+  departments         Department[]
+  roles               Role[]
 
   @@index([userId])
   @@map("venues")
@@ -453,6 +455,55 @@ model LineReservationDaySchedule {
   @@unique([lineReservationSettingsId, dayOfWeek])
   @@index([lineReservationSettingsId])
   @@map("line_reservation_day_schedules")
+}
+
+// ============================================================================
+// ROLES & HIERARCHY
+// ============================================================================
+
+model Department {
+  id                String    @id @default(cuid())
+  venueId           String
+  name              String
+  description       String?
+  color             String
+  icon              String?
+  parentDepartmentId String?
+  order             Int       @default(0)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relationships
+  venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  parentDepartment Department? @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
+  childDepartments  Department[] @relation("DepartmentHierarchy")
+  roles             Role[]
+
+  @@index([venueId])
+  @@index([parentDepartmentId])
+  @@map("departments")
+}
+
+model Role {
+  id                String    @id @default(cuid())
+  venueId           String
+  name              String
+  description       String?
+  icon              String?
+  color             String
+  departmentId      String
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relationships
+  venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  department        Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([venueId])
+  @@index([departmentId])
+  @@map("roles")
 }
 
 

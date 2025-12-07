@@ -40,6 +40,7 @@ Run from the `lines-app` directory:
 ### Database Migrations
 
 Migrations are automatically applied during deployment via the `build:deploy` script. The script runs `prisma migrate deploy` which:
+
 - Applies all pending migrations to the production database
 - Does not create new migrations (use `prisma migrate dev` locally)
 - Is safe for production use
@@ -47,6 +48,7 @@ Migrations are automatically applied during deployment via the `build:deploy` sc
 ### CI/CD Pipeline
 
 The project includes a GitHub Actions workflow (`.github/workflows/ci-cd.yml`) that:
+
 - Runs on every push to `main` and pull requests
 - Builds and tests the application
 - Applies database migrations

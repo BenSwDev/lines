@@ -11,7 +11,7 @@ export const DemoOptionSchema = z.object({
   text: z.string().min(1, "Option text is required"),
   textHe: z.string().optional(),
   emoji: z.string().optional(),
-  nextSlide: z.string().min(1, "Next slide ID is required"),
+  nextSlide: z.string().min(1, "Next slide ID is required")
 });
 
 // CTA schema for outro slides
@@ -19,7 +19,7 @@ export const DemoCTASchema = z.object({
   text: z.string().min(1, "CTA text is required"),
   textHe: z.string().optional(),
   action: z.string().optional(),
-  href: z.string().optional(),
+  href: z.string().optional()
 });
 
 // Base slide schema
@@ -45,25 +45,25 @@ const BaseSlideSchema = z.object({
   gradient: z.string().optional(),
   autoAdvance: z.boolean().optional().default(false),
   duration: z.number().positive().optional(),
-  nextSlide: z.string().optional(),
+  nextSlide: z.string().optional()
 });
 
 // Intro slide schema
 export const IntroSlideSchema = BaseSlideSchema.extend({
   type: z.literal("intro"),
-  nextSlide: z.string().min(1, "Next slide ID is required"),
+  nextSlide: z.string().min(1, "Next slide ID is required")
 });
 
 // Content slide schema
 export const ContentSlideSchema = BaseSlideSchema.extend({
   type: z.literal("content"),
-  nextSlide: z.string().optional(),
+  nextSlide: z.string().optional()
 });
 
 // Feature slide schema
 export const FeatureSlideSchema = BaseSlideSchema.extend({
   type: z.literal("feature"),
-  nextSlide: z.string().optional(),
+  nextSlide: z.string().optional()
 });
 
 // Question slide schema
@@ -75,7 +75,7 @@ export const QuestionSlideSchema = BaseSlideSchema.extend({
     .max(5, "Maximum 5 options allowed"),
   allowSkip: z.boolean().optional().default(false),
   skipTo: z.string().optional(),
-  autoAdvance: z.literal(false).optional(),
+  autoAdvance: z.literal(false).optional()
 });
 
 // Outro slide schema
@@ -84,10 +84,10 @@ export const OutroSlideSchema = BaseSlideSchema.extend({
   cta: z
     .object({
       primary: DemoCTASchema,
-      secondary: DemoCTASchema.optional(),
+      secondary: DemoCTASchema.optional()
     })
     .optional(),
-  autoAdvance: z.literal(false).optional(),
+  autoAdvance: z.literal(false).optional()
 });
 
 // Union of all slide types
@@ -96,7 +96,7 @@ export const SlideSchema = z.discriminatedUnion("type", [
   ContentSlideSchema,
   FeatureSlideSchema,
   QuestionSlideSchema,
-  OutroSlideSchema,
+  OutroSlideSchema
 ]);
 
 // Metadata schema
@@ -106,13 +106,13 @@ export const DemoMetadataSchema = z.object({
   description: z.string().optional(),
   autoAdvance: z.boolean().optional().default(true),
   autoAdvanceDelay: z.number().positive().optional().default(5000),
-  enableBranching: z.boolean().optional().default(true),
+  enableBranching: z.boolean().optional().default(true)
 });
 
 // Complete demo flow schema
 export const DemoFlowSchema = z.object({
   metadata: DemoMetadataSchema,
-  slides: z.array(SlideSchema).min(1, "At least one slide is required"),
+  slides: z.array(SlideSchema).min(1, "At least one slide is required")
 });
 
 // Type exports
@@ -128,7 +128,9 @@ export function validateDemoFlow(data: unknown): DemoFlow {
 }
 
 // Helper function to safely parse demo flow
-export function parseDemoFlow(data: unknown): { success: true; data: DemoFlow } | { success: false; error: string } {
+export function parseDemoFlow(
+  data: unknown
+): { success: true; data: DemoFlow } | { success: false; error: string } {
   try {
     const validated = DemoFlowSchema.parse(data);
     return { success: true, data: validated };
@@ -136,10 +138,9 @@ export function parseDemoFlow(data: unknown): { success: true; data: DemoFlow } 
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", "),
+        error: error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ")
       };
     }
     return { success: false, error: "Unknown validation error" };
   }
 }
-

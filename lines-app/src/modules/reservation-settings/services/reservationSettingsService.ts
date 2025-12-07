@@ -169,7 +169,9 @@ export class ReservationSettingsService {
               isRequired: field.isRequired,
               isEnabled: field.isEnabled,
               order: field.order,
-              validationRules: field.validationRules ? JSON.parse(JSON.stringify(field.validationRules)) : null,
+              validationRules: field.validationRules
+                ? JSON.parse(JSON.stringify(field.validationRules))
+                : null,
               options: field.options ? JSON.parse(JSON.stringify(field.options)) : null
             }))
           });
@@ -188,10 +190,12 @@ export class ReservationSettingsService {
             data: {
               primaryColor: validated.formDesign.primaryColor ?? existingDesign.primaryColor,
               secondaryColor: validated.formDesign.secondaryColor ?? existingDesign.secondaryColor,
-              backgroundColor: validated.formDesign.backgroundColor ?? existingDesign.backgroundColor,
+              backgroundColor:
+                validated.formDesign.backgroundColor ?? existingDesign.backgroundColor,
               textColor: validated.formDesign.textColor ?? existingDesign.textColor,
               buttonColor: validated.formDesign.buttonColor ?? existingDesign.buttonColor,
-              buttonTextColor: validated.formDesign.buttonTextColor ?? existingDesign.buttonTextColor,
+              buttonTextColor:
+                validated.formDesign.buttonTextColor ?? existingDesign.buttonTextColor,
               borderRadius: validated.formDesign.borderRadius ?? existingDesign.borderRadius,
               fontFamily: validated.formDesign.fontFamily ?? existingDesign.fontFamily,
               headerText: validated.formDesign.headerText ?? existingDesign.headerText,

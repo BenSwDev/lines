@@ -37,4 +37,3 @@ export function DemoGuideWrapper() {
     </I18nProvider>
   );
 }
-

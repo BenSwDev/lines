@@ -9,6 +9,7 @@
 ## 🎯 High Priority (Next Phase)
 
 ### Analytics & Tracking
+
 - [ ] **Implement analytics event storage**
   - Create `demo_analytics` database table
   - Store events: `step_viewed`, `cta_clicked`, `demo_completed`, `registration_clicked`
@@ -28,6 +29,7 @@
   - **Dependencies:** Admin dashboard module
 
 ### Interactive "Try it Live" Feature
+
 - [ ] **Demo data generation service**
   - Create sample venue for demo user
   - Generate sample lines with occurrences
@@ -52,6 +54,7 @@
 ## 🔄 Medium Priority (Future Releases)
 
 ### A/B Testing & Configuration
+
 - [ ] **A/B testing framework**
   - Multiple demo variants
   - Step content variations
@@ -72,6 +75,7 @@
   - **Dependencies:** Database schema, content management
 
 ### Enhanced User Experience
+
 - [ ] **Auto-advance mode**
   - Optional automatic step progression
   - Configurable delay between steps
@@ -103,6 +107,7 @@
 ## 📊 Low Priority (Nice to Have)
 
 ### Marketing & Conversion
+
 - [ ] **Email capture**
   - Optional email collection before demo
   - Newsletter signup integration
@@ -128,6 +133,7 @@
   - **Dependencies:** Calendar service, email service
 
 ### Advanced Features
+
 - [ ] **Interactive product tour**
   - Click-to-highlight features
   - Zoom/pan on specific UI elements
@@ -157,6 +163,7 @@
 ## 🏗️ Infrastructure & Technical
 
 ### Performance
+
 - [ ] **Code splitting**
   - Lazy load demo component
   - Split Framer Motion bundle
@@ -176,6 +183,7 @@
   - **Dependencies:** CDN setup, service worker
 
 ### Testing
+
 - [ ] **Unit tests**
   - `demoService` methods
   - Zod schema validation
@@ -202,6 +210,7 @@
   - **Dependencies:** Visual testing tool (Percy, Chromatic)
 
 ### Documentation
+
 - [ ] **API documentation**
   - OpenAPI/Swagger spec
   - Example requests/responses
@@ -280,11 +289,13 @@
 ### Future Schema Changes
 
 If we add database tables:
+
 - `demo_analytics` - Analytics events
 - `demo_config` - Configuration
 - `demo_sessions` - Demo user sessions
 
 Migration strategy:
+
 - Use Prisma migrations
 - Backward compatibility for existing code
 - Data migration scripts if needed
@@ -299,4 +310,3 @@ Migration strategy:
 - Low priority items are aspirational and can be deprioritized
 
 **Last Updated:** 2025-12-05
-

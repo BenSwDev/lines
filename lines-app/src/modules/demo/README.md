@@ -11,6 +11,7 @@
 The Demo module provides an interactive marketing demonstration experience for showcasing the Lines application. It presents a guided tour through 4 key feature areas with animated overlays, progress tracking, and clear call-to-action buttons.
 
 This module is designed to:
+
 - Showcase product features to potential customers
 - Build confidence before registration
 - Serve as a marketing tool for sales teams
@@ -95,7 +96,7 @@ export default function DemoPage() {
     trackDemoEvent({
       type: "step_viewed",
       stepId: "brand",
-      timestamp: new Date(),
+      timestamp: new Date()
     });
   }, []);
 
@@ -114,11 +115,13 @@ Main demo component that renders the full interactive experience.
 **Props:** None (self-contained)
 
 **State:**
+
 - `activeStep` - Current step index (0-3)
 - `currentStep` - Computed current step data
 - `progress` - Progress percentage (0-100)
 
 **Features:**
+
 - Step navigation (click or button)
 - Progress tracking
 - Animated overlays
@@ -133,6 +136,7 @@ Main demo component that renders the full interactive experience.
 Track analytics events for demo interactions.
 
 **Input Schema:**
+
 ```typescript
 {
   type: "step_viewed" | "cta_clicked" | "demo_completed" | "registration_clicked",
@@ -143,6 +147,7 @@ Track analytics events for demo interactions.
 ```
 
 **Returns:**
+
 ```typescript
 { success: boolean, error?: string }
 ```
@@ -152,6 +157,7 @@ Track analytics events for demo interactions.
 Get demo configuration (feature flags, A/B testing variants).
 
 **Returns:**
+
 ```typescript
 {
   success: boolean,
@@ -169,6 +175,7 @@ Get demo configuration (feature flags, A/B testing variants).
 Generate sample data for interactive "Try it live" feature.
 
 **Returns:**
+
 ```typescript
 { success: boolean, error?: string }
 ```
@@ -226,6 +233,7 @@ const publicRoutes = ["/", "/demo", "/auth/login", "/auth/register", "/api/auth"
 ### Navigation Links
 
 The demo is linked from:
+
 - Landing page Hero section (`/`)
 - Footer quick links
 - Header navigation (future)
@@ -235,6 +243,7 @@ The demo is linked from:
 ## Styling
 
 The demo uses:
+
 - **Tailwind CSS** for all styling
 - **Dark theme** with slate-950/900 gradients
 - **Primary color** accents (indigo-500)
@@ -313,4 +322,3 @@ The demo uses:
 ---
 
 **Last Updated:** 2025-12-05
-

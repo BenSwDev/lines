@@ -1,6 +1,6 @@
 /**
  * Demo Module Types
- * 
+ *
  * TypeScript types for the demo module.
  * This module provides an interactive marketing demo experience.
  */
@@ -60,4 +60,3 @@ export interface DemoAnalyticsEvent {
   /** Additional metadata */
   metadata?: Record<string, unknown>;
 }
-

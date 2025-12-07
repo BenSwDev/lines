@@ -12,7 +12,11 @@ interface UseDemoProgressOptions {
  * Hook for calculating and managing demo progress
  * Provides progress percentage, completion status, and navigation helpers
  */
-export function useDemoProgress({ currentIndex, totalSlides, visitedSlides }: UseDemoProgressOptions) {
+export function useDemoProgress({
+  currentIndex,
+  totalSlides,
+  visitedSlides
+}: UseDemoProgressOptions) {
   const progress = useMemo(() => {
     if (totalSlides === 0) return 0;
     return Math.round(((currentIndex + 1) / totalSlides) * 100);
@@ -52,7 +56,6 @@ export function useDemoProgress({ currentIndex, totalSlides, visitedSlides }: Us
     canGoPrevious,
     slideNumber,
     totalSlides,
-    visitedCount: visitedSlides.size,
+    visitedCount: visitedSlides.size
   };
 }
-

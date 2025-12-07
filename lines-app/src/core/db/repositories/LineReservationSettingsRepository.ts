@@ -71,4 +71,3 @@ export class LineReservationSettingsRepository {
 }
 
 export const lineReservationSettingsRepository = new LineReservationSettingsRepository();
-

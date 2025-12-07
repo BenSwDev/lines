@@ -68,6 +68,7 @@ Edit `src/app/demo/data/demoFlow.json` to customize:
 - Gradients and styling
 
 **Bilingual Support:**
+
 - Use `titleHe`, `contentHe`, `bulletsHe` for Hebrew-specific content
 - Use `titleKey`, `contentKey` to reference translation keys from `messages/*.json`
 - Fallback to default `title`, `content` if language-specific version not found
@@ -132,6 +133,7 @@ Edit `src/app/demo/animations/slideTransitions.ts` to modify:
 Manages demo flow state and navigation.
 
 **Returns:**
+
 - `currentSlide` - Current slide object
 - `currentSlideId` - Current slide ID
 - `progress` - Progress percentage
@@ -146,6 +148,7 @@ Manages demo flow state and navigation.
 Handles auto-advance timing.
 
 **Options:**
+
 - `slide` - Current slide
 - `enabled` - Enable/disable auto-advance
 - `defaultDelay` - Default delay in ms
@@ -157,6 +160,7 @@ Handles auto-advance timing.
 Calculates progress metrics.
 
 **Returns:**
+
 - `progress` - Current progress percentage
 - `completionPercentage` - Completion based on visited slides
 - `isFirstSlide` - Is on first slide
@@ -220,4 +224,3 @@ Use any Tailwind gradient classes.
 ---
 
 **Last Updated:** 2025-01-16
-

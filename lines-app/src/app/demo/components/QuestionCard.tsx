@@ -23,7 +23,7 @@ export function QuestionCard({
   selectedOptionId,
   onSelect,
   allowSkip = false,
-  onSkip,
+  onSkip
 }: QuestionCardProps) {
   return (
     <div className="space-y-6">
@@ -58,9 +58,13 @@ export function QuestionCard({
             >
               <div className="relative z-10 flex items-start gap-4">
                 {option.emoji && (
-                  <span className="text-3xl transition-transform group-hover:scale-110">{option.emoji}</span>
+                  <span className="text-3xl transition-transform group-hover:scale-110">
+                    {option.emoji}
+                  </span>
                 )}
-                <span className={`text-lg font-medium ${isSelected ? "text-white" : "text-white/90"}`}>
+                <span
+                  className={`text-lg font-medium ${isSelected ? "text-white" : "text-white/90"}`}
+                >
                   {option.text}
                 </span>
               </div>
@@ -91,4 +95,3 @@ export function QuestionCard({
     </div>
   );
 }
-

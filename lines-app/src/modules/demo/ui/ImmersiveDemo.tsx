@@ -10,7 +10,7 @@ import {
   MessageSquare,
   ShieldCheck,
   Sparkles,
-  Workflow,
+  Workflow
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +27,8 @@ const steps: DemoStep[] = [
     bullets: [
       "נבנתה ל-RTL ולצוותים שעובדים בעברית מהיום הראשון",
       "משלבת בין חוויית משתמש פרימיום לבין אוטומציה חכמה",
-      "מוכנה לעליה לאוויר – מהירה, מאובטחת ומדויקת",
-    ],
+      "מוכנה לעליה לאוויר – מהירה, מאובטחת ומדויקת"
+    ]
   },
   {
     id: "calendar",
@@ -39,8 +39,8 @@ const steps: DemoStep[] = [
     bullets: [
       "תרחישים אמיתיים: יצירת ליין, שיוך צוות ופתיחת משמרות",
       "הדגמות קופצות שמסבירות למה כל פעולה חשובה",
-      "עדכון חי של ההדמיה כך שתראו תוצאה מידית",
-    ],
+      "עדכון חי של ההדמיה כך שתראו תוצאה מידית"
+    ]
   },
   {
     id: "automation",
@@ -51,8 +51,8 @@ const steps: DemoStep[] = [
     bullets: [
       "הודעות מיידיות שמסמנות צווארי בקבוק לפני שהם קורים",
       "אישור אוטומטי של פעולות קריטיות עם חיווי בטיחות",
-      "מסלול הדרכה שמרגיש כמו יועץ אישי בתוך המוצר",
-    ],
+      "מסלול הדרכה שמרגיש כמו יועץ אישי בתוך המוצר"
+    ]
   },
   {
     id: "handoff",
@@ -63,9 +63,9 @@ const steps: DemoStep[] = [
     bullets: [
       "חפיפה מודרכת לצוותי מכירות ושיווק",
       "מצב הצגה שמדגיש את ערכי המותג ותהליך העבודה",
-      "הנעה לפעולה ברורה להתחלה מידית במערכת",
-    ],
-  },
+      "הנעה לפעולה ברורה להתחלה מידית במערכת"
+    ]
+  }
 ];
 
 const overlayCards: OverlayCard[] = [
@@ -73,23 +73,22 @@ const overlayCards: OverlayCard[] = [
     title: "אוטומציה שמסבירה את עצמה",
     body: "חלון קופץ מציג למה קיבלתם המלצה לשנות צוות ומתי זה קורה.",
     icon: <Workflow className="h-4 w-4 text-primary" />,
-    className:
-      "top-6 right-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur",
+    className: "top-6 right-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur"
   },
   {
     title: "חיווי אמינות",
     body: "שכבת אבטחה חכמה שמעדכנת כשהכל ירוק ומוכן לעליה לאוויר.",
     icon: <ShieldCheck className="h-4 w-4 text-emerald-400" />,
     className:
-      "bottom-8 left-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 shadow-lg",
+      "bottom-8 left-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 shadow-lg"
   },
   {
     title: "אינטראקציה אנושית",
     body: "הסברים טקסטואליים קצרים בעברית שמקבעים את הערך העסקי.",
     icon: <MessageSquare className="h-4 w-4 text-blue-400" />,
     className:
-      "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 backdrop-blur",
-  },
+      "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3 backdrop-blur"
+  }
 ];
 
 export function ImmersiveDemo() {
@@ -114,7 +113,10 @@ export function ImmersiveDemo() {
 
       <div className="container mx-auto px-6">
         <div className="mb-10 text-center">
-          <Badge variant="secondary" className="mb-4 gap-2 border-primary/40 bg-primary/10 text-primary">
+          <Badge
+            variant="secondary"
+            className="mb-4 gap-2 border-primary/40 bg-primary/10 text-primary"
+          >
             <Sparkles className="h-4 w-4" />
             הדמיה אינטראקטיבית
           </Badge>
@@ -122,8 +124,8 @@ export function ImmersiveDemo() {
             הכניסה החיה לעולם של Lines
           </h1>
           <p className="mx-auto max-w-3xl text-lg text-slate-200/80">
-            מודול הדמיה עצמאי שמציג למשתמשים בדיוק מה הם מקבלים, עם חלונות קופצים, אוטומציה בזמן אמת,
-            והקדמה ברורה מי אנחנו – ברמה שמתאימה לעלייה לאוויר היום.
+            מודול הדמיה עצמאי שמציג למשתמשים בדיוק מה הם מקבלים, עם חלונות קופצים, אוטומציה בזמן
+            אמת, והקדמה ברורה מי אנחנו – ברמה שמתאימה לעלייה לאוויר היום.
           </p>
         </div>
 
@@ -156,7 +158,12 @@ export function ImmersiveDemo() {
                 התחילו הדמיה חיה
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10" asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10"
+                asChild
+              >
                 <Link href="/auth/register">התחילו לעבוד עכשיו</Link>
               </Button>
             </div>
@@ -188,7 +195,7 @@ export function ImmersiveDemo() {
                     opacity: 1,
                     scale: 1,
                     y: 0,
-                    rotate: index % 2 === 0 ? -0.5 : 0.5,
+                    rotate: index % 2 === 0 ? -0.5 : 0.5
                   }}
                   transition={{ duration: 0.5 + index * 0.1 }}
                 >
@@ -228,9 +235,13 @@ export function ImmersiveDemo() {
                       <p className="mt-1 text-sm text-white/70">{step.description}</p>
                     </div>
                     {isActive ? (
-                      <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">הדמיה חיה</span>
+                      <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+                        הדמיה חיה
+                      </span>
                     ) : (
-                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">לצפייה</span>
+                      <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/60">
+                        לצפייה
+                      </span>
                     )}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-white/70">
@@ -250,8 +261,8 @@ export function ImmersiveDemo() {
                 מסלול אישי לכל משתמש
               </div>
               <p className="mt-2 text-sm text-white/80">
-                כל מעבר שלב מפעיל חלון קופץ שמדגים את הפעולה על המסך, עם שפה שיווקית תואמת מותג. זו הדמיה מלאה,
-                לא סרטון – וכך המשתמש מקבל ביטחון להתחיל לעבוד מיידית.
+                כל מעבר שלב מפעיל חלון קופץ שמדגים את הפעולה על המסך, עם שפה שיווקית תואמת מותג. זו
+                הדמיה מלאה, לא סרטון – וכך המשתמש מקבל ביטחון להתחיל לעבוד מיידית.
               </p>
             </div>
           </div>
@@ -260,4 +271,3 @@ export function ImmersiveDemo() {
     </section>
   );
 }
-

@@ -1,6 +1,6 @@
 /**
  * Demo Module - Public Exports
- * 
+ *
  * This module provides an interactive marketing demo experience
  * for showcasing the Lines application features.
  */
@@ -16,4 +16,3 @@ export { demoService } from "./services/demoService";
 
 // Types
 export type { DemoStep, OverlayCard, DemoState, DemoAnalyticsEvent } from "./types";
-

@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { X } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import Image from "next/image";
@@ -45,7 +51,9 @@ export function ReservationFormPreview({ fields, design, onClose }: ReservationF
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" style={formStyle}>
         <CardHeader className="relative">
-          <div className={`flex items-center ${dir === "rtl" ? "flex-row-reverse" : ""} justify-between`}>
+          <div
+            className={`flex items-center ${dir === "rtl" ? "flex-row-reverse" : ""} justify-between`}
+          >
             <div>
               <CardTitle className={rtlClasses.textAlign}>
                 {design?.headerText || t("reservations.formPreview.title")}
@@ -115,7 +123,15 @@ export function ReservationFormPreview({ fields, design, onClose }: ReservationF
                                 : "text"
                     }
                     placeholder={field.placeholder || ""}
-                    dir={field.fieldType === "email" || field.fieldType === "phone" || field.fieldType === "date" || field.fieldType === "time" || field.fieldType === "number" ? "ltr" : dir}
+                    dir={
+                      field.fieldType === "email" ||
+                      field.fieldType === "phone" ||
+                      field.fieldType === "date" ||
+                      field.fieldType === "time" ||
+                      field.fieldType === "number"
+                        ? "ltr"
+                        : dir
+                    }
                     style={{ color: design?.textColor || "#000000" }}
                   />
                 )}
@@ -123,9 +139,7 @@ export function ReservationFormPreview({ fields, design, onClose }: ReservationF
             ))
           )}
           <div className="flex justify-end pt-4">
-            <Button style={buttonStyle}>
-              {t("reservations.formPreview.submit")}
-            </Button>
+            <Button style={buttonStyle}>{t("reservations.formPreview.submit")}</Button>
           </div>
           {design?.footerText && (
             <div className={`text-sm text-muted-foreground mt-4 ${rtlClasses.textAlign}`}>
@@ -137,4 +151,3 @@ export function ReservationFormPreview({ fields, design, onClose }: ReservationF
     </div>
   );
 }
-

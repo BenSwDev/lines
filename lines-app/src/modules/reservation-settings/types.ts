@@ -46,7 +46,18 @@ export type ReservationSettingsInput = {
 
 export type ReservationFormFieldInput = {
   id?: string;
-  fieldType: "name" | "email" | "phone" | "date" | "time" | "number" | "text" | "textarea" | "select" | "checkbox" | "custom";
+  fieldType:
+    | "name"
+    | "email"
+    | "phone"
+    | "date"
+    | "time"
+    | "number"
+    | "text"
+    | "textarea"
+    | "select"
+    | "checkbox"
+    | "custom";
   fieldKey: string;
   label: string;
   placeholder?: string | null;

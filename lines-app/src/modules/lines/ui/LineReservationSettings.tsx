@@ -384,4 +384,3 @@ export function LineReservationSettings({ lineId }: LineReservationSettingsProps
     </form>
   );
 }
-

@@ -95,4 +95,3 @@ export class LineReservationSettingsService {
 }
 
 export const lineReservationSettingsService = new LineReservationSettingsService();
-

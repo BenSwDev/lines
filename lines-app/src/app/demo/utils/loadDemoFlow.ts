@@ -21,4 +21,3 @@ export async function loadDemoFlowAsync(): Promise<DemoFlow> {
   // In the future, this could fetch from an API
   return Promise.resolve(loadDemoFlow());
 }
-

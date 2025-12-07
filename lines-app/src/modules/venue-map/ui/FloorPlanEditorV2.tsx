@@ -305,14 +305,18 @@ export function FloorPlanEditorV2({
 
   // Pan mode vs Select mode
   const [panMode, setPanMode] = useState(true); // false = select mode, true = pan/drag mode (default)
-  
+
   // Selection mode state - activated by long press
   const [selectionMode, setSelectionMode] = useState(false);
-  
+
   // Long press detection
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const longPressThreshold = 500; // 500ms for long press
-  const longPressStartRef = useRef<{ x: number; y: number; element: FloorPlanElement | null } | null>(null);
+  const longPressStartRef = useRef<{
+    x: number;
+    y: number;
+    element: FloorPlanElement | null;
+  } | null>(null);
 
   // Element locking and hiding
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -992,7 +996,7 @@ export function FloorPlanEditorV2({
             const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
             const startY = Math.min(lastSelected.y, element.y);
             const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
-            
+
             elements.forEach((el) => {
               if (
                 el.x >= startX &&
@@ -1031,16 +1035,16 @@ export function FloorPlanEditorV2({
 
         setSelectedElementIds(newSelection);
         setSelectedElementId(newSelectedElementId);
-        
+
         // Store drag start position for when user starts dragging
         dragStartPosRef.current = { x: mouseX, y: mouseY };
-        
+
         // Prepare for potential drag of selected items
         const selectedIds = newSelection;
         const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
         const containedElementIds = new Set<string>();
         const elementToZoneMap = new Map<string, string>();
-        
+
         movingZones.forEach((zone) => {
           elements.forEach((el) => {
             if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
@@ -1049,17 +1053,17 @@ export function FloorPlanEditorV2({
             }
           });
         });
-        
+
         const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
-        
+
         dragElementsStartPosRef.current.clear();
         relativePositionsRef.current.clear();
-        
+
         allMovingIds.forEach((id) => {
           const el = elements.find((e) => e.id === id);
           if (el) {
             dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
-            
+
             const zoneId = elementToZoneMap.get(id);
             if (zoneId) {
               const zone = elements.find((e) => e.id === zoneId);
@@ -1072,7 +1076,7 @@ export function FloorPlanEditorV2({
             }
           }
         });
-        
+
         return; // Don't start dragging immediately in selection mode
       }
 
@@ -1090,7 +1094,7 @@ export function FloorPlanEditorV2({
           const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
           const startY = Math.min(lastSelected.y, element.y);
           const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
-          
+
           elements.forEach((el) => {
             if (
               el.x >= startX &&
@@ -1133,11 +1137,11 @@ export function FloorPlanEditorV2({
 
       // Store initial positions of all selected elements
       const selectedIds = newSelection;
-      
+
       const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
       const containedElementIds = new Set<string>();
       const elementToZoneMap = new Map<string, string>();
-      
+
       movingZones.forEach((zone) => {
         elements.forEach((el) => {
           if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
@@ -1146,17 +1150,17 @@ export function FloorPlanEditorV2({
           }
         });
       });
-      
+
       const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
-      
+
       dragElementsStartPosRef.current.clear();
       relativePositionsRef.current.clear();
-      
+
       allMovingIds.forEach((id) => {
         const el = elements.find((e) => e.id === id);
         if (el) {
           dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
-          
+
           const zoneId = elementToZoneMap.get(id);
           if (zoneId) {
             const zone = elements.find((e) => e.id === zoneId);
@@ -1182,7 +1186,17 @@ export function FloorPlanEditorV2({
       setIsDragging(true);
       setDraggedElement(element);
     },
-    [viewMode, selectedElementIds, selectedElementId, elements, isResizing, isRotating, screenToCanvas, selectionMode, longPressThreshold]
+    [
+      viewMode,
+      selectedElementIds,
+      selectedElementId,
+      elements,
+      isResizing,
+      isRotating,
+      screenToCanvas,
+      selectionMode,
+      longPressThreshold
+    ]
   );
 
   // Handle canvas mouse down for selection box or pan
@@ -1245,7 +1259,7 @@ export function FloorPlanEditorV2({
       if (selectionMode) {
         setIsSelecting(true);
         setSelectionBox({ startX, startY, endX: startX, endY: startY });
-        
+
         // Clear selection only if not using modifier keys
         if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
           setSelectedElementId(null);
@@ -1275,14 +1289,7 @@ export function FloorPlanEditorV2({
         setSelectedElementIds(new Set());
       }
     },
-    [
-      viewMode,
-      isDrawingPolygon,
-      screenToCanvas,
-      elements,
-      selectionMode,
-      longPressThreshold
-    ]
+    [viewMode, isDrawingPolygon, screenToCanvas, elements, selectionMode, longPressThreshold]
   );
 
   // Mouse wheel zoom - professional implementation like Excalidraw
@@ -1338,10 +1345,10 @@ export function FloorPlanEditorV2({
     (e: React.MouseEvent, element: FloorPlanElement) => {
       e.stopPropagation();
       e.preventDefault();
-      
+
       // Save current state to history before starting rotate
       historyManagerRef.current.push(elements);
-      
+
       setSelectedElementId(element.id);
       setIsRotating(true);
       setDraggedElement(element);
@@ -1553,7 +1560,7 @@ export function FloorPlanEditorV2({
         const moveThreshold = 5; // pixels
         const deltaX = Math.abs(e.clientX - longPressStartRef.current.x);
         const deltaY = Math.abs(e.clientY - longPressStartRef.current.y);
-        
+
         if (deltaX > moveThreshold || deltaY > moveThreshold) {
           clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
@@ -1568,23 +1575,25 @@ export function FloorPlanEditorV2({
             : selectedElementId
               ? new Set<string>([selectedElementId])
               : new Set<string>();
-        
+
         if (selectedIds.size > 0) {
           // Check if mouse moved enough to start dragging
           const moveThreshold = 3; // pixels
           const deltaX = Math.abs(e.clientX - longPressStartRef.current.x);
           const deltaY = Math.abs(e.clientY - longPressStartRef.current.y);
-          
+
           if (deltaX > moveThreshold || deltaY > moveThreshold) {
             // Start dragging all selected items
             const canvasPos = screenToCanvas(e.clientX, e.clientY);
             dragStartPosRef.current = { x: canvasPos.x, y: canvasPos.y };
-            
+
             // Store initial positions
-            const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
+            const movingZones = elements.filter(
+              (el) => selectedIds.has(el.id) && el.type === "zone"
+            );
             const containedElementIds = new Set<string>();
             const elementToZoneMap = new Map<string, string>();
-            
+
             movingZones.forEach((zone) => {
               elements.forEach((el) => {
                 if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
@@ -1593,17 +1602,17 @@ export function FloorPlanEditorV2({
                 }
               });
             });
-            
+
             const allMovingIds = new Set<string>([...selectedIds, ...containedElementIds]);
-            
+
             dragElementsStartPosRef.current.clear();
             relativePositionsRef.current.clear();
-            
+
             allMovingIds.forEach((id) => {
               const el = elements.find((e) => e.id === id);
               if (el) {
                 dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
-                
+
                 const zoneId = elementToZoneMap.get(id);
                 if (zoneId) {
                   const zone = elements.find((e) => e.id === zoneId);
@@ -1616,7 +1625,7 @@ export function FloorPlanEditorV2({
                 }
               }
             });
-            
+
             historyManagerRef.current.push(elements);
             setIsDragging(true);
             setDraggedElement(elements.find((el) => selectedIds.has(el.id)) || null);
@@ -1702,7 +1711,7 @@ export function FloorPlanEditorV2({
 
                 // Check if this is a contained element (has relative position stored)
                 const relativePos = relativePositionsRef.current.get(el.id);
-                
+
                 if (relativePos) {
                   // This is a contained element - move it relative to its parent zone
                   const parentZone = movingZones.find((z) => el.zoneId === z.id);
@@ -1712,7 +1721,7 @@ export function FloorPlanEditorV2({
                       // Calculate new zone position
                       const newZoneX = zoneStartPos.x + deltaX;
                       const newZoneY = zoneStartPos.y + deltaY;
-                      
+
                       // Apply relative position
                       return {
                         ...el,
@@ -2116,11 +2125,7 @@ export function FloorPlanEditorV2({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Skip shortcuts if user is typing in an input/textarea
       const target = e.target as HTMLElement;
-      if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
         // Only handle Escape when typing
         if (e.key === "Escape") {
           target.blur();
@@ -2449,7 +2454,7 @@ export function FloorPlanEditorV2({
 
     fixedElements.forEach((element) => {
       const collisions = checkCollisions(element);
-      
+
       collisions.forEach((collidingElement) => {
         const collisionKey = [element.id, collidingElement.id].sort().join("-");
         if (processedCollisions.has(collisionKey)) return;
@@ -2458,7 +2463,7 @@ export function FloorPlanEditorV2({
         // Find indices
         const elementIndex = fixedElements.findIndex((e) => e.id === element.id);
         const collidingIndex = fixedElements.findIndex((e) => e.id === collidingElement.id);
-        
+
         if (elementIndex === -1 || collidingIndex === -1) return;
 
         // Determine which element to move (prefer moving smaller elements, then tables before zones)
@@ -2472,7 +2477,9 @@ export function FloorPlanEditorV2({
 
         if (
           elementArea > collidingArea ||
-          (elementArea === collidingArea && element.type === "zone" && collidingElement.type !== "zone")
+          (elementArea === collidingArea &&
+            element.type === "zone" &&
+            collidingElement.type !== "zone")
         ) {
           elementToMove = collidingElement;
           elementToMoveIndex = collidingIndex;
@@ -2830,721 +2837,721 @@ export function FloorPlanEditorV2({
         {/* Organized Toolbar - Clear Groups - Hidden in fullscreen */}
         {!isFullscreen && (
           <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3 shadow-sm gap-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Group 1: Templates, Create & Add */}
-            <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
-              {/* Templates Button - First and Most Important */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="default"
-                    variant="default"
-                    className="gap-2"
-                    onClick={() => setTemplateDialogOpen(true)}
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    {t("floorPlan.templates") || "טמפלטים"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.templates") || "טמפלטים"}</div>
-                    <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Group 1: Templates, Create & Add */}
+              <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
+                {/* Templates Button - First and Most Important */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="default"
+                      variant="default"
+                      className="gap-2"
+                      onClick={() => setTemplateDialogOpen(true)}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {t("floorPlan.templates") || "טמפלטים"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.templates") || "טמפלטים"}</div>
+                      <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="default"
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => setTemplateDialogOpen(true)}
-                  >
-                    <Plus className="h-5 w-5" />
-                    {t("floorPlan.createMap")}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.createMap")}</div>
-                    <div className="text-xs">בחר תבנית מקצועית או התחל מאפס</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="default"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => setTemplateDialogOpen(true)}
+                    >
+                      <Plus className="h-5 w-5" />
+                      {t("floorPlan.createMap")}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.createMap")}</div>
+                      <div className="text-xs">בחר תבנית מקצועית או התחל מאפס</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="default"
-                    className="gap-2"
-                    onClick={() => setAddElementDialogOpen(true)}
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t("floorPlan.addElement")}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.addElement")}</div>
-                    <div className="text-xs">הוסף שולחנות, אזורים ואזורים מיוחדים</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="default"
+                      className="gap-2"
+                      onClick={() => setAddElementDialogOpen(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t("floorPlan.addElement")}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.addElement")}</div>
+                      <div className="text-xs">הוסף שולחנות, אזורים ואזורים מיוחדים</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
 
-            {/* Group 2: Edit Actions */}
-            <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleUndo}
-                    disabled={!historyManagerRef.current.canUndo()}
-                  >
-                    <Undo2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">ביטול פעולה</div>
-                    <div className="text-xs">Ctrl+Z</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleRedo}
-                    disabled={!historyManagerRef.current.canRedo()}
-                  >
-                    <Redo2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">חזרה על פעולה</div>
-                    <div className="text-xs">Ctrl+Shift+Z</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopy}
-                    disabled={selectedElementIds.size === 0 && !selectedElementId}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">העתק</div>
-                    <div className="text-xs">Ctrl+C</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePaste}
-                    disabled={!clipboardManagerRef.current.hasData()}
-                  >
-                    <Clipboard className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">הדבק</div>
-                    <div className="text-xs">Ctrl+V</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDuplicate}
-                    disabled={selectedElementIds.size === 0 && !selectedElementId}
-                  >
-                    <Files className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">שכפול</div>
-                    <div className="text-xs">Ctrl+D</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              {/* Bulk Operations - only show when multiple elements selected */}
-              {(selectedElementIds.size > 1 ||
-                (selectedElementId && selectedElementIds.size > 0)) && (
+              {/* Group 2: Edit Actions */}
+              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleUndo}
+                      disabled={!historyManagerRef.current.canUndo()}
+                    >
+                      <Undo2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">ביטול פעולה</div>
+                      <div className="text-xs">Ctrl+Z</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRedo}
+                      disabled={!historyManagerRef.current.canRedo()}
+                    >
+                      <Redo2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">חזרה על פעולה</div>
+                      <div className="text-xs">Ctrl+Shift+Z</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopy}
+                      disabled={selectedElementIds.size === 0 && !selectedElementId}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">העתק</div>
+                      <div className="text-xs">Ctrl+C</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePaste}
+                      disabled={!clipboardManagerRef.current.hasData()}
+                    >
+                      <Clipboard className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">הדבק</div>
+                      <div className="text-xs">Ctrl+V</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDuplicate}
+                      disabled={selectedElementIds.size === 0 && !selectedElementId}
+                    >
+                      <Files className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">שכפול</div>
+                      <div className="text-xs">Ctrl+D</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                {/* Bulk Operations - only show when multiple elements selected */}
+                {(selectedElementIds.size > 1 ||
+                  (selectedElementId && selectedElementIds.size > 0)) && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Layout className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem
+                            onClick={() => _handleAlign("left")}
+                            disabled={selectedElementIds.size < 2 && !selectedElementId}
+                          >
+                            יישור שמאל
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => _handleAlign("right")}
+                            disabled={selectedElementIds.size < 2 && !selectedElementId}
+                          >
+                            יישור ימין
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => _handleAlign("top")}
+                            disabled={selectedElementIds.size < 2 && !selectedElementId}
+                          >
+                            יישור עליון
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => _handleAlign("bottom")}
+                            disabled={selectedElementIds.size < 2 && !selectedElementId}
+                          >
+                            יישור תחתון
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => _handleAlign("center")}
+                            disabled={selectedElementIds.size < 2 && !selectedElementId}
+                          >
+                            יישור מרכז
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => _handleResizeToSameSize()}
+                            disabled={selectedElementIds.size < 2 && !selectedElementId}
+                          >
+                            גודל אחיד
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              const selectedIds =
+                                selectedElementIds.size > 0
+                                  ? selectedElementIds
+                                  : selectedElementId
+                                    ? new Set([selectedElementId])
+                                    : new Set();
+                              if (selectedIds.size > 0) {
+                                const newColor = prompt("הזן צבע חדש (hex):", "#3B82F6");
+                                if (newColor) {
+                                  const newElements = elements.map((el) =>
+                                    selectedIds.has(el.id) ? { ...el, color: newColor } : el
+                                  );
+                                  updateElementsWithHistory(newElements);
+                                }
+                              }
+                            }}
+                            disabled={selectedElementIds.size === 0 && !selectedElementId}
+                          >
+                            שנה צבע
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">פעולות קבוצתיות</div>
+                        <div className="text-xs">יישור, גודל אחיד, שינוי צבע ועוד</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+
+              {/* Group 3: View Controls */}
+              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowGrid(!showGrid)}
+                      className={showGrid ? "bg-primary/10" : ""}
+                      aria-label={t("floorPlan.grid") || "הצג/הסתר רשת עזר"}
+                      aria-checked={showGrid}
+                      role="switch"
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.grid")}</div>
+                      <div className="text-xs">הצג/הסתר רשת עזר</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowRuler(!showRuler)}
+                      className={showRuler ? "bg-primary/10" : ""}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">סרגל מדידה</div>
+                      <div className="text-xs">הצג/הסתר סרגל מדידה</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newScale = prompt("הגדר קנה מידה (1px = X מטרים):", scale.toString());
+                        if (newScale !== null) {
+                          const parsed = parseFloat(newScale);
+                          if (!isNaN(parsed) && parsed > 0) {
+                            setScale(parsed);
+                          }
+                        }
+                      }}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">קנה מידה</div>
+                      <div className="text-xs">1px = {scale} מטרים</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowMeasurements(!showMeasurements)}
+                      className={showMeasurements ? "bg-primary/10" : ""}
+                    >
+                      <Grid className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">הצג מידות</div>
+                      <div className="text-xs">הצג מידות על אלמנטים</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                    >
+                      <ZoomOut className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
+                      <div className="text-xs">הקטן תצוגה</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setZoom(1)}
+                      className="min-w-[60px]"
+                    >
+                      {Math.round(zoom * 100)}%
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.resetZoom")}</div>
+                      <div className="text-xs">איפוס תצוגה</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+                    >
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
+                      <div className="text-xs">הגדל תצוגה</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Group 4: Fullscreen */}
+              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={() => setIsFullscreen(true)}>
+                      <Maximize2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">מסך מלא</div>
+                      <div className="text-xs">F11</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Group 5: Help */}
+              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={() => setHelpDialogOpen(true)}>
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <div className="font-semibold">מדריך למשתמש</div>
+                      <div className="text-xs">למד איך להשתמש בכלים</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {/* Group 6: Export */}
+              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Layout className="h-4 w-4" />
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <Files className="h-4 w-4" />
+                          ייצוא
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start">
                         <DropdownMenuItem
-                          onClick={() => _handleAlign("left")}
-                          disabled={selectedElementIds.size < 2 && !selectedElementId}
-                        >
-                          יישור שמאל
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => _handleAlign("right")}
-                          disabled={selectedElementIds.size < 2 && !selectedElementId}
-                        >
-                          יישור ימין
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => _handleAlign("top")}
-                          disabled={selectedElementIds.size < 2 && !selectedElementId}
-                        >
-                          יישור עליון
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => _handleAlign("bottom")}
-                          disabled={selectedElementIds.size < 2 && !selectedElementId}
-                        >
-                          יישור תחתון
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => _handleAlign("center")}
-                          disabled={selectedElementIds.size < 2 && !selectedElementId}
-                        >
-                          יישור מרכז
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => _handleResizeToSameSize()}
-                          disabled={selectedElementIds.size < 2 && !selectedElementId}
-                        >
-                          גודל אחיד
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
                           onClick={() => {
-                            const selectedIds =
-                              selectedElementIds.size > 0
-                                ? selectedElementIds
-                                : selectedElementId
-                                  ? new Set([selectedElementId])
-                                  : new Set();
-                            if (selectedIds.size > 0) {
-                              const newColor = prompt("הזן צבע חדש (hex):", "#3B82F6");
-                              if (newColor) {
-                                const newElements = elements.map((el) =>
-                                  selectedIds.has(el.id) ? { ...el, color: newColor } : el
-                                );
-                                updateElementsWithHistory(newElements);
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = "image/*";
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement).files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const result = event.target?.result as string;
+                                  setBackgroundImage(result);
+                                  toast({
+                                    title: "תמונה הועלתה",
+                                    description: "התמונה הוגדרה כבסיס למפה"
+                                  });
+                                };
+                                reader.readAsDataURL(file);
                               }
-                            }
+                            };
+                            input.click();
                           }}
-                          disabled={selectedElementIds.size === 0 && !selectedElementId}
                         >
-                          שנה צבע
+                          <Files className="mr-2 h-4 w-4" />
+                          ייבא תמונה כבסיס
+                        </DropdownMenuItem>
+                        {backgroundImage && (
+                          <>
+                            <DropdownMenuItem onClick={() => setBackgroundImage(null)}>
+                              <X className="mr-2 h-4 w-4" />
+                              הסר תמונת רקע
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const newOpacity = prompt(
+                                  "הזן שקיפות (0-1):",
+                                  backgroundImageOpacity.toString()
+                                );
+                                if (newOpacity !== null) {
+                                  const opacity = parseFloat(newOpacity);
+                                  if (!isNaN(opacity) && opacity >= 0 && opacity <= 1) {
+                                    setBackgroundImageOpacity(opacity);
+                                  }
+                                }
+                              }}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              שנה שקיפות
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        <DropdownMenuItem onClick={handleExportPNG} disabled={isSaving}>
+                          <Files className="mr-2 h-4 w-4" />
+                          PNG
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportJPEG} disabled={isSaving}>
+                          <Files className="mr-2 h-4 w-4" />
+                          JPEG
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleExportPDF} disabled={isSaving}>
+                          <Files className="mr-2 h-4 w-4" />
+                          PDF
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
-                      <div className="font-semibold">פעולות קבוצתיות</div>
-                      <div className="text-xs">יישור, גודל אחיד, שינוי צבע ועוד</div>
+                      <div className="font-semibold">ייצוא מפה</div>
+                      <div className="text-xs">ייצא את המפה לתמונה או PDF</div>
                     </div>
                   </TooltipContent>
                 </Tooltip>
-              )}
-            </div>
+              </div>
 
-            {/* Group 3: View Controls */}
-            <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowGrid(!showGrid)}
-                    className={showGrid ? "bg-primary/10" : ""}
-                    aria-label={t("floorPlan.grid") || "הצג/הסתר רשת עזר"}
-                    aria-checked={showGrid}
-                    role="switch"
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.grid")}</div>
-                    <div className="text-xs">הצג/הסתר רשת עזר</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowRuler(!showRuler)}
-                    className={showRuler ? "bg-primary/10" : ""}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">סרגל מדידה</div>
-                    <div className="text-xs">הצג/הסתר סרגל מדידה</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const newScale = prompt("הגדר קנה מידה (1px = X מטרים):", scale.toString());
-                      if (newScale !== null) {
-                        const parsed = parseFloat(newScale);
-                        if (!isNaN(parsed) && parsed > 0) {
-                          setScale(parsed);
-                        }
-                      }
-                    }}
-                  >
-                    <Info className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">קנה מידה</div>
-                    <div className="text-xs">1px = {scale} מטרים</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowMeasurements(!showMeasurements)}
-                    className={showMeasurements ? "bg-primary/10" : ""}
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">הצג מידות</div>
-                    <div className="text-xs">הצג מידות על אלמנטים</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
-                    <div className="text-xs">הקטן תצוגה</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setZoom(1)}
-                    className="min-w-[60px]"
-                  >
-                    {Math.round(zoom * 100)}%
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.resetZoom")}</div>
-                    <div className="text-xs">איפוס תצוגה</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setZoom(Math.min(2, zoom + 0.1))}
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
-                    <div className="text-xs">הגדל תצוגה</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            {/* Group 4: Fullscreen */}
-            <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => setIsFullscreen(true)}>
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">מסך מלא</div>
-                    <div className="text-xs">F11</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            {/* Group 5: Help */}
-            <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => setHelpDialogOpen(true)}>
-                    <HelpCircle className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">מדריך למשתמש</div>
-                    <div className="text-xs">למד איך להשתמש בכלים</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            {/* Group 6: Export */}
-            <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+              {/* Group 7: More Options */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Files className="h-4 w-4" />
-                        ייצוא
+                      <Button variant="outline" size="sm">
+                        <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
+                      {userId && elements.length > 0 && (
+                        <DropdownMenuItem onClick={() => setSaveTemplateDialogOpen(true)}>
+                          <Save className="mr-2 h-4 w-4" />
+                          שמור כתבנית
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
                         onClick={() => {
-                          const input = document.createElement("input");
-                          input.type = "file";
-                          input.accept = "image/*";
-                          input.onchange = (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = (event) => {
-                                const result = event.target?.result as string;
-                                setBackgroundImage(result);
-                                toast({
-                                  title: "תמונה הועלתה",
-                                  description: "התמונה הוגדרה כבסיס למפה"
-                                });
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          };
-                          input.click();
+                          setIsDrawingPolygon(!isDrawingPolygon);
+                          if (isDrawingPolygon) {
+                            cancelPolygonDrawing();
+                          }
                         }}
                       >
-                        <Files className="mr-2 h-4 w-4" />
-                        ייבא תמונה כבסיס
-                      </DropdownMenuItem>
-                      {backgroundImage && (
-                        <>
-                          <DropdownMenuItem onClick={() => setBackgroundImage(null)}>
-                            <X className="mr-2 h-4 w-4" />
-                            הסר תמונת רקע
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              const newOpacity = prompt(
-                                "הזן שקיפות (0-1):",
-                                backgroundImageOpacity.toString()
-                              );
-                              if (newOpacity !== null) {
-                                const opacity = parseFloat(newOpacity);
-                                if (!isNaN(opacity) && opacity >= 0 && opacity <= 1) {
-                                  setBackgroundImageOpacity(opacity);
-                                }
-                              }
-                            }}
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            שנה שקיפות
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuItem onClick={handleExportPNG} disabled={isSaving}>
-                        <Files className="mr-2 h-4 w-4" />
-                        PNG
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleExportJPEG} disabled={isSaving}>
-                        <Files className="mr-2 h-4 w-4" />
-                        JPEG
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleExportPDF} disabled={isSaving}>
-                        <Files className="mr-2 h-4 w-4" />
-                        PDF
+                        <Pencil className="mr-2 h-4 w-4" />
+                        {t("floorPlan.shapes.polygon")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1">
-                    <div className="font-semibold">ייצוא מפה</div>
-                    <div className="text-xs">ייצא את המפה לתמונה או PDF</div>
+                    <div className="font-semibold">{t("floorPlan.moreOptions")}</div>
+                    <div className="text-xs">אפשרויות נוספות</div>
                   </div>
                 </TooltipContent>
               </Tooltip>
             </div>
-
-            {/* Group 7: More Options */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {userId && elements.length > 0 && (
-                      <DropdownMenuItem onClick={() => setSaveTemplateDialogOpen(true)}>
-                        <Save className="mr-2 h-4 w-4" />
-                        שמור כתבנית
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setIsDrawingPolygon(!isDrawingPolygon);
-                        if (isDrawingPolygon) {
-                          cancelPolygonDrawing();
-                        }
-                      }}
-                    >
-                      <Pencil className="mr-2 h-4 w-4" />
-                      {t("floorPlan.shapes.polygon")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="space-y-1">
-                  <div className="font-semibold">{t("floorPlan.moreOptions")}</div>
-                  <div className="text-xs">אפשרויות נוספות</div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* Right Side: Stats and Save */}
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground hidden md:block">
-              {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")} •{" "}
-              {totalCapacity} {t("common.seats")}
-            </div>
-            {hasValidationErrors && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAutoFix}
-                      className="gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    >
-                      <Wand2 className="h-4 w-4" />
-                      תיקון אוטומטי
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">תיקון אוטומטי של כל השגיאות</div>
-                      <div className="text-xs">תקן גודל, מיקום והתנגשויות אוטומטית</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
-                      <AlertCircle className="h-4 w-4" />
-                      {validationErrors.length} שגיאות
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto p-4">
-                    <div className="space-y-3">
-                      <div className="font-semibold text-base text-destructive">
-                        שגיאות Validation ({validationErrors.length}):
-                      </div>
-                      <ul className="list-disc list-inside text-sm space-y-2 text-left">
-                        {validationErrors.map((error, i) => (
-                          <li key={i} className="leading-relaxed">
-                            {error}
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="text-xs text-muted-foreground pt-2 border-t">
-                        לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן את כל השגיאות בבת אחת
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </>
-            )}
-            {/* Save Status & Progress */}
-            {isSaving && (
-              <div className="flex items-center gap-2 min-w-[200px]">
-                <div className="flex-1 space-y-1">
-                  <div className="text-xs text-muted-foreground">{saveStatus}</div>
-                  <Progress value={saveProgress} className="h-2" />
-                </div>
+            {/* Right Side: Stats and Save */}
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted-foreground hidden md:block">
+                {elements.filter((e) => e.type === "table").length} {t("floorPlan.tables")} •{" "}
+                {totalCapacity} {t("common.seats")}
               </div>
-            )}
-            {!isSaving && lastSaveTime && (
-              <div className="text-xs text-muted-foreground hidden md:block">
-                נשמר לאחרונה: {lastSaveTime.toLocaleTimeString("he-IL")}
-              </div>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleSaveClick}
-                  disabled={isSaving || hasValidationErrors}
-                  size="sm"
-                  className="gap-2"
-                  variant={hasValidationErrors ? "destructive" : "default"}
-                >
-                  <Save className="h-4 w-4" />
-                  {isSaving ? t("common.loading") : t("common.save")}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="space-y-1">
-                  <div className="font-semibold">שמירת מפה</div>
-                  <div className="text-xs">
-                    נשמרים: שולחנות, אזורים, כניסות, יציאות, מטבח, שירותים
+              {hasValidationErrors && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAutoFix}
+                        className="gap-2 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <Wand2 className="h-4 w-4" />
+                        תיקון אוטומטי
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="space-y-1">
+                        <div className="font-semibold">תיקון אוטומטי של כל השגיאות</div>
+                        <div className="text-xs">תקן גודל, מיקום והתנגשויות אוטומטית</div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2 text-destructive text-sm cursor-help">
+                        <AlertCircle className="h-4 w-4" />
+                        {validationErrors.length} שגיאות
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-2xl max-h-96 overflow-y-auto p-4">
+                      <div className="space-y-3">
+                        <div className="font-semibold text-base text-destructive">
+                          שגיאות Validation ({validationErrors.length}):
+                        </div>
+                        <ul className="list-disc list-inside text-sm space-y-2 text-left">
+                          {validationErrors.map((error, i) => (
+                            <li key={i} className="leading-relaxed">
+                              {error}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="text-xs text-muted-foreground pt-2 border-t">
+                          לחץ על &quot;תיקון אוטומטי&quot; כדי לתקן את כל השגיאות בבת אחת
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+              {/* Save Status & Progress */}
+              {isSaving && (
+                <div className="flex items-center gap-2 min-w-[200px]">
+                  <div className="flex-1 space-y-1">
+                    <div className="text-xs text-muted-foreground">{saveStatus}</div>
+                    <Progress value={saveProgress} className="h-2" />
                   </div>
-                  {lastSaveTime && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      נשמר לאחרונה: {lastSaveTime.toLocaleString("he-IL")}
-                    </div>
-                  )}
-                  {hasValidationErrors && (
-                    <div className="text-xs text-destructive mt-1">
-                      יש שגיאות validation - אנא תקן לפני שמירה
-                    </div>
-                  )}
                 </div>
-              </TooltipContent>
-            </Tooltip>
+              )}
+              {!isSaving && lastSaveTime && (
+                <div className="text-xs text-muted-foreground hidden md:block">
+                  נשמר לאחרונה: {lastSaveTime.toLocaleTimeString("he-IL")}
+                </div>
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={handleSaveClick}
+                    disabled={isSaving || hasValidationErrors}
+                    size="sm"
+                    className="gap-2"
+                    variant={hasValidationErrors ? "destructive" : "default"}
+                  >
+                    <Save className="h-4 w-4" />
+                    {isSaving ? t("common.loading") : t("common.save")}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="space-y-1">
+                    <div className="font-semibold">שמירת מפה</div>
+                    <div className="text-xs">
+                      נשמרים: שולחנות, אזורים, כניסות, יציאות, מטבח, שירותים
+                    </div>
+                    {lastSaveTime && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        נשמר לאחרונה: {lastSaveTime.toLocaleString("he-IL")}
+                      </div>
+                    )}
+                    {hasValidationErrors && (
+                      <div className="text-xs text-destructive mt-1">
+                        יש שגיאות validation - אנא תקן לפני שמירה
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-        </div>
         )}
 
         {/* View Mode Tabs and Map Type Selector - Hidden in fullscreen */}
         {!isFullscreen && (
           <div className="flex shrink-0 items-center justify-between gap-4">
-          <Tabs
-            value={viewMode}
-            onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}
-          >
-            <TabsList>
-              <TabsTrigger value="interactive">
-                <Layout className="ml-2 h-4 w-4" />
-                {t("floorPlan.interactiveView")}
-              </TabsTrigger>
-              <TabsTrigger value="nonInteractive">
-                <List className="ml-2 h-4 w-4" />
-                {t("floorPlan.nonInteractiveView")}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="flex items-center gap-2 flex-1 max-w-2xl">
-            <Input
-              placeholder={t("common.search") || "חיפוש אלמנטים..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-xs"
-            />
-            <Select
-              value={filterElementType}
-              onValueChange={(v) => setFilterElementType(v as ElementType | "all")}
+            <Tabs
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}
             >
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder={t("floorPlan.filterByType") || "סינון לפי סוג"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
-                <SelectItem value="table">{t("floorPlan.tables") || "שולחנות"}</SelectItem>
-                <SelectItem value="zone">{t("floorPlan.zones") || "אזורים"}</SelectItem>
-                <SelectItem value="specialArea">
-                  {t("floorPlan.specialAreas.other") || "אזורים מיוחדים"}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {availableZones.length > 0 && (
+              <TabsList>
+                <TabsTrigger value="interactive">
+                  <Layout className="ml-2 h-4 w-4" />
+                  {t("floorPlan.interactiveView")}
+                </TabsTrigger>
+                <TabsTrigger value="nonInteractive">
+                  <List className="ml-2 h-4 w-4" />
+                  {t("floorPlan.nonInteractiveView")}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="flex items-center gap-2 flex-1 max-w-2xl">
+              <Input
+                placeholder={t("common.search") || "חיפוש אלמנטים..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="max-w-xs"
+              />
               <Select
-                value={filterZone || "all"}
-                onValueChange={(v) => setFilterZone(v === "all" ? null : v)}
+                value={filterElementType}
+                onValueChange={(v) => setFilterElementType(v as ElementType | "all")}
               >
                 <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder={t("floorPlan.filterByZone") || "סינון לפי אזור"} />
+                  <SelectValue placeholder={t("floorPlan.filterByType") || "סינון לפי סוג"} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
-                  {availableZones.map((zone) => (
-                    <SelectItem key={zone.id} value={zone.id}>
-                      {zone.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="table">{t("floorPlan.tables") || "שולחנות"}</SelectItem>
+                  <SelectItem value="zone">{t("floorPlan.zones") || "אזורים"}</SelectItem>
+                  <SelectItem value="specialArea">
+                    {t("floorPlan.specialAreas.other") || "אזורים מיוחדים"}
+                  </SelectItem>
                 </SelectContent>
               </Select>
-            )}
-            {(searchQuery || filterElementType !== "all" || filterZone) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterElementType("all");
-                  setFilterZone(null);
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+              {availableZones.length > 0 && (
+                <Select
+                  value={filterZone || "all"}
+                  onValueChange={(v) => setFilterZone(v === "all" ? null : v)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder={t("floorPlan.filterByZone") || "סינון לפי אזור"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
+                    {availableZones.map((zone) => (
+                      <SelectItem key={zone.id} value={zone.id}>
+                        {zone.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {(searchQuery || filterElementType !== "all" || filterZone) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setFilterElementType("all");
+                    setFilterZone(null);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
         )}
 
         {/* Main Content - Canvas Only (Panel moved to overlay) */}
@@ -3829,7 +3836,8 @@ export function FloorPlanEditorV2({
                           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
                         }}
                       >
-                        {selectedElementIds.size} אובייקטים נבחרו • לחץ Ctrl/Cmd+Click להוספה/הסרה • Shift+Click לבחירת טווח
+                        {selectedElementIds.size} אובייקטים נבחרו • לחץ Ctrl/Cmd+Click להוספה/הסרה •
+                        Shift+Click לבחירת טווח
                       </div>
                     )}
                     {/* Zone movement helper message */}
@@ -4043,24 +4051,29 @@ export function FloorPlanEditorV2({
                         if (element.type === "table" && !layers.tables.visible) return false;
                         if (element.type === "specialArea" && !layers.specialAreas.visible)
                           return false;
-                        
+
                         // Hide bar stools by default - only show if parent bar has showStools = true
-                        if (element.type === "table" && element.tableType === "bar" && element.name?.includes("כיסא בר")) {
+                        if (
+                          element.type === "table" &&
+                          element.tableType === "bar" &&
+                          element.name?.includes("כיסא בר")
+                        ) {
                           // Find parent bar - look for nearby bar table (not zone)
-                          const parentBar = elements.find((e) => 
-                            e.type === "table" && 
-                            e.tableType === "bar" && 
-                            e.id !== element.id &&
-                            !e.name?.includes("כיסא בר") &&
-                            Math.abs(e.x - element.x) < 300 && 
-                            Math.abs(e.y - element.y) < 300
+                          const parentBar = elements.find(
+                            (e) =>
+                              e.type === "table" &&
+                              e.tableType === "bar" &&
+                              e.id !== element.id &&
+                              !e.name?.includes("כיסא בר") &&
+                              Math.abs(e.x - element.x) < 300 &&
+                              Math.abs(e.y - element.y) < 300
                           );
                           // If no parent bar found or parent bar doesn't have showStools, hide the stool
                           if (!parentBar || !parentBar.showStools) {
                             return false;
                           }
                         }
-                        
+
                         return true;
                       })
                       .sort((a, b) => {
@@ -4458,7 +4471,9 @@ export function FloorPlanEditorV2({
                       </TooltipTrigger>
                       <TooltipContent>
                         <div className="space-y-1">
-                          <div className="font-semibold">{t("floorPlan.templates") || "טמפלטים"}</div>
+                          <div className="font-semibold">
+                            {t("floorPlan.templates") || "טמפלטים"}
+                          </div>
                           <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
                         </div>
                       </TooltipContent>
@@ -5598,7 +5613,9 @@ const ElementRenderer = memo(function ElementRenderer({
               </div>
             )}
             {/* Price display */}
-            {(element.minimumPrice || element.pricePerSeat || (parentZone && parentZone.zoneMinimumPrice)) && (
+            {(element.minimumPrice ||
+              element.pricePerSeat ||
+              (parentZone && parentZone.zoneMinimumPrice)) && (
               <div
                 style={{
                   fontSize: "10px",
@@ -5615,7 +5632,7 @@ const ElementRenderer = memo(function ElementRenderer({
                   const zonePrice = parentZone?.zoneMinimumPrice;
                   const tablePrice = element.minimumPrice;
                   const perSeatPrice = element.pricePerSeat;
-                  
+
                   if (zonePrice) {
                     return `₪${zonePrice.toFixed(0)}`;
                   } else if (tablePrice) {
@@ -5840,13 +5857,18 @@ interface EditElementFormProps {
   allElements?: FloorPlanElement[]; // All elements for zone connection/disconnection (optional now)
 }
 
-function EditElementForm({
-  element,
-  onChange,
-  onSave,
-  onCancel
-}: EditElementFormProps) {
-  const [editMode, setEditMode] = useState<"select" | "name" | "color" | "seats" | "price" | "pricePerSeat" | "zonePrice" | "showStools" | "description">("select");
+function EditElementForm({ element, onChange, onSave, onCancel }: EditElementFormProps) {
+  const [editMode, setEditMode] = useState<
+    | "select"
+    | "name"
+    | "color"
+    | "seats"
+    | "price"
+    | "pricePerSeat"
+    | "zonePrice"
+    | "showStools"
+    | "description"
+  >("select");
   const [tempValue, setTempValue] = useState<string>("");
 
   // Reset to selection when element changes
@@ -5944,7 +5966,7 @@ function EditElementForm({
           <h3 className="text-lg font-semibold mb-1">מה תרצה לערוך?</h3>
           <p className="text-sm text-muted-foreground">בחר מה לשנות</p>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-3">
           {/* Name */}
           <Button
@@ -5981,9 +6003,7 @@ function EditElementForm({
             >
               <Users className="h-6 w-6" />
               <span className="text-sm font-medium">מספר מקומות</span>
-              <span className="text-xs text-muted-foreground">
-                {element.seats || "לא הוגדר"}
-              </span>
+              <span className="text-xs text-muted-foreground">{element.seats || "לא הוגדר"}</span>
             </Button>
           )}
 
@@ -6026,9 +6046,7 @@ function EditElementForm({
             >
               <Layout className="h-6 w-6" />
               <span className="text-sm font-medium">הצג כיסאות</span>
-              <span className="text-xs">
-                {element.showStools ? "מוצגים" : "מוסתרים"}
-              </span>
+              <span className="text-xs">{element.showStools ? "מוצגים" : "מוסתרים"}</span>
             </Button>
           )}
 
@@ -6077,12 +6095,7 @@ function EditElementForm({
   return (
     <div className="space-y-6">
       {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleCancelEdit}
-        className="w-full justify-start"
-      >
+      <Button variant="ghost" size="sm" onClick={handleCancelEdit} className="w-full justify-start">
         <X className="h-4 w-4 mr-2" />
         חזרה לבחירה
       </Button>
@@ -6124,11 +6137,7 @@ function EditElementForm({
             <Button variant="outline" onClick={handleCancelEdit} className="flex-1">
               ביטול
             </Button>
-            <Button
-              onClick={handleSaveField}
-              disabled={!tempValue.trim()}
-              className="flex-1"
-            >
+            <Button onClick={handleSaveField} disabled={!tempValue.trim()} className="flex-1">
               שמור שם
             </Button>
           </div>
@@ -6248,7 +6257,9 @@ function EditElementForm({
             </Button>
             <Button
               onClick={handleSaveField}
-              disabled={tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)}
+              disabled={
+                tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)
+              }
               className="flex-1"
             >
               שמור מחיר
@@ -6294,7 +6305,8 @@ function EditElementForm({
             />
             {tempValue && parseFloat(tempValue) >= 0 && element.seats && (
               <p className="text-xs text-muted-foreground">
-                ✓ מחיר כולל ({element.seats} כסאות): <strong>₪{(parseFloat(tempValue) * element.seats).toFixed(2)}</strong>
+                ✓ מחיר כולל ({element.seats} כסאות):{" "}
+                <strong>₪{(parseFloat(tempValue) * element.seats).toFixed(2)}</strong>
               </p>
             )}
             <Button
@@ -6315,7 +6327,9 @@ function EditElementForm({
             </Button>
             <Button
               onClick={handleSaveField}
-              disabled={tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)}
+              disabled={
+                tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)
+              }
               className="flex-1"
             >
               שמור מחיר
@@ -6382,7 +6396,9 @@ function EditElementForm({
             </Button>
             <Button
               onClick={handleSaveField}
-              disabled={tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)}
+              disabled={
+                tempValue !== "" && (isNaN(parseFloat(tempValue)) || parseFloat(tempValue) < 0)
+              }
               className="flex-1"
             >
               שמור מחיר

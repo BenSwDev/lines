@@ -350,15 +350,15 @@ Day-specific booking schedules for personal link reservations.
 
 Per-line reservation configuration (1:1 with Line). Allows each line that accepts reservations to have its own personalized settings.
 
-| Field                  | Type     | Nullable | Description                                  |
-| ---------------------- | -------- | -------- | -------------------------------------------- |
-| id                     | String   | No       | Unique identifier (cuid)                       |
-| lineId                 | String   | No       | Foreign key to Line (unique)                 |
-| allowPersonalLink      | Boolean  | No       | Whether personal link bookings are allowed   |
-| requireApproval        | Boolean  | No       | Whether personal link bookings need approval |
-| manageWaitlist         | Boolean  | No       | Whether waitlist management is enabled       |
-| createdAt              | DateTime | No       | Creation timestamp                           |
-| updatedAt              | DateTime | No       | Last update timestamp                        |
+| Field             | Type     | Nullable | Description                                  |
+| ----------------- | -------- | -------- | -------------------------------------------- |
+| id                | String   | No       | Unique identifier (cuid)                     |
+| lineId            | String   | No       | Foreign key to Line (unique)                 |
+| allowPersonalLink | Boolean  | No       | Whether personal link bookings are allowed   |
+| requireApproval   | Boolean  | No       | Whether personal link bookings need approval |
+| manageWaitlist    | Boolean  | No       | Whether waitlist management is enabled       |
+| createdAt         | DateTime | No       | Creation timestamp                           |
+| updatedAt         | DateTime | No       | Last update timestamp                        |
 
 **Relationships:**
 
@@ -375,17 +375,17 @@ Per-line reservation configuration (1:1 with Line). Allows each line that accept
 
 Day-specific booking schedules for a line's personal link reservations.
 
-| Field                      | Type     | Nullable | Description                                       |
-| -------------------------- | -------- | -------- | ------------------------------------------------- |
-| id                         | String   | No       | Unique identifier (cuid)                           |
-| lineReservationSettingsId  | String   | No       | Foreign key to LineReservationSettings            |
-| dayOfWeek                  | Int      | No       | Day of week (0=Sunday, 1=Monday, ..., 6=Saturday) |
-| startTime                  | String   | No       | Start time (HH:MM format, 24-hour)                |
-| endTime                    | String   | No       | End time (HH:MM format, 24-hour)                 |
-| intervalMinutes            | Int      | Yes      | Booking interval in minutes (optional)            |
-| customerMessage            | String   | Yes      | Custom message for customers (optional)           |
-| createdAt                  | DateTime | No       | Creation timestamp                                |
-| updatedAt                  | DateTime | No       | Last update timestamp                             |
+| Field                     | Type     | Nullable | Description                                       |
+| ------------------------- | -------- | -------- | ------------------------------------------------- |
+| id                        | String   | No       | Unique identifier (cuid)                          |
+| lineReservationSettingsId | String   | No       | Foreign key to LineReservationSettings            |
+| dayOfWeek                 | Int      | No       | Day of week (0=Sunday, 1=Monday, ..., 6=Saturday) |
+| startTime                 | String   | No       | Start time (HH:MM format, 24-hour)                |
+| endTime                   | String   | No       | End time (HH:MM format, 24-hour)                  |
+| intervalMinutes           | Int      | Yes      | Booking interval in minutes (optional)            |
+| customerMessage           | String   | Yes      | Custom message for customers (optional)           |
+| createdAt                 | DateTime | No       | Creation timestamp                                |
+| updatedAt                 | DateTime | No       | Last update timestamp                             |
 
 **Relationships:**
 
@@ -400,5 +400,73 @@ Day-specific booking schedules for a line's personal link reservations.
 **Updated Relationships:**
 
 - `Line` now has one `LineReservationSettings` (1:1)
+
+---
+
+## Roles & Hierarchy Models (v1.4.0+)
+
+### Department
+
+Organizational unit within a venue (e.g., Kitchen, Bar, Service, Security, Management).
+
+| Field              | Type     | Nullable | Description                                    |
+| ------------------ | -------- | -------- | ---------------------------------------------- |
+| id                 | String   | No       | Unique identifier (cuid)                       |
+| venueId            | String   | No       | Foreign key to Venue                           |
+| name               | String   | No       | Department name                                |
+| description        | String   | Yes      | Optional description                           |
+| color              | String   | No       | Hex color code                                 |
+| icon               | String   | Yes      | Optional icon identifier                       |
+| parentDepartmentId | String   | Yes      | Foreign key to parent Department (for hierarchy) |
+| order              | Int      | No       | Display order (default: 0)                     |
+| isActive           | Boolean  | No       | Active status (default: true)                  |
+| createdAt          | DateTime | No       | Creation timestamp                             |
+| updatedAt          | DateTime | No       | Last update timestamp                          |
+
+**Relationships:**
+
+- Belongs to one `Venue` (N:1)
+- Belongs to one `Department` (optional parent) (N:1)
+- Has many `Department` (child departments) (1:N)
+- Has many `Role` (1:N)
+
+**Business Rules:**
+
+- Cannot be its own parent (circular reference prevention)
+- Cannot be deleted if it has roles or child departments
+- Name should be unique per venue (not enforced at DB level)
+
+### Role
+
+Specific position within a department (e.g., Chef, Bartender, Manager).
+
+| Field       | Type     | Nullable | Description                   |
+| ----------- | -------- | -------- | ----------------------------- |
+| id          | String   | No       | Unique identifier (cuid)      |
+| venueId     | String   | No       | Foreign key to Venue           |
+| name        | String   | No       | Role name                     |
+| description | String   | Yes      | Optional description          |
+| icon        | String   | Yes      | Optional icon identifier      |
+| color       | String   | No       | Hex color code                |
+| departmentId | String   | No       | Foreign key to Department     |
+| isActive    | Boolean  | No       | Active status (default: true) |
+| createdAt   | DateTime | No       | Creation timestamp            |
+| updatedAt   | DateTime | No       | Last update timestamp         |
+
+**Relationships:**
+
+- Belongs to one `Venue` (N:1)
+- Belongs to one `Department` (N:1)
+
+**Business Rules:**
+
+- Must belong to a department
+- Name should be unique per department (not enforced at DB level)
+
+**Updated Relationships:**
+
+- `Venue` now has many `Department` (1:N)
+- `Venue` now has many `Role` (1:N)
+- `Department` now has many `Role` (1:N)
 
 ---

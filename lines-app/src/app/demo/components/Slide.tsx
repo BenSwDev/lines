@@ -1,7 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { emojiVariants, emojiTransition, staggerContainer, staggerItem } from "../animations/slideTransitions";
+import {
+  emojiVariants,
+  emojiTransition,
+  staggerContainer,
+  staggerItem
+} from "../animations/slideTransitions";
 import { QuestionCard } from "./QuestionCard";
 import { useTranslations } from "@/core/i18n/provider";
 import type { DemoSlide } from "../utils/demoSchema";
@@ -17,7 +22,12 @@ interface SlideProps {
 /**
  * Helper to get localized text
  */
-function getLocalizedText(slide: DemoSlide, field: "title" | "subtitle" | "content" | "question", t: (key: string) => string, locale: string): string {
+function getLocalizedText(
+  slide: DemoSlide,
+  field: "title" | "subtitle" | "content" | "question",
+  t: (key: string) => string,
+  locale: string
+): string {
   // Check for translation key first
   const keyField = `${field}Key` as keyof DemoSlide;
   if (keyField in slide && slide[keyField]) {
@@ -29,7 +39,7 @@ function getLocalizedText(slide: DemoSlide, field: "title" | "subtitle" | "conte
   }
 
   // Check for language-specific field (e.g., titleHe)
-  const langField = locale === "he" ? `${field}He` as keyof DemoSlide : field;
+  const langField = locale === "he" ? (`${field}He` as keyof DemoSlide) : field;
   if (langField in slide && slide[langField]) {
     return String(slide[langField]);
   }
@@ -45,8 +55,12 @@ function getLocalizedText(slide: DemoSlide, field: "title" | "subtitle" | "conte
 /**
  * Helper to get localized array
  */
-function getLocalizedArray(slide: DemoSlide, field: "bullets" | "highlights", locale: string): string[] {
-  const langField = locale === "he" ? `${field}He` as keyof DemoSlide : field;
+function getLocalizedArray(
+  slide: DemoSlide,
+  field: "bullets" | "highlights",
+  locale: string
+): string[] {
+  const langField = locale === "he" ? (`${field}He` as keyof DemoSlide) : field;
   if (langField in slide && Array.isArray(slide[langField])) {
     return slide[langField] as string[];
   }
@@ -70,10 +84,18 @@ export function Slide({ slide, selectedBranch, onSelectBranch, onSkipQuestion }:
     const title = getLocalizedText(slide, "title", t, locale);
 
     // Localize options
-    const localizedOptions = (slide.options || []).map((option: { id: string; text: string; textHe?: string; emoji?: string; nextSlide: string }) => ({
-      ...option,
-      text: locale === "he" && option.textHe ? option.textHe : option.text,
-    }));
+    const localizedOptions = (slide.options || []).map(
+      (option: {
+        id: string;
+        text: string;
+        textHe?: string;
+        emoji?: string;
+        nextSlide: string;
+      }) => ({
+        ...option,
+        text: locale === "he" && option.textHe ? option.textHe : option.text
+      })
+    );
 
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-8 text-center">
@@ -199,7 +221,9 @@ export function Slide({ slide, selectedBranch, onSelectBranch, onSkipQuestion }:
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {locale === "he" && slide.cta.primary.textHe ? slide.cta.primary.textHe : slide.cta.primary.text}
+                {locale === "he" && slide.cta.primary.textHe
+                  ? slide.cta.primary.textHe
+                  : slide.cta.primary.text}
               </motion.a>
             )}
             {slide.cta.secondary && (
@@ -209,7 +233,9 @@ export function Slide({ slide, selectedBranch, onSelectBranch, onSkipQuestion }:
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {locale === "he" && slide.cta.secondary.textHe ? slide.cta.secondary.textHe : slide.cta.secondary.text}
+                {locale === "he" && slide.cta.secondary.textHe
+                  ? slide.cta.secondary.textHe
+                  : slide.cta.secondary.text}
               </motion.a>
             )}
           </motion.div>

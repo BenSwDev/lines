@@ -15,11 +15,21 @@ interface ProgressBarProps {
  * Progress bar component showing demo completion progress
  * Displays percentage and slide counter
  */
-export function ProgressBar({ progress, currentSlide, totalSlides, className = "" }: ProgressBarProps) {
+export function ProgressBar({
+  progress,
+  currentSlide,
+  totalSlides,
+  className = ""
+}: ProgressBarProps) {
   const { t } = useTranslations();
-  const slideText = t("demo.progress.slide").replace("{current}", currentSlide.toString()).replace("{total}", totalSlides.toString());
-  const percentText = t("demo.progress.percent").replace("{percent}", Math.round(progress).toString());
-  
+  const slideText = t("demo.progress.slide")
+    .replace("{current}", currentSlide.toString())
+    .replace("{total}", totalSlides.toString());
+  const percentText = t("demo.progress.percent").replace(
+    "{percent}",
+    Math.round(progress).toString()
+  );
+
   return (
     <div className={`w-full ${className}`}>
       <div className="mb-2 flex items-center justify-between text-sm text-white/70">
@@ -39,4 +49,3 @@ export function ProgressBar({ progress, currentSlide, totalSlides, className = "
     </div>
   );
 }
-

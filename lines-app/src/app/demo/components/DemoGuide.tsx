@@ -37,13 +37,18 @@ export function DemoGuide({ flow }: DemoGuideProps) {
     skipQuestion,
     reset,
     totalSlides,
-    currentIndex,
+    currentIndex
   } = useDemoFlow(flow);
 
-  const { progress: progressPercentage, slideNumber, canGoNext, canGoPrevious } = useDemoProgress({
+  const {
+    progress: progressPercentage,
+    slideNumber,
+    canGoNext,
+    canGoPrevious
+  } = useDemoProgress({
     currentIndex,
     totalSlides,
-    visitedSlides,
+    visitedSlides
   });
 
   // Auto-advance logic
@@ -52,7 +57,7 @@ export function DemoGuide({ flow }: DemoGuideProps) {
     enabled: flow.metadata.autoAdvance ?? true,
     defaultDelay: flow.metadata.autoAdvanceDelay ?? 5000,
     onAdvance: goToNext,
-    pauseOnHover: true,
+    pauseOnHover: true
   });
 
   const handleNext = () => {
@@ -95,7 +100,10 @@ export function DemoGuide({ flow }: DemoGuideProps) {
 
       {/* Animated background elements */}
       <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-purple-500/20 blur-3xl animate-pulse" />
-      <div className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-pink-500/20 blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      <div
+        className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-pink-500/20 blur-3xl animate-pulse"
+        style={{ animationDelay: "1s" }}
+      />
 
       {/* Main content */}
       <div className="relative z-10 flex min-h-screen flex-col">
@@ -142,7 +150,9 @@ export function DemoGuide({ flow }: DemoGuideProps) {
             >
               <Slide
                 slide={currentSlide}
-                selectedBranch={currentSlide.type === "question" ? selectedBranches[currentSlide.id] : undefined}
+                selectedBranch={
+                  currentSlide.type === "question" ? selectedBranches[currentSlide.id] : undefined
+                }
                 onSelectBranch={handleSelectBranch}
                 onSkipQuestion={handleSkipQuestion}
                 direction={direction}
@@ -205,4 +215,3 @@ export function DemoGuide({ flow }: DemoGuideProps) {
     </div>
   );
 }
-

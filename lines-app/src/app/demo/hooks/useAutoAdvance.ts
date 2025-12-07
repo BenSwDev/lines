@@ -20,7 +20,7 @@ export function useAutoAdvance({
   enabled,
   defaultDelay,
   onAdvance,
-  pauseOnHover = true,
+  pauseOnHover = true
 }: UseAutoAdvanceOptions) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isPausedRef = useRef(false);
@@ -100,7 +100,6 @@ export function useAutoAdvance({
   return {
     pause,
     resume,
-    isPaused: isPausedRef.current,
+    isPaused: isPausedRef.current
   };
 }
-

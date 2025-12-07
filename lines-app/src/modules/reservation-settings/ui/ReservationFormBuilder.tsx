@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { Plus, Trash2, GripVertical, Eye } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import type { ReservationFormFieldInput } from "../types";
@@ -17,12 +23,37 @@ interface ReservationFormBuilderProps {
 }
 
 const DEFAULT_FIELDS: Array<Omit<ReservationFormFieldInput, "order">> = [
-  { fieldType: "name", fieldKey: "name", label: "שם מלא", placeholder: "הזן שם מלא", isRequired: true, isEnabled: true },
-  { fieldType: "email", fieldKey: "email", label: "אימייל", placeholder: "הזן אימייל", isRequired: true, isEnabled: true },
-  { fieldType: "phone", fieldKey: "phone", label: "טלפון", placeholder: "הזן מספר טלפון", isRequired: true, isEnabled: true }
+  {
+    fieldType: "name",
+    fieldKey: "name",
+    label: "שם מלא",
+    placeholder: "הזן שם מלא",
+    isRequired: true,
+    isEnabled: true
+  },
+  {
+    fieldType: "email",
+    fieldKey: "email",
+    label: "אימייל",
+    placeholder: "הזן אימייל",
+    isRequired: true,
+    isEnabled: true
+  },
+  {
+    fieldType: "phone",
+    fieldKey: "phone",
+    label: "טלפון",
+    placeholder: "הזן מספר טלפון",
+    isRequired: true,
+    isEnabled: true
+  }
 ];
 
-export function ReservationFormBuilder({ fields, onChange, onPreview }: ReservationFormBuilderProps) {
+export function ReservationFormBuilder({
+  fields,
+  onChange,
+  onPreview
+}: ReservationFormBuilderProps) {
   const { t, dir } = useTranslations();
 
   const addField = (fieldType?: ReservationFormFieldInput["fieldType"]) => {
@@ -30,7 +61,10 @@ export function ReservationFormBuilder({ fields, onChange, onPreview }: Reservat
       ? {
           fieldType,
           fieldKey: fieldType === "custom" ? `custom_${Date.now()}` : fieldType,
-          label: fieldType === "custom" ? "שדה מותאם אישית" : DEFAULT_FIELDS.find((f) => f.fieldType === fieldType)?.label || "",
+          label:
+            fieldType === "custom"
+              ? "שדה מותאם אישית"
+              : DEFAULT_FIELDS.find((f) => f.fieldType === fieldType)?.label || "",
           placeholder: DEFAULT_FIELDS.find((f) => f.fieldType === fieldType)?.placeholder || "",
           isRequired: false,
           isEnabled: true,
@@ -162,17 +196,39 @@ export function ReservationFormBuilder({ fields, onChange, onPreview }: Reservat
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="name">{t("reservations.formBuilder.types.name")}</SelectItem>
-                            <SelectItem value="email">{t("reservations.formBuilder.types.email")}</SelectItem>
-                            <SelectItem value="phone">{t("reservations.formBuilder.types.phone")}</SelectItem>
-                            <SelectItem value="date">{t("reservations.formBuilder.types.date")}</SelectItem>
-                            <SelectItem value="time">{t("reservations.formBuilder.types.time")}</SelectItem>
-                            <SelectItem value="number">{t("reservations.formBuilder.types.number")}</SelectItem>
-                            <SelectItem value="text">{t("reservations.formBuilder.types.text")}</SelectItem>
-                            <SelectItem value="textarea">{t("reservations.formBuilder.types.textarea")}</SelectItem>
-                            <SelectItem value="select">{t("reservations.formBuilder.types.select")}</SelectItem>
-                            <SelectItem value="checkbox">{t("reservations.formBuilder.types.checkbox")}</SelectItem>
-                            <SelectItem value="custom">{t("reservations.formBuilder.types.custom")}</SelectItem>
+                            <SelectItem value="name">
+                              {t("reservations.formBuilder.types.name")}
+                            </SelectItem>
+                            <SelectItem value="email">
+                              {t("reservations.formBuilder.types.email")}
+                            </SelectItem>
+                            <SelectItem value="phone">
+                              {t("reservations.formBuilder.types.phone")}
+                            </SelectItem>
+                            <SelectItem value="date">
+                              {t("reservations.formBuilder.types.date")}
+                            </SelectItem>
+                            <SelectItem value="time">
+                              {t("reservations.formBuilder.types.time")}
+                            </SelectItem>
+                            <SelectItem value="number">
+                              {t("reservations.formBuilder.types.number")}
+                            </SelectItem>
+                            <SelectItem value="text">
+                              {t("reservations.formBuilder.types.text")}
+                            </SelectItem>
+                            <SelectItem value="textarea">
+                              {t("reservations.formBuilder.types.textarea")}
+                            </SelectItem>
+                            <SelectItem value="select">
+                              {t("reservations.formBuilder.types.select")}
+                            </SelectItem>
+                            <SelectItem value="checkbox">
+                              {t("reservations.formBuilder.types.checkbox")}
+                            </SelectItem>
+                            <SelectItem value="custom">
+                              {t("reservations.formBuilder.types.custom")}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -188,22 +244,30 @@ export function ReservationFormBuilder({ fields, onChange, onPreview }: Reservat
                         <Label>{t("reservations.formBuilder.placeholder")}</Label>
                         <Input
                           value={field.placeholder || ""}
-                          onChange={(e) => updateField(index, { placeholder: e.target.value || null })}
+                          onChange={(e) =>
+                            updateField(index, { placeholder: e.target.value || null })
+                          }
                           placeholder={t("reservations.formBuilder.placeholderPlaceholder")}
                         />
                       </div>
-                      <div className={`flex items-center ${rtlClasses.flexReverse} justify-between gap-4`}>
+                      <div
+                        className={`flex items-center ${rtlClasses.flexReverse} justify-between gap-4`}
+                      >
                         <div className={`flex items-center ${rtlClasses.flexReverse} gap-2`}>
                           <Switch
                             checked={field.isRequired}
-                            onCheckedChange={(checked) => updateField(index, { isRequired: checked })}
+                            onCheckedChange={(checked) =>
+                              updateField(index, { isRequired: checked })
+                            }
                           />
                           <Label>{t("reservations.formBuilder.required")}</Label>
                         </div>
                         <div className={`flex items-center ${rtlClasses.flexReverse} gap-2`}>
                           <Switch
                             checked={field.isEnabled}
-                            onCheckedChange={(checked) => updateField(index, { isEnabled: checked })}
+                            onCheckedChange={(checked) =>
+                              updateField(index, { isEnabled: checked })
+                            }
                           />
                           <Label>{t("reservations.formBuilder.enabled")}</Label>
                         </div>
@@ -228,4 +292,3 @@ export function ReservationFormBuilder({ fields, onChange, onPreview }: Reservat
     </Card>
   );
 }
-

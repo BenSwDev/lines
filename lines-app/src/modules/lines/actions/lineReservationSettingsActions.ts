@@ -107,10 +107,10 @@ export async function updateLineReservationSettings(
     }
 
     const settings = await lineReservationSettingsService.update(lineId, input);
-    
+
     // Revalidate the line detail page
     revalidatePath(`/venues/${line.venueId}/lines/${lineId}`);
-    
+
     return { success: true, data: settings };
   } catch (error) {
     console.error("Error updating line reservation settings:", error);
@@ -120,4 +120,3 @@ export async function updateLineReservationSettings(
     };
   }
 }
-

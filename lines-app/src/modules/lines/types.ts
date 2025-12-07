@@ -1,4 +1,9 @@
-import type { Line, LineOccurrence, LineReservationSettings, LineReservationDaySchedule } from "@prisma/client";
+import type {
+  Line,
+  LineOccurrence,
+  LineReservationSettings,
+  LineReservationDaySchedule
+} from "@prisma/client";
 
 export type { Line, LineOccurrence };
 

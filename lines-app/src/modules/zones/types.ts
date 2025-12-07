@@ -76,4 +76,3 @@ export interface VenueLayout {
   tables: TableVisual[];
   areas: VenueAreaVisual[];
 }
-

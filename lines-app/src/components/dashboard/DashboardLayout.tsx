@@ -36,7 +36,8 @@ import {
   List,
   MapPin,
   FileText,
-  BookOpen
+  BookOpen,
+  Users
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -173,6 +174,14 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                           <Link href={`/venues/${currentVenue.id}/calendar`}>
                             <Calendar className="h-4 w-4" />
                             <span>לוח שנה</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/roles")}>
+                          <Link href={`/venues/${currentVenue.id}/roles`}>
+                            <Users className="h-4 w-4" />
+                            <span>תפקידים והיררכיה</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
