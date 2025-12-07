@@ -4,6 +4,48 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.4.1] – 2025-01-16 (CI/CD Pipeline & Database Sync)
+
+### 🔧 Infrastructure & DevOps
+
+#### Added
+
+- **CI/CD Pipeline** (`.github/workflows/ci-cd.yml`)
+  - Automated build and test on every push/PR
+  - Automated deployment to Vercel on main branch
+  - Prisma migrations automatically applied during deployment
+  - Full test suite execution before deployment
+
+- **Build Scripts**
+  - `build:deploy` - Runs `prisma generate`, `prisma migrate deploy`, and `next build`
+  - `db:migrate:deploy` - Production-safe migration command
+  - Ensures migrations are always applied before build
+
+- **Database Sync**
+  - Applied migration for `LineReservationSettings` and `LineReservationDaySchedule` to Supabase
+  - Verified 100% sync between Prisma schema and Supabase database
+  - All tables, indexes, and constraints are synchronized
+
+#### Changed
+
+- **Deployment Process**
+  - Updated Vercel build command to use `pnpm build:deploy`
+  - Migrations now run automatically during deployment
+  - No manual migration steps required
+
+- **Documentation**
+  - Updated `DEPLOYMENT_GUIDE.md` with migration instructions
+  - Added CI/CD pipeline documentation
+  - Documented database sync verification process
+
+#### Technical Details
+
+- **GitHub Actions**: Automated CI/CD with build, test, and deploy stages
+- **Prisma Migrations**: Production-safe migration deployment
+- **Database**: 100% sync verified between Prisma schema and Supabase
+
+---
+
 ## [1.4.0] – 2025-01-16 (LAYA-Style Interactive Demo Guide)
 
 ### 🎉 Major Enhancement
