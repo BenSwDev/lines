@@ -118,13 +118,20 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("settings.venueMap") || "מפת המקום"} - {venueName}
-          </h1>
-          <p className="text-muted-foreground">
-            {t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}
-          </p>
+        <div className="flex items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-bold tracking-tight">
+                {t("settings.venueMap") || "מפת המקום"} - {venueName}
+              </h1>
+              <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                BETA
+              </span>
+            </div>
+            <p className="text-muted-foreground">
+              {t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}
+            </p>
+          </div>
         </div>
       </div>
 

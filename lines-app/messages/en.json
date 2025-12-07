@@ -403,7 +403,13 @@
     "emptyCanvasTitle": "Canvas is Empty",
     "emptyCanvasDescription": "Click 'Create Map' to get started. You can choose a professional template or start from scratch.",
     "saveMap": "Save Map",
-    "saveMapDescription": "Do you want to save all changes to the map?"
+    "saveMapDescription": "Do you want to save all changes to the map?",
+    "simpleMode": "Simple Mode",
+    "advancedMode": "Advanced Mode",
+    "switchToSimple": "Switch to Simple Mode",
+    "switchToAdvanced": "Advanced Mode",
+    "simpleModeDescription": "Simple and easy interface - perfect for beginners",
+    "betaNotice": "This is a BETA interface - we're improving it all the time"
   },
   "demo": {
     "welcome": {

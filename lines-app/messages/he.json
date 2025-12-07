@@ -408,7 +408,13 @@
     "emptyCanvasTitle": "המפה ריקה",
     "emptyCanvasDescription": "לחץ על 'יצירת מפה' כדי להתחיל. תוכל לבחור תבנית מקצועית או להתחיל מאפס.",
     "saveMap": "שמירת מפה",
-    "saveMapDescription": "האם לשמור את כל השינויים במפה?"
+    "saveMapDescription": "האם לשמור את כל השינויים במפה?",
+    "simpleMode": "מצב פשוט",
+    "advancedMode": "מצב מתקדם",
+    "switchToSimple": "חזור למצב פשוט",
+    "switchToAdvanced": "מצב מתקדם",
+    "simpleModeDescription": "ממשק פשוט ונוח - מושלם למתחילים",
+    "betaNotice": "זהו ממשק BETA - אנו משפרים אותו כל הזמן"
   },
   "demo": {
     "welcome": {

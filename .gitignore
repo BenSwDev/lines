@@ -1,1 +1,9 @@
 .vercel
+
+# Cursor workspace config (may contain sensitive MCP server configs)
+.cursor/mcp.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local

@@ -7,3 +7,4 @@ Store strong/global rules and guardrails for Cursor here.
 
 
 
+

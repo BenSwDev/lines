@@ -44,3 +44,4 @@ CREATE INDEX IF NOT EXISTS idx_zones_position ON zones(venue_id, position_x, pos
 CREATE INDEX IF NOT EXISTS idx_tables_position ON tables(zone_id, position_x, position_y);
 
 
+
