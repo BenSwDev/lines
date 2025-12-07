@@ -20,6 +20,7 @@ type LineCardProps = {
   onEdit: () => void;
   onViewEvents: () => void;
   onViewLine: () => void;
+  "data-tour"?: string;
 };
 
 const DAYS_HEBREW = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
@@ -34,7 +35,8 @@ export const LineCard = memo(function LineCard({
   line,
   onEdit,
   onViewEvents,
-  onViewLine
+  onViewLine,
+  "data-tour": dataTour
 }: LineCardProps) {
   const { t } = useTranslations();
   const daysText = line.days.map((d) => DAYS_HEBREW[d]).join(", ");
@@ -52,6 +54,7 @@ export const LineCard = memo(function LineCard({
         borderRight: `4px solid ${line.color}`,
         boxShadow: `0 4px 6px -1px ${line.color}20, 0 2px 4px -2px ${line.color}10`
       }}
+      data-tour={dataTour}
     >
       {/* Animated color gradient overlay */}
       <div

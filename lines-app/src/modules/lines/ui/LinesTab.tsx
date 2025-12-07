@@ -112,7 +112,11 @@ export function LinesTab() {
           <h1 className="text-3xl font-bold tracking-tight">ליינים</h1>
           <p className="text-muted-foreground">נהל אירועים חוזרים עם לוחות זמנים וצבעים</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} size="lg">
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          size="lg"
+          data-tour="lines-create-button"
+        >
           <Plus className="ml-2 h-5 w-5" />
           צור ליין חדש
         </Button>
@@ -146,6 +150,7 @@ export function LinesTab() {
             onClick: () => setIsCreateOpen(true)
           }}
           className="min-h-[400px]"
+          data-tour="lines-empty-state"
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -163,6 +168,7 @@ export function LinesTab() {
                 onEdit={() => handleEditLine(line.id)}
                 onViewEvents={() => handleViewEvents(line.id)}
                 onViewLine={() => handleViewLine(line.id)}
+                data-tour={index === 0 ? "lines-card" : undefined}
               />
             </div>
           ))}

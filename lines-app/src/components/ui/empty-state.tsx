@@ -15,6 +15,7 @@ type EmptyStateProps = {
   };
   className?: string;
   children?: ReactNode;
+  "data-tour"?: string;
 };
 
 export function EmptyState({
@@ -23,7 +24,8 @@ export function EmptyState({
   description,
   action,
   className,
-  children
+  children,
+  "data-tour": dataTour
 }: EmptyStateProps) {
   return (
     <div
@@ -31,6 +33,7 @@ export function EmptyState({
         "flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center",
         className
       )}
+      data-tour={dataTour}
     >
       {Icon && (
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">

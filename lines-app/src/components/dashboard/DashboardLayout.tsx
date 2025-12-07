@@ -44,6 +44,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslations } from "@/core/i18n/provider";
+import { TourProvider, TourOverlay, TourProgressBar, TourButton } from "@/modules/guided-tour";
 import type { Venue } from "@prisma/client";
 
 type DashboardLayoutProps = {
@@ -62,8 +63,22 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
   const { dir, t } = useTranslations();
   const sidebarSide = dir === "rtl" ? "right" : "left";
 
+  // Detect current page for tour
+  const getCurrentPageId = (): "lines" | "roles" | "map" | "menus" | "info" | "calendar" | undefined => {
+    if (pathname?.includes("/lines")) return "lines";
+    if (pathname?.includes("/roles")) return "roles";
+    if (pathname?.includes("/map")) return "map";
+    if (pathname?.includes("/menus")) return "menus";
+    if (pathname?.includes("/info")) return "info";
+    if (pathname?.includes("/calendar")) return "calendar";
+    return undefined;
+  };
+
+  const currentPageId = getCurrentPageId();
+
   return (
-    <SidebarProvider defaultOpen side={sidebarSide}>
+    <TourProvider pageId={currentPageId}>
+      <SidebarProvider defaultOpen side={sidebarSide}>
       <div className="flex min-h-screen w-full">
         {/* Sidebar */}
         <Sidebar>
@@ -277,6 +292,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                 )}
               </div>
               <div className="flex items-center gap-2">
+                <TourButton />
                 <ThemeToggle />
                 <LanguageSwitcher />
               </div>
@@ -285,6 +301,9 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
           <div className="p-6">{children}</div>
         </main>
       </div>
+      <TourOverlay />
+      <TourProgressBar />
     </SidebarProvider>
+    </TourProvider>
   );
 }
