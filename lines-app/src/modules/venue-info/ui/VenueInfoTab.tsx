@@ -148,64 +148,64 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
                 )}
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
+        </CardHeader>
+        <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Phone */}
-              <div className="space-y-2">
+            {/* Phone */}
+            <div className="space-y-2">
                 <Label htmlFor="phone" className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4" />
-                  {t("venueInfo.phoneLabel")}
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={t("venueInfo.phonePlaceholder")}
-                  disabled={isSaving}
+                <Phone className="h-4 w-4" />
+                {t("venueInfo.phoneLabel")}
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={t("venueInfo.phonePlaceholder")}
+                disabled={isSaving}
                   className="h-9"
-                />
-              </div>
+              />
+            </div>
 
-              {/* Email */}
-              <div className="space-y-2">
+            {/* Email */}
+            <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2 text-sm">
-                  <Mail className="h-4 w-4" />
-                  {t("venueInfo.emailLabel")}
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t("venueInfo.emailPlaceholder")}
-                  disabled={isSaving}
+                <Mail className="h-4 w-4" />
+                {t("venueInfo.emailLabel")}
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("venueInfo.emailPlaceholder")}
+                disabled={isSaving}
                   className="h-9"
-                />
-              </div>
+              />
+            </div>
 
-              {/* Currency */}
-              <div className="space-y-2">
+            {/* Currency */}
+            <div className="space-y-2">
                 <Label htmlFor="currency" className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4" />
-                  מטבע תשלום
-                </Label>
+                <MapPin className="h-4 w-4" />
+                מטבע תשלום
+              </Label>
                 <Select
                   value={currency}
                   onValueChange={(value) => setCurrency(value as "ILS" | "USD" | "GBP" | "EUR")}
                   disabled={isSaving}
                 >
                   <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ILS">₪ שקל ישראלי (ILS)</SelectItem>
-                    <SelectItem value="USD">$ דולר אמריקאי (USD)</SelectItem>
-                    <SelectItem value="GBP">£ לירה שטרלינג (GBP)</SelectItem>
-                    <SelectItem value="EUR">€ יורו (EUR)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ILS">₪ שקל ישראלי (ILS)</SelectItem>
+                  <SelectItem value="USD">$ דולר אמריקאי (USD)</SelectItem>
+                  <SelectItem value="GBP">£ לירה שטרלינג (GBP)</SelectItem>
+                  <SelectItem value="EUR">€ יורו (EUR)</SelectItem>
+                </SelectContent>
+              </Select>
               </div>
 
               {/* Address - Full Width */}
@@ -225,8 +225,8 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
       </form>
     </div>
   );

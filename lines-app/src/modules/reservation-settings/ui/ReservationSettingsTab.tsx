@@ -86,45 +86,45 @@ export function ReservationSettingsTab() {
         setManualRegistrationOnly(data.manualRegistrationOnly);
         setManageWaitlist(data.manageWaitlist);
         setExcludedLineIds(data.excludedLines.map((el) => el.lineId));
-        setDaySchedules(
-          data.daySchedules.map((ds) => ({
-            dayOfWeek: ds.dayOfWeek,
-            startTime: ds.startTime,
-            endTime: ds.endTime,
-            intervalMinutes: ds.intervalMinutes,
-            customerMessage: ds.customerMessage
-          }))
-        );
-        setFormFields(
-          data.formFields.map((ff) => ({
-            id: ff.id,
-            fieldType: ff.fieldType as ReservationFormFieldInput["fieldType"],
-            fieldKey: ff.fieldKey,
-            label: ff.label,
-            placeholder: ff.placeholder,
-            isRequired: ff.isRequired,
-            isEnabled: ff.isEnabled,
-            order: ff.order,
-            validationRules: ff.validationRules as ReservationFormFieldInput["validationRules"],
-            options: ff.options as ReservationFormFieldInput["options"]
-          }))
-        );
-        if (data.formDesign) {
-          setFormDesign({
-            primaryColor: data.formDesign.primaryColor,
-            secondaryColor: data.formDesign.secondaryColor,
-            backgroundColor: data.formDesign.backgroundColor,
-            textColor: data.formDesign.textColor,
-            buttonColor: data.formDesign.buttonColor,
-            buttonTextColor: data.formDesign.buttonTextColor,
-            borderRadius: data.formDesign.borderRadius,
-            fontFamily: data.formDesign.fontFamily,
-            headerText: data.formDesign.headerText,
-            footerText: data.formDesign.footerText,
-            logoUrl: data.formDesign.logoUrl
-          });
-        }
-      }
+            setDaySchedules(
+              data.daySchedules.map((ds) => ({
+                dayOfWeek: ds.dayOfWeek,
+                startTime: ds.startTime,
+                endTime: ds.endTime,
+                intervalMinutes: ds.intervalMinutes,
+                customerMessage: ds.customerMessage
+              }))
+            );
+            setFormFields(
+              data.formFields.map((ff) => ({
+                id: ff.id,
+                fieldType: ff.fieldType as ReservationFormFieldInput["fieldType"],
+                fieldKey: ff.fieldKey,
+                label: ff.label,
+                placeholder: ff.placeholder,
+                isRequired: ff.isRequired,
+                isEnabled: ff.isEnabled,
+                order: ff.order,
+                validationRules: ff.validationRules as ReservationFormFieldInput["validationRules"],
+                options: ff.options as ReservationFormFieldInput["options"]
+              }))
+            );
+            if (data.formDesign) {
+              setFormDesign({
+                primaryColor: data.formDesign.primaryColor,
+                secondaryColor: data.formDesign.secondaryColor,
+                backgroundColor: data.formDesign.backgroundColor,
+                textColor: data.formDesign.textColor,
+                buttonColor: data.formDesign.buttonColor,
+                buttonTextColor: data.formDesign.buttonTextColor,
+                borderRadius: data.formDesign.borderRadius,
+                fontFamily: data.formDesign.fontFamily,
+                headerText: data.formDesign.headerText,
+                footerText: data.formDesign.footerText,
+                logoUrl: data.formDesign.logoUrl
+              });
+            }
+          }
 
       const linesResult = await getVenueLines(venueId);
       if (linesResult.success) {
@@ -307,49 +307,49 @@ export function ReservationSettingsTab() {
               <CardHeader>
                 <CardTitle className="text-lg">הגדרות אישיות</CardTitle>
                 <CardDescription>הגדר לינקים אישיים ואישורים</CardDescription>
-              </CardHeader>
+          </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label htmlFor="allowPersonalLink" className="text-sm font-medium">
-                      {t("reservations.allowPersonalLink")}
-                    </Label>
+                  {t("reservations.allowPersonalLink")}
+                </Label>
                     <p className="text-xs text-muted-foreground">
-                      {t("reservations.allowPersonalLinkDescription")}
-                    </p>
-                  </div>
-                  <Switch
-                    id="allowPersonalLink"
-                    checked={allowPersonalLink}
-                    onCheckedChange={(checked) => {
-                      setAllowPersonalLink(checked);
-                      if (!checked) {
-                        setRequireApproval(false);
-                        setManualRegistrationOnly(true);
-                      } else {
-                        setManualRegistrationOnly(false);
-                      }
-                    }}
-                  />
-                </div>
+                  {t("reservations.allowPersonalLinkDescription")}
+                </p>
+              </div>
+              <Switch
+                id="allowPersonalLink"
+                checked={allowPersonalLink}
+                onCheckedChange={(checked) => {
+                  setAllowPersonalLink(checked);
+                  if (!checked) {
+                    setRequireApproval(false);
+                    setManualRegistrationOnly(true);
+                  } else {
+                    setManualRegistrationOnly(false);
+                  }
+                }}
+              />
+            </div>
 
-                {allowPersonalLink && (
+            {allowPersonalLink && (
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="requireApproval" className="text-sm font-medium">
-                        {t("reservations.requireApproval")}
-                      </Label>
+                    {t("reservations.requireApproval")}
+                  </Label>
                       <p className="text-xs text-muted-foreground">
-                        {t("reservations.requireApprovalDescription")}
-                      </p>
-                    </div>
-                    <Switch
-                      id="requireApproval"
-                      checked={requireApproval}
-                      onCheckedChange={setRequireApproval}
-                    />
-                  </div>
-                )}
+                    {t("reservations.requireApprovalDescription")}
+                  </p>
+                </div>
+                <Switch
+                  id="requireApproval"
+                  checked={requireApproval}
+                  onCheckedChange={setRequireApproval}
+                />
+              </div>
+            )}
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -358,16 +358,16 @@ export function ReservationSettingsTab() {
                     </Label>
                     <p className="text-xs text-muted-foreground">
                       {t("reservations.manageWaitlistDescription")}
-                    </p>
-                  </div>
+                </p>
+              </div>
                   <Switch
                     id="manageWaitlist"
                     checked={manageWaitlist}
                     onCheckedChange={setManageWaitlist}
                   />
                 </div>
-              </CardContent>
-            </Card>
+          </CardContent>
+        </Card>
           </TabsContent>
 
           {/* Day Schedules Tab */}
@@ -378,20 +378,20 @@ export function ReservationSettingsTab() {
                   <p className="text-center text-sm text-muted-foreground">
                     הפעל לינקים אישיים כדי להגדיר לוחות זמנים
                   </p>
-                </CardContent>
-              </Card>
+          </CardContent>
+        </Card>
             ) : (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">לוחות זמנים יומיים</CardTitle>
                   <CardDescription>הגדר מתי אפשר להזמין בכל יום</CardDescription>
-                </CardHeader>
+          </CardHeader>
                 <CardContent>
                   <Accordion type="multiple" className="w-full">
-                    {DAYS_OF_WEEK.map((day) => {
-                      const schedule = getDaySchedule(day.value);
+            {DAYS_OF_WEEK.map((day) => {
+              const schedule = getDaySchedule(day.value);
                       const hasSchedule = schedule.startTime && schedule.endTime;
-                      return (
+              return (
                         <AccordionItem key={day.value} value={`day-${day.value}`}>
                           <AccordionTrigger className="text-sm">
                             <div className="flex items-center gap-2">
@@ -401,98 +401,98 @@ export function ReservationSettingsTab() {
                                   {schedule.startTime} - {schedule.endTime}
                                 </span>
                               )}
-                            </div>
+                  </div>
                           </AccordionTrigger>
                           <AccordionContent>
                             <div className="grid gap-3 pt-2 md:grid-cols-2">
                               <div className="space-y-2">
                                 <Label htmlFor={`startTime-${day.value}`} className="text-xs">
                                   שעת התחלה
-                                </Label>
-                                <Input
-                                  id={`startTime-${day.value}`}
-                                  type="time"
-                                  value={schedule.startTime}
+                      </Label>
+                      <Input
+                        id={`startTime-${day.value}`}
+                        type="time"
+                        value={schedule.startTime}
                                   onChange={(e) =>
                                     updateDaySchedule(day.value, "startTime", e.target.value)
                                   }
                                   className="h-9"
-                                  dir="ltr"
-                                />
-                              </div>
+                        dir="ltr"
+                      />
+                    </div>
                               <div className="space-y-2">
                                 <Label htmlFor={`endTime-${day.value}`} className="text-xs">
                                   שעת סיום
-                                </Label>
-                                <Input
-                                  id={`endTime-${day.value}`}
-                                  type="time"
-                                  value={schedule.endTime}
+                      </Label>
+                      <Input
+                        id={`endTime-${day.value}`}
+                        type="time"
+                        value={schedule.endTime}
                                   onChange={(e) =>
                                     updateDaySchedule(day.value, "endTime", e.target.value)
                                   }
                                   className="h-9"
-                                  dir="ltr"
-                                />
-                              </div>
+                        dir="ltr"
+                      />
+                    </div>
                               <div className="space-y-2">
                                 <Label htmlFor={`interval-${day.value}`} className="text-xs">
                                   מרווח (דקות) - אופציונלי
-                                </Label>
-                                <Input
-                                  id={`interval-${day.value}`}
-                                  type="number"
-                                  min="1"
-                                  placeholder="30"
-                                  value={schedule.intervalMinutes || ""}
-                                  onChange={(e) =>
-                                    updateDaySchedule(
-                                      day.value,
-                                      "intervalMinutes",
-                                      e.target.value ? parseInt(e.target.value, 10) : null
-                                    )
-                                  }
+                      </Label>
+                      <Input
+                        id={`interval-${day.value}`}
+                        type="number"
+                        min="1"
+                        placeholder="30"
+                        value={schedule.intervalMinutes || ""}
+                        onChange={(e) =>
+                          updateDaySchedule(
+                            day.value,
+                            "intervalMinutes",
+                            e.target.value ? parseInt(e.target.value, 10) : null
+                          )
+                        }
                                   className="h-9"
-                                  dir="ltr"
-                                />
-                              </div>
+                        dir="ltr"
+                      />
+                    </div>
                               <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor={`message-${day.value}`} className="text-xs">
                                   הודעה ללקוח - אופציונלי
-                                </Label>
-                                <Textarea
-                                  id={`message-${day.value}`}
+                      </Label>
+                      <Textarea
+                        id={`message-${day.value}`}
                                   placeholder="הודעה שתוצג ללקוח ביום זה"
-                                  value={schedule.customerMessage || ""}
-                                  onChange={(e) =>
+                        value={schedule.customerMessage || ""}
+                        onChange={(e) =>
                                     updateDaySchedule(
                                       day.value,
                                       "customerMessage",
                                       e.target.value || null
                                     )
-                                  }
-                                  rows={2}
-                                  dir={dir}
-                                />
-                              </div>
-                            </div>
+                        }
+                        rows={2}
+                        dir={dir}
+                      />
+                    </div>
+                  </div>
                           </AccordionContent>
                         </AccordionItem>
-                      );
-                    })}
+              );
+            })}
                   </Accordion>
-                </CardContent>
-              </Card>
-            )}
+          </CardContent>
+        </Card>
+      )}
           </TabsContent>
 
           {/* Forms Tab */}
           <TabsContent value="forms" className="space-y-4">
-            <ReservationFormBuilder
-              fields={formFields}
-              onChange={setFormFields}
-              onPreview={() => setShowPreview(true)}
-            />
+          <ReservationFormBuilder
+            fields={formFields}
+            onChange={setFormFields}
+            onPreview={() => setShowPreview(true)}
+          />
             <ReservationFormDesigner design={formDesign} onChange={setFormDesign} />
           </TabsContent>
 

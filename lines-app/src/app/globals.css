@@ -88,6 +88,15 @@ html[dir="ltr"] {
   direction: ltr;
 }
 
+/* Switch RTL Support */
+html[dir="rtl"] [data-state="checked"] {
+  --switch-thumb-transform: translateX(-1.25rem);
+}
+
+html[dir="rtl"] [data-state="unchecked"] {
+  --switch-thumb-transform: translateX(0);
+}
+
 /* Sidebar positioning - works for both RTL and LTR */
 html[dir="rtl"] [data-sidebar][data-side="right"] {
   right: 0;
