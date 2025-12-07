@@ -137,7 +137,7 @@ export function RolesTab({ venueId }: RolesTabProps) {
             <h2 className="text-2xl font-bold">תפקידים</h2>
             <p className="text-muted-foreground">נהל תפקידים והיררכיה בארגון</p>
           </div>
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} data-tour="roles-departments">
             <Plus className="mr-2 h-4 w-4" />
             צור תפקיד
           </Button>
@@ -187,9 +187,15 @@ export function RolesTab({ venueId }: RolesTabProps) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredRoles.map((role) => (
-              <RoleCard key={role.id} role={role} onEdit={handleEdit} onDelete={handleDelete} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" data-tour="roles-departments">
+            {filteredRoles.map((role, index) => (
+              <RoleCard
+                key={role.id}
+                role={role}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                data-tour={index === 0 ? "roles-departments" : undefined}
+              />
             ))}
           </div>
         )}

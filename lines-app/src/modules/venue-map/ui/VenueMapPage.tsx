@@ -168,12 +168,14 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
         </div>
       </div>
 
-      <FloorPlanEditorV2
-        venueId={venueId}
-        initialElements={elements}
-        initialCapacity={venueCapacity}
-        userId={userId}
-      />
+      <div data-tour="map-zones">
+        <FloorPlanEditorV2
+          venueId={venueId}
+          initialElements={elements}
+          initialCapacity={venueCapacity}
+          userId={userId}
+        />
+      </div>
     </div>
   );
 }

@@ -10,9 +10,10 @@ type RoleCardProps = {
   role: RoleWithRelations;
   onEdit: (role: RoleWithRelations) => void;
   onDelete: (role: RoleWithRelations) => void;
+  "data-tour"?: string;
 };
 
-export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
+export function RoleCard({ role, onEdit, onDelete, "data-tour": dataTour }: RoleCardProps) {
   const hasChildren = role.childRoles && role.childRoles.length > 0;
   const hasParent = role.parentRole !== null;
 
@@ -20,6 +21,7 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
     <Card
       className="hover:shadow-lg transition-all duration-200 border-l-4"
       style={{ borderLeftColor: role.color }}
+      data-tour={dataTour}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">

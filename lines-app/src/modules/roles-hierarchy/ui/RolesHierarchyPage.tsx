@@ -19,14 +19,14 @@ export function RolesHierarchyPage({ venueId }: RolesHierarchyPageProps) {
       <Tabs defaultValue="roles" className="w-full">
         <TabsList>
           <TabsTrigger value="roles">Roles</TabsTrigger>
-          <TabsTrigger value="hierarchy">Hierarchy</TabsTrigger>
+          <TabsTrigger value="hierarchy" data-tour="roles-hierarchy">Hierarchy</TabsTrigger>
         </TabsList>
 
         <TabsContent value="roles" className="mt-6">
           <RolesTab venueId={venueId} />
         </TabsContent>
 
-        <TabsContent value="hierarchy" className="mt-6">
+        <TabsContent value="hierarchy" className="mt-6" data-tour="roles-hierarchy">
           <HierarchyView venueId={venueId} />
         </TabsContent>
       </Tabs>

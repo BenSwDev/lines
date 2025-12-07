@@ -237,7 +237,7 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
       </div>
 
       {/* Tree */}
-      <div className="rounded-lg border bg-card p-4 min-h-[400px]">
+      <div className="rounded-lg border bg-card p-4 min-h-[400px]" data-tour="roles-hierarchy">
         {hierarchy.map((node) => renderNode(node))}
       </div>
     </div>

@@ -80,7 +80,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
           <h2 className="text-2xl font-bold">תפריטים</h2>
           <p className="text-sm text-muted-foreground">העלה וניהול תפריטים ומסמכים</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)}>
+        <Button onClick={() => setIsCreateOpen(true)} data-tour="menus-upload">
           <Plus className="ml-2 h-4 w-4" />
           העלה תפריט
         </Button>
@@ -99,9 +99,9 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {menus.map((menu) => (
-            <Card key={menu.id}>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" data-tour="menus-list">
+          {menus.map((menu, index) => (
+            <Card key={menu.id} data-tour={index === 0 ? "menus-list" : undefined}>
               <CardHeader>
                 <CardTitle className="flex items-start justify-between">
                   <span className="text-base">{menu.name}</span>
