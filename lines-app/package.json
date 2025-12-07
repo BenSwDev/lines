@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:deploy": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -19,6 +20,7 @@
     "db:generate": "prisma generate",
     "db:push": "dotenv -e .env.local -- prisma db push",
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
     "db:test": "tsx scripts/test-db-connection.ts",
     "db:studio": "prisma studio"
