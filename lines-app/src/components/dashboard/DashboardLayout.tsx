@@ -40,11 +40,12 @@ import {
   Users
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslations } from "@/core/i18n/provider";
-import { TourProvider, TourOverlay, TourProgressBar, TourButton } from "@/modules/guided-tour";
+import { TourProvider, TourOverlay, TourProgressBar, TourButton, useTour } from "@/modules/guided-tour";
 import type { Venue } from "@prisma/client";
 
 type DashboardLayoutProps = {
@@ -76,9 +77,34 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
 
   const currentPageId = getCurrentPageId();
 
+  // Inner component to handle tour auto-start
+  function TourWrapper({ children }: { children: React.ReactNode }) {
+    const searchParams = useSearchParams();
+    const { startTour } = useTour();
+    const shouldStartTour = searchParams.get("startTour") === "true";
+
+    useEffect(() => {
+      if (shouldStartTour && currentPageId) {
+        // Small delay to ensure page is fully loaded
+        const timer = setTimeout(() => {
+          startTour(currentPageId);
+          // Remove query param from URL
+          const url = new URL(window.location.href);
+          url.searchParams.delete("startTour");
+          window.history.replaceState({}, "", url.toString());
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldStartTour, startTour]);
+
+    return <>{children}</>;
+  }
+
   return (
     <TourProvider pageId={currentPageId}>
       <SidebarProvider defaultOpen side={sidebarSide}>
+      <TourWrapper>
       <div className="flex min-h-screen w-full">
         {/* Sidebar */}
         <Sidebar>
@@ -303,7 +329,8 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
       </div>
       <TourOverlay />
       <TourProgressBar />
-    </SidebarProvider>
+      </TourWrapper>
+      </SidebarProvider>
     </TourProvider>
   );
 }

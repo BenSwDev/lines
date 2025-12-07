@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { VenueGrid } from "./VenueGrid";
 import { CreateVenueDialog } from "./CreateVenueDialog";
 import { listVenues } from "../actions/listVenues";
@@ -16,11 +16,13 @@ import { translateError } from "@/utils/translateError";
 
 export function VenuesDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslations();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const shouldStartTour = searchParams.get("startTour") === "true";
 
   const loadVenues = async () => {
     setIsLoading(true);
@@ -44,6 +46,14 @@ export function VenuesDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auto-start tour if requested and venue exists
+  useEffect(() => {
+    if (shouldStartTour && !isLoading && venues.length > 0) {
+      // Navigate to first venue's lines page with tour parameter
+      router.push(`/venues/${venues[0].id}/lines?startTour=true`);
+    }
+  }, [shouldStartTour, isLoading, venues, router]);
+
   const handleCreate = async (name: string) => {
     const result = await createVenue({ name });
 
@@ -54,8 +64,12 @@ export function VenuesDashboard() {
         title: t("success.venueCreated"),
         description: t("success.venueCreated")
       });
-      // Auto-navigate to new venue
-      router.push(`/venues/${result.data.id}/info`);
+      // Auto-navigate to new venue - if startTour was requested, go to lines page
+      if (shouldStartTour) {
+        router.push(`/venues/${result.data.id}/lines?startTour=true`);
+      } else {
+        router.push(`/venues/${result.data.id}/info`);
+      }
     } else {
       const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
