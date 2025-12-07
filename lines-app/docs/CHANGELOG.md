@@ -4,6 +4,56 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.4.0] – 2025-01-16 (LAYA-Style Interactive Demo Guide)
+
+### 🎉 Major Enhancement
+
+#### Added
+
+- **Complete LAYA-Style Interactive Demo Guide Module** (`src/app/demo`)
+  - Fully isolated, production-ready interactive onboarding flow
+  - Auto-advancing slides with smooth transitions
+  - Interactive branching logic for personalized experiences
+  - Mobile-first responsive design
+  - Placeholder content (easily customizable)
+
+- **Demo Module Structure**
+  - `components/` - UI components (DemoGuide, Slide, ProgressBar, QuestionCard)
+  - `hooks/` - Custom hooks (useDemoFlow, useAutoAdvance, useDemoProgress)
+  - `animations/` - Framer Motion animation variants and transitions
+  - `data/` - JSON-based demo flow configuration (demoFlow.json)
+  - `utils/` - Zod schemas and data loading utilities
+  - `styles/` - LAYA-style CSS with gradients and animations
+
+- **Features**
+  - Auto-advance logic with configurable delays
+  - Pause on hover functionality
+  - Progress tracking and visualization
+  - Interactive question cards with branching paths
+  - Smooth slide transitions (slide, fade, scale)
+  - Emoji-based visual storytelling
+  - Gradient backgrounds per slide
+  - Reset functionality
+  - Navigation controls (previous/next, slide dots)
+
+- **Technical Implementation**
+  - Type-safe with Zod validation
+  - Fully client-side (no server dependencies)
+  - Optimized animations (60fps)
+  - Accessible (keyboard navigation, focus indicators)
+  - SEO-friendly structure
+
+#### Changed
+
+- Updated `/demo` route to use new `DemoGuideWrapper` component
+- Replaced previous `ImmersiveDemo` with new LAYA-style guide
+
+#### Technical Details
+
+- **Bundle Size:** 46.7 kB (First Load JS: 165 kB)
+- **Dependencies:** framer-motion, zod, lucide-react
+- **Browser Support:** Modern browsers with CSS Grid and Flexbox
+
 ## [1.3.0] – 2025-01-15 (Line Reservation Settings)
 
 ### 🎉 Major Enhancement
