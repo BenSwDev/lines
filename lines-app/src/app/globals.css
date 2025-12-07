@@ -88,15 +88,6 @@ html[dir="ltr"] {
   direction: ltr;
 }
 
-/* Switch RTL Support */
-html[dir="rtl"] [data-state="checked"] {
-  --switch-thumb-transform: translateX(-1.25rem);
-}
-
-html[dir="rtl"] [data-state="unchecked"] {
-  --switch-thumb-transform: translateX(0);
-}
-
 /* Sidebar positioning - works for both RTL and LTR */
 html[dir="rtl"] [data-sidebar][data-side="right"] {
   right: 0;
@@ -208,6 +199,17 @@ html[dir="rtl"] .lucide-moon {
 html[dir="rtl"] {
   direction: rtl;
   text-align: right;
+}
+
+/* Switch RTL Support - Fix thumb position in RTL */
+html[dir="rtl"] button[data-state="checked"] > span,
+html[dir="rtl"] [role="switch"][data-state="checked"] > span {
+  transform: translateX(-1.25rem) !important;
+}
+
+html[dir="rtl"] button[data-state="unchecked"] > span,
+html[dir="rtl"] [role="switch"][data-state="unchecked"] > span {
+  transform: translateX(0) !important;
 }
 
 html[dir="rtl"] body {
