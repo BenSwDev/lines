@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, User } from "lucide-react";
+import { Plus, User, Filter } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -50,8 +50,8 @@ export function RolesTab({ venueId }: RolesTabProps) {
     } else {
       const errorMsg = !rolesResult.success && "error" in rolesResult ? rolesResult.error : null;
       toast({
-        title: "Error",
-        description: errorMsg || "Failed to load roles",
+        title: "שגיאה",
+        description: errorMsg || "נכשל בטעינת התפקידים",
         variant: "destructive"
       });
     }
@@ -83,15 +83,15 @@ export function RolesTab({ venueId }: RolesTabProps) {
 
     if (result.success) {
       toast({
-        title: "Success",
-        description: "Role deleted successfully"
+        title: "הצלחה",
+        description: "התפקיד נמחק בהצלחה"
       });
       setRoles((prev) => prev.filter((r) => r.id !== deletingRole.id));
     } else {
       const errorMsg = !result.success && "error" in result ? result.error : null;
       toast({
-        title: "Error",
-        description: errorMsg || "Failed to delete role",
+        title: "שגיאה",
+        description: errorMsg || "נכשל במחיקת התפקיד",
         variant: "destructive"
       });
     }
@@ -109,17 +109,19 @@ export function RolesTab({ venueId }: RolesTabProps) {
       ? roles
       : roles.filter((r) => (r.parentRoleId || null) === (selectedParentRoleId || null));
 
+  const rootRoles = roles.filter((r) => !r.parentRoleId);
+
   if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Roles</h2>
-            <p className="text-muted-foreground">Manage organizational roles and hierarchy</p>
+            <h2 className="text-2xl font-bold">תפקידים</h2>
+            <p className="text-muted-foreground">נהל תפקידים והיררכיה בארגון</p>
           </div>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Create
+            צור תפקיד
           </Button>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -134,49 +136,60 @@ export function RolesTab({ venueId }: RolesTabProps) {
   return (
     <>
       <div className="space-y-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Roles</h2>
-            <p className="text-muted-foreground">Manage organizational roles and hierarchy</p>
+            <h2 className="text-2xl font-bold">תפקידים</h2>
+            <p className="text-muted-foreground">נהל תפקידים והיררכיה בארגון</p>
           </div>
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
-            Create
+            צור תפקיד
           </Button>
         </div>
 
+        {/* Filter */}
         {roles.length > 0 && (
           <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={selectedParentRoleId} onValueChange={setSelectedParentRoleId}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by parent" />
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="סינון לפי מנהל" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="none">No Parent (Root)</SelectItem>
-                {roles
-                  .filter((r) => !r.parentRoleId)
-                  .map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
+                <SelectItem value="all">כל התפקידים</SelectItem>
+                <SelectItem value="none">תפקידים ראשיים בלבד</SelectItem>
+                {rootRoles.map((role) => (
+                  <SelectItem key={role.id} value={role.id}>
+                    תחת {role.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
+            <span className="text-sm text-muted-foreground">
+              ({filteredRoles.length} {filteredRoles.length === 1 ? "תפקיד" : "תפקידים"})
+            </span>
           </div>
         )}
 
+        {/* Content */}
         {filteredRoles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <User className="mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">No roles yet</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Create your first role to get started
+          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed rounded-lg">
+            <User className="mb-4 h-16 w-16 text-muted-foreground/50" />
+            <h3 className="text-lg font-semibold mb-2">
+              {roles.length === 0 ? "אין תפקידים עדיין" : "אין תפקידים תואמים"}
+            </h3>
+            <p className="mb-4 text-sm text-muted-foreground max-w-md">
+              {roles.length === 0
+                ? "צור את התפקיד הראשון שלך כדי להתחיל לבנות את ההיררכיה הארגונית"
+                : "נסה לשנות את הפילטר כדי לראות תפקידים אחרים"}
             </p>
-            <Button onClick={handleCreate}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Role
-            </Button>
+            {roles.length === 0 && (
+              <Button onClick={handleCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                צור תפקיד ראשון
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -187,11 +200,12 @@ export function RolesTab({ venueId }: RolesTabProps) {
         )}
       </div>
 
+      {/* Dialogs */}
       <CreateRoleDialog
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         venueId={venueId}
-        parentRoles={roles.filter((r) => !r.parentRoleId)}
+        parentRoles={rootRoles}
         onSuccess={loadData}
       />
 
@@ -209,17 +223,19 @@ export function RolesTab({ venueId }: RolesTabProps) {
       <Dialog open={!!deletingRole} onOpenChange={() => setDeletingRole(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Role</DialogTitle>
+            <DialogTitle>מחיקת תפקיד</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{deletingRole?.name}&quot;? This action cannot be undone.
+              האם אתה בטוח שברצונך למחוק את התפקיד &quot;{deletingRole?.name}&quot;?
+              <br />
+              פעולה זו אינה ניתנת לביטול.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeletingRole(null)}>
-              Cancel
+              ביטול
             </Button>
             <Button onClick={confirmDelete} variant="destructive">
-              Delete
+              מחק
             </Button>
           </DialogFooter>
         </DialogContent>

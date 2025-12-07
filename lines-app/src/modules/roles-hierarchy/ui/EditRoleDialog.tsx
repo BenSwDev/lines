@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { User } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { RoleWithRelations } from "../types";
 import { updateRole } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
@@ -36,21 +36,21 @@ const COLORS = [
   { value: "#84CC16", label: "Lime" }
 ];
 
-// 13 specific icons for common roles in restaurants, bars, and entertainment venues
+// 13 specific icons for common roles
 const ICONS = [
-  "👨‍🍳", // מטבח/שף
-  "🍸",   // בר/ברמן
-  "🍽️",   // שולחנות/מלצר
-  "🛡️",   // אבטחה
-  "🧹",   // ניקיון
-  "👔",   // ניהול/מנהל
-  "👑",   // בעלים/מנכ"ל
-  "💼",   // מנהל עסקים
-  "📋",   // אדמין/מזכירות
-  "🎵",   // DJ/מוזיקה
-  "🎤",   // זמר/בידור
-  "🚗",   // שליח/משלוחים
-  "🎯"    // אחר/כללי
+  { emoji: "👨‍🍳", label: "מטבח" },
+  { emoji: "🍸", label: "בר" },
+  { emoji: "🍽️", label: "שולחנות" },
+  { emoji: "🛡️", label: "אבטחה" },
+  { emoji: "🧹", label: "ניקיון" },
+  { emoji: "👔", label: "ניהול" },
+  { emoji: "👑", label: "בעלים" },
+  { emoji: "💼", label: "עסקים" },
+  { emoji: "📋", label: "מזכירות" },
+  { emoji: "🎵", label: "מוזיקה" },
+  { emoji: "🎤", label: "בידור" },
+  { emoji: "🚗", label: "משלוחים" },
+  { emoji: "🎯", label: "אחר" }
 ];
 
 type EditRoleDialogProps = {
@@ -76,7 +76,7 @@ export function EditRoleDialog({
   const [color, setColor] = useState(role.color);
   const [icon, setIcon] = useState(role.icon || "");
   const [parentRoleId, setParentRoleId] = useState(role.parentRoleId || "");
-  const [order, setOrder] = useState(role.order || 0);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -87,7 +87,7 @@ export function EditRoleDialog({
       setColor(role.color);
       setIcon(role.icon || "");
       setParentRoleId(role.parentRoleId || "");
-      setOrder(role.order || 0);
+      setShowAdvanced(false);
       setError("");
     }
   }, [isOpen, role]);
@@ -97,7 +97,7 @@ export function EditRoleDialog({
     setError("");
 
     if (!name.trim()) {
-      setError("Name is required");
+      setError("שם התפקיד הוא שדה חובה");
       return;
     }
 
@@ -110,21 +110,21 @@ export function EditRoleDialog({
         color,
         icon: icon || null,
         parentRoleId: parentRoleId ? parentRoleId : null,
-        order
+        order: role.order || 0
       });
 
       if (result.success) {
         toast({
-          title: "Success",
-          description: "Role updated successfully"
+          title: "הצלחה",
+          description: "התפקיד עודכן בהצלחה"
         });
         onSuccess();
         onClose();
       } else {
-        setError(result.error || "Failed to update role");
+        setError(result.error || "שגיאה בעדכון התפקיד");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update role");
+      setError(err instanceof Error ? err.message : "שגיאה בעדכון התפקיד");
     } finally {
       setIsSubmitting(false);
     }
@@ -132,129 +132,147 @@ export function EditRoleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <DialogTitle>Edit Role</DialogTitle>
-              <DialogDescription>Update role information</DialogDescription>
-            </div>
-          </div>
+          <DialogTitle>עריכת תפקיד</DialogTitle>
+          <DialogDescription>עדכן את פרטי התפקיד</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 py-4">
+            {/* שם התפקיד - חובה */}
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">
+                שם התפקיד <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Chef, Bartender, Manager"
+                placeholder="לדוגמה: שף, ברמן, מנהל"
                 disabled={isSubmitting}
                 autoFocus
                 className={error && !name.trim() ? "border-destructive" : ""}
               />
             </div>
 
+            {/* תיאור - אופציונלי */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">תיאור (אופציונלי)</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Optional description"
+                placeholder="הוסף תיאור קצר לתפקיד"
                 disabled={isSubmitting}
-                rows={3}
+                rows={2}
               />
             </div>
 
+            {/* צבע ואייקון - יחד */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>צבע</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {COLORS.map((c) => (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setColor(c.value)}
+                      disabled={isSubmitting}
+                      className={`h-9 w-9 rounded-md border-2 transition-all ${
+                        color === c.value
+                          ? "border-foreground scale-110 ring-2 ring-offset-2"
+                          : "border-transparent hover:border-muted-foreground/50"
+                      }`}
+                      style={{ backgroundColor: c.value }}
+                      title={c.label}
+                      aria-label={`Select ${c.label} color`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>אייקון (אופציונלי)</Label>
+                <div className="grid grid-cols-7 gap-2">
+                  {ICONS.map((item) => (
+                    <button
+                      key={item.emoji}
+                      type="button"
+                      onClick={() => setIcon(icon === item.emoji ? "" : item.emoji)}
+                      disabled={isSubmitting}
+                      className={`h-10 w-10 rounded-md border-2 text-lg transition-all flex items-center justify-center ${
+                        icon === item.emoji
+                          ? "border-foreground scale-110 ring-2 ring-offset-2 bg-muted"
+                          : "border-transparent hover:border-muted-foreground/50 hover:bg-muted/50"
+                      }`}
+                      title={item.label}
+                      aria-label={item.label}
+                    >
+                      {item.emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* אפשרויות מתקדמות - קיפול */}
             {availableParents.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="parent">Parent Role (optional)</Label>
-                <Select
-                  value={parentRoleId || undefined}
-                  onValueChange={(value) => setParentRoleId(value)}
-                  disabled={isSubmitting}
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="flex w-full items-center justify-between text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <SelectTrigger id="parent">
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableParents.map((parentRole) => (
-                      <SelectItem key={parentRole.id} value={parentRole.id}>
-                        {parentRole.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <span>אפשרויות נוספות</span>
+                  {showAdvanced ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+
+                {showAdvanced && (
+                  <div className="space-y-2 pt-2 border-t">
+                    <Label htmlFor="parent">תפקיד מנהל (אופציונלי)</Label>
+                    <Select
+                      value={parentRoleId || undefined}
+                      onValueChange={(value) => setParentRoleId(value)}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger id="parent">
+                        <SelectValue placeholder="ללא מנהל" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableParents.map((parentRole) => (
+                          <SelectItem key={parentRole.id} value={parentRole.id}>
+                            {parentRole.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      בחר תפקיד מנהל אם התפקיד הזה כפוף לתפקיד אחר
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="order">Display Order</Label>
-              <Input
-                id="order"
-                type="number"
-                min="0"
-                value={order}
-                onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
-                placeholder="0"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="color">Color *</Label>
-              <div className="flex gap-2 flex-wrap">
-                {COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setColor(c.value)}
-                    disabled={isSubmitting}
-                    className={`h-10 w-10 rounded-md border-2 transition-all ${
-                      color === c.value ? "border-foreground scale-110" : "border-transparent"
-                    }`}
-                    style={{ backgroundColor: c.value }}
-                    title={c.label}
-                  />
-                ))}
+            {error && (
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="icon">Icon</Label>
-              <div className="flex gap-2 flex-wrap">
-                {ICONS.map((i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setIcon(icon === i ? "" : i)}
-                    disabled={isSubmitting}
-                    className={`h-10 w-10 rounded-md border-2 text-xl transition-all ${
-                      icon === i ? "border-foreground scale-110" : "border-transparent"
-                    }`}
-                    title={i}
-                  >
-                    {i}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            )}
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
+              ביטול
             </Button>
             <Button type="submit" disabled={isSubmitting || !name.trim()}>
-              {isSubmitting ? "Updating..." : "Update"}
+              {isSubmitting ? "מעדכן..." : "שמור שינויים"}
             </Button>
           </DialogFooter>
         </form>
