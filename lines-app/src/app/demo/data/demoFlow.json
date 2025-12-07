@@ -1,10 +1,10 @@
 {
   "metadata": {
-    "version": "2.0.0",
-    "title": "Lines Interactive Demo",
-    "description": "A comprehensive interactive guide showcasing Lines venue management system",
+    "version": "3.0.0",
+    "title": "Lines - ניהול מקומות בילוי",
+    "description": "הדרכה עסקית מלאה על איך Lines מקפיץ את ניהול העסק שלך קדימה",
     "autoAdvance": true,
-    "autoAdvanceDelay": 6000,
+    "autoAdvanceDelay": 7000,
     "enableBranching": true,
     "product": "lines"
   },
@@ -12,79 +12,82 @@
     {
       "id": "welcome",
       "type": "intro",
-      "emoji": "👋",
-      "titleKey": "demo.welcome.title",
-      "subtitleKey": "demo.welcome.subtitle",
-      "contentKey": "demo.welcome.content",
+      "emoji": "🚀",
+      "title": "ברוכים הבאים ל-Lines",
+      "titleHe": "ברוכים הבאים ל-Lines",
+      "subtitle": "המערכת שמקפיצה את ניהול המקום שלך קדימה",
+      "subtitleHe": "המערכת שמקפיצה את ניהול המקום שלך קדימה",
+      "content": "Lines היא מערכת ניהול מקומות בילוי שמאפשרת לך לנהל את כל הפעילות העסקית במקום אחד - מאירועים חוזרים ועד הזמנות ומפות מקום.",
+      "contentHe": "Lines היא מערכת ניהול מקומות בילוי שמאפשרת לך לנהל את כל הפעילות העסקית במקום אחד - מאירועים חוזרים ועד הזמנות ומפות מקום.",
       "gradient": "from-indigo-500 via-purple-500 to-pink-500",
       "autoAdvance": true,
       "duration": 5000,
-      "nextSlide": "overview"
+      "nextSlide": "what-is-lines"
     },
     {
-      "id": "overview",
+      "id": "what-is-lines",
       "type": "content",
-      "emoji": "✨",
-      "title": "What is Lines?",
+      "emoji": "💡",
+      "title": "מה זה Lines?",
       "titleHe": "מה זה Lines?",
-      "subtitle": "Complete venue management",
-      "subtitleHe": "ניהול מקומות מקיף",
-      "content": "Lines is a powerful venue management system designed for managing recurring events, schedules, reservations, and venue operations all in one place.",
-      "contentHe": "Lines היא מערכת ניהול מקומות חזקה המיועדת לניהול אירועים חוזרים, לוחות זמנים, הזמנות ופעולות מקום - הכל במקום אחד.",
+      "subtitle": "הרעיון מאחורי המערכת",
+      "subtitleHe": "הרעיון מאחורי המערכת",
+      "content": "Lines היא מערכת ניהול מקומות בילוי שמאפשרת לך לנהל את כל הפעילות העסקית במקום אחד. במקום לנהל כל אירוע בנפרד, אתה יוצר 'ליינים' - אירועים חוזרים שהמערכת יוצרת אוטומטית.",
+      "contentHe": "Lines היא מערכת ניהול מקומות בילוי שמאפשרת לך לנהל את כל הפעילות העסקית במקום אחד. במקום לנהל כל אירוע בנפרד, אתה יוצר 'ליינים' - אירועים חוזרים שהמערכת יוצרת אוטומטית.",
       "bullets": [
-        "Multi-venue management",
-        "Smart line scheduling",
-        "Interactive calendar",
-        "Advanced reservations",
-        "Visual floor plans"
+        "ניהול מקומות מרובים - כל המקומות שלך במקום אחד",
+        "ליינים - אירועים חוזרים שנוצרים אוטומטית",
+        "לוח שנה מקיף - רואה את כל האירועים במבט אחד",
+        "מערכת הזמנות מתקדמת - לקוחות מזמינים בעצמם",
+        "מפת מקום ויזואלית - ארגון שולחנות ואזורים"
       ],
       "bulletsHe": [
-        "ניהול מקומות מרובים",
-        "תזמון ליינים חכם",
-        "לוח שנה אינטראקטיבי",
-        "הזמנות מתקדמות",
-        "תכנוני מקום ויזואליים"
+        "ניהול מקומות מרובים - כל המקומות שלך במקום אחד",
+        "ליינים - אירועים חוזרים שנוצרים אוטומטית",
+        "לוח שנה מקיף - רואה את כל האירועים במבט אחד",
+        "מערכת הזמנות מתקדמת - לקוחות מזמינים בעצמם",
+        "מפת מקום ויזואלית - ארגון שולחנות ואזורים"
       ],
       "gradient": "from-blue-500 via-cyan-500 to-teal-500",
       "autoAdvance": true,
-      "duration": 7000,
+      "duration": 8000,
       "nextSlide": "question-venue-type"
     },
     {
       "id": "question-venue-type",
       "type": "question",
       "emoji": "🏢",
-      "title": "What type of venue do you manage?",
+      "title": "איזה סוג מקום אתה מנהל?",
       "titleHe": "איזה סוג מקום אתה מנהל?",
-      "subtitle": "Let's personalize your experience",
+      "subtitle": "בואו נתאים את החוויה שלך",
       "subtitleHe": "בואו נתאים את החוויה שלך",
-      "question": "Select your venue type:",
+      "question": "בחר את סוג המקום שלך:",
       "questionHe": "בחר את סוג המקום שלך:",
       "options": [
         {
           "id": "event-hall",
-          "text": "Event Hall",
+          "text": "אולם אירועים",
           "textHe": "אולם אירועים",
           "emoji": "🎪",
           "nextSlide": "feature-venues"
         },
         {
           "id": "restaurant",
-          "text": "Restaurant",
+          "text": "מסעדה",
           "textHe": "מסעדה",
           "emoji": "🍽️",
           "nextSlide": "feature-venues"
         },
         {
           "id": "bar-club",
-          "text": "Bar/Club",
+          "text": "בר/מועדון",
           "textHe": "בר/מועדון",
           "emoji": "🍻",
           "nextSlide": "feature-venues"
         },
         {
           "id": "other",
-          "text": "Other",
+          "text": "אחר",
           "textHe": "אחר",
           "emoji": "🏛️",
           "nextSlide": "feature-venues"
@@ -99,166 +102,232 @@
       "id": "feature-venues",
       "type": "feature",
       "emoji": "🏢",
-      "title": "Manage Multiple Venues",
-      "titleHe": "נהל מספר מקומות",
-      "subtitle": "All your venues in one place",
+      "title": "ניהול מקומות מרובים",
+      "titleHe": "ניהול מקומות מרובים",
+      "subtitle": "כל המקומות שלך במקום אחד",
       "subtitleHe": "כל המקומות שלך במקום אחד",
-      "content": "Create and manage unlimited venues. Each venue has its own workspace with lines, events, calendar, and settings. Switch between venues effortlessly.",
-      "contentHe": "צור ונהל מקומות ללא הגבלה. לכל מקום יש סביבת עבודה משלו עם ליינים, אירועים, לוח שנה והגדרות. החלף בין מקומות בקלות.",
+      "content": "אם יש לך כמה מקומות - בר, מסעדה, אולם אירועים - Lines מאפשרת לך לנהל את כולם במקום אחד. כל מקום מקבל סביבת עבודה משלו עם ליינים, לוח שנה, הזמנות ומפה.",
+      "contentHe": "אם יש לך כמה מקומות - בר, מסעדה, אולם אירועים - Lines מאפשרת לך לנהל את כולם במקום אחד. כל מקום מקבל סביבת עבודה משלו עם ליינים, לוח שנה, הזמנות ומפה.",
       "highlights": [
-        "Unlimited venues per account",
-        "Quick venue creation",
-        "Organized workspace per venue",
-        "Easy venue switching"
+        "ניהול בלתי מוגבל של מקומות",
+        "יצירת מקום חדש תוך שניות",
+        "סביבת עבודה נפרדת לכל מקום",
+        "מעבר קל בין מקומות"
       ],
       "highlightsHe": [
-        "מקומות ללא הגבלה לחשבון",
-        "יצירת מקום מהירה",
-        "סביבת עבודה מאורגנת לכל מקום",
-        "החלפת מקום קלה"
+        "ניהול בלתי מוגבל של מקומות",
+        "יצירת מקום חדש תוך שניות",
+        "סביבת עבודה נפרדת לכל מקום",
+        "מעבר קל בין מקומות"
       ],
       "gradient": "from-green-500 via-emerald-500 to-teal-500",
       "autoAdvance": true,
       "duration": 7000,
-      "nextSlide": "feature-lines"
+      "nextSlide": "feature-lines-concept"
     },
     {
-      "id": "feature-lines",
+      "id": "feature-lines-concept",
       "type": "feature",
-      "emoji": "📅",
-      "title": "Smart Line Scheduling",
-      "titleHe": "תזמון ליינים חכם",
-      "subtitle": "Recurring events made simple",
-      "subtitleHe": "אירועים חוזרים בצורה פשוטה",
-      "content": "Create lines for recurring events with flexible schedules. Automatic occurrence generation, color coding with 15 unique colors, and smart suggestions based on your patterns.",
-      "contentHe": "צור ליינים לאירועים חוזרים עם לוחות זמנים גמישים. יצירת אירועים אוטומטית, קידוד צבעים עם 15 צבעים ייחודיים, והצעות חכמות בהתבסס על הדפוסים שלך.",
+      "emoji": "📋",
+      "title": "מה זה 'ליין'?",
+      "titleHe": "מה זה 'ליין'?",
+      "subtitle": "הרעיון שמשנה את הכל",
+      "subtitleHe": "הרעיון שמשנה את הכל",
+      "content": "ליין הוא אירוע חוזר. במקום ליצור כל אירוע בנפרד, אתה יוצר ליין אחד - למשל 'ערב מוזיקה כל יום שני' - והמערכת יוצרת אוטומטית את כל האירועים העתידיים. חוסך לך שעות של עבודה ידנית.",
+      "contentHe": "ליין הוא אירוע חוזר. במקום ליצור כל אירוע בנפרד, אתה יוצר ליין אחד - למשל 'ערב מוזיקה כל יום שני' - והמערכת יוצרת אוטומטית את כל האירועים העתידיים. חוסך לך שעות של עבודה ידנית.",
       "highlights": [
-        "Weekly, monthly, or custom frequencies",
-        "15 unique colors per venue",
-        "Automatic occurrence suggestions",
-        "Overnight event support"
+        "יוצר אירועים אוטומטית ל-6 חודשים קדימה",
+        "תדירות גמישה - שבועי, חודשי, משתנה",
+        "כל ליין מקבל צבע ייחודי לארגון",
+        "תמיכה באירועים ליליים (עד 24:00)"
       ],
       "highlightsHe": [
-        "תדירות שבועית, חודשית או מותאמת",
-        "15 צבעים ייחודיים לכל מקום",
-        "הצעות אירועים אוטומטיות",
-        "תמיכה באירועים ליליים"
+        "יוצר אירועים אוטומטית ל-6 חודשים קדימה",
+        "תדירות גמישה - שבועי, חודשי, משתנה",
+        "כל ליין מקבל צבע ייחודי לארגון",
+        "תמיכה באירועים ליליים (עד 24:00)"
       ],
       "gradient": "from-purple-500 via-pink-500 to-rose-500",
       "autoAdvance": true,
-      "duration": 7000,
-      "nextSlide": "feature-calendar"
+      "duration": 8000,
+      "nextSlide": "feature-lines-workflow"
     },
     {
-      "id": "feature-calendar",
+      "id": "feature-lines-workflow",
+      "type": "content",
+      "emoji": "⚙️",
+      "title": "איך עובדים עם ליינים?",
+      "titleHe": "איך עובדים עם ליינים?",
+      "subtitle": "תהליך העבודה",
+      "subtitleHe": "תהליך העבודה",
+      "content": "יצירת ליין היא פשוטה: אתה בוחר ימים בשבוע, שעות, ותדירות. המערכת מציעה לך את כל התאריכים העתידיים, ואתה בוחר אילו להפעיל. כל אירוע שנוצר יכול להיות מתוכנן (אוטומטי) או ידני.",
+      "contentHe": "יצירת ליין היא פשוטה: אתה בוחר ימים בשבוע, שעות, ותדירות. המערכת מציעה לך את כל התאריכים העתידיים, ואתה בוחר אילו להפעיל. כל אירוע שנוצר יכול להיות מתוכנן (אוטומטי) או ידני.",
+      "bullets": [
+        "בוחר ימים בשבוע (למשל: שני, רביעי, שישי)",
+        "קובע שעות התחלה וסיום",
+        "בוחר תדירות (שבועי/חודשי/משתנה)",
+        "המערכת מציעה את כל התאריכים העתידיים",
+        "אתה בוחר אילו אירועים להפעיל",
+        "כל אירוע יכול להיות פעיל או בוטל"
+      ],
+      "bulletsHe": [
+        "בוחר ימים בשבוע (למשל: שני, רביעי, שישי)",
+        "קובע שעות התחלה וסיום",
+        "בוחר תדירות (שבועי/חודשי/משתנה)",
+        "המערכת מציעה את כל התאריכים העתידיים",
+        "אתה בוחר אילו אירועים להפעיל",
+        "כל אירוע יכול להיות פעיל או בוטל"
+      ],
+      "gradient": "from-indigo-500 via-purple-500 to-pink-500",
+      "autoAdvance": true,
+      "duration": 9000,
+      "nextSlide": "feature-calendar-business"
+    },
+    {
+      "id": "feature-calendar-business",
       "type": "feature",
-      "emoji": "📆",
-      "title": "Interactive Calendar View",
-      "titleHe": "תצוגת לוח שנה אינטראקטיבית",
-      "subtitle": "See everything at a glance",
-      "subtitleHe": "ראה הכל במבט אחד",
-      "content": "Comprehensive calendar showing all events across all venues. Filter by venue, line, or date. Real-time updates with overnight event indicators and hour compression for clarity.",
-      "contentHe": "לוח שנה מקיף המציג את כל האירועים בכל המקומות. סנן לפי מקום, ליין או תאריך. עדכונים בזמן אמת עם מחווי אירועים ליליים ודחיסת שעות לבהירות.",
+      "emoji": "📅",
+      "title": "לוח שנה - רואה את הכל במבט אחד",
+      "titleHe": "לוח שנה - רואה את הכל במבט אחד",
+      "subtitle": "ניהול זמן חכם",
+      "subtitleHe": "ניהול זמן חכם",
+      "content": "לוח השנה של Lines מראה לך את כל האירועים של כל המקומות שלך במקום אחד. אתה יכול לראות יום, שבוע, חודש או רשימה. המערכת דוחסת שעות ריקות - אם אין אירועים בין 00:00 ל-18:00, לא תראה את השעות האלה.",
+      "contentHe": "לוח השנה של Lines מראה לך את כל האירועים של כל המקומות שלך במקום אחד. אתה יכול לראות יום, שבוע, חודש או רשימה. המערכת דוחסת שעות ריקות - אם אין אירועים בין 00:00 ל-18:00, לא תראה את השעות האלה.",
       "highlights": [
-        "Multi-venue calendar view",
-        "Overnight event indicators",
-        "Hour compression for clarity",
-        "Real-time synchronization"
+        "רואה את כל האירועים של כל המקומות",
+        "תצוגות שונות - יום, שבוע, חודש, רשימה",
+        "דחיסת שעות ריקות - רק מה שחשוב",
+        "ניווט קל בין אירועים",
+        "מחווי אירועים ליליים"
       ],
       "highlightsHe": [
-        "תצוגת לוח שנה מרובת מקומות",
-        "מחווי אירועים ליליים",
-        "דחיסת שעות לבהירות",
-        "סנכרון בזמן אמת"
+        "רואה את כל האירועים של כל המקומות",
+        "תצוגות שונות - יום, שבוע, חודש, רשימה",
+        "דחיסת שעות ריקות - רק מה שחשוב",
+        "ניווט קל בין אירועים",
+        "מחווי אירועים ליליים"
       ],
       "gradient": "from-blue-500 via-indigo-500 to-purple-500",
       "autoAdvance": true,
-      "duration": 7000,
-      "nextSlide": "feature-reservations"
+      "duration": 8000,
+      "nextSlide": "feature-reservations-business"
     },
     {
-      "id": "feature-reservations",
+      "id": "feature-reservations-business",
       "type": "feature",
-      "emoji": "📋",
-      "title": "Advanced Reservation System",
-      "titleHe": "מערכת הזמנות מתקדמת",
-      "subtitle": "Flexible booking management",
-      "subtitleHe": "ניהול הזמנות גמיש",
-      "content": "Configure reservation settings per venue and line. Personal links for customers, automatic waitlist management, custom booking forms, and day-specific schedules.",
-      "contentHe": "הגדר הגדרות הזמנות לכל מקום וליין. לינקים אישיים ללקוחות, ניהול רשימת המתנה אוטומטי, טפסי הזמנה מותאמים, ולוחות זמנים יומיים.",
+      "emoji": "📞",
+      "title": "מערכת הזמנות - לקוחות מזמינים בעצמם",
+      "titleHe": "מערכת הזמנות - לקוחות מזמינים בעצמם",
+      "subtitle": "חוסך לך זמן וכסף",
+      "subtitleHe": "חוסך לך זמן וכסף",
+      "content": "Lines מאפשרת לך להגדיר הזמנות לכל מקום ולכל ליין. אתה יכול לתת ללקוחות לינק אישי להזמנה, להגדיר רשימת המתנה אוטומטית, ולבנות טפסי הזמנה מותאמים. כל ליין יכול לקבל הגדרות הזמנה שונות.",
+      "contentHe": "Lines מאפשרת לך להגדיר הזמנות לכל מקום ולכל ליין. אתה יכול לתת ללקוחות לינק אישי להזמנה, להגדיר רשימת המתנה אוטומטית, ולבנות טפסי הזמנה מותאמים. כל ליין יכול לקבל הגדרות הזמנה שונות.",
       "highlights": [
-        "Personal link bookings",
-        "Automatic waitlist management",
-        "Custom form builder",
-        "Day-specific schedules"
+        "לינקים אישיים - כל ליין מקבל לינק משלו",
+        "רשימת המתנה אוטומטית - כשהמקום מלא",
+        "טפסי הזמנה מותאמים - בונה טפסים בעצמך",
+        "לוחות זמנים יומיים - מתי אפשר להזמין בכל יום",
+        "הגדרות לכל ליין בנפרד"
       ],
       "highlightsHe": [
-        "הזמנות דרך לינק אישי",
-        "ניהול רשימת המתנה אוטומטי",
-        "בונה טפסים מותאם",
-        "לוחות זמנים יומיים"
+        "לינקים אישיים - כל ליין מקבל לינק משלו",
+        "רשימת המתנה אוטומטית - כשהמקום מלא",
+        "טפסי הזמנה מותאמים - בונה טפסים בעצמך",
+        "לוחות זמנים יומיים - מתי אפשר להזמין בכל יום",
+        "הגדרות לכל ליין בנפרד"
       ],
       "gradient": "from-teal-500 via-cyan-500 to-blue-500",
       "autoAdvance": true,
-      "duration": 7000,
-      "nextSlide": "feature-venue-map"
+      "duration": 8000,
+      "nextSlide": "feature-venue-map-business"
     },
     {
-      "id": "feature-venue-map",
+      "id": "feature-venue-map-business",
       "type": "feature",
       "emoji": "🗺️",
-      "title": "Interactive Floor Plans",
-      "titleHe": "תכנוני מקום אינטראקטיביים",
-      "subtitle": "Visual venue management",
-      "subtitleHe": "ניהול מקום ויזואלי",
-      "content": "Create detailed floor plans with tables, zones, bars, and special areas. Drag-and-drop interface with professional templates for event halls, restaurants, bars, and more.",
-      "contentHe": "צור תכנוני מקום מפורטים עם שולחנות, אזורים, ברים ואזורים מיוחדים. ממשק גרירה ושחרור עם תבניות מקצועיות לאולמות אירועים, מסעדות, ברים ועוד.",
+      "title": "מפת המקום - ארגון ויזואלי של המקום שלך",
+      "titleHe": "מפת המקום - ארגון ויזואלי של המקום שלך",
+      "subtitle": "יוצרים את מבנה המקום",
+      "subtitleHe": "יוצרים את מבנה המקום",
+      "content": "עם Lines אתה יוצר מפה ויזואלית של המקום שלך. מוסיף שולחנות עם מקומות ישיבה, מגדיר אזורים (zones), ומסמן ברים, כניסות, יציאות, מטבח ושירותים. יש תבניות מקצועיות לאולמות אירועים, מסעדות, ברים ועוד.",
+      "contentHe": "עם Lines אתה יוצר מפה ויזואלית של המקום שלך. מוסיף שולחנות עם מקומות ישיבה, מגדיר אזורים (zones), ומסמן ברים, כניסות, יציאות, מטבח ושירותים. יש תבניות מקצועיות לאולמות אירועים, מסעדות, ברים ועוד.",
       "highlights": [
-        "Drag-and-drop editor",
-        "Professional templates",
-        "Multiple map types",
-        "Export capabilities"
+        "שולחנות עם מקומות ישיבה",
+        "אזורים (zones) - ארגון המקום לאזורים",
+        "בר, כניסה, יציאה, מטבח, שירותים",
+        "תבניות מקצועיות - התחלה מהירה",
+        "ייצוא המפה - שמירה ושיתוף"
       ],
       "highlightsHe": [
-        "עורך גרירה ושחרור",
-        "תבניות מקצועיות",
-        "סוגי מפות מרובים",
-        "יכולות ייצוא"
+        "שולחנות עם מקומות ישיבה",
+        "אזורים (zones) - ארגון המקום לאזורים",
+        "בר, כניסה, יציאה, מטבח, שירותים",
+        "תבניות מקצועיות - התחלה מהירה",
+        "ייצוא המפה - שמירה ושיתוף"
       ],
       "gradient": "from-rose-500 via-pink-500 to-purple-500",
       "autoAdvance": true,
-      "duration": 7000,
+      "duration": 8000,
+      "nextSlide": "business-value"
+    },
+    {
+      "id": "business-value",
+      "type": "content",
+      "emoji": "💼",
+      "title": "איך Lines מקפיצה את העסק שלך קדימה?",
+      "titleHe": "איך Lines מקפיצה את העסק שלך קדימה?",
+      "subtitle": "הערך העסקי",
+      "subtitleHe": "הערך העסקי",
+      "content": "Lines חוסכת לך שעות של עבודה ידנית. במקום ליצור כל אירוע בנפרד, אתה יוצר ליין אחד והמערכת עושה את השאר. לקוחות מזמינים בעצמם, רשימת המתנה מנוהלת אוטומטית, ואתה רואה את כל הפעילות במקום אחד.",
+      "contentHe": "Lines חוסכת לך שעות של עבודה ידנית. במקום ליצור כל אירוע בנפרד, אתה יוצר ליין אחד והמערכת עושה את השאר. לקוחות מזמינים בעצמם, רשימת המתנה מנוהלת אוטומטית, ואתה רואה את כל הפעילות במקום אחד.",
+      "bullets": [
+        "חוסך שעות - אירועים נוצרים אוטומטית",
+        "פחות טעויות - המערכת מנהלת את הלוגיקה",
+        "לקוחות עצמאיים - מזמינים בעצמם דרך לינק",
+        "ניהול מרכזי - כל המקומות במקום אחד",
+        "ארגון ויזואלי - צבעים ומפות לארגון"
+      ],
+      "bulletsHe": [
+        "חוסך שעות - אירועים נוצרים אוטומטית",
+        "פחות טעויות - המערכת מנהלת את הלוגיקה",
+        "לקוחות עצמאיים - מזמינים בעצמם דרך לינק",
+        "ניהול מרכזי - כל המקומות במקום אחד",
+        "ארגון ויזואלי - צבעים ומפות לארגון"
+      ],
+      "gradient": "from-yellow-500 via-orange-500 to-red-500",
+      "autoAdvance": true,
+      "duration": 8000,
       "nextSlide": "question-goal"
     },
     {
       "id": "question-goal",
       "type": "question",
       "emoji": "🎯",
-      "title": "What's your primary goal?",
+      "title": "מה המטרה העיקרית שלך?",
       "titleHe": "מה המטרה העיקרית שלך?",
-      "subtitle": "Let's focus on what matters to you",
+      "subtitle": "בואו נתמקד במה שחשוב לך",
       "subtitleHe": "בואו נתמקד במה שחשוב לך",
-      "question": "Select your main focus:",
+      "question": "בחר את המיקוד העיקרי שלך:",
       "questionHe": "בחר את המיקוד העיקרי שלך:",
       "options": [
         {
           "id": "goal-scheduling",
-          "text": "Event Scheduling",
-          "textHe": "תזמון אירועים",
+          "text": "תזמון אירועים אוטומטי",
+          "textHe": "תזמון אירועים אוטומטי",
           "emoji": "📅",
           "nextSlide": "benefit-scheduling"
         },
         {
           "id": "goal-reservations",
-          "text": "Reservation Management",
+          "text": "ניהול הזמנות",
           "textHe": "ניהול הזמנות",
           "emoji": "📋",
           "nextSlide": "benefit-reservations"
         },
         {
           "id": "goal-organization",
-          "text": "Venue Organization",
-          "textHe": "ארגון מקום",
+          "text": "ארגון המקום",
+          "textHe": "ארגון המקום",
           "emoji": "🗺️",
           "nextSlide": "benefit-organization"
         }
@@ -272,103 +341,103 @@
       "id": "benefit-scheduling",
       "type": "content",
       "emoji": "📅",
-      "title": "Perfect for Event Scheduling",
+      "title": "מושלם לתזמון אירועים",
       "titleHe": "מושלם לתזמון אירועים",
-      "subtitle": "You're on the right track",
+      "subtitle": "אתה בכיוון הנכון",
       "subtitleHe": "אתה בכיוון הנכון",
-      "content": "Lines excels at managing recurring events. Create lines with flexible schedules, automatic occurrence generation, and smart suggestions that learn from your patterns.",
-      "contentHe": "Lines מצוינת בניהול אירועים חוזרים. צור ליינים עם לוחות זמנים גמישים, יצירת אירועים אוטומטית, והצעות חכמות שלומדות מהדפוסים שלך.",
+      "content": "Lines מצוינת לתזמון אירועים חוזרים. במקום ליצור כל אירוע בנפרד, אתה יוצר ליין אחד - למשל 'ערב מוזיקה כל יום שני ב-20:00' - והמערכת יוצרת אוטומטית את כל האירועים ל-6 חודשים קדימה. חוסך לך שעות של עבודה.",
+      "contentHe": "Lines מצוינת לתזמון אירועים חוזרים. במקום ליצור כל אירוע בנפרד, אתה יוצר ליין אחד - למשל 'ערב מוזיקה כל יום שני ב-20:00' - והמערכת יוצרת אוטומטית את כל האירועים ל-6 חודשים קדימה. חוסך לך שעות של עבודה.",
       "bullets": [
-        "Flexible scheduling options",
-        "Automatic occurrence generation",
-        "Color-coded organization",
-        "Smart pattern recognition"
+        "יוצר אירועים אוטומטית ל-6 חודשים",
+        "תדירות גמישה - שבועי, חודשי, משתנה",
+        "כל ליין מקבל צבע ייחודי",
+        "תמיכה באירועים ליליים"
       ],
       "bulletsHe": [
-        "אפשרויות תזמון גמישות",
-        "יצירת אירועים אוטומטית",
-        "ארגון מקודד בצבעים",
-        "זיהוי דפוסים חכם"
+        "יוצר אירועים אוטומטית ל-6 חודשים",
+        "תדירות גמישה - שבועי, חודשי, משתנה",
+        "כל ליין מקבל צבע ייחודי",
+        "תמיכה באירועים ליליים"
       ],
       "gradient": "from-green-500 via-lime-500 to-emerald-500",
       "autoAdvance": true,
-      "duration": 6000,
+      "duration": 7000,
       "nextSlide": "finale"
     },
     {
       "id": "benefit-reservations",
       "type": "content",
       "emoji": "📋",
-      "title": "Great for Reservation Management",
+      "title": "מצוין לניהול הזמנות",
       "titleHe": "מצוין לניהול הזמנות",
-      "subtitle": "Streamline your bookings",
+      "subtitle": "פשט את ההזמנות שלך",
       "subtitleHe": "פשט את ההזמנות שלך",
-      "content": "Our advanced reservation system handles everything from personal link bookings to waitlist management. Customize forms, set day-specific schedules, and automate approvals.",
-      "contentHe": "מערכת ההזמנות המתקדמת שלנו מטפלת בהכל מהזמנות דרך לינק אישי ועד ניהול רשימת המתנה. התאם טפסים, הגדר לוחות זמנים יומיים, ואוטומט אישורים.",
+      "content": "מערכת ההזמנות של Lines מאפשרת ללקוחות להזמין בעצמם דרך לינק אישי. כשהמקום מלא, המערכת מנהלת אוטומטית רשימת המתנה. אתה בונה טפסי הזמנה מותאמים ומגדיר לוחות זמנים יומיים - מתי אפשר להזמין בכל יום.",
+      "contentHe": "מערכת ההזמנות של Lines מאפשרת ללקוחות להזמין בעצמם דרך לינק אישי. כשהמקום מלא, המערכת מנהלת אוטומטית רשימת המתנה. אתה בונה טפסי הזמנה מותאמים ומגדיר לוחות זמנים יומיים - מתי אפשר להזמין בכל יום.",
       "bullets": [
-        "Personal link bookings",
-        "Automatic waitlist",
-        "Custom form builder",
-        "Flexible approval workflows"
+        "לקוחות מזמינים בעצמם דרך לינק",
+        "רשימת המתנה אוטומטית",
+        "טפסי הזמנה מותאמים",
+        "לוחות זמנים יומיים"
       ],
       "bulletsHe": [
-        "הזמנות דרך לינק אישי",
+        "לקוחות מזמינים בעצמם דרך לינק",
         "רשימת המתנה אוטומטית",
-        "בונה טפסים מותאם",
-        "תהליכי אישור גמישים"
+        "טפסי הזמנה מותאמים",
+        "לוחות זמנים יומיים"
       ],
       "gradient": "from-blue-500 via-cyan-500 to-teal-500",
       "autoAdvance": true,
-      "duration": 6000,
+      "duration": 7000,
       "nextSlide": "finale"
     },
     {
       "id": "benefit-organization",
       "type": "content",
       "emoji": "🗺️",
-      "title": "Perfect for Venue Organization",
-      "titleHe": "מושלם לארגון מקום",
-      "subtitle": "Visual management made easy",
+      "title": "מושלם לארגון המקום",
+      "titleHe": "מושלם לארגון המקום",
+      "subtitle": "ניהול ויזואלי קל",
       "subtitleHe": "ניהול ויזואלי קל",
-      "content": "Create detailed floor plans, manage tables and zones, and visualize your venue layout. Professional templates and drag-and-drop interface make it effortless.",
-      "contentHe": "צור תכנוני מקום מפורטים, נהל שולחנות ואזורים, והמחש את פריסת המקום שלך. תבניות מקצועיות וממשק גרירה ושחרור הופכים את זה לקל.",
+      "content": "עם מפת המקום של Lines אתה יוצר מפה ויזואלית של המקום שלך. מוסיף שולחנות עם מקומות ישיבה, מגדיר אזורים, ומסמן ברים, כניסות, יציאות, מטבח ושירותים. יש תבניות מקצועיות להתחלה מהירה.",
+      "contentHe": "עם מפת המקום של Lines אתה יוצר מפה ויזואלית של המקום שלך. מוסיף שולחנות עם מקומות ישיבה, מגדיר אזורים, ומסמן ברים, כניסות, יציאות, מטבח ושירותים. יש תבניות מקצועיות להתחלה מהירה.",
       "bullets": [
-        "Interactive floor plans",
-        "Professional templates",
-        "Multiple map types",
-        "Export and share"
+        "מפה ויזואלית של המקום",
+        "שולחנות עם מקומות ישיבה",
+        "אזורים (zones) לארגון",
+        "תבניות מקצועיות"
       ],
       "bulletsHe": [
-        "תכנוני מקום אינטראקטיביים",
-        "תבניות מקצועיות",
-        "סוגי מפות מרובים",
-        "ייצוא ושיתוף"
+        "מפה ויזואלית של המקום",
+        "שולחנות עם מקומות ישיבה",
+        "אזורים (zones) לארגון",
+        "תבניות מקצועיות"
       ],
       "gradient": "from-purple-500 via-indigo-500 to-blue-500",
       "autoAdvance": true,
-      "duration": 6000,
+      "duration": 7000,
       "nextSlide": "finale"
     },
     {
       "id": "finale",
       "type": "outro",
       "emoji": "🎉",
-      "title": "Ready to Get Started?",
+      "title": "מוכן להתחיל?",
       "titleHe": "מוכן להתחיל?",
-      "subtitle": "Join thousands of venues using Lines",
-      "subtitleHe": "הצטרף לאלפי מקומות שמשתמשים ב-Lines",
-      "content": "You've seen what Lines can do. Now it's time to experience it yourself. Create your free account and start managing your venues like a pro.",
-      "contentHe": "ראית מה Lines יכולה לעשות. עכשיו הגיע הזמן לחוות את זה בעצמך. צור את החשבון החינמי שלך והתחל לנהל את המקומות שלך כמו מקצוען.",
+      "subtitle": "הצטרף לבעלי מקומות שמשתמשים ב-Lines",
+      "subtitleHe": "הצטרף לבעלי מקומות שמשתמשים ב-Lines",
+      "content": "ראית איך Lines מקפיצה את ניהול העסק שלך קדימה. עכשיו הגיע הזמן לחוות את זה בעצמך. צור את החשבון החינמי שלך והתחל לנהל את המקומות שלך כמו מקצוען.",
+      "contentHe": "ראית איך Lines מקפיצה את ניהול העסק שלך קדימה. עכשיו הגיע הזמן לחוות את זה בעצמך. צור את החשבון החינמי שלך והתחל לנהל את המקומות שלך כמו מקצוען.",
       "cta": {
         "primary": {
-          "text": "Get Started Now",
+          "text": "התחל עכשיו",
           "textHe": "התחל עכשיו",
           "action": "register",
           "href": "/auth/register"
         },
         "secondary": {
-          "text": "Explore Features",
-          "textHe": "גלה תכונות",
+          "text": "גלה עוד",
+          "textHe": "גלה עוד",
           "action": "explore",
           "href": "/dashboard"
         }
