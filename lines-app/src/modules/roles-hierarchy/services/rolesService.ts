@@ -8,16 +8,16 @@ export class RolesService {
       where: {
         venueId,
         ...(parentRoleId !== undefined && { parentRoleId: parentRoleId || null }),
-        isActive: true
+        isActive: true,
+        isManagementRole: false // Exclude management roles from regular listing
       },
       include: {
         parentRole: true,
-        childRoles: true
+        childRoles: true,
+        managedRole: true,
+        managementRole: true
       },
-      orderBy: [
-        { order: "asc" },
-        { name: "asc" }
-      ]
+      orderBy: [{ order: "asc" }, { name: "asc" }]
     });
   }
 
@@ -26,27 +26,32 @@ export class RolesService {
       where: { id },
       include: {
         parentRole: true,
-        childRoles: true
+        childRoles: true,
+        managedRole: true,
+        managementRole: true
       }
     });
   }
 
   async createRole(venueId: string, input: CreateRoleInput): Promise<Role> {
     // Validate parent role exists and belongs to same venue if provided
+    // Only management roles can be parents
     if (input.parentRoleId) {
       const parentRole = await prisma.role.findFirst({
         where: {
           id: input.parentRoleId,
           venueId,
-          isActive: true
+          isActive: true,
+          isManagementRole: true
         }
       });
       if (!parentRole) {
-        throw new Error("Parent role not found or does not belong to this venue");
+        throw new Error("Parent role must be a management role and belong to this venue");
       }
     }
 
-    return prisma.role.create({
+    // Create the role
+    const role = await prisma.role.create({
       data: {
         venueId,
         name: input.name,
@@ -54,33 +59,57 @@ export class RolesService {
         icon: input.icon,
         color: input.color,
         parentRoleId: input.parentRoleId,
-        order: input.order ?? 0
+        order: input.order ?? 0,
+        requiresManagement: input.requiresManagement ?? false
       }
     });
+
+    // If role requires management, create a management role automatically
+    if (input.requiresManagement) {
+      await prisma.role.create({
+        data: {
+          venueId,
+          name: `ניהול ${input.name}`,
+          description: `תפקיד ניהול עבור ${input.name}`,
+          icon: "👔",
+          color: input.color,
+          isManagementRole: true,
+          managedRoleId: role.id,
+          order: (input.order ?? 0) + 1
+        }
+      });
+    }
+
+    return role;
   }
 
   async updateRole(id: string, venueId: string, input: UpdateRoleInput): Promise<Role> {
-    // Verify role belongs to venue
+    // Verify role belongs to venue and is not a management role
     const existing = await prisma.role.findFirst({
-      where: { id, venueId }
+      where: { id, venueId },
+      include: { managementRole: true }
     });
     if (!existing) {
       throw new Error("Role not found or does not belong to this venue");
     }
+    if (existing.isManagementRole) {
+      throw new Error("Cannot directly edit management roles. Edit the managed role instead.");
+    }
 
-    // Validate parent role if provided
+    // Validate parent role if provided - only management roles can be parents
     if (input.parentRoleId !== undefined) {
       if (input.parentRoleId) {
-        // Check parent exists and belongs to same venue
+        // Check parent exists, belongs to same venue, and is a management role
         const parentRole = await prisma.role.findFirst({
           where: {
             id: input.parentRoleId,
             venueId,
-            isActive: true
+            isActive: true,
+            isManagementRole: true
           }
         });
         if (!parentRole) {
-          throw new Error("Parent role not found or does not belong to this venue");
+          throw new Error("Parent role must be a management role and belong to this venue");
         }
         // Prevent circular reference
         if (input.parentRoleId === id) {
@@ -89,6 +118,36 @@ export class RolesService {
       }
     }
 
+    // Handle requiresManagement flag change
+    const requiresManagement = input.requiresManagement ?? existing.requiresManagement;
+    const hadManagement = existing.managementRole !== null;
+    const needsManagement = requiresManagement && !hadManagement;
+    const shouldRemoveManagement = !requiresManagement && hadManagement;
+
+    // Create management role if needed
+    if (needsManagement) {
+      await prisma.role.create({
+        data: {
+          venueId,
+          name: `ניהול ${input.name ?? existing.name}`,
+          description: `תפקיד ניהול עבור ${input.name ?? existing.name}`,
+          icon: "👔",
+          color: input.color ?? existing.color,
+          isManagementRole: true,
+          managedRoleId: id,
+          order: (input.order ?? existing.order ?? 0) + 1
+        }
+      });
+    }
+
+    // Delete management role if no longer needed
+    if (shouldRemoveManagement && existing.managementRole) {
+      await prisma.role.delete({
+        where: { id: existing.managementRole.id }
+      });
+    }
+
+    // Update the role
     return prisma.role.update({
       where: { id },
       data: {
@@ -98,7 +157,8 @@ export class RolesService {
         color: input.color,
         parentRoleId: input.parentRoleId ?? undefined,
         order: input.order,
-        isActive: input.isActive
+        isActive: input.isActive,
+        requiresManagement: input.requiresManagement ?? undefined
       }
     });
   }
@@ -117,7 +177,19 @@ export class RolesService {
       where: { parentRoleId: id }
     });
     if (childRoles.length > 0) {
-      throw new Error("Cannot delete role with child roles. Please reassign or delete child roles first.");
+      throw new Error(
+        "Cannot delete role with child roles. Please reassign or delete child roles first."
+      );
+    }
+
+    // If role has a management role, delete it first
+    const managementRole = await prisma.role.findFirst({
+      where: { managedRoleId: id }
+    });
+    if (managementRole) {
+      await prisma.role.delete({
+        where: { id: managementRole.id }
+      });
     }
 
     return prisma.role.delete({
@@ -129,16 +201,34 @@ export class RolesService {
     return prisma.role.findMany({
       where: {
         parentRoleId,
-        isActive: true
+        isActive: true,
+        isManagementRole: false
       },
       include: {
         parentRole: true,
-        childRoles: true
+        childRoles: true,
+        managedRole: true,
+        managementRole: true
       },
-      orderBy: [
-        { order: "asc" },
-        { name: "asc" }
-      ]
+      orderBy: [{ order: "asc" }, { name: "asc" }]
+    });
+  }
+
+  // Get all management roles for a venue (used for parent selection)
+  async getManagementRoles(venueId: string): Promise<RoleWithRelations[]> {
+    return prisma.role.findMany({
+      where: {
+        venueId,
+        isActive: true,
+        isManagementRole: true
+      },
+      include: {
+        parentRole: true,
+        childRoles: true,
+        managedRole: true,
+        managementRole: true
+      },
+      orderBy: [{ order: "asc" }, { name: "asc" }]
     });
   }
 }

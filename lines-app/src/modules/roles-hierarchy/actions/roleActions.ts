@@ -143,3 +143,28 @@ export async function deleteRole(id: string, venueId: string) {
     return { success: false, error: "Unknown error occurred" };
   }
 }
+
+export async function getManagementRoles(venueId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const result = await withErrorHandling(
+      () => rolesService.getManagementRoles(venueId),
+      "Error fetching management roles"
+    );
+
+    if (!result.success) {
+      return result;
+    }
+
+    return { success: true, data: result.data };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Unknown error occurred" };
+  }
+}

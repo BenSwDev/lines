@@ -4,6 +4,47 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.7.0] – 2025-01-XX (Roles Management & Hierarchy Improvements)
+
+### ✨ Features
+
+#### Added
+
+- **Management Roles System**
+  - Roles can be marked as "requires management"
+  - Management roles are automatically created/deleted when flag changes
+  - Only management roles can be parent roles in hierarchy
+  - Management roles are visible in hierarchy view with special badge
+
+- **UI Improvements**
+  - Color and icon selection changed to compact dropdowns
+  - Only selected color/icon displayed initially (defaults shown)
+  - More intuitive hierarchy display
+  - Clear visual distinction for management roles
+
+#### Changed
+
+- **Role Hierarchy Logic**
+  - Only management roles can be selected as parent roles
+  - Hierarchy is now clearer: managers manage roles
+  - Management roles excluded from regular role listing
+  - Hierarchy view includes both regular and management roles
+
+- **Database Schema**
+  - Added `requiresManagement` field to Role model
+  - Added `isManagementRole` field to Role model
+  - Added `managedRoleId` field to Role model
+  - Added relationship between roles and their management roles
+
+#### Technical Details
+
+- **Migration**: `add_role_management_fields.sql`
+- **Service Layer**: Automatic management role creation/deletion in `RolesService`
+- **UI Components**: Updated `CreateRoleDialog` and `EditRoleDialog` with dropdowns and management checkbox
+- **Actions**: Added `getManagementRoles` action
+
+---
+
 ## [1.6.0] – 2025-01-15 (Roles & Hierarchy Management)
 
 ### ✨ Features

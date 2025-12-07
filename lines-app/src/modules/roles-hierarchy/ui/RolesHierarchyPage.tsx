@@ -13,9 +13,7 @@ export function RolesHierarchyPage({ venueId }: RolesHierarchyPageProps) {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Roles & Hierarchy</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage roles and organizational structure
-        </p>
+        <p className="text-muted-foreground mt-2">Manage roles and organizational structure</p>
       </div>
 
       <Tabs defaultValue="roles" className="w-full">

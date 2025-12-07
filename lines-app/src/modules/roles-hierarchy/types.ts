@@ -3,6 +3,8 @@ import type { Role } from "@prisma/client";
 export type RoleWithRelations = Role & {
   parentRole: Role | null;
   childRoles: Role[];
+  managedRole: Role | null;
+  managementRole: Role | null;
   _count?: {
     childRoles?: number;
   };
@@ -26,6 +28,7 @@ export type CreateRoleInput = {
   color: string;
   parentRoleId?: string;
   order?: number;
+  requiresManagement?: boolean;
 };
 
 export type UpdateRoleInput = {
@@ -36,4 +39,5 @@ export type UpdateRoleInput = {
   parentRoleId?: string | null;
   order?: number;
   isActive?: boolean;
+  requiresManagement?: boolean;
 };

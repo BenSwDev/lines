@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronRight, ChevronDown, User, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { listRoles } from "../actions/roleActions";
+import { listRoles, getManagementRoles } from "../actions/roleActions";
 import { hierarchyService } from "../services/hierarchyService";
 import type { HierarchyNode } from "../types";
 
@@ -20,11 +20,23 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
 
   const loadHierarchy = async () => {
     setIsLoading(true);
-    const rolesResult = await listRoles(venueId);
+    // Get both regular roles and management roles
+    const [rolesResult, managementResult] = await Promise.all([
+      listRoles(venueId),
+      getManagementRoles(venueId)
+    ]);
 
-    if (rolesResult.success && "data" in rolesResult) {
+    if (
+      rolesResult.success &&
+      "data" in rolesResult &&
+      managementResult.success &&
+      "data" in managementResult
+    ) {
       const roles = rolesResult.data || [];
-      const tree = hierarchyService.buildHierarchyTree(roles);
+      const managementRoles = managementResult.data || [];
+      // Combine both types of roles for hierarchy display
+      const allRoles = [...roles, ...managementRoles];
+      const tree = hierarchyService.buildHierarchyTree(allRoles);
       setHierarchy(tree);
       // Expand all by default
       const allIds = new Set<string>();
@@ -86,9 +98,7 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
       <div key={node.id} className="select-none">
         <div
           className={`flex items-center gap-3 py-2.5 px-3 rounded-lg transition-colors ${
-            hasChildren
-              ? "hover:bg-muted/70 cursor-pointer"
-              : "hover:bg-muted/30 cursor-default"
+            hasChildren ? "hover:bg-muted/70 cursor-pointer" : "hover:bg-muted/30 cursor-default"
           }`}
           style={{ paddingLeft: `${indent + 12}px` }}
           onClick={() => hasChildren && toggleExpand(node.id)}
@@ -123,10 +133,18 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
 
           {/* Name */}
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-base">{node.name}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-semibold text-base">{node.name}</div>
+              {node.data.isManagementRole && (
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                  ניהול
+                </span>
+              )}
+            </div>
             {hasChildren && (
               <div className="text-xs text-muted-foreground mt-0.5">
-                {node.children.length} {node.children.length === 1 ? "תפקיד כפוף" : "תפקידים כפופים"}
+                {node.children.length}{" "}
+                {node.children.length === 1 ? "תפקיד כפוף" : "תפקידים כפופים"}
               </div>
             )}
           </div>

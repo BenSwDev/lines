@@ -21,8 +21,9 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { RoleWithRelations } from "../types";
-import { createRole } from "../actions/roleActions";
+import { createRole, getManagementRoles } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
 
 const COLORS = [
@@ -57,38 +58,48 @@ type CreateRoleDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   venueId: string;
-  parentRoles?: RoleWithRelations[];
   onSuccess: () => void;
 };
 
-export function CreateRoleDialog({
-  isOpen,
-  onClose,
-  venueId,
-  parentRoles = [],
-  onSuccess
-}: CreateRoleDialogProps) {
+export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: CreateRoleDialogProps) {
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(COLORS[0].value);
-  const [icon, setIcon] = useState("");
+  const [icon, setIcon] = useState(ICONS[0].emoji);
   const [parentRoleId, setParentRoleId] = useState("");
+  const [requiresManagement, setRequiresManagement] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [managementRoles, setManagementRoles] = useState<RoleWithRelations[]>([]);
 
   useEffect(() => {
     if (!isOpen) {
       setName("");
       setDescription("");
       setColor(COLORS[0].value);
-      setIcon("");
+      setIcon(ICONS[0].emoji);
       setParentRoleId("");
+      setRequiresManagement(false);
       setShowAdvanced(false);
       setError("");
     }
   }, [isOpen]);
+
+  const loadManagementRoles = async () => {
+    const result = await getManagementRoles(venueId);
+    if (result.success && "data" in result) {
+      setManagementRoles(result.data || []);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadManagementRoles();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, venueId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +119,8 @@ export function CreateRoleDialog({
         color,
         icon: icon || undefined,
         parentRoleId: parentRoleId || undefined,
-        order: 0
+        order: 0,
+        requiresManagement
       });
 
       if (result.success) {
@@ -167,56 +179,76 @@ export function CreateRoleDialog({
               />
             </div>
 
-            {/* צבע ואייקון - יחד */}
-            <div className="space-y-4">
+            {/* צבע ואייקון - dropdowns */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>צבע</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setColor(c.value)}
-                      disabled={isSubmitting}
-                      className={`h-9 w-9 rounded-md border-2 transition-all ${
-                        color === c.value
-                          ? "border-foreground scale-110 ring-2 ring-offset-2"
-                          : "border-transparent hover:border-muted-foreground/50"
-                      }`}
-                      style={{ backgroundColor: c.value }}
-                      title={c.label}
-                      aria-label={`Select ${c.label} color`}
-                    />
-                  ))}
-                </div>
+                <Select value={color} onValueChange={setColor} disabled={isSubmitting}>
+                  <SelectTrigger>
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 rounded border" style={{ backgroundColor: color }} />
+                      <span>{COLORS.find((c) => c.value === color)?.label || "בחר צבע"}</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COLORS.map((c) => (
+                      <SelectItem key={c.value} value={c.value}>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="h-4 w-4 rounded border"
+                            style={{ backgroundColor: c.value }}
+                          />
+                          <span>{c.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>אייקון (אופציונלי)</Label>
-                <div className="grid grid-cols-7 gap-2">
-                  {ICONS.map((item) => (
-                    <button
-                      key={item.emoji}
-                      type="button"
-                      onClick={() => setIcon(icon === item.emoji ? "" : item.emoji)}
-                      disabled={isSubmitting}
-                      className={`h-10 w-10 rounded-md border-2 text-lg transition-all flex items-center justify-center ${
-                        icon === item.emoji
-                          ? "border-foreground scale-110 ring-2 ring-offset-2 bg-muted"
-                          : "border-transparent hover:border-muted-foreground/50 hover:bg-muted/50"
-                      }`}
-                      title={item.label}
-                      aria-label={item.label}
-                    >
-                      {item.emoji}
-                    </button>
-                  ))}
-                </div>
+                <Label>אייקון</Label>
+                <Select value={icon} onValueChange={setIcon} disabled={isSubmitting}>
+                  <SelectTrigger>
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{icon}</span>
+                      <span>{ICONS.find((i) => i.emoji === icon)?.label || "בחר אייקון"}</span>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ICONS.map((item) => (
+                      <SelectItem key={item.emoji} value={item.emoji}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{item.emoji}</span>
+                          <span>{item.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
+            {/* דורש ניהול */}
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <Checkbox
+                id="requiresManagement"
+                checked={requiresManagement}
+                onCheckedChange={(checked) => setRequiresManagement(checked === true)}
+                disabled={isSubmitting}
+              />
+              <Label htmlFor="requiresManagement" className="text-sm font-normal cursor-pointer">
+                תפקיד זה דורש קבוצת ניהול
+              </Label>
+            </div>
+            {requiresManagement && (
+              <p className="text-xs text-muted-foreground pr-6">
+                יווצר אוטומטית תפקיד ניהול עבור תפקיד זה
+              </p>
+            )}
+
             {/* אפשרויות מתקדמות - קיפול */}
-            {parentRoles.length > 0 && (
+            {managementRoles.length > 0 && (
               <div className="space-y-2">
                 <button
                   type="button"
@@ -243,7 +275,7 @@ export function CreateRoleDialog({
                         <SelectValue placeholder="ללא מנהל" />
                       </SelectTrigger>
                       <SelectContent>
-                        {parentRoles.map((role) => (
+                        {managementRoles.map((role) => (
                           <SelectItem key={role.id} value={role.id}>
                             {role.name}
                           </SelectItem>
@@ -251,7 +283,7 @@ export function CreateRoleDialog({
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      בחר תפקיד מנהל אם התפקיד הזה כפוף לתפקיד אחר
+                      רק תפקידי ניהול יכולים להיות מנהלים. בחר תפקיד ניהול אם התפקיד הזה כפוף אליו.
                     </p>
                   </div>
                 )}

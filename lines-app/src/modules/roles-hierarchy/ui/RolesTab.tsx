@@ -99,11 +99,6 @@ export function RolesTab({ venueId }: RolesTabProps) {
     setDeletingRole(null);
   };
 
-  // Get available parent roles (all roles except the one being edited)
-  const availableParents = editingRole
-    ? roles.filter((r) => r.id !== editingRole.id && r.id !== editingRole.parentRoleId)
-    : roles;
-
   const filteredRoles =
     selectedParentRoleId === "all"
       ? roles
@@ -205,7 +200,6 @@ export function RolesTab({ venueId }: RolesTabProps) {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         venueId={venueId}
-        parentRoles={rootRoles}
         onSuccess={loadData}
       />
 
@@ -215,7 +209,6 @@ export function RolesTab({ venueId }: RolesTabProps) {
           onClose={() => setEditingRole(null)}
           venueId={venueId}
           role={editingRole}
-          availableParents={availableParents}
           onSuccess={loadData}
         />
       )}

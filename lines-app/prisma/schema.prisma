@@ -470,6 +470,9 @@ model Role {
   parentRoleId      String?
   order             Int       @default(0)
   isActive          Boolean   @default(true)
+  requiresManagement Boolean  @default(false)
+  isManagementRole  Boolean   @default(false)
+  managedRoleId     String?   @unique
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -477,9 +480,12 @@ model Role {
   venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
   parentRole        Role?     @relation("RoleHierarchy", fields: [parentRoleId], references: [id], onDelete: SetNull)
   childRoles        Role[]    @relation("RoleHierarchy")
+  managedRole       Role?     @relation("RoleManagement", fields: [managedRoleId], references: [id], onDelete: Cascade)
+  managementRole    Role?     @relation("RoleManagement")
 
   @@index([venueId])
   @@index([parentRoleId])
+  @@index([managedRoleId])
   @@map("roles")
 }
 

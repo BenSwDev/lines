@@ -17,7 +17,10 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
   const hasParent = role.parentRole !== null;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 border-l-4" style={{ borderLeftColor: role.color }}>
+    <Card
+      className="hover:shadow-lg transition-all duration-200 border-l-4"
+      style={{ borderLeftColor: role.color }}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -71,7 +74,8 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
           {hasChildren && (
             <Badge variant="outline" className="text-xs">
               <Users className="h-3 w-3 mr-1" />
-              {role.childRoles.length} {role.childRoles.length === 1 ? "תפקיד כפוף" : "תפקידים כפופים"}
+              {role.childRoles.length}{" "}
+              {role.childRoles.length === 1 ? "תפקיד כפוף" : "תפקידים כפופים"}
             </Badge>
           )}
           {!hasParent && !hasChildren && (

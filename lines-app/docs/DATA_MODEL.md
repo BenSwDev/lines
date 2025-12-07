@@ -409,19 +409,19 @@ Day-specific booking schedules for a line's personal link reservations.
 
 Organizational unit within a venue (e.g., Kitchen, Bar, Service, Security, Management).
 
-| Field              | Type     | Nullable | Description                                    |
-| ------------------ | -------- | -------- | ---------------------------------------------- |
-| id                 | String   | No       | Unique identifier (cuid)                       |
-| venueId            | String   | No       | Foreign key to Venue                           |
-| name               | String   | No       | Department name                                |
-| description        | String   | Yes      | Optional description                           |
-| color              | String   | No       | Hex color code                                 |
-| icon               | String   | Yes      | Optional icon identifier                       |
+| Field              | Type     | Nullable | Description                                      |
+| ------------------ | -------- | -------- | ------------------------------------------------ |
+| id                 | String   | No       | Unique identifier (cuid)                         |
+| venueId            | String   | No       | Foreign key to Venue                             |
+| name               | String   | No       | Department name                                  |
+| description        | String   | Yes      | Optional description                             |
+| color              | String   | No       | Hex color code                                   |
+| icon               | String   | Yes      | Optional icon identifier                         |
 | parentDepartmentId | String   | Yes      | Foreign key to parent Department (for hierarchy) |
-| order              | Int      | No       | Display order (default: 0)                     |
-| isActive           | Boolean  | No       | Active status (default: true)                  |
-| createdAt          | DateTime | No       | Creation timestamp                             |
-| updatedAt          | DateTime | No       | Last update timestamp                          |
+| order              | Int      | No       | Display order (default: 0)                       |
+| isActive           | Boolean  | No       | Active status (default: true)                    |
+| createdAt          | DateTime | No       | Creation timestamp                               |
+| updatedAt          | DateTime | No       | Last update timestamp                            |
 
 **Relationships:**
 
@@ -438,30 +438,41 @@ Organizational unit within a venue (e.g., Kitchen, Bar, Service, Security, Manag
 
 ### Role
 
-Specific position within a department (e.g., Chef, Bartender, Manager).
+Specific position within a venue (e.g., Chef, Bartender, Manager).
 
-| Field       | Type     | Nullable | Description                   |
-| ----------- | -------- | -------- | ----------------------------- |
-| id          | String   | No       | Unique identifier (cuid)      |
-| venueId     | String   | No       | Foreign key to Venue           |
-| name        | String   | No       | Role name                     |
-| description | String   | Yes      | Optional description          |
-| icon        | String   | Yes      | Optional icon identifier      |
-| color       | String   | No       | Hex color code                |
-| departmentId | String   | No       | Foreign key to Department     |
-| isActive    | Boolean  | No       | Active status (default: true) |
-| createdAt   | DateTime | No       | Creation timestamp            |
-| updatedAt   | DateTime | No       | Last update timestamp         |
+| Field              | Type     | Nullable | Description                                  |
+| ------------------ | -------- | -------- | -------------------------------------------- |
+| id                 | String   | No       | Unique identifier (cuid)                     |
+| venueId            | String   | No       | Foreign key to Venue                         |
+| name               | String   | No       | Role name                                    |
+| description        | String   | Yes      | Optional description                         |
+| icon               | String   | Yes      | Optional icon identifier                     |
+| color              | String   | No       | Hex color code                               |
+| parentRoleId       | String   | Yes      | Foreign key to parent Role (for hierarchy)   |
+| order              | Int      | No       | Display order (default: 0)                   |
+| isActive           | Boolean  | No       | Active status (default: true)                |
+| requiresManagement | Boolean  | No       | Whether this role requires a management role |
+| isManagementRole   | Boolean  | No       | Whether this is a management role            |
+| managedRoleId      | String   | Yes      | Foreign key to managed Role (if management)  |
+| createdAt          | DateTime | No       | Creation timestamp                           |
+| updatedAt          | DateTime | No       | Last update timestamp                        |
 
 **Relationships:**
 
 - Belongs to one `Venue` (N:1)
-- Belongs to one `Department` (N:1)
+- Belongs to one `Role` (optional parent) (N:1) - only management roles can be parents
+- Has many `Role` (child roles) (1:N)
+- Belongs to one `Role` (managed role, if management role) (N:1)
+- Has one `Role` (management role, if requires management) (1:1)
 
 **Business Rules:**
 
-- Must belong to a department
-- Name should be unique per department (not enforced at DB level)
+- Only management roles can be parent roles
+- When `requiresManagement` is true, a management role is automatically created
+- Management roles cannot be directly edited
+- Cannot be its own parent (circular reference prevention)
+- Cannot be deleted if it has child roles
+- Name should be unique per venue (not enforced at DB level)
 
 **Updated Relationships:**
 
