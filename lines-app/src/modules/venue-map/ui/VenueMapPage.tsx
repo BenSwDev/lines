@@ -11,6 +11,7 @@ import {
 import { loadVenueFloorPlan } from "../actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
+import { findContainingZone } from "../utils/zoneContainment";
 
 type VenueMapPageProps = {
   venueId: string;
@@ -82,7 +83,44 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
         }));
 
         allElements.push(...zoneElements, ...tableElements, ...areaElements);
-        setElements(allElements);
+        
+        // Auto-link elements to zones after loading
+        const zones = allElements.filter((el) => el.type === "zone");
+        const linkedElements = allElements.map((element) => {
+          // Only link tables and other elements that can be in zones (not zones themselves)
+          if (element.type === "zone" || element.type === "specialArea") {
+            return element; // Don't link zones or special areas
+          }
+
+          // Check if element is already linked to a zone that still contains it
+          if (element.zoneId) {
+            const currentZone = zones.find((z) => z.id === element.zoneId);
+            if (currentZone && findContainingZone(element, [currentZone])) {
+              return element; // Already correctly linked
+            }
+          }
+
+          // Find containing zone
+          const containingZone = findContainingZone(element, zones);
+          if (containingZone) {
+            return {
+              ...element,
+              zoneId: containingZone.id
+            };
+          }
+
+          // No containing zone found - remove zoneId if it exists
+          if (element.zoneId) {
+            return {
+              ...element,
+              zoneId: undefined
+            };
+          }
+
+          return element;
+        });
+        
+        setElements(linkedElements);
       } else {
         const errorMsg = !result.success && "error" in result ? result.error : null;
         toast({

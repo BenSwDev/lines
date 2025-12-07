@@ -782,6 +782,50 @@ export function FloorPlanEditorV2({
     }
   }, [toast, t]);
 
+  // Auto-link elements to zones - automatically connect tables/elements to containing zones
+  // MUST be defined before handleAddZone and other functions that use it
+  const autoLinkElementsToZones = useCallback(
+    (elementsToLink: FloorPlanElement[]): FloorPlanElement[] => {
+      const zones = elementsToLink.filter((el) => el.type === "zone");
+      if (zones.length === 0) return elementsToLink; // No zones, nothing to link
+
+      return elementsToLink.map((element) => {
+        // Only link tables and other elements that can be in zones (not zones themselves)
+        if (element.type === "zone" || element.type === "specialArea") {
+          return element; // Don't link zones or special areas
+        }
+
+        // Check if element is already linked to a zone that still contains it
+        if (element.zoneId) {
+          const currentZone = zones.find((z) => z.id === element.zoneId);
+          if (currentZone && findContainingZone(element, [currentZone])) {
+            return element; // Already correctly linked
+          }
+        }
+
+        // Find containing zone
+        const containingZone = findContainingZone(element, zones);
+        if (containingZone) {
+          return {
+            ...element,
+            zoneId: containingZone.id
+          };
+        }
+
+        // No containing zone found - remove zoneId if it exists
+        if (element.zoneId) {
+          return {
+            ...element,
+            zoneId: undefined
+          };
+        }
+
+        return element;
+      });
+    },
+    []
+  );
+
   // Handle adding zone with zone type
   const handleAddZone = useCallback(
     (zoneType: ZoneType) => {
@@ -805,10 +849,12 @@ export function FloorPlanEditorV2({
       };
 
       const newElements = [...elements, newElement];
-      updateElementsWithHistory(newElements);
+      // Auto-link elements to zones after adding new zone (existing elements might now be inside it)
+      const linkedElements = autoLinkElementsToZones(newElements);
+      updateElementsWithHistory(linkedElements);
       setSelectedElementId(newElement.id);
     },
-    [elements, updateElementsWithHistory]
+    [elements, updateElementsWithHistory, autoLinkElementsToZones]
   );
 
   // Handle adding element with element category
@@ -861,10 +907,12 @@ export function FloorPlanEditorV2({
       };
 
       const newElements = [...elements, newElement];
-      updateElementsWithHistory(newElements);
+      // Auto-link new element to zone if it's inside one
+      const linkedElements = autoLinkElementsToZones(newElements);
+      updateElementsWithHistory(linkedElements);
       setSelectedElementId(newElement.id);
     },
-    [elements, updateElementsWithHistory]
+    [elements, updateElementsWithHistory, autoLinkElementsToZones]
   );
 
   // Add new element (legacy - for backward compatibility - kept for potential future use)
@@ -951,11 +999,13 @@ export function FloorPlanEditorV2({
       return e;
     });
 
-    setElements(updatedElements);
-    updateElementsWithHistory(updatedElements);
+    // Auto-link elements to zones after editing
+    const linkedElements = autoLinkElementsToZones(updatedElements);
+    setElements(linkedElements);
+    updateElementsWithHistory(linkedElements);
     setEditDialogOpen(false);
     setEditingElement(null);
-  }, [editingElement, elements, updateElementsWithHistory]);
+  }, [editingElement, elements, updateElementsWithHistory, autoLinkElementsToZones]);
 
   // Context panel removed - using Edit Dialog instead
 
@@ -1515,21 +1565,12 @@ export function FloorPlanEditorV2({
             y: newY
           };
 
-          // If moving a table, check if it's inside a zone
-          let newZoneId: string | undefined = undefined;
-          if (updatedElement.type === "table") {
-            const zones = elements.filter((zoneEl) => zoneEl.type === "zone");
-            const containingZone = findContainingZone(updatedElement, zones);
-            newZoneId = containingZone?.id;
-          }
-
-          return {
-            ...updatedElement,
-            zoneId: newZoneId
-          };
+          return updatedElement;
         });
 
-        updateElementsWithHistory(updatedElements);
+        // Auto-link elements to zones after moving (especially important if zone was moved)
+        const linkedElements = autoLinkElementsToZones(updatedElements);
+        updateElementsWithHistory(linkedElements);
       }
     };
 
@@ -1542,6 +1583,8 @@ export function FloorPlanEditorV2({
     canvasSize,
     viewMode,
     handleDeleteElement,
+    autoLinkElementsToZones,
+    updateElementsWithHistory,
     showGrid,
     handleUndo,
     handleRedo,
@@ -1773,27 +1816,7 @@ export function FloorPlanEditorV2({
                   y: newY
                 };
 
-                // Check if element is inside a zone (for tables, security, and other elements that can be in zones)
-                let newZoneId: string | undefined = undefined;
-                if (updatedElement.type === "table" || updatedElement.type === "security") {
-                  const zones = prevElements.filter((zoneEl) => zoneEl.type === "zone");
-
-                  // Find the zone that contains this element (check all corners for better accuracy)
-                  const containingZone = findContainingZone(updatedElement, zones);
-
-                  if (containingZone) {
-                    // Element entered or is still in a zone
-                    newZoneId = containingZone.id;
-                  } else {
-                    // Element left the zone or is not in any zone
-                    newZoneId = undefined;
-                  }
-                }
-
-                return {
-                  ...updatedElement,
-                  zoneId: newZoneId
-                };
+                return updatedElement;
               }
               return el;
             });
@@ -2246,7 +2269,9 @@ export function FloorPlanEditorV2({
               }
               return el;
             });
-            updateElementsWithHistory(updatedElements);
+            // Auto-link elements to zones after moving with keyboard
+            const linkedElements = autoLinkElementsToZones(updatedElements);
+            updateElementsWithHistory(linkedElements);
           }
         }
       }
@@ -2261,10 +2286,13 @@ export function FloorPlanEditorV2({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     selectedElementId,
+    selectedElementIds,
     elements,
     layers,
     handleUndo,
     handleRedo,
+    autoLinkElementsToZones,
+    updateElementsWithHistory,
     handleCopy,
     handlePaste,
     handleDeleteElement,
@@ -4130,7 +4158,9 @@ export function FloorPlanEditorV2({
                             ...el,
                             id: `${el.id}-${Date.now()}`
                           }));
-                          setElements(newElements);
+                          // Auto-link elements to zones after loading template
+                          const linkedElements = autoLinkElementsToZones(newElements);
+                          setElements(linkedElements);
                           setVenueCapacity(template.defaultCapacity);
                           // Reset zoom and pan to center on template
                           setZoom(1);
@@ -4183,7 +4213,9 @@ export function FloorPlanEditorV2({
                             ...el,
                             id: `${el.id}-${Date.now()}`
                           }));
-                          setElements(newElements);
+                          // Auto-link elements to zones after loading template
+                          const linkedElements = autoLinkElementsToZones(newElements);
+                          setElements(linkedElements);
                           setVenueCapacity(template.defaultCapacity);
                           // Reset zoom and pan to center on template
                           setZoom(1);
@@ -4233,7 +4265,9 @@ export function FloorPlanEditorV2({
                             ...el,
                             id: `${el.id}-${Date.now()}`
                           }));
-                          setElements(newElements);
+                          // Auto-link elements to zones after loading custom template
+                          const linkedElements = autoLinkElementsToZones(newElements);
+                          setElements(linkedElements);
                           setVenueCapacity(template.defaultCapacity);
                           setZoom(1);
                           setPanOffset({ x: 0, y: 0 });
