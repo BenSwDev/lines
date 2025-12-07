@@ -202,7 +202,7 @@ export function FloorPlanEditorV2({
       areasCount: number;
     }>
   >([]);
-  const [showGrid, setShowGrid] = useState(false);
+  const [showGrid, setShowGrid] = useState(true); // Grid always enabled for clean alignment
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const [viewMode, setViewMode] = useState<"interactive" | "nonInteractive">("interactive");
   const [venueCapacity, setVenueCapacity] = useState(initialCapacity);
@@ -829,14 +829,19 @@ export function FloorPlanEditorV2({
       const zoneConfig = getZoneTypeConfig(zoneType);
       const size = DEFAULT_ZONE_SIZE;
 
+      // Snap to grid for clean alignment
+      const snappedX = Math.round((centerX - size / 2) / GRID_SIZE) * GRID_SIZE;
+      const snappedY = Math.round((centerY - size / 2) / GRID_SIZE) * GRID_SIZE;
+      const snappedSize = Math.round(size / GRID_SIZE) * GRID_SIZE;
+      
       const newElement: FloorPlanElement = {
         id: `zone-${Date.now()}`,
         type: "zone",
         name: `${zoneConfig.label} ${elements.filter((e) => e.type === "zone" && e.zoneType === zoneType).length + 1}`,
-        x: centerX - size / 2,
-        y: centerY - size / 2,
-        width: size,
-        height: size,
+        x: snappedX,
+        y: snappedY,
+        width: snappedSize,
+        height: snappedSize,
         rotation: 0,
         shape: "rectangle",
         color: zoneConfig.defaultColor,
@@ -885,14 +890,20 @@ export function FloorPlanEditorV2({
         tableType = "table";
       }
 
+      // Snap to grid for clean alignment and consistent sizing
+      const snappedX = Math.round((centerX - size.width / 2) / GRID_SIZE) * GRID_SIZE;
+      const snappedY = Math.round((centerY - size.height / 2) / GRID_SIZE) * GRID_SIZE;
+      const snappedWidth = Math.round(size.width / GRID_SIZE) * GRID_SIZE;
+      const snappedHeight = Math.round(size.height / GRID_SIZE) * GRID_SIZE;
+      
       const newElement: FloorPlanElement = {
         id: `${type}-${Date.now()}`,
         type,
         name: `${elementConfig.label} ${elements.filter((e) => e.type === type).length + 1}`,
-        x: centerX - size.width / 2,
-        y: centerY - size.height / 2,
-        width: size.width,
-        height: size.height,
+        x: snappedX,
+        y: snappedY,
+        width: snappedWidth,
+        height: snappedHeight,
         rotation: 0,
         shape: "rectangle",
         color: elementConfig.defaultColor,
@@ -1540,7 +1551,8 @@ export function FloorPlanEditorV2({
         e.preventDefault();
         const selectedIds =
           selectedElementIds.size > 0 ? selectedElementIds : new Set([selectedElementId!]);
-        const step = showGrid ? GRID_SIZE : e.shiftKey ? 10 : 1;
+        // Always use grid size for clean alignment (grid is always enabled)
+        const step = e.shiftKey ? GRID_SIZE * 5 : GRID_SIZE;
 
         const updatedElements = elements.map((el) => {
           if (!selectedIds.has(el.id)) return el;
@@ -1548,11 +1560,15 @@ export function FloorPlanEditorV2({
           let newX = el.x;
           let newY = el.y;
 
-          // No canvas bounds for infinite canvas - allow free movement
+          // Move with arrow keys
           if (e.key === "ArrowLeft") newX = el.x - step;
           if (e.key === "ArrowRight") newX = el.x + step;
           if (e.key === "ArrowUp") newY = el.y - step;
           if (e.key === "ArrowDown") newY = el.y + step;
+
+          // Snap to grid for clean alignment
+          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
 
           const updatedElement = {
             ...el,
@@ -1796,11 +1812,9 @@ export function FloorPlanEditorV2({
                   newY = snapped.y;
                 }
 
-                // Snap to grid if enabled
-                if (showGrid) {
-                  newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-                  newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-                }
+                // Always snap to grid for clean alignment (grid is always enabled)
+                newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+                newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
 
                 // No canvas bounds constraint for infinite canvas
                 // Allow elements to move freely
@@ -1823,10 +1837,9 @@ export function FloorPlanEditorV2({
             let newX = startPos.x + deltaX;
             let newY = startPos.y + deltaY;
 
-            if (showGrid) {
-              newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-              newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-            }
+            // Always snap to grid for clean alignment
+            newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+            newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
 
             // No canvas bounds constraint for infinite canvas - allow free movement
 
@@ -1900,13 +1913,15 @@ export function FloorPlanEditorV2({
             newX = start.elementX + deltaX;
           }
 
-          // Snap to grid if enabled
-          if (showGrid) {
-            newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
-            newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
-            newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-            newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-          }
+          // Always snap to grid for clean alignment and consistent sizing
+          newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
+          newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
+          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+          
+          // Ensure minimum size after snapping
+          if (newWidth < GRID_SIZE) newWidth = GRID_SIZE;
+          if (newHeight < GRID_SIZE) newHeight = GRID_SIZE;
 
           // No canvas bounds constraint for infinite canvas - allow free resizing
           // Ensure minimum size (already done above)
@@ -2083,17 +2098,23 @@ export function FloorPlanEditorV2({
       if (isDragging) {
         dragStartPosRef.current = null;
         dragElementsStartPosRef.current.clear();
+        // Clear alignment guides when drag ends - no leftover lines on canvas
+        setAlignmentGuides([]);
         // Selection is preserved - this is the standard behavior
       }
 
       // Clean up resize state (history already saved at start)
       if (isResizing) {
         resizeStartRef.current = null;
+        // Clear alignment guides when resize ends
+        setAlignmentGuides([]);
       }
 
       // Clean up rotate state (history already saved at start)
       if (isRotating) {
         rotateStartRef.current = null;
+        // Clear alignment guides when rotate ends
+        setAlignmentGuides([]);
       }
 
       setIsDragging(false);
@@ -2237,7 +2258,8 @@ export function FloorPlanEditorV2({
             (el.type === "specialArea" && layers.specialAreas.locked)
         );
         if (!isAnyLocked && selectedElements.length > 0) {
-          const step = e.shiftKey ? 10 : 1;
+          // Always use grid size for clean alignment (grid is always enabled)
+          const step = e.shiftKey ? GRID_SIZE * 5 : GRID_SIZE;
           let deltaX = 0;
           let deltaY = 0;
 
@@ -2258,8 +2280,14 @@ export function FloorPlanEditorV2({
           if (deltaX !== 0 || deltaY !== 0) {
             const updatedElements = elements.map((el: FloorPlanElement) => {
               if (selectedIds.has(el.id)) {
-                const newX = Math.max(0, Math.min(CANVAS_SIZE - el.width, el.x + deltaX));
-                const newY = Math.max(0, Math.min(CANVAS_SIZE - el.height, el.y + deltaY));
+                let newX = el.x + deltaX;
+                let newY = el.y + deltaY;
+                
+                // Snap to grid for clean alignment
+                newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+                newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+                
+                // No canvas bounds for infinite canvas - allow free movement
                 return { ...el, x: newX, y: newY };
               }
               return el;
@@ -3959,8 +3987,8 @@ export function FloorPlanEditorV2({
                           </div>
                         );
                       })()}
-                    {/* Alignment Guides Visualization */}
-                    {showAlignmentGuides &&
+                    {/* Alignment Guides Visualization - only show when actively dragging */}
+                    {showAlignmentGuides && isDragging && alignmentGuides.length > 0 &&
                       alignmentGuides.map((guide, index) => (
                         <div
                           key={index}
