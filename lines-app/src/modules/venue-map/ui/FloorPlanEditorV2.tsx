@@ -304,7 +304,15 @@ export function FloorPlanEditorV2({
   const panStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Pan mode vs Select mode
-  const [panMode, setPanMode] = useState(false); // false = select mode, true = pan mode
+  const [panMode, setPanMode] = useState(true); // false = select mode, true = pan/drag mode (default)
+  
+  // Selection mode state - activated by long press
+  const [selectionMode, setSelectionMode] = useState(false);
+  
+  // Long press detection
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressThreshold = 500; // 500ms for long press
+  const longPressStartRef = useRef<{ x: number; y: number; element: FloorPlanElement | null } | null>(null);
 
   // Element locking and hiding
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -955,17 +963,129 @@ export function FloorPlanEditorV2({
       e.stopPropagation();
       e.preventDefault();
 
-      // Determine new selection based on modifier keys (Photoshop/Illustrator behavior)
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const mouseX = canvasPos.x;
+      const mouseY = canvasPos.y;
+
+      // Store position for long press detection
+      longPressStartRef.current = { x: e.clientX, y: e.clientY, element };
+
+      // Cancel any existing long press timer
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+
+      // If in selection mode, handle selection first
+      if (selectionMode) {
+        // Determine new selection based on modifier keys
+        let newSelection: Set<string>;
+        let newSelectedElementId: string | null;
+
+        if (e.shiftKey && selectedElementIds.size > 0) {
+          // Shift+Click: Add range of elements
+          newSelection = new Set(selectedElementIds);
+          const selectedIds = Array.from(selectedElementIds);
+          const lastSelected = elements.find((el) => el.id === selectedIds[selectedIds.length - 1]);
+          if (lastSelected) {
+            const startX = Math.min(lastSelected.x, element.x);
+            const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
+            const startY = Math.min(lastSelected.y, element.y);
+            const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
+            
+            elements.forEach((el) => {
+              if (
+                el.x >= startX &&
+                el.x + el.width <= endX &&
+                el.y >= startY &&
+                el.y + el.height <= endY
+              ) {
+                newSelection.add(el.id);
+              }
+            });
+          } else {
+            newSelection.add(element.id);
+          }
+          newSelectedElementId = element.id;
+        } else if (e.ctrlKey || e.metaKey) {
+          // Ctrl/Cmd+Click: Toggle element in selection
+          newSelection = new Set(selectedElementIds);
+          if (newSelection.has(element.id)) {
+            newSelection.delete(element.id);
+            if (newSelection.size === 0) {
+              newSelectedElementId = null;
+            } else if (newSelection.size === 1) {
+              newSelectedElementId = Array.from(newSelection)[0];
+            } else {
+              newSelectedElementId = selectedElementId === element.id ? null : selectedElementId;
+            }
+          } else {
+            newSelection.add(element.id);
+            newSelectedElementId = element.id;
+          }
+        } else {
+          // Regular click: Select only this element
+          newSelection = new Set([element.id]);
+          newSelectedElementId = element.id;
+        }
+
+        setSelectedElementIds(newSelection);
+        setSelectedElementId(newSelectedElementId);
+        
+        // Store drag start position for when user starts dragging
+        dragStartPosRef.current = { x: mouseX, y: mouseY };
+        
+        // Prepare for potential drag of selected items
+        const selectedIds = newSelection;
+        const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
+        const containedElementIds = new Set<string>();
+        const elementToZoneMap = new Map<string, string>();
+        
+        movingZones.forEach((zone) => {
+          elements.forEach((el) => {
+            if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
+              containedElementIds.add(el.id);
+              elementToZoneMap.set(el.id, zone.id);
+            }
+          });
+        });
+        
+        const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
+        
+        dragElementsStartPosRef.current.clear();
+        relativePositionsRef.current.clear();
+        
+        allMovingIds.forEach((id) => {
+          const el = elements.find((e) => e.id === id);
+          if (el) {
+            dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
+            
+            const zoneId = elementToZoneMap.get(id);
+            if (zoneId) {
+              const zone = elements.find((e) => e.id === zoneId);
+              if (zone) {
+                relativePositionsRef.current.set(id, {
+                  x: el.x - zone.x,
+                  y: el.y - zone.y
+                });
+              }
+            }
+          }
+        });
+        
+        return; // Don't start dragging immediately in selection mode
+      }
+
+      // Default drag mode: start dragging immediately
+      // Determine new selection based on modifier keys
       let newSelection: Set<string>;
       let newSelectedElementId: string | null;
 
       if (e.shiftKey && selectedElementIds.size > 0) {
-        // Shift+Click: Add range of elements (like Photoshop/Illustrator)
         newSelection = new Set(selectedElementIds);
         const selectedIds = Array.from(selectedElementIds);
         const lastSelected = elements.find((el) => el.id === selectedIds[selectedIds.length - 1]);
         if (lastSelected) {
-          // Add all elements between last selected and current
           const startX = Math.min(lastSelected.x, element.x);
           const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
           const startY = Math.min(lastSelected.y, element.y);
@@ -986,48 +1106,37 @@ export function FloorPlanEditorV2({
         }
         newSelectedElementId = element.id;
       } else if (e.ctrlKey || e.metaKey) {
-        // Ctrl/Cmd+Click: Toggle element in selection (add/remove)
         newSelection = new Set(selectedElementIds);
         if (newSelection.has(element.id)) {
-          // Remove from selection
           newSelection.delete(element.id);
           if (newSelection.size === 0) {
             newSelectedElementId = null;
           } else if (newSelection.size === 1) {
             newSelectedElementId = Array.from(newSelection)[0];
           } else {
-            // Keep current selection, just remove this one
             newSelectedElementId = selectedElementId === element.id ? null : selectedElementId;
           }
         } else {
-          // Add to selection
           newSelection.add(element.id);
           newSelectedElementId = element.id;
         }
       } else {
-        // Regular click: Select only this element (clear previous selection)
         newSelection = new Set([element.id]);
         newSelectedElementId = element.id;
       }
 
-      // Apply selection immediately
       setSelectedElementIds(newSelection);
       setSelectedElementId(newSelectedElementId);
-
-      const canvasPos = screenToCanvas(e.clientX, e.clientY);
-      const mouseX = canvasPos.x;
-      const mouseY = canvasPos.y;
 
       // Store drag start position
       dragStartPosRef.current = { x: mouseX, y: mouseY };
 
-      // Store initial positions of all selected elements (use newSelection, not old selectedElementIds)
+      // Store initial positions of all selected elements
       const selectedIds = newSelection;
       
-      // If moving a zone, include all contained elements
       const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
       const containedElementIds = new Set<string>();
-      const elementToZoneMap = new Map<string, string>(); // Map element ID to zone ID
+      const elementToZoneMap = new Map<string, string>();
       
       movingZones.forEach((zone) => {
         elements.forEach((el) => {
@@ -1038,7 +1147,6 @@ export function FloorPlanEditorV2({
         });
       });
       
-      // Combine selected IDs with contained element IDs
       const allMovingIds = new Set([...selectedIds, ...containedElementIds]);
       
       dragElementsStartPosRef.current.clear();
@@ -1049,7 +1157,6 @@ export function FloorPlanEditorV2({
         if (el) {
           dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
           
-          // If this is a contained element, store relative position to zone
           const zoneId = elementToZoneMap.get(id);
           if (zoneId) {
             const zone = elements.find((e) => e.id === zoneId);
@@ -1063,13 +1170,19 @@ export function FloorPlanEditorV2({
         }
       });
 
-      // Save current state to history before starting drag
+      // Start long press timer - if held long enough, enter selection mode
+      longPressTimerRef.current = setTimeout(() => {
+        setSelectionMode(true);
+        setPanMode(false);
+        longPressTimerRef.current = null;
+      }, longPressThreshold);
+
+      // Start dragging immediately in default mode
       historyManagerRef.current.push(elements);
-      
       setIsDragging(true);
       setDraggedElement(element);
     },
-    [viewMode, selectedElementIds, selectedElementId, elements, isResizing, isRotating, screenToCanvas]
+    [viewMode, selectedElementIds, selectedElementId, elements, isResizing, isRotating, screenToCanvas, selectionMode, longPressThreshold]
   );
 
   // Handle canvas mouse down for selection box or pan
@@ -1078,17 +1191,14 @@ export function FloorPlanEditorV2({
       if (!canvasRef.current || viewMode !== "interactive" || isDrawingPolygon) return;
 
       // Check if click is on canvas (not on an element)
-      // If target is not the canvas itself, it might be an element - check by position
       const target = e.target as HTMLElement;
       const isDirectCanvasClick = target === canvasRef.current;
 
       // If not direct canvas click, check if we clicked on empty space
       if (!isDirectCanvasClick) {
-        // Check if click is on an element by position
         const canvasPos = screenToCanvas(e.clientX, e.clientY);
         const clickedElement = elements.find((el) => {
           if (el.type === "zone" && el.polygonPoints) {
-            // For polygon zones, we'll handle separately if needed
             return false;
           }
           return (
@@ -1117,57 +1227,61 @@ export function FloorPlanEditorV2({
 
       if (e.button !== 0) return; // Only left mouse button for selection
 
-      // Get canvas position for selection box or panning
+      // Get canvas position
       const canvasPos = screenToCanvas(e.clientX, e.clientY);
       const startX = canvasPos.x;
       const startY = canvasPos.y;
 
-      // If pan mode is active, always start panning on empty canvas
-      if (panMode) {
-        // Double-check that we're not clicking on an element
-        const clickedElement = elements.find((el) => {
-          if (el.type === "zone" && el.polygonPoints) {
-            // For polygon zones, simplified check
-            return false;
-          }
-          return (
-            startX >= el.x &&
-            startX <= el.x + el.width &&
-            startY >= el.y &&
-            startY <= el.y + el.height
-          );
-        });
+      // Store position for long press detection
+      longPressStartRef.current = { x: e.clientX, y: e.clientY, element: null };
 
-        if (!clickedElement) {
-          e.preventDefault();
-          setIsPanning(true);
-          panStartRef.current = { x: e.clientX, y: e.clientY };
-          return;
-        }
+      // Cancel any existing long press timer
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
       }
 
-      // In select mode, start selection box
-      if (!panMode) {
+      // If in selection mode, start selection box
+      if (selectionMode) {
         setIsSelecting(true);
         setSelectionBox({ startX, startY, endX: startX, endY: startY });
+        
+        // Clear selection only if not using modifier keys
+        if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
+          setSelectedElementId(null);
+          setSelectedElementIds(new Set());
+        }
+        return;
       }
 
-      // Click on empty canvas: Clear selection (standard behavior like Photoshop/Illustrator)
-      // Only clear if not using modifier keys
+      // Default drag mode: start panning immediately on empty canvas
+      // Start long press timer - if held long enough, enter selection mode
+      longPressTimerRef.current = setTimeout(() => {
+        setSelectionMode(true);
+        setPanMode(false);
+        setIsSelecting(true);
+        setSelectionBox({ startX, startY, endX: startX, endY: startY });
+        longPressTimerRef.current = null;
+      }, longPressThreshold);
+
+      // Start panning immediately
+      e.preventDefault();
+      setIsPanning(true);
+      panStartRef.current = { x: e.clientX, y: e.clientY };
+
+      // Clear selection only if not using modifier keys
       if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
         setSelectedElementId(null);
         setSelectedElementIds(new Set());
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       viewMode,
       isDrawingPolygon,
       screenToCanvas,
-      selectedElementId,
-      selectedElementIds,
       elements,
-      panMode
+      selectionMode,
+      longPressThreshold
     ]
   );
 
@@ -1433,6 +1547,85 @@ export function FloorPlanEditorV2({
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
+
+      // Cancel long press timer if mouse moved (indicates drag, not long press)
+      if (longPressTimerRef.current && longPressStartRef.current) {
+        const moveThreshold = 5; // pixels
+        const deltaX = Math.abs(e.clientX - longPressStartRef.current.x);
+        const deltaY = Math.abs(e.clientY - longPressStartRef.current.y);
+        
+        if (deltaX > moveThreshold || deltaY > moveThreshold) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }
+
+      // In selection mode: if we have selected items and mouse moves, start dragging them
+      if (selectionMode && !isDragging && !isSelecting && !isPanning && longPressStartRef.current) {
+        const selectedIds: Set<string> =
+          selectedElementIds.size > 0
+            ? selectedElementIds
+            : selectedElementId
+              ? new Set<string>([selectedElementId])
+              : new Set<string>();
+        
+        if (selectedIds.size > 0) {
+          // Check if mouse moved enough to start dragging
+          const moveThreshold = 3; // pixels
+          const deltaX = Math.abs(e.clientX - longPressStartRef.current.x);
+          const deltaY = Math.abs(e.clientY - longPressStartRef.current.y);
+          
+          if (deltaX > moveThreshold || deltaY > moveThreshold) {
+            // Start dragging all selected items
+            const canvasPos = screenToCanvas(e.clientX, e.clientY);
+            dragStartPosRef.current = { x: canvasPos.x, y: canvasPos.y };
+            
+            // Store initial positions
+            const movingZones = elements.filter((el) => selectedIds.has(el.id) && el.type === "zone");
+            const containedElementIds = new Set<string>();
+            const elementToZoneMap = new Map<string, string>();
+            
+            movingZones.forEach((zone) => {
+              elements.forEach((el) => {
+                if (el.zoneId === zone.id && !selectedIds.has(el.id)) {
+                  containedElementIds.add(el.id);
+                  elementToZoneMap.set(el.id, zone.id);
+                }
+              });
+            });
+            
+            const allMovingIds = new Set<string>([...selectedIds, ...containedElementIds]);
+            
+            dragElementsStartPosRef.current.clear();
+            relativePositionsRef.current.clear();
+            
+            allMovingIds.forEach((id) => {
+              const el = elements.find((e) => e.id === id);
+              if (el) {
+                dragElementsStartPosRef.current.set(id, { x: el.x, y: el.y });
+                
+                const zoneId = elementToZoneMap.get(id);
+                if (zoneId) {
+                  const zone = elements.find((e) => e.id === zoneId);
+                  if (zone) {
+                    relativePositionsRef.current.set(id, {
+                      x: el.x - zone.x,
+                      y: el.y - zone.y
+                    });
+                  }
+                }
+              }
+            });
+            
+            historyManagerRef.current.push(elements);
+            setIsDragging(true);
+            setDraggedElement(elements.find((el) => selectedIds.has(el.id)) || null);
+            // Exit selection mode and enter drag mode
+            setSelectionMode(false);
+            setPanMode(true);
+          }
+        }
+      }
 
       // Handle panning (Space + drag or middle mouse button or right click drag)
       if (isPanning && panStartRef.current) {
@@ -1802,6 +1995,12 @@ export function FloorPlanEditorV2({
     };
 
     const handleMouseUp = () => {
+      // Cancel long press timer if still active
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
+
       // Cancel any pending animation frames
       if (dragAnimationFrameRef.current !== null) {
         cancelAnimationFrame(dragAnimationFrameRef.current);
@@ -1874,9 +2073,11 @@ export function FloorPlanEditorV2({
       setIsRotating(false);
       setIsPanning(false);
       panStartRef.current = null;
+      longPressStartRef.current = null;
     };
 
-    if (isDragging || isResizing || isRotating || isSelecting || isPanning) {
+    // Always listen in interactive mode to handle all interactions including long press
+    if (viewMode === "interactive") {
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
 
@@ -1885,7 +2086,6 @@ export function FloorPlanEditorV2({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isDragging,
     isResizing,
@@ -1903,7 +2103,12 @@ export function FloorPlanEditorV2({
     selectedElementId,
     isPanning,
     panOffset,
-    showAlignmentGuides
+    showAlignmentGuides,
+    selectionMode,
+    screenToCanvas,
+    panMode,
+    relativePositionsRef,
+    dragElementsStartPosRef
   ]);
 
   // Keyboard shortcuts for accessibility
@@ -1974,11 +2179,17 @@ export function FloorPlanEditorV2({
           }
         }
       }
-      // Escape: Deselect or exit fullscreen
+      // Escape: Exit selection mode, deselect, or exit fullscreen
       if (e.key === "Escape") {
         if (isFullscreen) {
           e.preventDefault();
           setIsFullscreen(false);
+        } else if (selectionMode) {
+          e.preventDefault();
+          setSelectionMode(false);
+          setPanMode(true); // Return to default drag mode
+          setSelectedElementId(null);
+          setSelectedElementIds(new Set());
         } else {
           setSelectedElementId(null);
           setSelectedElementIds(new Set());
@@ -2052,7 +2263,10 @@ export function FloorPlanEditorV2({
     updateElementsWithHistory,
     selectedElementIds,
     isFullscreen,
-    setIsFullscreen
+    setIsFullscreen,
+    selectionMode,
+    setSelectionMode,
+    setPanMode
   ]);
 
   // Cleanup animation frame on unmount
@@ -2617,12 +2831,34 @@ export function FloorPlanEditorV2({
         {!isFullscreen && (
           <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card p-3 shadow-sm gap-3">
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Group 1: Create & Add */}
+            {/* Group 1: Templates, Create & Add */}
             <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
+              {/* Templates Button - First and Most Important */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     size="default"
+                    variant="default"
+                    className="gap-2"
+                    onClick={() => setTemplateDialogOpen(true)}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {t("floorPlan.templates") || "טמפלטים"}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="space-y-1">
+                    <div className="font-semibold">{t("floorPlan.templates") || "טמפלטים"}</div>
+                    <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="default"
+                    variant="outline"
                     className="gap-2"
                     onClick={() => setTemplateDialogOpen(true)}
                   >
@@ -3103,10 +3339,6 @@ export function FloorPlanEditorV2({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => setTemplateDialogOpen(true)}>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      {t("floorPlan.templates")}
-                    </DropdownMenuItem>
                     {userId && elements.length > 0 && (
                       <DropdownMenuItem onClick={() => setSaveTemplateDialogOpen(true)}>
                         <Save className="mr-2 h-4 w-4" />
@@ -4206,12 +4438,37 @@ export function FloorPlanEditorV2({
               {/* Fullscreen Toolbar - Same as normal toolbar */}
               <div className="flex shrink-0 items-center justify-between rounded-lg border-b bg-card p-3 shadow-sm gap-3">
                 <div className="flex items-center gap-3 flex-wrap">
-                  {/* Group 1: Create & Add */}
+                  {/* Group 1: Templates, Create & Add */}
                   <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
+                    {/* Templates Button - First and Most Important */}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           size="sm"
+                          variant="default"
+                          className="gap-2"
+                          onClick={() => {
+                            setIsFullscreen(false);
+                            setTemplateDialogOpen(true);
+                          }}
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          {t("floorPlan.templates") || "טמפלטים"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.templates") || "טמפלטים"}</div>
+                          <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
                           className="gap-2"
                           onClick={() => {
                             setIsFullscreen(false);

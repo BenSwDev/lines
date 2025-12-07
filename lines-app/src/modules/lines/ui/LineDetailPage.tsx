@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ArrowRight, Calendar, Edit, ArrowLeft } from "lucide-react";
 import type { Line, LineOccurrence } from "@prisma/client";
+import { LineReservationSettings } from "./LineReservationSettings";
 
 type LineDetailPageProps = {
   line: Line;
@@ -129,6 +130,12 @@ export function LineDetailPage({ line, occurrences, venueId }: LineDetailPagePro
             ))}
           </div>
         )}
+      </div>
+
+      {/* Line Reservation Settings */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">הגדרות הזמנות</h2>
+        <LineReservationSettings lineId={line.id} venueId={venueId} />
       </div>
     </div>
   );

@@ -217,6 +217,7 @@ model Line {
   venue                    Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
   occurrences              LineOccurrence[]
   reservationExclusions    ReservationSettingsLineExclusion[]
+  reservationSettings     LineReservationSettings?
 
   @@index([venueId])
   @@index([venueId, color])
@@ -412,6 +413,46 @@ model ReservationFormDesign {
 
   @@index([reservationSettingsId])
   @@map("reservation_form_design")
+}
+
+// ============================================================================
+// LINE RESERVATION SETTINGS (Per-Line Reservation Configuration)
+// ============================================================================
+
+model LineReservationSettings {
+  id                    String   @id @default(cuid())
+  lineId                String   @unique @map("line_id")
+  allowPersonalLink      Boolean  @default(false) @map("allow_personal_link")
+  requireApproval        Boolean  @default(false) @map("require_approval")
+  manageWaitlist         Boolean  @default(false) @map("manage_waitlist")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  line                  Line                        @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  daySchedules         LineReservationDaySchedule[]
+
+  @@index([lineId])
+  @@map("line_reservation_settings")
+}
+
+model LineReservationDaySchedule {
+  id                    String   @id @default(cuid())
+  lineReservationSettingsId String   @map("line_reservation_settings_id")
+  dayOfWeek             Int      @map("day_of_week") // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime             String   @map("start_time") // HH:MM format (24-hour)
+  endTime               String   @map("end_time") // HH:MM format (24-hour)
+  intervalMinutes       Int?     @map("interval_minutes")
+  customerMessage       String?  @db.Text @map("customer_message")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  lineReservationSettings LineReservationSettings @relation(fields: [lineReservationSettingsId], references: [id], onDelete: Cascade)
+
+  @@unique([lineReservationSettingsId, dayOfWeek])
+  @@index([lineReservationSettingsId])
+  @@map("line_reservation_day_schedules")
 }
 
 

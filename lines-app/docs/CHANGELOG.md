@@ -4,6 +4,53 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.3.0] – 2025-01-15 (Line Reservation Settings)
+
+### 🎉 Major Enhancement
+
+#### Added
+
+- **Per-Line Reservation Settings** (`src/modules/lines`)
+  - Each line that accepts reservations can now have personalized settings
+  - New database models: `LineReservationSettings` and `LineReservationDaySchedule`
+  - Repository: `LineReservationSettingsRepository` for data access
+  - Service: `LineReservationSettingsService` for business logic
+  - Server actions: `getLineReservationSettings()` and `updateLineReservationSettings()`
+  - UI component: `LineReservationSettings` for editing line-specific settings
+
+- **Line Reservation Settings Features**
+  - Personal link settings (enable/disable, require approval)
+  - Waitlist management toggle
+  - Day-specific schedules (when personal links enabled)
+    - Start/end times per day of week
+    - Booking intervals
+    - Custom customer messages
+
+- **Integration**
+  - Added reservation settings section to `LineDetailPage`
+  - Settings only shown for lines that accept reservations (not excluded)
+  - Automatic validation of line eligibility
+
+#### Changed
+
+- **Line Detail Page**
+  - Added "הגדרות הזמנות" (Reservation Settings) section
+  - Shows personalized settings for each line
+
+#### Database
+
+- Added `LineReservationSettings` model (1:1 with Line)
+- Added `LineReservationDaySchedule` model (1:N with LineReservationSettings)
+- Migration: `add_line_reservation_settings`
+
+#### Documentation
+
+- Updated `DATA_MODEL.md` with new models
+- Updated `FEATURE_SPECS/lines.md` with reservation settings feature
+- Updated `CHANGELOG.md`
+
+---
+
 ## [1.2.3] – 2025-12-05 (Demo Module - Production Ready)
 
 ### 🎉 Major Enhancement

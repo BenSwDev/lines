@@ -344,4 +344,61 @@ Day-specific booking schedules for personal link reservations.
 - `Venue` now has one `ReservationSettings` (1:1)
 - `Line` now has many `ReservationSettingsLineExclusion` (1:N)
 
+## Line Reservation Settings Models (v1.3.0+)
+
+### LineReservationSettings
+
+Per-line reservation configuration (1:1 with Line). Allows each line that accepts reservations to have its own personalized settings.
+
+| Field                  | Type     | Nullable | Description                                  |
+| ---------------------- | -------- | -------- | -------------------------------------------- |
+| id                     | String   | No       | Unique identifier (cuid)                       |
+| lineId                 | String   | No       | Foreign key to Line (unique)                 |
+| allowPersonalLink      | Boolean  | No       | Whether personal link bookings are allowed   |
+| requireApproval        | Boolean  | No       | Whether personal link bookings need approval |
+| manageWaitlist         | Boolean  | No       | Whether waitlist management is enabled       |
+| createdAt              | DateTime | No       | Creation timestamp                           |
+| updatedAt              | DateTime | No       | Last update timestamp                        |
+
+**Relationships:**
+
+- Belongs to one `Line` (1:1)
+- Has many `LineReservationDaySchedule` (1:N)
+
+**Business Rules:**
+
+- Only available for lines that accept reservations (not in exclusions)
+- Settings are created automatically when first accessed
+- Deleting a line cascades to delete its reservation settings
+
+### LineReservationDaySchedule
+
+Day-specific booking schedules for a line's personal link reservations.
+
+| Field                      | Type     | Nullable | Description                                       |
+| -------------------------- | -------- | -------- | ------------------------------------------------- |
+| id                         | String   | No       | Unique identifier (cuid)                           |
+| lineReservationSettingsId  | String   | No       | Foreign key to LineReservationSettings            |
+| dayOfWeek                  | Int      | No       | Day of week (0=Sunday, 1=Monday, ..., 6=Saturday) |
+| startTime                  | String   | No       | Start time (HH:MM format, 24-hour)                |
+| endTime                    | String   | No       | End time (HH:MM format, 24-hour)                 |
+| intervalMinutes            | Int      | Yes      | Booking interval in minutes (optional)            |
+| customerMessage            | String   | Yes      | Custom message for customers (optional)           |
+| createdAt                  | DateTime | No       | Creation timestamp                                |
+| updatedAt                  | DateTime | No       | Last update timestamp                             |
+
+**Relationships:**
+
+- Belongs to one `LineReservationSettings` (N:1)
+
+**Constraints:**
+
+- Unique constraint on (lineReservationSettingsId, dayOfWeek)
+- dayOfWeek must be between 0 and 6
+- endTime must be after startTime
+
+**Updated Relationships:**
+
+- `Line` now has one `LineReservationSettings` (1:1)
+
 ---

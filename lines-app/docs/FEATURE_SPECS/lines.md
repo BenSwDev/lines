@@ -94,6 +94,10 @@ A single event instance with:
 - Line header with metadata
 - List of all occurrences with status badges
 - Edit + Back buttons
+- **Line Reservation Settings** section (for lines that accept reservations)
+  - Personal link settings (allow/require approval)
+  - Waitlist management
+  - Day-specific schedules (when personal links enabled)
 
 ---
 
@@ -126,6 +130,48 @@ A single event instance with:
 - Marks each as isExpected true/false
 - Prevents duplicates
 
+### lineReservationSettingsService
+
+- Manages per-line reservation settings
+- Validates line eligibility (must accept reservations, not excluded)
+- Handles day schedules for personal link bookings
+
 ---
 
-**Last Updated:** 2025-12-05
+## Line Reservation Settings
+
+Each line that accepts reservations (not in exclusions) can have personalized reservation settings:
+
+### Features
+
+- **Personal Link Settings**
+  - Enable/disable personal link bookings for this line
+  - Require approval for bookings
+- **Waitlist Management**
+  - Enable/disable waitlist management for this line
+- **Day Schedules** (when personal links enabled)
+  - Configure booking time ranges per day of week
+  - Set booking intervals
+  - Add custom customer messages
+
+### Business Rules
+
+- Only available for lines that:
+  - Venue accepts reservations (`acceptsReservations = true`)
+  - Line is not in exclusions list
+- Settings are created automatically when first accessed
+- Day schedules only shown when personal links are enabled
+
+### Server Actions
+
+**`getLineReservationSettings(lineId: string)`**
+- Get or create default settings for a line
+- Returns error if line is excluded or reservations not enabled
+
+**`updateLineReservationSettings(lineId: string, input: LineReservationSettingsInput)`**
+- Update settings for a line
+- Validates line eligibility before updating
+
+---
+
+**Last Updated:** 2025-01-15

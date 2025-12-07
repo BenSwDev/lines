@@ -1,4 +1,4 @@
-import type { Line, LineOccurrence } from "@prisma/client";
+import type { Line, LineOccurrence, LineReservationSettings, LineReservationDaySchedule } from "@prisma/client";
 
 export type { Line, LineOccurrence };
 
@@ -13,3 +13,7 @@ export type LineSummaryStats = {
 };
 
 export type EventStatus = "cancelled" | "ended" | "current" | "upcoming";
+
+export type LineReservationSettingsWithRelations = LineReservationSettings & {
+  daySchedules: LineReservationDaySchedule[];
+};

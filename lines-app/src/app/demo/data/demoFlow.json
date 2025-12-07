@@ -1,0 +1,282 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "title": "Interactive Product Guide",
+    "description": "A LAYA-style onboarding flow with auto-advancing slides and interactive branching",
+    "autoAdvance": true,
+    "autoAdvanceDelay": 5000,
+    "enableBranching": true
+  },
+  "slides": [
+    {
+      "id": "welcome",
+      "type": "intro",
+      "emoji": "👋",
+      "title": "Welcome to Your Journey",
+      "subtitle": "Let's get started",
+      "content": "We're excited to show you around! This interactive guide will walk you through everything you need to know.",
+      "gradient": "from-purple-500 via-pink-500 to-orange-500",
+      "autoAdvance": true,
+      "duration": 4000,
+      "nextSlide": "overview"
+    },
+    {
+      "id": "overview",
+      "type": "content",
+      "emoji": "✨",
+      "title": "What You'll Discover",
+      "subtitle": "A quick overview",
+      "content": "In the next few minutes, you'll learn about our key features, how they work together, and how they can help you achieve your goals.",
+      "bullets": [
+        "Feature highlights",
+        "Interactive demonstrations",
+        "Real-world examples",
+        "Best practices"
+      ],
+      "gradient": "from-blue-500 via-cyan-500 to-teal-500",
+      "autoAdvance": true,
+      "duration": 6000,
+      "nextSlide": "feature-1"
+    },
+    {
+      "id": "feature-1",
+      "type": "feature",
+      "emoji": "🚀",
+      "title": "Powerful Feature One",
+      "subtitle": "Get things done faster",
+      "content": "This feature helps you accomplish tasks more efficiently with smart automation and intuitive controls.",
+      "highlights": [
+        "Save time with automation",
+        "Intuitive user interface",
+        "Real-time updates"
+      ],
+      "gradient": "from-indigo-500 via-purple-500 to-pink-500",
+      "autoAdvance": true,
+      "duration": 7000,
+      "nextSlide": "question-1"
+    },
+    {
+      "id": "question-1",
+      "type": "question",
+      "emoji": "❓",
+      "title": "Let's Personalize Your Experience",
+      "subtitle": "Quick question",
+      "question": "What's your primary goal?",
+      "options": [
+        {
+          "id": "goal-efficiency",
+          "text": "Improve efficiency",
+          "emoji": "⚡",
+          "nextSlide": "efficiency-path"
+        },
+        {
+          "id": "goal-collaboration",
+          "text": "Better collaboration",
+          "emoji": "🤝",
+          "nextSlide": "collaboration-path"
+        },
+        {
+          "id": "goal-automation",
+          "text": "Automate workflows",
+          "emoji": "🔄",
+          "nextSlide": "automation-path"
+        }
+      ],
+      "gradient": "from-amber-500 via-orange-500 to-red-500",
+      "autoAdvance": false,
+      "allowSkip": true,
+      "skipTo": "feature-2"
+    },
+    {
+      "id": "efficiency-path",
+      "type": "content",
+      "emoji": "⚡",
+      "title": "Perfect for Efficiency",
+      "subtitle": "You're on the right track",
+      "content": "Based on your goal, here are the features that will help you work more efficiently.",
+      "bullets": [
+        "Quick action shortcuts",
+        "Batch processing tools",
+        "Smart suggestions"
+      ],
+      "gradient": "from-green-500 via-emerald-500 to-teal-500",
+      "autoAdvance": true,
+      "duration": 5000,
+      "nextSlide": "feature-2"
+    },
+    {
+      "id": "collaboration-path",
+      "type": "content",
+      "emoji": "🤝",
+      "title": "Great for Teamwork",
+      "subtitle": "Collaboration made easy",
+      "content": "You'll love these collaboration features designed to keep your team in sync.",
+      "bullets": [
+        "Real-time sharing",
+        "Team workspaces",
+        "Comment threads"
+      ],
+      "gradient": "from-blue-500 via-indigo-500 to-purple-500",
+      "autoAdvance": true,
+      "duration": 5000,
+      "nextSlide": "feature-2"
+    },
+    {
+      "id": "automation-path",
+      "type": "content",
+      "emoji": "🔄",
+      "title": "Automation Power",
+      "subtitle": "Work smarter, not harder",
+      "content": "Discover how automation can transform your workflow and save hours every week.",
+      "bullets": [
+        "Workflow automation",
+        "Scheduled tasks",
+        "Smart triggers"
+      ],
+      "gradient": "from-purple-500 via-pink-500 to-rose-500",
+      "autoAdvance": true,
+      "duration": 5000,
+      "nextSlide": "feature-2"
+    },
+    {
+      "id": "feature-2",
+      "type": "feature",
+      "emoji": "🎯",
+      "title": "Feature Two: Precision & Control",
+      "subtitle": "Everything at your fingertips",
+      "content": "Take full control with advanced settings and customization options that adapt to your needs.",
+      "highlights": [
+        "Customizable dashboards",
+        "Advanced filtering",
+        "Export capabilities"
+      ],
+      "gradient": "from-rose-500 via-pink-500 to-purple-500",
+      "autoAdvance": true,
+      "duration": 7000,
+      "nextSlide": "feature-3"
+    },
+    {
+      "id": "feature-3",
+      "type": "feature",
+      "emoji": "🔒",
+      "title": "Feature Three: Security & Trust",
+      "subtitle": "Your data is safe",
+      "content": "Enterprise-grade security features that protect your information and give you peace of mind.",
+      "highlights": [
+        "End-to-end encryption",
+        "Regular backups",
+        "Compliance ready"
+      ],
+      "gradient": "from-slate-500 via-gray-500 to-zinc-500",
+      "autoAdvance": true,
+      "duration": 7000,
+      "nextSlide": "question-2"
+    },
+    {
+      "id": "question-2",
+      "type": "question",
+      "emoji": "💭",
+      "title": "Almost There!",
+      "subtitle": "One more question",
+      "question": "How would you rate your current experience level?",
+      "options": [
+        {
+          "id": "level-beginner",
+          "text": "Just getting started",
+          "emoji": "🌱",
+          "nextSlide": "beginner-tips"
+        },
+        {
+          "id": "level-intermediate",
+          "text": "Some experience",
+          "emoji": "📚",
+          "nextSlide": "intermediate-tips"
+        },
+        {
+          "id": "level-advanced",
+          "text": "I'm a pro",
+          "emoji": "🏆",
+          "nextSlide": "advanced-tips"
+        }
+      ],
+      "gradient": "from-violet-500 via-purple-500 to-fuchsia-500",
+      "autoAdvance": false,
+      "allowSkip": true,
+      "skipTo": "finale"
+    },
+    {
+      "id": "beginner-tips",
+      "type": "content",
+      "emoji": "🌱",
+      "title": "Welcome, Beginner!",
+      "subtitle": "We've got you covered",
+      "content": "Don't worry - we have comprehensive guides and tutorials to help you get started quickly.",
+      "bullets": [
+        "Step-by-step tutorials",
+        "Video walkthroughs",
+        "Help center access"
+      ],
+      "gradient": "from-green-500 via-lime-500 to-emerald-500",
+      "autoAdvance": true,
+      "duration": 5000,
+      "nextSlide": "finale"
+    },
+    {
+      "id": "intermediate-tips",
+      "type": "content",
+      "emoji": "📚",
+      "title": "Perfect for You",
+      "subtitle": "You're ready to explore",
+      "content": "You'll find advanced features and power-user tips that will help you get even more value.",
+      "bullets": [
+        "Advanced tutorials",
+        "Power-user shortcuts",
+        "Integration guides"
+      ],
+      "gradient": "from-blue-500 via-cyan-500 to-teal-500",
+      "autoAdvance": true,
+      "duration": 5000,
+      "nextSlide": "finale"
+    },
+    {
+      "id": "advanced-tips",
+      "type": "content",
+      "emoji": "🏆",
+      "title": "Pro User Detected!",
+      "subtitle": "Unlock your potential",
+      "content": "Explore our API, automation features, and advanced customization options.",
+      "bullets": [
+        "API documentation",
+        "Custom integrations",
+        "Advanced workflows"
+      ],
+      "gradient": "from-purple-500 via-indigo-500 to-blue-500",
+      "autoAdvance": true,
+      "duration": 5000,
+      "nextSlide": "finale"
+    },
+    {
+      "id": "finale",
+      "type": "outro",
+      "emoji": "🎉",
+      "title": "You're All Set!",
+      "subtitle": "Ready to get started?",
+      "content": "Congratulations! You've completed the interactive guide. You now have a solid understanding of what we offer.",
+      "cta": {
+        "primary": {
+          "text": "Get Started Now",
+          "action": "register",
+          "href": "/auth/register"
+        },
+        "secondary": {
+          "text": "Explore More",
+          "action": "explore",
+          "href": "/dashboard"
+        }
+      },
+      "gradient": "from-yellow-500 via-orange-500 to-red-500",
+      "autoAdvance": false
+    }
+  ]
+}
+
