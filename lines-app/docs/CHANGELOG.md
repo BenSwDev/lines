@@ -46,6 +46,58 @@ Use this file to track changes by date and version. Every meaningful change must
 
 ---
 
+## [1.5.0] – 2025-01-16 (International LINES Demo with i18n)
+
+### 🎉 Major Enhancement
+
+#### Added
+
+- **Full Internationalization (i18n) Support**
+  - Complete bilingual demo (Hebrew & English)
+  - Language switcher in demo interface
+  - RTL/LTR support with automatic direction switching
+  - All demo content translated and localized
+
+- **LINES-Specific Demo Content**
+  - Real product features showcased:
+    - Multi-venue management
+    - Smart line scheduling
+    - Interactive calendar view
+    - Advanced reservation system
+    - Interactive floor plans
+  - Personalized branching based on venue type and goals
+  - Product-specific benefits and use cases
+
+- **Enhanced Demo Flow**
+  - 12 interactive slides with LINES-specific content
+  - Two branching questions (venue type, primary goal)
+  - Personalized paths based on user selections
+  - Professional gradient themes per feature
+  - Auto-advancing with configurable delays
+
+- **Translation System**
+  - Added `demo` section to `messages/en.json` and `messages/he.json`
+  - Support for translation keys and direct text
+  - Language-specific fields (titleHe, contentHe, etc.)
+  - Seamless language switching without page reload
+
+#### Changed
+
+- Updated demo flow JSON with LINES-specific content
+- Enhanced Slide component with i18n support
+- Added language switcher to DemoGuide header
+- Updated ProgressBar with localized text
+- Modified schema to support bilingual content
+
+#### Technical Details
+
+- **Bundle Size:** 49.1 kB (First Load JS: 167 kB)
+- **Languages:** Hebrew (RTL), English (LTR)
+- **Translation Keys:** 30+ demo-specific keys
+- **Slides:** 12 total with 2 branching points
+
+---
+
 ## [1.4.0] – 2025-01-16 (LAYA-Style Interactive Demo Guide)
 
 ### 🎉 Major Enhancement

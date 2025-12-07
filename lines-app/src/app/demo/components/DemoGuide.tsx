@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, Languages } from "lucide-react";
 import { useDemoFlow } from "../hooks/useDemoFlow";
 import { useAutoAdvance } from "../hooks/useAutoAdvance";
 import { useDemoProgress } from "../hooks/useDemoProgress";
+import { useTranslations, useLocale } from "@/core/i18n/provider";
 import { Slide } from "./Slide";
 import { ProgressBar } from "./ProgressBar";
 import { slideVariants, slideTransition } from "../animations/slideTransitions";
@@ -22,6 +23,8 @@ interface DemoGuideProps {
  */
 export function DemoGuide({ flow }: DemoGuideProps) {
   const [direction, setDirection] = useState(0);
+  const { t, locale } = useTranslations();
+  const { setLocale } = useLocale();
   const {
     currentSlide,
     currentSlideId,
@@ -98,14 +101,24 @@ export function DemoGuide({ flow }: DemoGuideProps) {
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Header with progress */}
         <div className="container mx-auto px-4 pt-8 pb-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={reset}
-              className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur-sm transition-all hover:bg-white/20"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </button>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={reset}
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur-sm transition-all hover:bg-white/20"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {t("demo.navigation.reset")}
+              </button>
+              <button
+                onClick={() => setLocale(locale === "he" ? "en" : "he")}
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur-sm transition-all hover:bg-white/20"
+                aria-label={locale === "he" ? "Switch to English" : "עבור לעברית"}
+              >
+                <Languages className="h-4 w-4" />
+                {locale === "he" ? "EN" : "עב"}
+              </button>
+            </div>
             <ProgressBar
               progress={progressPercentage}
               currentSlide={slideNumber}
@@ -151,7 +164,7 @@ export function DemoGuide({ flow }: DemoGuideProps) {
               }`}
             >
               <ChevronLeft className="h-5 w-5" />
-              Previous
+              {t("demo.navigation.previous")}
             </button>
 
             <div className="flex gap-2">
@@ -183,7 +196,7 @@ export function DemoGuide({ flow }: DemoGuideProps) {
                   : "cursor-not-allowed opacity-50"
               }`}
             >
-              Next
+              {t("demo.navigation.next")}
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>

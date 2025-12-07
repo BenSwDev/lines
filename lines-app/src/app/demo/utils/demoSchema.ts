@@ -9,6 +9,7 @@ import { z } from "zod";
 export const DemoOptionSchema = z.object({
   id: z.string().min(1, "Option ID is required"),
   text: z.string().min(1, "Option text is required"),
+  textHe: z.string().optional(),
   emoji: z.string().optional(),
   nextSlide: z.string().min(1, "Next slide ID is required"),
 });
@@ -16,6 +17,7 @@ export const DemoOptionSchema = z.object({
 // CTA schema for outro slides
 export const DemoCTASchema = z.object({
   text: z.string().min(1, "CTA text is required"),
+  textHe: z.string().optional(),
   action: z.string().optional(),
   href: z.string().optional(),
 });
@@ -25,9 +27,21 @@ const BaseSlideSchema = z.object({
   id: z.string().min(1, "Slide ID is required"),
   type: z.enum(["intro", "content", "feature", "question", "outro"]),
   emoji: z.string().optional(),
-  title: z.string().min(1, "Title is required"),
+  title: z.string().optional(),
+  titleKey: z.string().optional(),
+  titleHe: z.string().optional(),
   subtitle: z.string().optional(),
+  subtitleKey: z.string().optional(),
+  subtitleHe: z.string().optional(),
   content: z.string().optional(),
+  contentKey: z.string().optional(),
+  contentHe: z.string().optional(),
+  question: z.string().optional(),
+  questionHe: z.string().optional(),
+  bullets: z.array(z.string()).optional(),
+  bulletsHe: z.array(z.string()).optional(),
+  highlights: z.array(z.string()).optional(),
+  highlightsHe: z.array(z.string()).optional(),
   gradient: z.string().optional(),
   autoAdvance: z.boolean().optional().default(false),
   duration: z.number().positive().optional(),
@@ -37,30 +51,24 @@ const BaseSlideSchema = z.object({
 // Intro slide schema
 export const IntroSlideSchema = BaseSlideSchema.extend({
   type: z.literal("intro"),
-  content: z.string().min(1, "Content is required for intro slides"),
   nextSlide: z.string().min(1, "Next slide ID is required"),
 });
 
 // Content slide schema
 export const ContentSlideSchema = BaseSlideSchema.extend({
   type: z.literal("content"),
-  content: z.string().min(1, "Content is required for content slides"),
-  bullets: z.array(z.string()).optional(),
   nextSlide: z.string().optional(),
 });
 
 // Feature slide schema
 export const FeatureSlideSchema = BaseSlideSchema.extend({
   type: z.literal("feature"),
-  content: z.string().min(1, "Content is required for feature slides"),
-  highlights: z.array(z.string()).optional(),
   nextSlide: z.string().optional(),
 });
 
 // Question slide schema
 export const QuestionSlideSchema = BaseSlideSchema.extend({
   type: z.literal("question"),
-  question: z.string().min(1, "Question text is required"),
   options: z
     .array(DemoOptionSchema)
     .min(2, "At least 2 options are required")
@@ -73,7 +81,6 @@ export const QuestionSlideSchema = BaseSlideSchema.extend({
 // Outro slide schema
 export const OutroSlideSchema = BaseSlideSchema.extend({
   type: z.literal("outro"),
-  content: z.string().min(1, "Content is required for outro slides"),
   cta: z
     .object({
       primary: DemoCTASchema,

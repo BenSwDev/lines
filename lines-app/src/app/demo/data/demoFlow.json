@@ -1,202 +1,266 @@
 {
   "metadata": {
-    "version": "1.0.0",
-    "title": "Interactive Product Guide",
-    "description": "A LAYA-style onboarding flow with auto-advancing slides and interactive branching",
+    "version": "2.0.0",
+    "title": "Lines Interactive Demo",
+    "description": "A comprehensive interactive guide showcasing Lines venue management system",
     "autoAdvance": true,
-    "autoAdvanceDelay": 5000,
-    "enableBranching": true
+    "autoAdvanceDelay": 6000,
+    "enableBranching": true,
+    "product": "lines"
   },
   "slides": [
     {
       "id": "welcome",
       "type": "intro",
       "emoji": "👋",
-      "title": "Welcome to Your Journey",
-      "subtitle": "Let's get started",
-      "content": "We're excited to show you around! This interactive guide will walk you through everything you need to know.",
-      "gradient": "from-purple-500 via-pink-500 to-orange-500",
+      "titleKey": "demo.welcome.title",
+      "subtitleKey": "demo.welcome.subtitle",
+      "contentKey": "demo.welcome.content",
+      "gradient": "from-indigo-500 via-purple-500 to-pink-500",
       "autoAdvance": true,
-      "duration": 4000,
+      "duration": 5000,
       "nextSlide": "overview"
     },
     {
       "id": "overview",
       "type": "content",
       "emoji": "✨",
-      "title": "What You'll Discover",
-      "subtitle": "A quick overview",
-      "content": "In the next few minutes, you'll learn about our key features, how they work together, and how they can help you achieve your goals.",
+      "title": "What is Lines?",
+      "titleHe": "מה זה Lines?",
+      "subtitle": "Complete venue management",
+      "subtitleHe": "ניהול מקומות מקיף",
+      "content": "Lines is a powerful venue management system designed for managing recurring events, schedules, reservations, and venue operations all in one place.",
+      "contentHe": "Lines היא מערכת ניהול מקומות חזקה המיועדת לניהול אירועים חוזרים, לוחות זמנים, הזמנות ופעולות מקום - הכל במקום אחד.",
       "bullets": [
-        "Feature highlights",
-        "Interactive demonstrations",
-        "Real-world examples",
-        "Best practices"
+        "Multi-venue management",
+        "Smart line scheduling",
+        "Interactive calendar",
+        "Advanced reservations",
+        "Visual floor plans"
+      ],
+      "bulletsHe": [
+        "ניהול מקומות מרובים",
+        "תזמון ליינים חכם",
+        "לוח שנה אינטראקטיבי",
+        "הזמנות מתקדמות",
+        "תכנוני מקום ויזואליים"
       ],
       "gradient": "from-blue-500 via-cyan-500 to-teal-500",
       "autoAdvance": true,
-      "duration": 6000,
-      "nextSlide": "feature-1"
-    },
-    {
-      "id": "feature-1",
-      "type": "feature",
-      "emoji": "🚀",
-      "title": "Powerful Feature One",
-      "subtitle": "Get things done faster",
-      "content": "This feature helps you accomplish tasks more efficiently with smart automation and intuitive controls.",
-      "highlights": [
-        "Save time with automation",
-        "Intuitive user interface",
-        "Real-time updates"
-      ],
-      "gradient": "from-indigo-500 via-purple-500 to-pink-500",
-      "autoAdvance": true,
       "duration": 7000,
-      "nextSlide": "question-1"
+      "nextSlide": "question-venue-type"
     },
     {
-      "id": "question-1",
+      "id": "question-venue-type",
       "type": "question",
-      "emoji": "❓",
-      "title": "Let's Personalize Your Experience",
-      "subtitle": "Quick question",
-      "question": "What's your primary goal?",
+      "emoji": "🏢",
+      "title": "What type of venue do you manage?",
+      "titleHe": "איזה סוג מקום אתה מנהל?",
+      "subtitle": "Let's personalize your experience",
+      "subtitleHe": "בואו נתאים את החוויה שלך",
+      "question": "Select your venue type:",
+      "questionHe": "בחר את סוג המקום שלך:",
       "options": [
         {
-          "id": "goal-efficiency",
-          "text": "Improve efficiency",
-          "emoji": "⚡",
-          "nextSlide": "efficiency-path"
+          "id": "event-hall",
+          "text": "Event Hall",
+          "textHe": "אולם אירועים",
+          "emoji": "🎪",
+          "nextSlide": "feature-venues"
         },
         {
-          "id": "goal-collaboration",
-          "text": "Better collaboration",
-          "emoji": "🤝",
-          "nextSlide": "collaboration-path"
+          "id": "restaurant",
+          "text": "Restaurant",
+          "textHe": "מסעדה",
+          "emoji": "🍽️",
+          "nextSlide": "feature-venues"
         },
         {
-          "id": "goal-automation",
-          "text": "Automate workflows",
-          "emoji": "🔄",
-          "nextSlide": "automation-path"
+          "id": "bar-club",
+          "text": "Bar/Club",
+          "textHe": "בר/מועדון",
+          "emoji": "🍻",
+          "nextSlide": "feature-venues"
+        },
+        {
+          "id": "other",
+          "text": "Other",
+          "textHe": "אחר",
+          "emoji": "🏛️",
+          "nextSlide": "feature-venues"
         }
       ],
       "gradient": "from-amber-500 via-orange-500 to-red-500",
       "autoAdvance": false,
       "allowSkip": true,
-      "skipTo": "feature-2"
+      "skipTo": "feature-venues"
     },
     {
-      "id": "efficiency-path",
-      "type": "content",
-      "emoji": "⚡",
-      "title": "Perfect for Efficiency",
-      "subtitle": "You're on the right track",
-      "content": "Based on your goal, here are the features that will help you work more efficiently.",
-      "bullets": [
-        "Quick action shortcuts",
-        "Batch processing tools",
-        "Smart suggestions"
+      "id": "feature-venues",
+      "type": "feature",
+      "emoji": "🏢",
+      "title": "Manage Multiple Venues",
+      "titleHe": "נהל מספר מקומות",
+      "subtitle": "All your venues in one place",
+      "subtitleHe": "כל המקומות שלך במקום אחד",
+      "content": "Create and manage unlimited venues. Each venue has its own workspace with lines, events, calendar, and settings. Switch between venues effortlessly.",
+      "contentHe": "צור ונהל מקומות ללא הגבלה. לכל מקום יש סביבת עבודה משלו עם ליינים, אירועים, לוח שנה והגדרות. החלף בין מקומות בקלות.",
+      "highlights": [
+        "Unlimited venues per account",
+        "Quick venue creation",
+        "Organized workspace per venue",
+        "Easy venue switching"
+      ],
+      "highlightsHe": [
+        "מקומות ללא הגבלה לחשבון",
+        "יצירת מקום מהירה",
+        "סביבת עבודה מאורגנת לכל מקום",
+        "החלפת מקום קלה"
       ],
       "gradient": "from-green-500 via-emerald-500 to-teal-500",
       "autoAdvance": true,
-      "duration": 5000,
-      "nextSlide": "feature-2"
+      "duration": 7000,
+      "nextSlide": "feature-lines"
     },
     {
-      "id": "collaboration-path",
-      "type": "content",
-      "emoji": "🤝",
-      "title": "Great for Teamwork",
-      "subtitle": "Collaboration made easy",
-      "content": "You'll love these collaboration features designed to keep your team in sync.",
-      "bullets": [
-        "Real-time sharing",
-        "Team workspaces",
-        "Comment threads"
+      "id": "feature-lines",
+      "type": "feature",
+      "emoji": "📅",
+      "title": "Smart Line Scheduling",
+      "titleHe": "תזמון ליינים חכם",
+      "subtitle": "Recurring events made simple",
+      "subtitleHe": "אירועים חוזרים בצורה פשוטה",
+      "content": "Create lines for recurring events with flexible schedules. Automatic occurrence generation, color coding with 15 unique colors, and smart suggestions based on your patterns.",
+      "contentHe": "צור ליינים לאירועים חוזרים עם לוחות זמנים גמישים. יצירת אירועים אוטומטית, קידוד צבעים עם 15 צבעים ייחודיים, והצעות חכמות בהתבסס על הדפוסים שלך.",
+      "highlights": [
+        "Weekly, monthly, or custom frequencies",
+        "15 unique colors per venue",
+        "Automatic occurrence suggestions",
+        "Overnight event support"
       ],
-      "gradient": "from-blue-500 via-indigo-500 to-purple-500",
-      "autoAdvance": true,
-      "duration": 5000,
-      "nextSlide": "feature-2"
-    },
-    {
-      "id": "automation-path",
-      "type": "content",
-      "emoji": "🔄",
-      "title": "Automation Power",
-      "subtitle": "Work smarter, not harder",
-      "content": "Discover how automation can transform your workflow and save hours every week.",
-      "bullets": [
-        "Workflow automation",
-        "Scheduled tasks",
-        "Smart triggers"
+      "highlightsHe": [
+        "תדירות שבועית, חודשית או מותאמת",
+        "15 צבעים ייחודיים לכל מקום",
+        "הצעות אירועים אוטומטיות",
+        "תמיכה באירועים ליליים"
       ],
       "gradient": "from-purple-500 via-pink-500 to-rose-500",
       "autoAdvance": true,
-      "duration": 5000,
-      "nextSlide": "feature-2"
+      "duration": 7000,
+      "nextSlide": "feature-calendar"
     },
     {
-      "id": "feature-2",
+      "id": "feature-calendar",
       "type": "feature",
-      "emoji": "🎯",
-      "title": "Feature Two: Precision & Control",
-      "subtitle": "Everything at your fingertips",
-      "content": "Take full control with advanced settings and customization options that adapt to your needs.",
+      "emoji": "📆",
+      "title": "Interactive Calendar View",
+      "titleHe": "תצוגת לוח שנה אינטראקטיבית",
+      "subtitle": "See everything at a glance",
+      "subtitleHe": "ראה הכל במבט אחד",
+      "content": "Comprehensive calendar showing all events across all venues. Filter by venue, line, or date. Real-time updates with overnight event indicators and hour compression for clarity.",
+      "contentHe": "לוח שנה מקיף המציג את כל האירועים בכל המקומות. סנן לפי מקום, ליין או תאריך. עדכונים בזמן אמת עם מחווי אירועים ליליים ודחיסת שעות לבהירות.",
       "highlights": [
-        "Customizable dashboards",
-        "Advanced filtering",
+        "Multi-venue calendar view",
+        "Overnight event indicators",
+        "Hour compression for clarity",
+        "Real-time synchronization"
+      ],
+      "highlightsHe": [
+        "תצוגת לוח שנה מרובת מקומות",
+        "מחווי אירועים ליליים",
+        "דחיסת שעות לבהירות",
+        "סנכרון בזמן אמת"
+      ],
+      "gradient": "from-blue-500 via-indigo-500 to-purple-500",
+      "autoAdvance": true,
+      "duration": 7000,
+      "nextSlide": "feature-reservations"
+    },
+    {
+      "id": "feature-reservations",
+      "type": "feature",
+      "emoji": "📋",
+      "title": "Advanced Reservation System",
+      "titleHe": "מערכת הזמנות מתקדמת",
+      "subtitle": "Flexible booking management",
+      "subtitleHe": "ניהול הזמנות גמיש",
+      "content": "Configure reservation settings per venue and line. Personal links for customers, automatic waitlist management, custom booking forms, and day-specific schedules.",
+      "contentHe": "הגדר הגדרות הזמנות לכל מקום וליין. לינקים אישיים ללקוחות, ניהול רשימת המתנה אוטומטי, טפסי הזמנה מותאמים, ולוחות זמנים יומיים.",
+      "highlights": [
+        "Personal link bookings",
+        "Automatic waitlist management",
+        "Custom form builder",
+        "Day-specific schedules"
+      ],
+      "highlightsHe": [
+        "הזמנות דרך לינק אישי",
+        "ניהול רשימת המתנה אוטומטי",
+        "בונה טפסים מותאם",
+        "לוחות זמנים יומיים"
+      ],
+      "gradient": "from-teal-500 via-cyan-500 to-blue-500",
+      "autoAdvance": true,
+      "duration": 7000,
+      "nextSlide": "feature-venue-map"
+    },
+    {
+      "id": "feature-venue-map",
+      "type": "feature",
+      "emoji": "🗺️",
+      "title": "Interactive Floor Plans",
+      "titleHe": "תכנוני מקום אינטראקטיביים",
+      "subtitle": "Visual venue management",
+      "subtitleHe": "ניהול מקום ויזואלי",
+      "content": "Create detailed floor plans with tables, zones, bars, and special areas. Drag-and-drop interface with professional templates for event halls, restaurants, bars, and more.",
+      "contentHe": "צור תכנוני מקום מפורטים עם שולחנות, אזורים, ברים ואזורים מיוחדים. ממשק גרירה ושחרור עם תבניות מקצועיות לאולמות אירועים, מסעדות, ברים ועוד.",
+      "highlights": [
+        "Drag-and-drop editor",
+        "Professional templates",
+        "Multiple map types",
         "Export capabilities"
+      ],
+      "highlightsHe": [
+        "עורך גרירה ושחרור",
+        "תבניות מקצועיות",
+        "סוגי מפות מרובים",
+        "יכולות ייצוא"
       ],
       "gradient": "from-rose-500 via-pink-500 to-purple-500",
       "autoAdvance": true,
       "duration": 7000,
-      "nextSlide": "feature-3"
+      "nextSlide": "question-goal"
     },
     {
-      "id": "feature-3",
-      "type": "feature",
-      "emoji": "🔒",
-      "title": "Feature Three: Security & Trust",
-      "subtitle": "Your data is safe",
-      "content": "Enterprise-grade security features that protect your information and give you peace of mind.",
-      "highlights": [
-        "End-to-end encryption",
-        "Regular backups",
-        "Compliance ready"
-      ],
-      "gradient": "from-slate-500 via-gray-500 to-zinc-500",
-      "autoAdvance": true,
-      "duration": 7000,
-      "nextSlide": "question-2"
-    },
-    {
-      "id": "question-2",
+      "id": "question-goal",
       "type": "question",
-      "emoji": "💭",
-      "title": "Almost There!",
-      "subtitle": "One more question",
-      "question": "How would you rate your current experience level?",
+      "emoji": "🎯",
+      "title": "What's your primary goal?",
+      "titleHe": "מה המטרה העיקרית שלך?",
+      "subtitle": "Let's focus on what matters to you",
+      "subtitleHe": "בואו נתמקד במה שחשוב לך",
+      "question": "Select your main focus:",
+      "questionHe": "בחר את המיקוד העיקרי שלך:",
       "options": [
         {
-          "id": "level-beginner",
-          "text": "Just getting started",
-          "emoji": "🌱",
-          "nextSlide": "beginner-tips"
+          "id": "goal-scheduling",
+          "text": "Event Scheduling",
+          "textHe": "תזמון אירועים",
+          "emoji": "📅",
+          "nextSlide": "benefit-scheduling"
         },
         {
-          "id": "level-intermediate",
-          "text": "Some experience",
-          "emoji": "📚",
-          "nextSlide": "intermediate-tips"
+          "id": "goal-reservations",
+          "text": "Reservation Management",
+          "textHe": "ניהול הזמנות",
+          "emoji": "📋",
+          "nextSlide": "benefit-reservations"
         },
         {
-          "id": "level-advanced",
-          "text": "I'm a pro",
-          "emoji": "🏆",
-          "nextSlide": "advanced-tips"
+          "id": "goal-organization",
+          "text": "Venue Organization",
+          "textHe": "ארגון מקום",
+          "emoji": "🗺️",
+          "nextSlide": "benefit-organization"
         }
       ],
       "gradient": "from-violet-500 via-purple-500 to-fuchsia-500",
@@ -205,71 +269,106 @@
       "skipTo": "finale"
     },
     {
-      "id": "beginner-tips",
+      "id": "benefit-scheduling",
       "type": "content",
-      "emoji": "🌱",
-      "title": "Welcome, Beginner!",
-      "subtitle": "We've got you covered",
-      "content": "Don't worry - we have comprehensive guides and tutorials to help you get started quickly.",
+      "emoji": "📅",
+      "title": "Perfect for Event Scheduling",
+      "titleHe": "מושלם לתזמון אירועים",
+      "subtitle": "You're on the right track",
+      "subtitleHe": "אתה בכיוון הנכון",
+      "content": "Lines excels at managing recurring events. Create lines with flexible schedules, automatic occurrence generation, and smart suggestions that learn from your patterns.",
+      "contentHe": "Lines מצוינת בניהול אירועים חוזרים. צור ליינים עם לוחות זמנים גמישים, יצירת אירועים אוטומטית, והצעות חכמות שלומדות מהדפוסים שלך.",
       "bullets": [
-        "Step-by-step tutorials",
-        "Video walkthroughs",
-        "Help center access"
+        "Flexible scheduling options",
+        "Automatic occurrence generation",
+        "Color-coded organization",
+        "Smart pattern recognition"
+      ],
+      "bulletsHe": [
+        "אפשרויות תזמון גמישות",
+        "יצירת אירועים אוטומטית",
+        "ארגון מקודד בצבעים",
+        "זיהוי דפוסים חכם"
       ],
       "gradient": "from-green-500 via-lime-500 to-emerald-500",
       "autoAdvance": true,
-      "duration": 5000,
+      "duration": 6000,
       "nextSlide": "finale"
     },
     {
-      "id": "intermediate-tips",
+      "id": "benefit-reservations",
       "type": "content",
-      "emoji": "📚",
-      "title": "Perfect for You",
-      "subtitle": "You're ready to explore",
-      "content": "You'll find advanced features and power-user tips that will help you get even more value.",
+      "emoji": "📋",
+      "title": "Great for Reservation Management",
+      "titleHe": "מצוין לניהול הזמנות",
+      "subtitle": "Streamline your bookings",
+      "subtitleHe": "פשט את ההזמנות שלך",
+      "content": "Our advanced reservation system handles everything from personal link bookings to waitlist management. Customize forms, set day-specific schedules, and automate approvals.",
+      "contentHe": "מערכת ההזמנות המתקדמת שלנו מטפלת בהכל מהזמנות דרך לינק אישי ועד ניהול רשימת המתנה. התאם טפסים, הגדר לוחות זמנים יומיים, ואוטומט אישורים.",
       "bullets": [
-        "Advanced tutorials",
-        "Power-user shortcuts",
-        "Integration guides"
+        "Personal link bookings",
+        "Automatic waitlist",
+        "Custom form builder",
+        "Flexible approval workflows"
+      ],
+      "bulletsHe": [
+        "הזמנות דרך לינק אישי",
+        "רשימת המתנה אוטומטית",
+        "בונה טפסים מותאם",
+        "תהליכי אישור גמישים"
       ],
       "gradient": "from-blue-500 via-cyan-500 to-teal-500",
       "autoAdvance": true,
-      "duration": 5000,
+      "duration": 6000,
       "nextSlide": "finale"
     },
     {
-      "id": "advanced-tips",
+      "id": "benefit-organization",
       "type": "content",
-      "emoji": "🏆",
-      "title": "Pro User Detected!",
-      "subtitle": "Unlock your potential",
-      "content": "Explore our API, automation features, and advanced customization options.",
+      "emoji": "🗺️",
+      "title": "Perfect for Venue Organization",
+      "titleHe": "מושלם לארגון מקום",
+      "subtitle": "Visual management made easy",
+      "subtitleHe": "ניהול ויזואלי קל",
+      "content": "Create detailed floor plans, manage tables and zones, and visualize your venue layout. Professional templates and drag-and-drop interface make it effortless.",
+      "contentHe": "צור תכנוני מקום מפורטים, נהל שולחנות ואזורים, והמחש את פריסת המקום שלך. תבניות מקצועיות וממשק גרירה ושחרור הופכים את זה לקל.",
       "bullets": [
-        "API documentation",
-        "Custom integrations",
-        "Advanced workflows"
+        "Interactive floor plans",
+        "Professional templates",
+        "Multiple map types",
+        "Export and share"
+      ],
+      "bulletsHe": [
+        "תכנוני מקום אינטראקטיביים",
+        "תבניות מקצועיות",
+        "סוגי מפות מרובים",
+        "ייצוא ושיתוף"
       ],
       "gradient": "from-purple-500 via-indigo-500 to-blue-500",
       "autoAdvance": true,
-      "duration": 5000,
+      "duration": 6000,
       "nextSlide": "finale"
     },
     {
       "id": "finale",
       "type": "outro",
       "emoji": "🎉",
-      "title": "You're All Set!",
-      "subtitle": "Ready to get started?",
-      "content": "Congratulations! You've completed the interactive guide. You now have a solid understanding of what we offer.",
+      "title": "Ready to Get Started?",
+      "titleHe": "מוכן להתחיל?",
+      "subtitle": "Join thousands of venues using Lines",
+      "subtitleHe": "הצטרף לאלפי מקומות שמשתמשים ב-Lines",
+      "content": "You've seen what Lines can do. Now it's time to experience it yourself. Create your free account and start managing your venues like a pro.",
+      "contentHe": "ראית מה Lines יכולה לעשות. עכשיו הגיע הזמן לחוות את זה בעצמך. צור את החשבון החינמי שלך והתחל לנהל את המקומות שלך כמו מקצוען.",
       "cta": {
         "primary": {
           "text": "Get Started Now",
+          "textHe": "התחל עכשיו",
           "action": "register",
           "href": "/auth/register"
         },
         "secondary": {
-          "text": "Explore More",
+          "text": "Explore Features",
+          "textHe": "גלה תכונות",
           "action": "explore",
           "href": "/dashboard"
         }
@@ -279,4 +378,3 @@
     }
   ]
 }
-

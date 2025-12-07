@@ -404,5 +404,103 @@
     "emptyCanvasDescription": "Click 'Create Map' to get started. You can choose a professional template or start from scratch.",
     "saveMap": "Save Map",
     "saveMapDescription": "Do you want to save all changes to the map?"
+  },
+  "demo": {
+    "welcome": {
+      "title": "Welcome to Lines",
+      "subtitle": "Your Complete Venue Management Solution",
+      "content": "Discover how Lines transforms venue management with smart scheduling, automated workflows, and real-time insights."
+    },
+    "features": {
+      "venues": {
+        "title": "Manage Multiple Venues",
+        "subtitle": "All your venues in one place",
+        "content": "Create and manage unlimited venues. Each venue has its own workspace with lines, events, calendar, and settings.",
+        "highlights": [
+          "Unlimited venues per account",
+          "Quick venue creation",
+          "Organized workspace per venue",
+          "Easy venue switching"
+        ]
+      },
+      "lines": {
+        "title": "Smart Line Scheduling",
+        "subtitle": "Recurring events made simple",
+        "content": "Create lines for recurring events with flexible schedules. Automatic occurrence generation, color coding, and smart suggestions.",
+        "highlights": [
+          "Weekly, monthly, or custom frequencies",
+          "15 unique colors per venue",
+          "Automatic occurrence suggestions",
+          "Overnight event support"
+        ]
+      },
+      "calendar": {
+        "title": "Interactive Calendar View",
+        "subtitle": "See everything at a glance",
+        "content": "Comprehensive calendar showing all events across all venues. Filter by venue, line, or date. Real-time updates.",
+        "highlights": [
+          "Multi-venue calendar view",
+          "Overnight event indicators",
+          "Hour compression for clarity",
+          "Real-time synchronization"
+        ]
+      },
+      "reservations": {
+        "title": "Advanced Reservation System",
+        "subtitle": "Flexible booking management",
+        "content": "Configure reservation settings per venue and line. Personal links, waitlist management, and custom booking forms.",
+        "highlights": [
+          "Personal link bookings",
+          "Automatic waitlist management",
+          "Custom form builder",
+          "Day-specific schedules"
+        ]
+      },
+      "venueMap": {
+        "title": "Interactive Floor Plans",
+        "subtitle": "Visual venue management",
+        "content": "Create detailed floor plans with tables, zones, bars, and special areas. Drag-and-drop interface with professional templates.",
+        "highlights": [
+          "Drag-and-drop editor",
+          "Professional templates",
+          "Multiple map types",
+          "Export capabilities"
+        ]
+      }
+    },
+    "question": {
+      "primaryGoal": {
+        "title": "What's your primary goal?",
+        "options": {
+          "scheduling": "Event Scheduling",
+          "reservations": "Reservation Management",
+          "organization": "Venue Organization"
+        }
+      },
+      "venueType": {
+        "title": "What type of venue do you manage?",
+        "options": {
+          "eventHall": "Event Hall",
+          "restaurant": "Restaurant",
+          "bar": "Bar/Club",
+          "other": "Other"
+        }
+      }
+    },
+    "cta": {
+      "getStarted": "Get Started Now",
+      "explore": "Explore Features",
+      "register": "Create Free Account"
+    },
+    "navigation": {
+      "previous": "Previous",
+      "next": "Next",
+      "skip": "Skip",
+      "reset": "Reset Demo"
+    },
+    "progress": {
+      "slide": "Slide {current} of {total}",
+      "percent": "{percent}%"
+    }
   }
 }

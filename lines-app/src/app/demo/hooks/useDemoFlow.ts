@@ -43,7 +43,7 @@ export function useDemoFlow(flow: DemoFlow) {
     if (currentSlide.type === "question") {
       const selectedOption = selectedBranches[currentSlide.id];
       if (selectedOption) {
-        const option = currentSlide.options?.find((opt) => opt.id === selectedOption);
+        const option = currentSlide.options?.find((opt: { id: string; nextSlide: string }) => opt.id === selectedOption);
         if (option?.nextSlide) {
           goToSlide(option.nextSlide);
           return;
@@ -78,7 +78,7 @@ export function useDemoFlow(flow: DemoFlow) {
       setSelectedBranches((prev) => ({ ...prev, [slideId]: optionId }));
       const slide = flow.slides.find((s) => s.id === slideId);
       if (slide && slide.type === "question") {
-        const option = slide.options?.find((opt) => opt.id === optionId);
+        const option = slide.options?.find((opt: { id: string; nextSlide: string }) => opt.id === optionId);
         if (option?.nextSlide) {
           // Auto-advance to selected branch
           setTimeout(() => {

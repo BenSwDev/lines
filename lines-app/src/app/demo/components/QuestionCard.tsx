@@ -85,7 +85,7 @@ export function QuestionCard({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          Skip this question
+          {/* Skip text will be handled by parent if needed */}
         </motion.button>
       )}
     </div>

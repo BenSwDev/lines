@@ -1,8 +1,9 @@
 # Interactive Demo Guide Module
 
-**Version:** 1.4.0  
+**Version:** 2.0.0  
 **Status:** ✅ Production Ready  
-**Location:** `src/app/demo`
+**Location:** `src/app/demo`  
+**Languages:** Hebrew (עברית) & English
 
 ---
 
@@ -12,12 +13,15 @@ A complete, LAYA-style interactive demo guide module for onboarding users. This 
 
 ## Features
 
+- ✅ **Full Internationalization (i18n)** - Hebrew & English support
+- ✅ **Language switcher** - Switch languages on the fly
+- ✅ **RTL/LTR support** - Automatic direction switching
+- ✅ **LINES-specific content** - Real product features showcased
 - ✅ **Auto-advancing slides** with configurable delays
 - ✅ **Interactive branching** based on user choices
 - ✅ **Smooth animations** using Framer Motion
 - ✅ **Progress tracking** with visual indicators
 - ✅ **Mobile-first responsive** design
-- ✅ **Placeholder content** (easily customizable)
 - ✅ **Type-safe** with Zod validation
 - ✅ **Accessible** with keyboard navigation
 
@@ -56,10 +60,17 @@ The demo is automatically available at `/demo`. The page component loads the dem
 Edit `src/app/demo/data/demoFlow.json` to customize:
 
 - Slide content (title, subtitle, content, emojis)
+- Bilingual content (titleHe, contentHe, bulletsHe, etc.)
+- Translation keys (titleKey, contentKey for i18n)
 - Slide types (intro, content, feature, question, outro)
 - Branching logic (question options and next slides)
 - Auto-advance settings
 - Gradients and styling
+
+**Bilingual Support:**
+- Use `titleHe`, `contentHe`, `bulletsHe` for Hebrew-specific content
+- Use `titleKey`, `contentKey` to reference translation keys from `messages/*.json`
+- Fallback to default `title`, `content` if language-specific version not found
 
 ### Adding New Slides
 

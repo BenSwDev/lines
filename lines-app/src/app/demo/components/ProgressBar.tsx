@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useTranslations } from "@/core/i18n/provider";
 import { progressBarVariants } from "../animations/slideTransitions";
 
 interface ProgressBarProps {
@@ -15,13 +16,15 @@ interface ProgressBarProps {
  * Displays percentage and slide counter
  */
 export function ProgressBar({ progress, currentSlide, totalSlides, className = "" }: ProgressBarProps) {
+  const { t } = useTranslations();
+  const slideText = t("demo.progress.slide").replace("{current}", currentSlide.toString()).replace("{total}", totalSlides.toString());
+  const percentText = t("demo.progress.percent").replace("{percent}", Math.round(progress).toString());
+  
   return (
     <div className={`w-full ${className}`}>
       <div className="mb-2 flex items-center justify-between text-sm text-white/70">
-        <span>
-          Slide {currentSlide} of {totalSlides}
-        </span>
-        <span className="font-semibold text-white">{Math.round(progress)}%</span>
+        <span>{slideText}</span>
+        <span className="font-semibold text-white">{percentText}</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-white/10 backdrop-blur-sm">
         <motion.div

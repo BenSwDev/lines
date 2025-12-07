@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
+import { I18nProvider } from "@/core/i18n/provider";
 import { DemoGuide } from "./DemoGuide";
 import { loadDemoFlow } from "../utils/loadDemoFlow";
 
 /**
  * Client wrapper component that loads demo flow data
  * Separates data loading from presentation
+ * Wraps with I18nProvider for translations
  */
 export function DemoGuideWrapper() {
   const flow = useMemo(() => {
@@ -29,6 +31,10 @@ export function DemoGuideWrapper() {
     );
   }
 
-  return <DemoGuide flow={flow} />;
+  return (
+    <I18nProvider>
+      <DemoGuide flow={flow} />
+    </I18nProvider>
+  );
 }
 
