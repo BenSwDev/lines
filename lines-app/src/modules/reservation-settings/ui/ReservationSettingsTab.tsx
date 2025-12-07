@@ -8,25 +8,17 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
-
-// Helper to get RTL-aware classes
-const getRTLClasses = (dir: "ltr" | "rtl") => ({
-  flexReverse: dir === "rtl" ? "flex-row-reverse" : "",
-  spaceX: dir === "rtl" ? "space-x-reverse" : "",
-  iconMargin: dir === "rtl" ? "ml-2" : "mr-2",
-  justifyEnd: dir === "rtl" ? "justify-start" : "justify-end",
-  textAlign: dir === "rtl" ? "text-right" : "text-left"
-});
 import {
   getReservationSettings,
   updateReservationSettings,
   getVenueLines
 } from "../actions/reservationSettingsActions";
 import type { ReservationSettingsInput } from "../types";
-import { Calendar, Clock, Link2, List, Settings2 } from "lucide-react";
+import { Settings2, Calendar, FileText, List, Save } from "lucide-react";
 import { ReservationFormBuilder } from "./ReservationFormBuilder";
 import { ReservationFormPreview } from "./ReservationFormPreview";
 import { ReservationFormDesigner } from "./ReservationFormDesigner";
@@ -38,13 +30,13 @@ type Line = {
 };
 
 const DAYS_OF_WEEK = [
-  { value: 0, label: "Sunday" },
-  { value: 1, label: "Monday" },
-  { value: 2, label: "Tuesday" },
-  { value: 3, label: "Wednesday" },
-  { value: 4, label: "Thursday" },
-  { value: 5, label: "Friday" },
-  { value: 6, label: "Saturday" }
+  { value: 0, label: "ראשון", short: "א" },
+  { value: 1, label: "שני", short: "ב" },
+  { value: 2, label: "שלישי", short: "ג" },
+  { value: 3, label: "רביעי", short: "ד" },
+  { value: 4, label: "חמישי", short: "ה" },
+  { value: 5, label: "שישי", short: "ו" },
+  { value: 6, label: "שבת", short: "ש" }
 ];
 
 export function ReservationSettingsTab() {
@@ -52,11 +44,11 @@ export function ReservationSettingsTab() {
   const venueId = params.venueId as string;
   const { toast } = useToast();
   const { t, dir } = useTranslations();
-  const rtlClasses = getRTLClasses(dir);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [lines, setLines] = useState<Line[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Form state
   const [acceptsReservations, setAcceptsReservations] = useState(false);
@@ -76,7 +68,6 @@ export function ReservationSettingsTab() {
   >([]);
   const [formFields, setFormFields] = useState<ReservationFormFieldInput[]>([]);
   const [formDesign, setFormDesign] = useState<ReservationFormDesignInput | undefined>(undefined);
-  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -86,7 +77,6 @@ export function ReservationSettingsTab() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Load settings
       const settingsResult = await getReservationSettings(venueId);
       if (settingsResult.success) {
         const data = settingsResult.data;
@@ -96,47 +86,46 @@ export function ReservationSettingsTab() {
         setManualRegistrationOnly(data.manualRegistrationOnly);
         setManageWaitlist(data.manageWaitlist);
         setExcludedLineIds(data.excludedLines.map((el) => el.lineId));
-            setDaySchedules(
-              data.daySchedules.map((ds) => ({
-                dayOfWeek: ds.dayOfWeek,
-                startTime: ds.startTime,
-                endTime: ds.endTime,
-                intervalMinutes: ds.intervalMinutes,
-                customerMessage: ds.customerMessage
-              }))
-            );
-            setFormFields(
-              data.formFields.map((ff) => ({
-                id: ff.id,
-                fieldType: ff.fieldType as ReservationFormFieldInput["fieldType"],
-                fieldKey: ff.fieldKey,
-                label: ff.label,
-                placeholder: ff.placeholder,
-                isRequired: ff.isRequired,
-                isEnabled: ff.isEnabled,
-                order: ff.order,
-                validationRules: ff.validationRules as ReservationFormFieldInput["validationRules"],
-                options: ff.options as ReservationFormFieldInput["options"]
-              }))
-            );
-            if (data.formDesign) {
-              setFormDesign({
-                primaryColor: data.formDesign.primaryColor,
-                secondaryColor: data.formDesign.secondaryColor,
-                backgroundColor: data.formDesign.backgroundColor,
-                textColor: data.formDesign.textColor,
-                buttonColor: data.formDesign.buttonColor,
-                buttonTextColor: data.formDesign.buttonTextColor,
-                borderRadius: data.formDesign.borderRadius,
-                fontFamily: data.formDesign.fontFamily,
-                headerText: data.formDesign.headerText,
-                footerText: data.formDesign.footerText,
-                logoUrl: data.formDesign.logoUrl
-              });
-            }
-          }
+        setDaySchedules(
+          data.daySchedules.map((ds) => ({
+            dayOfWeek: ds.dayOfWeek,
+            startTime: ds.startTime,
+            endTime: ds.endTime,
+            intervalMinutes: ds.intervalMinutes,
+            customerMessage: ds.customerMessage
+          }))
+        );
+        setFormFields(
+          data.formFields.map((ff) => ({
+            id: ff.id,
+            fieldType: ff.fieldType as ReservationFormFieldInput["fieldType"],
+            fieldKey: ff.fieldKey,
+            label: ff.label,
+            placeholder: ff.placeholder,
+            isRequired: ff.isRequired,
+            isEnabled: ff.isEnabled,
+            order: ff.order,
+            validationRules: ff.validationRules as ReservationFormFieldInput["validationRules"],
+            options: ff.options as ReservationFormFieldInput["options"]
+          }))
+        );
+        if (data.formDesign) {
+          setFormDesign({
+            primaryColor: data.formDesign.primaryColor,
+            secondaryColor: data.formDesign.secondaryColor,
+            backgroundColor: data.formDesign.backgroundColor,
+            textColor: data.formDesign.textColor,
+            buttonColor: data.formDesign.buttonColor,
+            buttonTextColor: data.formDesign.buttonTextColor,
+            borderRadius: data.formDesign.borderRadius,
+            fontFamily: data.formDesign.fontFamily,
+            headerText: data.formDesign.headerText,
+            footerText: data.formDesign.footerText,
+            logoUrl: data.formDesign.logoUrl
+          });
+        }
+      }
 
-      // Load lines
       const linesResult = await getVenueLines(venueId);
       if (linesResult.success) {
         setLines(linesResult.data);
@@ -152,10 +141,8 @@ export function ReservationSettingsTab() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSaving(true);
-
     try {
       const input: ReservationSettingsInput = {
         acceptsReservations,
@@ -241,42 +228,33 @@ export function ReservationSettingsTab() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-muted"></div>
-          <div className="h-5 w-96 animate-pulse rounded bg-muted"></div>
-        </div>
-        <div className="h-64 animate-pulse rounded-lg bg-muted"></div>
+      <div className="space-y-4">
+        <div className="h-9 w-48 animate-pulse rounded-lg bg-muted" />
+        <div className="h-96 animate-pulse rounded-lg bg-muted" />
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-          {t("reservations.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("reservations.subtitle")}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t("reservations.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("reservations.subtitle")}</p>
+        </div>
+        <Button onClick={handleSubmit} disabled={isSaving || !acceptsReservations} size="sm">
+          <Save className="mr-2 h-4 w-4" />
+          {isSaving ? t("common.saving") : t("common.save")}
+        </Button>
       </div>
 
-      {/* General Settings */}
-      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-        <CardHeader className="relative z-10">
-          <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
-              <Settings2 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            {t("reservations.generalSettings")}
-          </CardTitle>
-          <CardDescription>{t("reservations.generalSettingsDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent className="relative z-10 space-y-6">
-          <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
-            <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
-              <Label htmlFor="acceptsReservations" className="text-base">
+      {/* Main Toggle */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="acceptsReservations" className="text-base font-medium">
                 {t("reservations.acceptsReservations")}
               </Label>
               <p className="text-sm text-muted-foreground">
@@ -289,261 +267,272 @@ export function ReservationSettingsTab() {
               onCheckedChange={setAcceptsReservations}
             />
           </div>
-
-          {acceptsReservations && (
-            <>
-              <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
-                <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
-                  <Label htmlFor="manageWaitlist" className="text-base">
-                    {t("reservations.manageWaitlist")}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("reservations.manageWaitlistDescription")}
-                  </p>
-                </div>
-                <Switch
-                  id="manageWaitlist"
-                  checked={manageWaitlist}
-                  onCheckedChange={setManageWaitlist}
-                />
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
 
-      {/* Personal Link Settings */}
+      {!acceptsReservations && (
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-sm text-muted-foreground">
+              הפעל הזמנות כדי לראות את כל ההגדרות
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {acceptsReservations && (
-        <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-          <CardHeader className="relative z-10">
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/80 to-primary/60">
-                <Link2 className="h-5 w-5 text-primary-foreground" />
-              </div>
-              {t("reservations.personalLinkSettings")}
-            </CardTitle>
-            <CardDescription>{t("reservations.personalLinkSettingsDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="relative z-10 space-y-6">
-            <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
-              <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
-                <Label htmlFor="allowPersonalLink" className="text-base">
-                  {t("reservations.allowPersonalLink")}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {t("reservations.allowPersonalLinkDescription")}
-                </p>
-              </div>
-              <Switch
-                id="allowPersonalLink"
-                checked={allowPersonalLink}
-                onCheckedChange={(checked) => {
-                  setAllowPersonalLink(checked);
-                  if (!checked) {
-                    setRequireApproval(false);
-                    setManualRegistrationOnly(true);
-                  } else {
-                    setManualRegistrationOnly(false);
-                  }
-                }}
-              />
-            </div>
+        <Tabs defaultValue="general" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="general" className="gap-2">
+              <Settings2 className="h-4 w-4" />
+              כללי
+            </TabsTrigger>
+            <TabsTrigger value="schedule" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              לוחות זמנים
+            </TabsTrigger>
+            <TabsTrigger value="forms" className="gap-2">
+              <FileText className="h-4 w-4" />
+              טפסים
+            </TabsTrigger>
+            <TabsTrigger value="lines" className="gap-2">
+              <List className="h-4 w-4" />
+              ליינים
+            </TabsTrigger>
+          </TabsList>
 
-            {allowPersonalLink && (
-              <div className={`flex items-center ${rtlClasses.flexReverse} justify-between`}>
-                <div className={`space-y-0.5 ${rtlClasses.textAlign}`}>
-                  <Label htmlFor="requireApproval" className="text-base">
-                    {t("reservations.requireApproval")}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {t("reservations.requireApprovalDescription")}
-                  </p>
-                </div>
-                <Switch
-                  id="requireApproval"
-                  checked={requireApproval}
-                  onCheckedChange={setRequireApproval}
-                />
-              </div>
-            )}
-
-            {!allowPersonalLink && (
-              <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4">
-                <p className="text-sm font-medium text-foreground">
-                  {t("reservations.manualRegistrationOnly")}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t("reservations.manualRegistrationOnlyDescription")}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Lines Exclusions */}
-      {acceptsReservations && lines.length > 0 && (
-        <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-          <CardHeader className="relative z-10">
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/60 to-primary/40">
-                <List className="h-5 w-5 text-primary-foreground" />
-              </div>
-              {t("reservations.linesExclusions")}
-            </CardTitle>
-            <CardDescription>{t("reservations.linesExclusionsDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="relative z-10 space-y-3">
-            {lines.map((line) => (
-              <div
-                key={line.id}
-                className={`flex items-center ${rtlClasses.flexReverse} ${rtlClasses.spaceX} gap-3`}
-              >
-                <Checkbox
-                  id={`line-${line.id}`}
-                  checked={excludedLineIds.includes(line.id)}
-                  onCheckedChange={() => toggleLineExclusion(line.id)}
-                />
-                <Label
-                  htmlFor={`line-${line.id}`}
-                  className={`flex-1 cursor-pointer text-sm font-medium ${rtlClasses.textAlign}`}
-                >
-                  {line.name}
-                </Label>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Day Schedules */}
-      {acceptsReservations && allowPersonalLink && (
-        <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-          <CardHeader className="relative z-10">
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/40 to-primary/20">
-                <Calendar className="h-5 w-5 text-primary-foreground" />
-              </div>
-              {t("reservations.daySchedules")}
-            </CardTitle>
-            <CardDescription>{t("reservations.daySchedulesDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="relative z-10 space-y-6">
-            {DAYS_OF_WEEK.map((day) => {
-              const schedule = getDaySchedule(day.value);
-              return (
-                <div key={day.value} className="space-y-4 rounded-lg border p-4">
-                  <div className={`flex items-center justify-between ${rtlClasses.textAlign}`}>
-                    <Label className={`text-base font-semibold ${rtlClasses.textAlign}`}>
-                      {day.label}
+          {/* General Settings Tab */}
+          <TabsContent value="general" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">הגדרות אישיות</CardTitle>
+                <CardDescription>הגדר לינקים אישיים ואישורים</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="allowPersonalLink" className="text-sm font-medium">
+                      {t("reservations.allowPersonalLink")}
                     </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {t("reservations.allowPersonalLinkDescription")}
+                    </p>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className={`space-y-2 ${rtlClasses.textAlign}`}>
-                      <Label htmlFor={`startTime-${day.value}`} className="text-sm">
-                        {t("reservations.startTime")}
-                      </Label>
-                      <Input
-                        id={`startTime-${day.value}`}
-                        type="time"
-                        value={schedule.startTime}
-                        onChange={(e) => updateDaySchedule(day.value, "startTime", e.target.value)}
-                        dir="ltr"
-                        className={rtlClasses.textAlign}
-                      />
-                    </div>
-                    <div className={`space-y-2 ${rtlClasses.textAlign}`}>
-                      <Label htmlFor={`endTime-${day.value}`} className="text-sm">
-                        {t("reservations.endTime")}
-                      </Label>
-                      <Input
-                        id={`endTime-${day.value}`}
-                        type="time"
-                        value={schedule.endTime}
-                        onChange={(e) => updateDaySchedule(day.value, "endTime", e.target.value)}
-                        dir="ltr"
-                        className={rtlClasses.textAlign}
-                      />
-                    </div>
-                    <div className={`space-y-2 ${rtlClasses.textAlign}`}>
-                      <Label htmlFor={`interval-${day.value}`} className="text-sm">
-                        {t("reservations.intervalMinutes")} ({t("reservations.optional")})
-                      </Label>
-                      <Input
-                        id={`interval-${day.value}`}
-                        type="number"
-                        min="1"
-                        placeholder="30"
-                        value={schedule.intervalMinutes || ""}
-                        onChange={(e) =>
-                          updateDaySchedule(
-                            day.value,
-                            "intervalMinutes",
-                            e.target.value ? parseInt(e.target.value, 10) : null
-                          )
-                        }
-                        dir="ltr"
-                        className={rtlClasses.textAlign}
-                      />
-                    </div>
-                    <div className={`space-y-2 md:col-span-2 ${rtlClasses.textAlign}`}>
-                      <Label htmlFor={`message-${day.value}`} className="text-sm">
-                        {t("reservations.customerMessage")} ({t("reservations.optional")})
-                      </Label>
-                      <Textarea
-                        id={`message-${day.value}`}
-                        placeholder={t("reservations.customerMessagePlaceholder")}
-                        value={schedule.customerMessage || ""}
-                        onChange={(e) =>
-                          updateDaySchedule(day.value, "customerMessage", e.target.value || null)
-                        }
-                        rows={2}
-                        dir={dir}
-                        className={rtlClasses.textAlign}
-                      />
-                    </div>
-                  </div>
+                  <Switch
+                    id="allowPersonalLink"
+                    checked={allowPersonalLink}
+                    onCheckedChange={(checked) => {
+                      setAllowPersonalLink(checked);
+                      if (!checked) {
+                        setRequireApproval(false);
+                        setManualRegistrationOnly(true);
+                      } else {
+                        setManualRegistrationOnly(false);
+                      }
+                    }}
+                  />
                 </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Form Builder */}
-      {acceptsReservations && (
-        <>
-          <ReservationFormBuilder
-            fields={formFields}
-            onChange={setFormFields}
-            onPreview={() => setShowPreview(true)}
-          />
-          <ReservationFormDesigner
-            design={formDesign}
-            onChange={setFormDesign}
-          />
-        </>
-      )}
+                {allowPersonalLink && (
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="requireApproval" className="text-sm font-medium">
+                        {t("reservations.requireApproval")}
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        {t("reservations.requireApprovalDescription")}
+                      </p>
+                    </div>
+                    <Switch
+                      id="requireApproval"
+                      checked={requireApproval}
+                      onCheckedChange={setRequireApproval}
+                    />
+                  </div>
+                )}
 
-      {/* Submit Button */}
-      <div className={`flex ${rtlClasses.justifyEnd}`}>
-        <Button type="submit" disabled={isSaving} size="lg" className={rtlClasses.flexReverse}>
-          {isSaving ? (
-            <>
-              <Clock className={`${rtlClasses.iconMargin} h-4 w-4 animate-spin`} />
-              {t("common.saving")}
-            </>
-          ) : (
-            <>
-              <Settings2 className={`${rtlClasses.iconMargin} h-4 w-4`} />
-              {t("common.save")}
-            </>
-          )}
-        </Button>
-      </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="manageWaitlist" className="text-sm font-medium">
+                      {t("reservations.manageWaitlist")}
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      {t("reservations.manageWaitlistDescription")}
+                    </p>
+                  </div>
+                  <Switch
+                    id="manageWaitlist"
+                    checked={manageWaitlist}
+                    onCheckedChange={setManageWaitlist}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Day Schedules Tab */}
+          <TabsContent value="schedule" className="space-y-4">
+            {!allowPersonalLink ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-sm text-muted-foreground">
+                    הפעל לינקים אישיים כדי להגדיר לוחות זמנים
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">לוחות זמנים יומיים</CardTitle>
+                  <CardDescription>הגדר מתי אפשר להזמין בכל יום</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="multiple" className="w-full">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const schedule = getDaySchedule(day.value);
+                      const hasSchedule = schedule.startTime && schedule.endTime;
+                      return (
+                        <AccordionItem key={day.value} value={`day-${day.value}`}>
+                          <AccordionTrigger className="text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{day.label}</span>
+                              {hasSchedule && (
+                                <span className="text-xs text-muted-foreground">
+                                  {schedule.startTime} - {schedule.endTime}
+                                </span>
+                              )}
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="grid gap-3 pt-2 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor={`startTime-${day.value}`} className="text-xs">
+                                  שעת התחלה
+                                </Label>
+                                <Input
+                                  id={`startTime-${day.value}`}
+                                  type="time"
+                                  value={schedule.startTime}
+                                  onChange={(e) =>
+                                    updateDaySchedule(day.value, "startTime", e.target.value)
+                                  }
+                                  className="h-9"
+                                  dir="ltr"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`endTime-${day.value}`} className="text-xs">
+                                  שעת סיום
+                                </Label>
+                                <Input
+                                  id={`endTime-${day.value}`}
+                                  type="time"
+                                  value={schedule.endTime}
+                                  onChange={(e) =>
+                                    updateDaySchedule(day.value, "endTime", e.target.value)
+                                  }
+                                  className="h-9"
+                                  dir="ltr"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`interval-${day.value}`} className="text-xs">
+                                  מרווח (דקות) - אופציונלי
+                                </Label>
+                                <Input
+                                  id={`interval-${day.value}`}
+                                  type="number"
+                                  min="1"
+                                  placeholder="30"
+                                  value={schedule.intervalMinutes || ""}
+                                  onChange={(e) =>
+                                    updateDaySchedule(
+                                      day.value,
+                                      "intervalMinutes",
+                                      e.target.value ? parseInt(e.target.value, 10) : null
+                                    )
+                                  }
+                                  className="h-9"
+                                  dir="ltr"
+                                />
+                              </div>
+                              <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor={`message-${day.value}`} className="text-xs">
+                                  הודעה ללקוח - אופציונלי
+                                </Label>
+                                <Textarea
+                                  id={`message-${day.value}`}
+                                  placeholder="הודעה שתוצג ללקוח ביום זה"
+                                  value={schedule.customerMessage || ""}
+                                  onChange={(e) =>
+                                    updateDaySchedule(
+                                      day.value,
+                                      "customerMessage",
+                                      e.target.value || null
+                                    )
+                                  }
+                                  rows={2}
+                                  dir={dir}
+                                />
+                              </div>
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      );
+                    })}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Forms Tab */}
+          <TabsContent value="forms" className="space-y-4">
+            <ReservationFormBuilder
+              fields={formFields}
+              onChange={setFormFields}
+              onPreview={() => setShowPreview(true)}
+            />
+            <ReservationFormDesigner design={formDesign} onChange={setFormDesign} />
+          </TabsContent>
+
+          {/* Lines Tab */}
+          <TabsContent value="lines" className="space-y-4">
+            {lines.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-center text-sm text-muted-foreground">
+                    אין ליינים במקום זה
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">ליינים לא כוללים בהזמנות</CardTitle>
+                  <CardDescription>בחר ליינים שלא יופיעו בהזמנות</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {lines.map((line) => (
+                      <div key={line.id} className="flex items-center justify-between rounded-lg border p-3">
+                        <Label htmlFor={`line-${line.id}`} className="cursor-pointer text-sm font-medium">
+                          {line.name}
+                        </Label>
+                        <Switch
+                          id={`line-${line.id}`}
+                          checked={excludedLineIds.includes(line.id)}
+                          onCheckedChange={() => toggleLineExclusion(line.id)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
 
       {/* Preview Dialog */}
       {showPreview && (
@@ -553,6 +542,6 @@ export function ReservationSettingsTab() {
           onClose={() => setShowPreview(false)}
         />
       )}
-    </form>
+    </div>
   );
 }

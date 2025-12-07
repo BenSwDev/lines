@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Phone, Mail, MapPin, Building2, Loader2 } from "lucide-react";
+import { Phone, Mail, MapPin, Building2, Loader2, Save } from "lucide-react";
 import { getVenueDetails } from "../actions/getVenueDetails";
 import { updateVenueDetails } from "../actions/updateVenueDetails";
 import { useToast } from "@/hooks/use-toast";
@@ -54,7 +54,6 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
     setIsSaving(true);
 
     try {
-      // Sanitize inputs before sending
       const sanitizedPhone = phone.trim() ? sanitizePhone(phone.trim()) : null;
       const sanitizedEmail = email.trim() ? sanitizeEmail(email.trim()) : null;
       const sanitizedAddress = address.trim() ? sanitizeText(address.trim()) : null;
@@ -92,152 +91,143 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-muted"></div>
-          <div className="h-5 w-96 animate-pulse rounded bg-muted"></div>
-        </div>
-        <div className="h-64 animate-pulse rounded-lg bg-muted"></div>
+      <div className="space-y-4">
+        <div className="h-9 w-48 animate-pulse rounded-lg bg-muted" />
+        <div className="h-64 animate-pulse rounded-lg bg-muted" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-          {t("venueInfo.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("venueInfo.subtitle")}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t("venueInfo.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("venueInfo.subtitle")}</p>
+        </div>
       </div>
 
-      {/* Venue Name Card (Read-only) */}
-      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
-        {/* Decorative glow */}
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-
-        <CardHeader className="relative z-10">
-          <CardTitle className="flex items-center gap-3 text-xl">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80">
-              <Building2 className="h-5 w-5 text-primary-foreground" />
+      {/* Venue Name - Compact */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <Building2 className="h-5 w-5 text-primary" />
             </div>
-            {t("venueInfo.venueName")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="relative z-10">
-          <div className="rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent px-6 py-4 text-xl font-bold text-foreground shadow-sm">
-            {venue.name}
+            <div className="flex-1">
+              <Label className="text-xs text-muted-foreground">שם המקום</Label>
+              <p className="text-lg font-semibold">{venue.name}</p>
+            </div>
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">{t("venueInfo.venueNameReadOnly")}</p>
         </CardContent>
       </Card>
 
-      {/* Contact Details Card */}
-      <Card className="relative overflow-hidden border-2 border-border/50 bg-gradient-to-br from-card via-card to-primary/5 shadow-lg">
-        {/* Decorative glow */}
-        <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
-
-        <CardHeader className="relative z-10">
-          <CardTitle className="text-xl">{t("venueInfo.contactDetails")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Phone */}
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                {t("venueInfo.phoneLabel")}
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder={t("venueInfo.phonePlaceholder")}
-                disabled={isSaving}
-                className="text-base"
-                aria-label={t("venueInfo.phoneAriaLabel")}
-                aria-required="false"
-              />
-              <p className="text-xs text-muted-foreground">{t("venueInfo.phoneDescription")}</p>
+      {/* Contact Details - Grid Layout */}
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">פרטי קשר</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  עדכן את פרטי הקשר של המקום
+                </p>
+              </div>
+              <Button type="submit" disabled={isSaving} size="sm">
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    שומר...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    שמור
+                  </>
+                )}
+              </Button>
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Phone */}
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4" />
+                  {t("venueInfo.phoneLabel")}
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={t("venueInfo.phonePlaceholder")}
+                  disabled={isSaving}
+                  className="h-9"
+                />
+              </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                {t("venueInfo.emailLabel")}
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("venueInfo.emailPlaceholder")}
-                disabled={isSaving}
-                className="text-base"
-                aria-label={t("venueInfo.emailAriaLabel")}
-                aria-required="false"
-              />
-              <p className="text-xs text-muted-foreground">{t("venueInfo.emailDescription")}</p>
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4" />
+                  {t("venueInfo.emailLabel")}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("venueInfo.emailPlaceholder")}
+                  disabled={isSaving}
+                  className="h-9"
+                />
+              </div>
+
+              {/* Currency */}
+              <div className="space-y-2">
+                <Label htmlFor="currency" className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4" />
+                  מטבע תשלום
+                </Label>
+                <Select
+                  value={currency}
+                  onValueChange={(value) => setCurrency(value as "ILS" | "USD" | "GBP" | "EUR")}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ILS">₪ שקל ישראלי (ILS)</SelectItem>
+                    <SelectItem value="USD">$ דולר אמריקאי (USD)</SelectItem>
+                    <SelectItem value="GBP">£ לירה שטרלינג (GBP)</SelectItem>
+                    <SelectItem value="EUR">€ יורו (EUR)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Address - Full Width */}
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="address" className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4" />
+                  {t("venueInfo.addressLabel")}
+                </Label>
+                <Textarea
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder={t("venueInfo.addressPlaceholder")}
+                  rows={2}
+                  disabled={isSaving}
+                  className="resize-none"
+                />
+              </div>
             </div>
-
-            {/* Address */}
-            <div className="space-y-2">
-              <Label htmlFor="address" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {t("venueInfo.addressLabel")}
-              </Label>
-              <Textarea
-                id="address"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder={t("venueInfo.addressPlaceholder")}
-                rows={3}
-                disabled={isSaving}
-                className="text-base resize-none"
-                aria-label={t("venueInfo.addressAriaLabel")}
-                aria-required="false"
-              />
-              <p className="text-xs text-muted-foreground">{t("venueInfo.addressDescription")}</p>
-            </div>
-
-            {/* Currency */}
-            <div className="space-y-2">
-              <Label htmlFor="currency" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                מטבע תשלום
-              </Label>
-              <Select value={currency} onValueChange={(value) => setCurrency(value as "ILS" | "USD" | "GBP" | "EUR")} disabled={isSaving}>
-                <SelectTrigger className="text-base">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ILS">₪ שקל ישראלי (ILS)</SelectItem>
-                  <SelectItem value="USD">$ דולר אמריקאי (USD)</SelectItem>
-                  <SelectItem value="GBP">£ לירה שטרלינג (GBP)</SelectItem>
-                  <SelectItem value="EUR">€ יורו (EUR)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">המטבע שבו מתקבלים תשלומים במקום</p>
-            </div>
-
-            {/* Submit */}
-            <Button
-              type="submit"
-              disabled={isSaving}
-              size="lg"
-              className="w-full"
-              aria-label={isSaving ? t("venueInfo.savingAriaLabel") : t("venueInfo.saveAriaLabel")}
-              aria-busy={isSaving}
-            >
-              {isSaving && <Loader2 className="ml-2 h-4 w-4 animate-spin" aria-hidden="true" />}
-              {isSaving ? t("venueInfo.saving") : t("venueInfo.saveChanges")}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </form>
     </div>
   );
 }
