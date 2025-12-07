@@ -4,6 +4,47 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [1.8.0] – 2025-01-15 (Guided Tour System)
+
+### ✨ Features
+
+#### Added
+
+- **Guided Tour System**
+  - Complete step-by-step user guidance on real application screens
+  - Tooltips and highlights on actual pages (not separate demo)
+  - Progress tracking with localStorage persistence
+  - Tour button in dashboard header (auto-detects current page)
+  - Support for LINES, Roles, Map, and Menus pages
+  - Short, clear, focused explanations in Hebrew
+  - Skip/Next/Previous navigation
+  - Progress bar at top of screen
+  - Full RTL and responsive support
+
+#### Technical Details
+
+- **New Module**: `src/modules/guided-tour`
+  - `types.ts` - TypeScript types
+  - `schemas/tourSchemas.ts` - Zod validation
+  - `services/tourService.ts` - Business logic (localStorage)
+  - `data/tourContent.ts` - Tour steps and pages content
+  - `ui/TourProvider.tsx` - Context API provider
+  - `ui/TourOverlay.tsx` - Overlay with tooltips
+  - `ui/TourProgressBar.tsx` - Progress bar
+  - `ui/TourButton.tsx` - Start/stop button
+
+- **Updated Components**
+  - `DashboardLayout` - Integrated tour system
+  - `LinesTab` - Added `data-tour` attributes
+  - `LineCard` - Added `data-tour` support
+  - `EmptyState` - Added `data-tour` support
+
+#### Documentation
+
+- Added `src/modules/guided-tour/README.md` with complete documentation
+
+---
+
 ## [1.7.0] – 2025-01-XX (Roles Management & Hierarchy Improvements)
 
 ### ✨ Features
