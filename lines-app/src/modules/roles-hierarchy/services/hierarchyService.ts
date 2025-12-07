@@ -1,62 +1,42 @@
-import type { DepartmentWithRelations, RoleWithRelations, HierarchyNode } from "../types";
+import type { RoleWithRelations, HierarchyNode } from "../types";
 
 export class HierarchyService {
-  buildHierarchyTree(
-    departments: DepartmentWithRelations[],
-    roles: RoleWithRelations[]
-  ): HierarchyNode[] {
+  buildHierarchyTree(roles: RoleWithRelations[]): HierarchyNode[] {
     const nodes: HierarchyNode[] = [];
+    const roleMap = new Map<string, HierarchyNode>();
 
-    // Build department nodes
-    const departmentMap = new Map<string, HierarchyNode>();
-
-    // First pass: create all department nodes
-    departments.forEach((dept) => {
+    // First pass: create all role nodes
+    roles.forEach((role) => {
       const node: HierarchyNode = {
-        id: dept.id,
-        type: "department",
-        name: dept.name,
-        color: dept.color,
-        icon: dept.icon || undefined,
+        id: role.id,
+        type: "role",
+        name: role.name,
+        color: role.color,
+        icon: role.icon || undefined,
         children: [],
-        data: dept
+        data: role,
+        depth: 0
       };
-      departmentMap.set(dept.id, node);
+      roleMap.set(role.id, node);
     });
 
     // Second pass: build parent-child relationships
-    departments.forEach((dept) => {
-      const node = departmentMap.get(dept.id);
+    roles.forEach((role) => {
+      const node = roleMap.get(role.id);
       if (!node) return;
 
-      if (dept.parentDepartmentId) {
-        const parentNode = departmentMap.get(dept.parentDepartmentId);
+      if (role.parentRoleId) {
+        const parentNode = roleMap.get(role.parentRoleId);
         if (parentNode) {
           parentNode.children.push(node);
+          node.depth = (parentNode.depth || 0) + 1;
         } else {
           // Parent not in list, add as root
           nodes.push(node);
         }
       } else {
-        // Root department
+        // Root role
         nodes.push(node);
-      }
-    });
-
-    // Third pass: add roles to their departments
-    roles.forEach((role) => {
-      const departmentNode = departmentMap.get(role.departmentId);
-      if (departmentNode) {
-        const roleNode: HierarchyNode = {
-          id: role.id,
-          type: "role",
-          name: role.name,
-          color: role.color,
-          icon: role.icon || undefined,
-          children: [],
-          data: role
-        };
-        departmentNode.children.push(roleNode);
       }
     });
 
@@ -66,12 +46,13 @@ export class HierarchyService {
   flattenHierarchy(nodes: HierarchyNode[]): HierarchyNode[] {
     const result: HierarchyNode[] = [];
 
-    const traverse = (node: HierarchyNode) => {
-      result.push(node);
-      node.children.forEach((child) => traverse(child));
+    const traverse = (node: HierarchyNode, depth: number = 0) => {
+      const nodeWithDepth = { ...node, depth };
+      result.push(nodeWithDepth);
+      node.children.forEach((child) => traverse(child, depth + 1));
     };
 
-    nodes.forEach((node) => traverse(node));
+    nodes.forEach((node) => traverse(node, 0));
 
     return result;
   }
@@ -89,7 +70,7 @@ export class HierarchyService {
     return null;
   }
 
-  getDepartmentPath(node: HierarchyNode, nodes: HierarchyNode[]): string[] {
+  getRolePath(node: HierarchyNode, nodes: HierarchyNode[]): string[] {
     const path: string[] = [];
     const findPath = (
       currentNodes: HierarchyNode[],

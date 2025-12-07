@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { withErrorHandling } from "@/core/http/errorHandler";
 import { z } from "zod";
 
-export async function listRoles(venueId: string, departmentId?: string) {
+export async function listRoles(venueId: string, parentRoleId?: string | null) {
   try {
     const user = await getCurrentUser();
     if (!user?.id) {
@@ -15,7 +15,7 @@ export async function listRoles(venueId: string, departmentId?: string) {
     }
 
     const result = await withErrorHandling(
-      () => rolesService.listRoles(venueId, departmentId),
+      () => rolesService.listRoles(venueId, parentRoleId ?? undefined),
       "Error fetching roles"
     );
 

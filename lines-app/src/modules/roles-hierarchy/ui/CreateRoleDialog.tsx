@@ -21,7 +21,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { User } from "lucide-react";
-import type { DepartmentWithRelations } from "../types";
+import type { RoleWithRelations } from "../types";
 import { createRole } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,13 +36,18 @@ const COLORS = [
   { value: "#84CC16", label: "Lime" }
 ];
 
-const ICONS = ["👨‍🍳", "🍸", "👔", "🛡️", "📋", "🎵", "🎤", "🎬", "🏢", "🚗"];
+// Combined icons from both roles and departments
+const ICONS = [
+  "👨‍🍳", "🍸", "👔", "🛡️", "📋", "🎵", "🎤", "🎬", "🏢", "🚗",
+  "🍽️", "🍺", "👨‍💼", "👩‍💼", "👨‍⚕️", "👩‍⚕️", "👨‍🔧", "👩‍🔧", "👨‍🎓", "👩‍🎓",
+  "🎯", "⚡", "🔥", "💼", "🎪", "🎭", "🎨", "🎸", "🥁", "🎹"
+];
 
 type CreateRoleDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   venueId: string;
-  departments: DepartmentWithRelations[];
+  parentRoles?: RoleWithRelations[];
   onSuccess: () => void;
 };
 
@@ -50,7 +55,7 @@ export function CreateRoleDialog({
   isOpen,
   onClose,
   venueId,
-  departments,
+  parentRoles = [],
   onSuccess
 }: CreateRoleDialogProps) {
   const { toast } = useToast();
@@ -58,7 +63,8 @@ export function CreateRoleDialog({
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(COLORS[0].value);
   const [icon, setIcon] = useState("");
-  const [departmentId, setDepartmentId] = useState("");
+  const [parentRoleId, setParentRoleId] = useState("");
+  const [order, setOrder] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -68,7 +74,8 @@ export function CreateRoleDialog({
       setDescription("");
       setColor(COLORS[0].value);
       setIcon("");
-      setDepartmentId("");
+      setParentRoleId("");
+      setOrder(0);
       setError("");
     }
   }, [isOpen]);
@@ -82,11 +89,6 @@ export function CreateRoleDialog({
       return;
     }
 
-    if (!departmentId) {
-      setError("Department is required");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -95,7 +97,8 @@ export function CreateRoleDialog({
         description: description.trim() || undefined,
         color,
         icon: icon || undefined,
-        departmentId
+        parentRoleId: parentRoleId || undefined,
+        order
       });
 
       if (result.success) {
@@ -125,7 +128,7 @@ export function CreateRoleDialog({
             </div>
             <div>
               <DialogTitle>Create Role</DialogTitle>
-              <DialogDescription>Add a new role to a department</DialogDescription>
+              <DialogDescription>Add a new role to the organization</DialogDescription>
             </div>
           </div>
         </DialogHeader>
@@ -157,23 +160,39 @@ export function CreateRoleDialog({
               />
             </div>
 
+            {parentRoles.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="parent">Parent Role (optional)</Label>
+                <Select
+                  value={parentRoleId || undefined}
+                  onValueChange={(value) => setParentRoleId(value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="parent">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {parentRoles.map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="department">Department *</Label>
-              <Select value={departmentId} onValueChange={setDepartmentId} disabled={isSubmitting}>
-                <SelectTrigger id="department">
-                  <SelectValue placeholder="Select a department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {error && !departmentId && (
-                <p className="text-sm text-destructive">Department is required</p>
-              )}
+              <Label htmlFor="order">Display Order</Label>
+              <Input
+                id="order"
+                type="number"
+                min="0"
+                value={order}
+                onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+                placeholder="0"
+                disabled={isSubmitting}
+              />
             </div>
 
             <div className="space-y-2">
@@ -222,7 +241,7 @@ export function CreateRoleDialog({
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !name.trim() || !departmentId}>
+            <Button type="submit" disabled={isSubmitting || !name.trim()}>
               {isSubmitting ? "Creating..." : "Create"}
             </Button>
           </DialogFooter>

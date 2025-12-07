@@ -21,7 +21,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { User } from "lucide-react";
-import type { RoleWithRelations, DepartmentWithRelations } from "../types";
+import type { RoleWithRelations } from "../types";
 import { updateRole } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,14 +36,19 @@ const COLORS = [
   { value: "#84CC16", label: "Lime" }
 ];
 
-const ICONS = ["👨‍🍳", "🍸", "👔", "🛡️", "📋", "🎵", "🎤", "🎬", "🏢", "🚗"];
+// Combined icons from both roles and departments
+const ICONS = [
+  "👨‍🍳", "🍸", "👔", "🛡️", "📋", "🎵", "🎤", "🎬", "🏢", "🚗",
+  "🍽️", "🍺", "👨‍💼", "👩‍💼", "👨‍⚕️", "👩‍⚕️", "👨‍🔧", "👩‍🔧", "👨‍🎓", "👩‍🎓",
+  "🎯", "⚡", "🔥", "💼", "🎪", "🎭", "🎨", "🎸", "🥁", "🎹"
+];
 
 type EditRoleDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   venueId: string;
   role: RoleWithRelations;
-  departments: DepartmentWithRelations[];
+  availableParents?: RoleWithRelations[];
   onSuccess: () => void;
 };
 
@@ -52,7 +57,7 @@ export function EditRoleDialog({
   onClose,
   venueId,
   role,
-  departments,
+  availableParents = [],
   onSuccess
 }: EditRoleDialogProps) {
   const { toast } = useToast();
@@ -60,7 +65,8 @@ export function EditRoleDialog({
   const [description, setDescription] = useState(role.description || "");
   const [color, setColor] = useState(role.color);
   const [icon, setIcon] = useState(role.icon || "");
-  const [departmentId, setDepartmentId] = useState(role.departmentId);
+  const [parentRoleId, setParentRoleId] = useState(role.parentRoleId || "");
+  const [order, setOrder] = useState(role.order || 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -70,7 +76,8 @@ export function EditRoleDialog({
       setDescription(role.description || "");
       setColor(role.color);
       setIcon(role.icon || "");
-      setDepartmentId(role.departmentId);
+      setParentRoleId(role.parentRoleId || "");
+      setOrder(role.order || 0);
       setError("");
     }
   }, [isOpen, role]);
@@ -84,11 +91,6 @@ export function EditRoleDialog({
       return;
     }
 
-    if (!departmentId) {
-      setError("Department is required");
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
@@ -97,7 +99,8 @@ export function EditRoleDialog({
         description: description.trim() || null,
         color,
         icon: icon || null,
-        departmentId
+        parentRoleId: parentRoleId ? parentRoleId : null,
+        order
       });
 
       if (result.success) {
@@ -159,23 +162,39 @@ export function EditRoleDialog({
               />
             </div>
 
+            {availableParents.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="parent">Parent Role (optional)</Label>
+                <Select
+                  value={parentRoleId || undefined}
+                  onValueChange={(value) => setParentRoleId(value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="parent">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableParents.map((parentRole) => (
+                      <SelectItem key={parentRole.id} value={parentRole.id}>
+                        {parentRole.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="department">Department *</Label>
-              <Select value={departmentId} onValueChange={setDepartmentId} disabled={isSubmitting}>
-                <SelectTrigger id="department">
-                  <SelectValue placeholder="Select a department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {error && !departmentId && (
-                <p className="text-sm text-destructive">Department is required</p>
-              )}
+              <Label htmlFor="order">Display Order</Label>
+              <Input
+                id="order"
+                type="number"
+                min="0"
+                value={order}
+                onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+                placeholder="0"
+                disabled={isSubmitting}
+              />
             </div>
 
             <div className="space-y-2">
@@ -224,7 +243,7 @@ export function EditRoleDialog({
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !name.trim() || !departmentId}>
+            <Button type="submit" disabled={isSubmitting || !name.trim()}>
               {isSubmitting ? "Updating..." : "Update"}
             </Button>
           </DialogFooter>

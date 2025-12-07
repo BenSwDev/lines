@@ -102,7 +102,6 @@ model Venue {
   areas               VenueArea[]
   reservationSettings ReservationSettings?
   floorPlanTemplates  FloorPlanTemplate[]
-  departments         Department[]
   roles               Role[]
 
   @@index([userId])
@@ -461,30 +460,6 @@ model LineReservationDaySchedule {
 // ROLES & HIERARCHY
 // ============================================================================
 
-model Department {
-  id                String    @id @default(cuid())
-  venueId           String
-  name              String
-  description       String?
-  color             String
-  icon              String?
-  parentDepartmentId String?
-  order             Int       @default(0)
-  isActive          Boolean   @default(true)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  // Relationships
-  venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  parentDepartment Department? @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id], onDelete: SetNull)
-  childDepartments  Department[] @relation("DepartmentHierarchy")
-  roles             Role[]
-
-  @@index([venueId])
-  @@index([parentDepartmentId])
-  @@map("departments")
-}
-
 model Role {
   id                String    @id @default(cuid())
   venueId           String
@@ -492,17 +467,19 @@ model Role {
   description       String?
   icon              String?
   color             String
-  departmentId      String
+  parentRoleId      String?
+  order             Int       @default(0)
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   // Relationships
   venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  department        Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  parentRole        Role?     @relation("RoleHierarchy", fields: [parentRoleId], references: [id], onDelete: SetNull)
+  childRoles        Role[]    @relation("RoleHierarchy")
 
   @@index([venueId])
-  @@index([departmentId])
+  @@index([parentRoleId])
   @@map("roles")
 }
 

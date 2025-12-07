@@ -1,48 +1,22 @@
-import type { Department, Role } from "@prisma/client";
-
-export type DepartmentWithRelations = Department & {
-  parentDepartment: Department | null;
-  childDepartments: Department[];
-  roles: Role[];
-  _count?: {
-    roles: number;
-  };
-};
+import type { Role } from "@prisma/client";
 
 export type RoleWithRelations = Role & {
-  department: Department;
+  parentRole: Role | null;
+  childRoles: Role[];
   _count?: {
-    assignments?: number;
+    childRoles?: number;
   };
 };
 
 export type HierarchyNode = {
   id: string;
-  type: "department" | "role";
+  type: "role";
   name: string;
   color: string;
   icon?: string;
   children: HierarchyNode[];
-  data: Department | Role;
-};
-
-export type CreateDepartmentInput = {
-  name: string;
-  description?: string;
-  color: string;
-  icon?: string;
-  parentDepartmentId?: string;
-  order?: number;
-};
-
-export type UpdateDepartmentInput = {
-  name?: string;
-  description?: string | null;
-  color?: string;
-  icon?: string | null;
-  parentDepartmentId?: string | null;
-  order?: number;
-  isActive?: boolean;
+  data: Role;
+  depth?: number;
 };
 
 export type CreateRoleInput = {
@@ -50,7 +24,8 @@ export type CreateRoleInput = {
   description?: string;
   icon?: string;
   color: string;
-  departmentId: string;
+  parentRoleId?: string;
+  order?: number;
 };
 
 export type UpdateRoleInput = {
@@ -58,6 +33,7 @@ export type UpdateRoleInput = {
   description?: string | null;
   icon?: string | null;
   color?: string;
-  departmentId?: string;
+  parentRoleId?: string | null;
+  order?: number;
   isActive?: boolean;
 };

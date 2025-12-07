@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronRight, ChevronDown, Folder, User } from "lucide-react";
-import { getDepartmentHierarchy } from "../actions/departmentActions";
+import { ChevronRight, ChevronDown, User } from "lucide-react";
 import { listRoles } from "../actions/roleActions";
 import { hierarchyService } from "../services/hierarchyService";
 import type { HierarchyNode } from "../types";
@@ -20,20 +19,11 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
 
   const loadHierarchy = async () => {
     setIsLoading(true);
-    const [departmentsResult, rolesResult] = await Promise.all([
-      getDepartmentHierarchy(venueId),
-      listRoles(venueId)
-    ]);
+    const rolesResult = await listRoles(venueId);
 
-    if (
-      departmentsResult.success &&
-      "data" in departmentsResult &&
-      rolesResult.success &&
-      "data" in rolesResult
-    ) {
-      const departments = departmentsResult.data || [];
+    if (rolesResult.success && "data" in rolesResult) {
       const roles = rolesResult.data || [];
-      const tree = hierarchyService.buildHierarchyTree(departments, roles);
+      const tree = hierarchyService.buildHierarchyTree(roles);
       setHierarchy(tree);
       // Expand all by default
       const allIds = new Set<string>();
@@ -71,7 +61,6 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
   const renderNode = (node: HierarchyNode, depth: number = 0) => {
     const isExpanded = expanded.has(node.id);
     const hasChildren = node.children.length > 0;
-    const isDepartment = node.type === "department";
 
     return (
       <div key={node.id} className="select-none">
@@ -91,15 +80,11 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
           )}
 
           <div
-            className={`flex h-8 w-8 items-center justify-center rounded-md ${
-              isDepartment ? "rounded-lg" : "rounded-full"
-            }`}
+            className="flex h-8 w-8 items-center justify-center rounded-full"
             style={{ backgroundColor: `${node.color}20` }}
           >
             {node.icon ? (
               <span className="text-lg">{node.icon}</span>
-            ) : isDepartment ? (
-              <Folder className="h-4 w-4" style={{ color: node.color }} />
             ) : (
               <User className="h-4 w-4" style={{ color: node.color }} />
             )}
@@ -120,7 +105,7 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
       <div className="space-y-4">
         <div>
           <h2 className="text-2xl font-bold">Hierarchy</h2>
-          <p className="text-muted-foreground">Visual representation of departments and roles</p>
+          <p className="text-muted-foreground">Visual representation of roles and their hierarchy</p>
         </div>
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -134,10 +119,10 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
   if (hierarchy.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Folder className="mb-4 h-12 w-12 text-muted-foreground" />
+        <User className="mb-4 h-12 w-12 text-muted-foreground" />
         <h3 className="text-lg font-semibold">No hierarchy yet</h3>
         <p className="text-sm text-muted-foreground">
-          Create departments and roles to see the hierarchy
+          Create roles to see the hierarchy
         </p>
       </div>
     );
@@ -147,7 +132,7 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
     <div className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold">Hierarchy</h2>
-        <p className="text-muted-foreground">Visual representation of departments and roles</p>
+        <p className="text-muted-foreground">Visual representation of roles and their hierarchy</p>
       </div>
       <div className="rounded-lg border bg-card p-4">
         {hierarchy.map((node) => renderNode(node))}

@@ -3,19 +3,21 @@ import type { Role } from "@prisma/client";
 import type { CreateRoleInput, UpdateRoleInput, RoleWithRelations } from "../types";
 
 export class RolesService {
-  async listRoles(venueId: string, departmentId?: string): Promise<RoleWithRelations[]> {
+  async listRoles(venueId: string, parentRoleId?: string | null): Promise<RoleWithRelations[]> {
     return prisma.role.findMany({
       where: {
         venueId,
-        ...(departmentId && { departmentId }),
+        ...(parentRoleId !== undefined && { parentRoleId: parentRoleId || null }),
         isActive: true
       },
       include: {
-        department: true
+        parentRole: true,
+        childRoles: true
       },
-      orderBy: {
-        name: "asc"
-      }
+      orderBy: [
+        { order: "asc" },
+        { name: "asc" }
+      ]
     });
   }
 
@@ -23,22 +25,25 @@ export class RolesService {
     return prisma.role.findUnique({
       where: { id },
       include: {
-        department: true
+        parentRole: true,
+        childRoles: true
       }
     });
   }
 
   async createRole(venueId: string, input: CreateRoleInput): Promise<Role> {
-    // Validate department exists and belongs to same venue
-    const department = await prisma.department.findFirst({
-      where: {
-        id: input.departmentId,
-        venueId,
-        isActive: true
+    // Validate parent role exists and belongs to same venue if provided
+    if (input.parentRoleId) {
+      const parentRole = await prisma.role.findFirst({
+        where: {
+          id: input.parentRoleId,
+          venueId,
+          isActive: true
+        }
+      });
+      if (!parentRole) {
+        throw new Error("Parent role not found or does not belong to this venue");
       }
-    });
-    if (!department) {
-      throw new Error("Department not found or does not belong to this venue");
     }
 
     return prisma.role.create({
@@ -48,7 +53,8 @@ export class RolesService {
         description: input.description,
         icon: input.icon,
         color: input.color,
-        departmentId: input.departmentId
+        parentRoleId: input.parentRoleId,
+        order: input.order ?? 0
       }
     });
   }
@@ -62,17 +68,24 @@ export class RolesService {
       throw new Error("Role not found or does not belong to this venue");
     }
 
-    // Validate department if provided
-    if (input.departmentId) {
-      const department = await prisma.department.findFirst({
-        where: {
-          id: input.departmentId,
-          venueId,
-          isActive: true
+    // Validate parent role if provided
+    if (input.parentRoleId !== undefined) {
+      if (input.parentRoleId) {
+        // Check parent exists and belongs to same venue
+        const parentRole = await prisma.role.findFirst({
+          where: {
+            id: input.parentRoleId,
+            venueId,
+            isActive: true
+          }
+        });
+        if (!parentRole) {
+          throw new Error("Parent role not found or does not belong to this venue");
         }
-      });
-      if (!department) {
-        throw new Error("Department not found or does not belong to this venue");
+        // Prevent circular reference
+        if (input.parentRoleId === id) {
+          throw new Error("A role cannot be its own parent");
+        }
       }
     }
 
@@ -83,7 +96,8 @@ export class RolesService {
         description: input.description,
         icon: input.icon,
         color: input.color,
-        departmentId: input.departmentId,
+        parentRoleId: input.parentRoleId ?? undefined,
+        order: input.order,
         isActive: input.isActive
       }
     });
@@ -98,26 +112,33 @@ export class RolesService {
       throw new Error("Role not found or does not belong to this venue");
     }
 
-    // Note: In the future, if we add staff assignments, we should check for those here
-    // For now, we can safely delete roles
+    // Check if role has child roles
+    const childRoles = await prisma.role.findMany({
+      where: { parentRoleId: id }
+    });
+    if (childRoles.length > 0) {
+      throw new Error("Cannot delete role with child roles. Please reassign or delete child roles first.");
+    }
 
     return prisma.role.delete({
       where: { id }
     });
   }
 
-  async getRolesByDepartment(departmentId: string): Promise<RoleWithRelations[]> {
+  async getRolesByParent(parentRoleId: string | null): Promise<RoleWithRelations[]> {
     return prisma.role.findMany({
       where: {
-        departmentId,
+        parentRoleId,
         isActive: true
       },
       include: {
-        department: true
+        parentRole: true,
+        childRoles: true
       },
-      orderBy: {
-        name: "asc"
-      }
+      orderBy: [
+        { order: "asc" },
+        { name: "asc" }
+      ]
     });
   }
 }

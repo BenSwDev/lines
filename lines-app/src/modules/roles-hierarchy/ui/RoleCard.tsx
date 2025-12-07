@@ -51,7 +51,14 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <Badge variant="secondary">{role.department.name}</Badge>
+        {role.parentRole && (
+          <Badge variant="secondary">Parent: {role.parentRole.name}</Badge>
+        )}
+        {role.childRoles && role.childRoles.length > 0 && (
+          <Badge variant="outline" className="ml-2">
+            {role.childRoles.length} {role.childRoles.length === 1 ? "child" : "children"}
+          </Badge>
+        )}
       </CardContent>
     </Card>
   );

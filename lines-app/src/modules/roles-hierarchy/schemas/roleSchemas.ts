@@ -5,7 +5,8 @@ export const createRoleSchema = z.object({
   description: z.string().max(500, "Description is too long").optional(),
   icon: z.string().max(50).optional(),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
-  departmentId: z.string().min(1, "Department is required")
+  parentRoleId: z.string().optional(),
+  order: z.number().int().min(0).default(0)
 });
 
 export const updateRoleSchema = z.object({
@@ -16,7 +17,8 @@ export const updateRoleSchema = z.object({
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/)
     .optional(),
-  departmentId: z.string().min(1).optional(),
+  parentRoleId: z.string().optional().nullable(),
+  order: z.number().int().min(0).optional(),
   isActive: z.boolean().optional()
 });
 

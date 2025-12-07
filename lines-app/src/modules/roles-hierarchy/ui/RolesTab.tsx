@@ -14,7 +14,6 @@ import { RoleCard } from "./RoleCard";
 import { CreateRoleDialog } from "./CreateRoleDialog";
 import { EditRoleDialog } from "./EditRoleDialog";
 import { listRoles, deleteRole } from "../actions/roleActions";
-import { listDepartments } from "../actions/departmentActions";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -24,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import type { RoleWithRelations, DepartmentWithRelations } from "../types";
+import type { RoleWithRelations } from "../types";
 
 type RolesTabProps = {
   venueId: string;
@@ -33,8 +32,7 @@ type RolesTabProps = {
 export function RolesTab({ venueId }: RolesTabProps) {
   const { toast } = useToast();
   const [roles, setRoles] = useState<RoleWithRelations[]>([]);
-  const [departments, setDepartments] = useState<DepartmentWithRelations[]>([]);
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("all");
+  const [selectedParentRoleId, setSelectedParentRoleId] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleWithRelations | null>(null);
@@ -42,10 +40,10 @@ export function RolesTab({ venueId }: RolesTabProps) {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [rolesResult, departmentsResult] = await Promise.all([
-      listRoles(venueId, selectedDepartmentId === "all" ? undefined : selectedDepartmentId),
-      listDepartments(venueId)
-    ]);
+    const rolesResult = await listRoles(
+      venueId,
+      selectedParentRoleId === "all" ? undefined : selectedParentRoleId || null
+    );
 
     if (rolesResult.success && "data" in rolesResult) {
       setRoles(rolesResult.data || []);
@@ -58,17 +56,13 @@ export function RolesTab({ venueId }: RolesTabProps) {
       });
     }
 
-    if (departmentsResult.success && "data" in departmentsResult) {
-      setDepartments(departmentsResult.data || []);
-    }
-
     setIsLoading(false);
   };
 
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId, selectedDepartmentId]);
+  }, [venueId, selectedParentRoleId]);
 
   const handleCreate = () => {
     setIsCreateOpen(true);
@@ -105,10 +99,15 @@ export function RolesTab({ venueId }: RolesTabProps) {
     setDeletingRole(null);
   };
 
+  // Get available parent roles (all roles except the one being edited)
+  const availableParents = editingRole
+    ? roles.filter((r) => r.id !== editingRole.id && r.id !== editingRole.parentRoleId)
+    : roles;
+
   const filteredRoles =
-    selectedDepartmentId === "all"
+    selectedParentRoleId === "all"
       ? roles
-      : roles.filter((r) => r.departmentId === selectedDepartmentId);
+      : roles.filter((r) => (r.parentRoleId || null) === (selectedParentRoleId || null));
 
   if (isLoading) {
     return (
@@ -116,7 +115,7 @@ export function RolesTab({ venueId }: RolesTabProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Roles</h2>
-            <p className="text-muted-foreground">Manage roles within departments</p>
+            <p className="text-muted-foreground">Manage organizational roles and hierarchy</p>
           </div>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
@@ -138,41 +137,36 @@ export function RolesTab({ venueId }: RolesTabProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Roles</h2>
-            <p className="text-muted-foreground">Manage roles within departments</p>
+            <p className="text-muted-foreground">Manage organizational roles and hierarchy</p>
           </div>
-          <Button onClick={handleCreate} disabled={departments.length === 0}>
+          <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Create
           </Button>
         </div>
 
-        {departments.length > 0 && (
+        {roles.length > 0 && (
           <div className="flex items-center gap-2">
-            <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
+            <Select value={selectedParentRoleId} onValueChange={setSelectedParentRoleId}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by department" />
+                <SelectValue placeholder="Filter by parent" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="none">No Parent (Root)</SelectItem>
+                {roles
+                  .filter((r) => !r.parentRoleId)
+                  .map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
         )}
 
-        {departments.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <User className="mb-4 h-12 w-12 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">No departments yet</h3>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Create a department first before adding roles
-            </p>
-          </div>
-        ) : filteredRoles.length === 0 ? (
+        {filteredRoles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <User className="mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="text-lg font-semibold">No roles yet</h3>
@@ -197,7 +191,7 @@ export function RolesTab({ venueId }: RolesTabProps) {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         venueId={venueId}
-        departments={departments}
+        parentRoles={roles.filter((r) => !r.parentRoleId)}
         onSuccess={loadData}
       />
 
@@ -207,7 +201,7 @@ export function RolesTab({ venueId }: RolesTabProps) {
           onClose={() => setEditingRole(null)}
           venueId={venueId}
           role={editingRole}
-          departments={departments}
+          availableParents={availableParents}
           onSuccess={loadData}
         />
       )}
