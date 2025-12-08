@@ -8,6 +8,7 @@ import { lineScheduleService } from "../services/lineScheduleService";
 import { lineOccurrencesSyncService } from "../services/lineOccurrencesSyncService";
 import { checkMultipleCollisions, type TimeRange } from "@/core/validation";
 import type { OccurrenceInput } from "../services/lineOccurrencesSyncService";
+import type { Prisma } from "@prisma/client";
 
 export async function updateLine(venueId: string, lineId: string, input: unknown) {
   try {
@@ -28,16 +29,20 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
 
     const validated = updateLineSchema.parse(input);
 
-    // Update the Line
-    const updatedLine = await lineRepository.update(lineId, {
-      ...(validated.name && { name: validated.name }),
-      ...(validated.days && { days: validated.days }),
-      ...(validated.startTime && { startTime: validated.startTime }),
-      ...(validated.endTime && { endTime: validated.endTime }),
-      ...(validated.frequency && { frequency: validated.frequency }),
-      ...(validated.color && { color: validated.color }),
-      ...(validated.floorPlanId !== undefined && { floorPlanId: validated.floorPlanId })
-    });
+    // Build update data object, filtering out undefined values
+    // Note: We need to use UncheckedUpdateInput to directly set floorPlanId field
+    const updateData: Prisma.LineUncheckedUpdateInput = {};
+    
+    if (validated.name !== undefined) updateData.name = validated.name;
+    if (validated.days !== undefined) updateData.days = validated.days;
+    if (validated.startTime !== undefined) updateData.startTime = validated.startTime;
+    if (validated.endTime !== undefined) updateData.endTime = validated.endTime;
+    if (validated.frequency !== undefined) updateData.frequency = validated.frequency;
+    if (validated.color !== undefined) updateData.color = validated.color;
+    if (validated.floorPlanId !== undefined) updateData.floorPlanId = validated.floorPlanId;
+
+    // Update the Line - only send defined fields
+    const updatedLine = await lineRepository.update(lineId, updateData as Prisma.LineUpdateInput);
 
     // Use daySchedules if provided, otherwise use legacy fields
     const daySchedules =
