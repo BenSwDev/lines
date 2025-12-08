@@ -30,6 +30,7 @@ import { translateError } from "@/utils/translateError";
 import { COLOR_PALETTE } from "@/core/config/constants";
 import type { TimeRange } from "@/core/validation";
 import { cn } from "@/lib/utils";
+import { toISODate } from "@/utils/date";
 import type { Line } from "@prisma/client";
 
 type CreateLineDialogProps = {
@@ -239,7 +240,7 @@ export function CreateLineDialog({
       // Single occurrence - only if it's within the year
       if (startDate <= endOfYear) {
         occurrences.push({
-          date: startDate.toISOString().split("T")[0],
+          date: toISODate(startDate),
           startTime,
           endTime
         });
@@ -251,7 +252,7 @@ export function CreateLineDialog({
         const dayOfWeek = d.getDay();
         if (selectedDays.includes(dayOfWeek)) {
           occurrences.push({
-            date: d.toISOString().split("T")[0],
+            date: toISODate(d),
             startTime,
             endTime
           });
@@ -287,7 +288,7 @@ export function CreateLineDialog({
             checkDate <= endOfYear
           ) {
             occurrences.push({
-              date: checkDate.toISOString().split("T")[0],
+              date: toISODate(checkDate),
               startTime,
               endTime
             });
