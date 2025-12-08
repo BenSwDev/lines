@@ -7,16 +7,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BookOpen,
-  Lightbulb,
-  Video,
-  Sparkles,
-  Plus,
-  Save,
-  Grid,
-  Layers
-} from "lucide-react";
+import { BookOpen, Lightbulb, Video, Sparkles, Plus, Save, Grid, Layers } from "lucide-react";
 import { useDevice } from "../../hooks";
 import { ResponsiveDialog } from "../Dialogs/ResponsiveDialog";
 

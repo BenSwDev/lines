@@ -66,7 +66,7 @@ import { useTranslations } from "@/core/i18n/provider";
 import { useToast } from "@/hooks/use-toast";
 import { saveVenueFloorPlan } from "../actions/floorPlanActions";
 import { getAllTemplates } from "../utils/floorPlanTemplates";
-import { loadUserTemplates, saveTemplate, deleteTemplate } from "../actions/templateActions";
+import { saveTemplate } from "../actions/templateActions";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
 import { AddElementDialog } from "./AddElementDialog";
@@ -99,6 +99,9 @@ import { EmptyState } from "./UX/EmptyState";
 import { ContextualToolbar } from "./UX/ContextualToolbar";
 import { SuccessAnimation } from "./UX/SuccessAnimation";
 import { HelpPanel } from "./UX/HelpPanel";
+import { ContextAwareSidebar } from "./Sidebar/ContextAwareSidebar";
+import { useDevice } from "../hooks/useDevice";
+import { arrangeInGrid } from "../utils/smartAutoArrangement";
 // import { ResponsiveDialog } from "./Dialogs/ResponsiveDialog"; // Reserved for future use
 import {
   alignElements,
@@ -188,6 +191,7 @@ export function FloorPlanEditorV2({
 }: FloorPlanEditorV2Props) {
   const { t } = useTranslations();
   const { toast } = useToast();
+  const device = useDevice();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [elements, setElements] = useState<FloorPlanElement[]>(initialElements);
@@ -243,17 +247,8 @@ export function FloorPlanEditorV2({
     specialAreas: { visible: true, locked: false }
   });
   const [showLayersPanel, setShowLayersPanel] = useState(false);
-  const [customTemplates, setCustomTemplates] = useState<
-    Array<{
-      id: string;
-      userId: string;
-      venueId?: string | null;
-      name: string;
-      description?: string | null;
-      elements: FloorPlanElement[];
-      defaultCapacity: number;
-    }>
-  >([]);
+  // Custom templates removed - using only recommended templates for simplicity
+  // const [customTemplates, setCustomTemplates] = useState<...>([]);
 
   // Polygon drawing mode
   const [isDrawingPolygon, setIsDrawingPolygon] = useState(false);
@@ -358,21 +353,8 @@ export function FloorPlanEditorV2({
   // Load custom templates
   useEffect(() => {
     if (userId) {
-      loadUserTemplates(userId, venueId).then((result) => {
-        if (result.success && "data" in result && result.data) {
-          setCustomTemplates(
-            result.data as unknown as Array<{
-              id: string;
-              userId: string;
-              venueId?: string | null;
-              name: string;
-              description?: string | null;
-              elements: FloorPlanElement[];
-              defaultCapacity: number;
-            }>
-          );
-        }
-      });
+      // Custom templates removed - using only recommended templates for simplicity
+      // loadUserTemplates(userId, venueId).then((result) => { ... });
     }
   }, [userId, venueId]);
 
@@ -1261,6 +1243,60 @@ export function FloorPlanEditorV2({
     setEditingElement(null);
   }, [editingElement, elements, updateElementsWithHistory, autoLinkElementsToZones]);
 
+  // Handle element save from Properties Panel
+  const handleSaveElement = useCallback(
+    (updates: Partial<FloorPlanElement>) => {
+      if (!selectedElementId) return;
+
+      const updatedElements = elements.map((e) =>
+        e.id === selectedElementId ? { ...e, ...updates } : e
+      );
+
+      // Auto-link after update
+      const linkedElements = autoLinkElementsToZones(updatedElements);
+      updateElementsWithHistory(linkedElements);
+    },
+    [selectedElementId, elements, updateElementsWithHistory, autoLinkElementsToZones]
+  );
+
+  // Handle layer visibility toggle
+  const handleToggleLayerVisibility = useCallback((layer: "zones" | "tables" | "specialAreas") => {
+    setLayers((prev) => ({
+      ...prev,
+      [layer]: { ...prev[layer], visible: !prev[layer].visible }
+    }));
+  }, []);
+
+  // Handle layer lock toggle
+  const handleToggleLayerLock = useCallback((layer: "zones" | "tables" | "specialAreas") => {
+    setLayers((prev) => ({
+      ...prev,
+      [layer]: { ...prev[layer], locked: !prev[layer].locked }
+    }));
+  }, []);
+
+  // Handle bulk actions
+  const handleBulkAction = useCallback(
+    (action: string, elementIds: string[]) => {
+      if (action === "delete") {
+        elementIds.forEach((id) => handleDeleteElement(id));
+      } else if (action === "changeColor") {
+        // TODO: Implement color change dialog
+        toast({
+          title: t("floorPlan.colorChange") || "שינוי צבע",
+          description: t("floorPlan.colorChangeDescription") || "פונקציה זו תהיה זמינה בקרוב"
+        });
+      } else if (action === "moveToZone") {
+        // TODO: Implement zone move dialog
+        toast({
+          title: t("floorPlan.moveToZone") || "העבר לאזור",
+          description: t("floorPlan.moveToZoneDescription") || "פונקציה זו תהיה זמינה בקרוב"
+        });
+      }
+    },
+    [handleDeleteElement, toast, t]
+  );
+
   // Context panel removed - using Edit Dialog instead
 
   // Mouse down on element
@@ -1840,8 +1876,7 @@ export function FloorPlanEditorV2({
     handleRedo,
     handleCopy,
     handlePaste,
-    handleDuplicate,
-    updateElementsWithHistory
+    handleDuplicate
   ]);
 
   // Mouse move - handle dragging, resizing, and rotating
@@ -2558,8 +2593,6 @@ export function FloorPlanEditorV2({
     handleCopy,
     handlePaste,
     handleDeleteElement,
-    updateElementsWithHistory,
-    selectedElementIds,
     isFullscreen,
     setIsFullscreen,
     selectionMode,
@@ -2878,7 +2911,6 @@ export function FloorPlanEditorV2({
     venueId,
     userId,
     elements,
-    totalCapacity,
     capacityError,
     hasValidationWarnings,
     validationWarnings.length,
@@ -2914,21 +2946,7 @@ export function FloorPlanEditorV2({
             description: `התבנית &quot;${name}&quot; נשמרה בהצלחה`
           });
           setSaveTemplateDialogOpen(false);
-          // Reload custom templates
-          const templatesResult = await loadUserTemplates(userId, venueId);
-          if (templatesResult.success && "data" in templatesResult && templatesResult.data) {
-            setCustomTemplates(
-              templatesResult.data as unknown as Array<{
-                id: string;
-                userId: string;
-                venueId?: string | null;
-                name: string;
-                description?: string | null;
-                elements: FloorPlanElement[];
-                defaultCapacity: number;
-              }>
-            );
-          }
+          // Custom templates removed - using only recommended templates for simplicity
         } else {
           throw new Error(result.error || "שגיאה בשמירת תבנית");
         }
@@ -3844,10 +3862,35 @@ export function FloorPlanEditorV2({
           </div>
         )}
 
-        {/* Main Content - Canvas Only (Panel moved to overlay) */}
+        {/* Main Content - Canvas-Centric Layout with Sidebar */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Layers Panel */}
-          {showLayersPanel && (
+          {/* Context-Aware Sidebar - Desktop/Tablet */}
+          {device.isDesktop || device.isTablet ? (
+            <div
+              className={`shrink-0 border-r bg-card ${
+                device.isDesktop ? "w-[280px]" : "w-[240px]"
+              }`}
+            >
+              <ContextAwareSidebar
+                elements={elements}
+                selectedElementId={selectedElementId}
+                selectedElementIds={selectedElementIds}
+                onSelectElement={setSelectedElementId}
+                onAddTable={handleQuickAddTable}
+                onAddZone={handleQuickAddZone}
+                onAddArea={handleQuickAddArea}
+                onDeleteElement={handleDeleteElement}
+                onEditElement={handleEditElement}
+                onBulkAction={handleBulkAction}
+                onSaveElement={handleSaveElement}
+                layers={layers}
+                onToggleLayerVisibility={handleToggleLayerVisibility}
+                onToggleLayerLock={handleToggleLayerLock}
+              />
+            </div>
+          ) : null}
+          {/* Old Layers Panel - Remove this */}
+          {false && showLayersPanel && (
             <Card className="w-64 border-r shrink-0 p-4">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -4442,239 +4485,99 @@ export function FloorPlanEditorV2({
 
         {/* Context Panel removed - using Edit Dialog instead when edit button is clicked */}
 
-        {/* Template Selection Dialog - Professional Map Creation */}
+        {/* Template Selection Dialog - Simple 4-6 Recommended Templates */}
         <Dialog open={templateDialogOpen} onOpenChange={setTemplateDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{t("floorPlan.createMap")}</DialogTitle>
-              <DialogDescription>{t("floorPlan.createMapDescription")}</DialogDescription>
+              <DialogTitle>{t("floorPlan.createMap") || "התחל עם תבנית"}</DialogTitle>
+              <DialogDescription>
+                {t("floorPlan.createMapDescription") || "בחר תבנית מוכנה או התחל מאפס"}
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6 py-4">
-              {/* Event Venues Category */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3">
-                  {t("floorPlan.categories.eventVenues")}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getAllTemplates()
-                    .filter((t) => ["event_hall", "conference_hall", "concert_hall"].includes(t.id))
-                    .map((template) => (
-                      <Card
-                        key={template.id}
-                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
-                        onClick={() => {
-                          const newElements = template.elements.map((el) => ({
-                            ...el,
-                            id: `${el.id}-${Date.now()}`
-                          }));
-                          // Auto-link elements to zones after loading template
-                          const linkedElements = autoLinkElementsToZones(newElements);
-                          setElements(linkedElements);
-                          setVenueCapacity(template.defaultCapacity);
-                          // Reset zoom and pan to center on template
-                          setZoom(1);
-                          setPanOffset({ x: 0, y: 0 });
-                          // Clear selection
-                          setSelectedElementId(null);
-                          setSelectedElementIds(new Set());
-                          setTemplateDialogOpen(false);
-                          toast({
-                            title: t("success.templateLoaded"),
-                            description: t("success.templateLoadedDescription", {
-                              name: template.name
-                            })
-                          });
-                        }}
-                      >
-                        <div className="p-4">
-                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {template.description}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>
-                              {template.elements.length} {t("floorPlan.elements")}
-                            </span>
-                            <span>
-                              {template.defaultCapacity} {t("common.seats")}
-                            </span>
-                          </div>
+            <div className="space-y-4 py-4">
+              {/* Recommended Templates - Simple Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {getAllTemplates()
+                  .filter((t) =>
+                    [
+                      "restaurant",
+                      "bar",
+                      "event_hall",
+                      "conference_hall",
+                      "shalvata",
+                      "club"
+                    ].includes(t.id)
+                  )
+                  .slice(0, 6)
+                  .map((template) => (
+                    <Card
+                      key={template.id}
+                      className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
+                      onClick={() => {
+                        const newElements = template.elements.map((el) => ({
+                          ...el,
+                          id: `${el.id}-${Date.now()}`
+                        }));
+                        // Auto-link elements to zones after loading template
+                        const linkedElements = autoLinkElementsToZones(newElements);
+                        setElements(linkedElements);
+                        setVenueCapacity(template.defaultCapacity);
+                        // Reset zoom and pan to center on template
+                        setZoom(1);
+                        setPanOffset({ x: 0, y: 0 });
+                        // Clear selection
+                        setSelectedElementId(null);
+                        setSelectedElementIds(new Set());
+                        setTemplateDialogOpen(false);
+                        toast({
+                          title: t("success.templateLoaded"),
+                          description: t("success.templateLoadedDescription", {
+                            name: template.name
+                          })
+                        });
+                      }}
+                    >
+                      <div className="p-4">
+                        <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>
+                            {template.elements.length} {t("floorPlan.elements")}
+                          </span>
+                          <span>
+                            {template.defaultCapacity} {t("common.seats")}
+                          </span>
                         </div>
-                      </Card>
-                    ))}
-                </div>
+                      </div>
+                    </Card>
+                  ))}
               </div>
 
-              {/* Dining & Entertainment Category */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3">
-                  {t("floorPlan.categories.diningEntertainment")}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getAllTemplates()
-                    .filter((t) => ["restaurant", "bar", "club", "shalvata"].includes(t.id))
-                    .map((template) => (
-                      <Card
-                        key={template.id}
-                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary"
-                        onClick={() => {
-                          const newElements = template.elements.map((el) => ({
-                            ...el,
-                            id: `${el.id}-${Date.now()}`
-                          }));
-                          // Auto-link elements to zones after loading template
-                          const linkedElements = autoLinkElementsToZones(newElements);
-                          setElements(linkedElements);
-                          setVenueCapacity(template.defaultCapacity);
-                          // Reset zoom and pan to center on template
-                          setZoom(1);
-                          setPanOffset({ x: 0, y: 0 });
-                          // Clear selection
-                          setSelectedElementId(null);
-                          setSelectedElementIds(new Set());
-                          setTemplateDialogOpen(false);
-                          toast({
-                            title: t("success.templateLoaded"),
-                            description: t("success.templateLoadedDescription", {
-                              name: template.name
-                            })
-                          });
-                        }}
-                      >
-                        <div className="p-4">
-                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {template.description}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>
-                              {template.elements.length} {t("floorPlan.elements")}
-                            </span>
-                            <span>
-                              {template.defaultCapacity} {t("common.seats")}
-                            </span>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                </div>
-              </div>
-
-              {/* Custom Templates */}
-              {customTemplates.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">התבניות שלי</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {customTemplates.map((template) => (
-                      <Card
-                        key={template.id}
-                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary relative group"
-                        onClick={() => {
-                          const newElements = template.elements.map((el: FloorPlanElement) => ({
-                            ...el,
-                            id: `${el.id}-${Date.now()}`
-                          }));
-                          // Auto-link elements to zones after loading custom template
-                          const linkedElements = autoLinkElementsToZones(newElements);
-                          setElements(linkedElements);
-                          setVenueCapacity(template.defaultCapacity);
-                          setZoom(1);
-                          setPanOffset({ x: 0, y: 0 });
-                          setSelectedElementId(null);
-                          setSelectedElementIds(new Set());
-                          setTemplateDialogOpen(false);
-                          toast({
-                            title: t("success.templateLoaded"),
-                            description: t("success.templateLoadedDescription", {
-                              name: template.name
-                            })
-                          });
-                        }}
-                      >
-                        <div className="p-4">
-                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {template.description || ""}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>
-                              {template.elements.length} {t("floorPlan.elements")}
-                            </span>
-                            <span>
-                              {template.defaultCapacity} {t("common.seats")}
-                            </span>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm("האם למחוק את התבנית?")) {
-                              // eslint-disable-line no-alert
-                              deleteTemplate(template.id, userId!).then((result) => {
-                                if (result.success) {
-                                  setCustomTemplates(
-                                    customTemplates.filter((t) => t.id !== template.id)
-                                  );
-                                  toast({
-                                    title: "תבנית נמחקה",
-                                    description: `התבנית "${template.name}" נמחקה בהצלחה`
-                                  });
-                                }
-                              });
-                            }
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </Card>
-                    ))}
+              {/* Empty Canvas Option */}
+              <div className="pt-4 border-t">
+                <Card
+                  className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary border-dashed"
+                  onClick={() => {
+                    setElements([]);
+                    setVenueCapacity(0);
+                    setSelectedElementId(null);
+                    setSelectedElementIds(new Set());
+                    setTemplateDialogOpen(false);
+                    toast({
+                      title: t("success.mapCleared") || "מפה ריקה",
+                      description: t("success.mapClearedDescription") || "התחל ליצור מפה חדשה מאפס"
+                    });
+                  }}
+                >
+                  <div className="p-4 text-center">
+                    <h4 className="font-semibold mb-2 text-lg">
+                      {t("floorPlan.startFromScratch") || "התחל מאפס"}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {t("floorPlan.startFromScratchDescription") || "צור מפה חדשה מאפס"}
+                    </p>
                   </div>
-                </div>
-              )}
-
-              {/* Start from Scratch */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3">{t("floorPlan.categories.custom")}</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getAllTemplates()
-                    .filter((t) => t.id === "empty")
-                    .map((template) => (
-                      <Card
-                        key={template.id}
-                        className="cursor-pointer transition-all hover:scale-105 hover:shadow-lg border-2 hover:border-primary border-dashed"
-                        onClick={() => {
-                          setElements([]);
-                          setVenueCapacity(0);
-                          // Reset zoom and pan
-                          setZoom(1);
-                          setPanOffset({ x: 0, y: 0 });
-                          // Clear selection
-                          setSelectedElementId(null);
-                          setSelectedElementIds(new Set());
-                          setTemplateDialogOpen(false);
-                          toast({
-                            title: t("success.templateLoaded"),
-                            description: t("success.templateLoadedDescription", {
-                              name: template.name
-                            })
-                          });
-                        }}
-                      >
-                        <div className="p-4">
-                          <h4 className="font-semibold mb-2 text-lg">{template.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">
-                            {template.description}
-                          </p>
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>{t("floorPlan.startFromScratch")}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                </div>
+                </Card>
               </div>
             </div>
           </DialogContent>
