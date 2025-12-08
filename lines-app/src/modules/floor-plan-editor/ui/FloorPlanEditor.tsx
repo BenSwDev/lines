@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, FileText, Users, DollarSign, Settings } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/core/i18n/provider";
 import { FloorPlanViewer } from "./viewer/FloorPlanViewer";
 import { ContentEditor } from "./modes/ContentEditor";
 import { StaffingEditor } from "./modes/StaffingEditor";
@@ -28,6 +29,7 @@ interface FloorPlanEditorProps {
 }
 
 export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEditorProps) {
+  const { t } = useTranslations();
   const router = useRouter();
   const [mode, setMode] = useState<EditorMode>("view");
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
@@ -111,10 +113,22 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
   };
 
   const tabs = [
-    { id: "view", label: "מבנה מקום כללי", icon: Eye },
-    { id: "content", label: "תכולה", icon: FileText },
-    { id: "staffing", label: "סידור עבודה", icon: Users },
-    { id: "minimum-order", label: "מינימום", icon: DollarSign }
+    {
+      id: "view",
+      label: t("floorPlan.generalStructure", { defaultValue: "מבנה מקום כללי" }),
+      icon: Eye
+    },
+    { id: "content", label: t("floorPlan.contentMode", { defaultValue: "תכולה" }), icon: FileText },
+    {
+      id: "staffing",
+      label: t("floorPlan.staffingMode", { defaultValue: "סידור עבודה" }),
+      icon: Users
+    },
+    {
+      id: "minimum-order",
+      label: t("floorPlan.minimumOrderMode", { defaultValue: "מינימום" }),
+      icon: DollarSign
+    }
   ] as const;
 
   return (
@@ -133,10 +147,14 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {isLocked && <span className="text-sm text-muted-foreground">🔒 נעול</span>}
+          {isLocked && (
+            <span className="text-sm text-muted-foreground">
+              🔒 {t("floorPlan.locked", { defaultValue: "נעול" })}
+            </span>
+          )}
           <Button variant="outline" size="sm" onClick={handleBack}>
             <Settings className="h-4 w-4 mr-2" />
-            הגדרות
+            {t("floorPlan.settings", { defaultValue: "הגדרות" })}
           </Button>
         </div>
       </div>
@@ -146,7 +164,12 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
         <div className="px-6 py-3 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800">
           <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 text-sm">
             <span>🔒</span>
-            <span>המפה נעולה - ניתן לצפות בלבד. כדי לערוך, יש לבטל את הנעילה בהגדרות המפה.</span>
+            <span>
+              {t("floorPlan.lockedViewOnly", {
+                defaultValue:
+                  "המפה נעולה - ניתן לצפות בלבד. כדי לערוך, יש לבטל את הנעילה בהגדרות המפה."
+              })}
+            </span>
           </div>
         </div>
       )}
@@ -188,7 +211,78 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden flex-row-reverse">
+          {/* Sidebar - Right side for Hebrew */}
+          <div className="w-80 border-r bg-background overflow-y-auto">
+            <TabsContent value="view" className="m-0">
+              <StructureBuilder
+                floorPlan={floorPlan}
+                venueId={venueId}
+                selectedElementId={selectedElementId}
+                selectedElementType={selectedElementType}
+                onElementSelect={handleElementSelect}
+                onElementAdd={handleElementAdd}
+                onElementDelete={handleElementDelete}
+                canEdit={canEdit}
+              />
+            </TabsContent>
+            <TabsContent value="content" className="m-0">
+              {canEdit ? (
+                <ContentEditor
+                  selectedZone={getSelectedZone()}
+                  selectedTable={getSelectedTable()}
+                  floorPlan={floorPlan}
+                  onElementSelect={handleElementSelect}
+                />
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>
+                    {t("floorPlan.lockedCannotEdit", {
+                      defaultValue: "המפה נעולה - לא ניתן לערוך"
+                    })}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="staffing" className="m-0">
+              {canEdit ? (
+                <StaffingEditor
+                  selectedZone={getSelectedZone()}
+                  selectedTable={getSelectedTable()}
+                  floorPlan={floorPlan}
+                  roles={roles}
+                  onElementSelect={handleElementSelect}
+                />
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>
+                    {t("floorPlan.lockedCannotEdit", {
+                      defaultValue: "המפה נעולה - לא ניתן לערוך"
+                    })}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+            <TabsContent value="minimum-order" className="m-0">
+              {canEdit ? (
+                <MinimumOrderEditor
+                  selectedZone={getSelectedZone()}
+                  selectedTable={getSelectedTable()}
+                  floorPlan={floorPlan}
+                  onElementSelect={handleElementSelect}
+                />
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>
+                    {t("floorPlan.lockedCannotEdit", {
+                      defaultValue: "המפה נעולה - לא ניתן לערוך"
+                    })}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </div>
+
           {/* Main Canvas */}
           <div className="flex-1 p-4 overflow-auto bg-muted/30">
             <TabsContent value="view" className="m-0 h-full">
@@ -227,65 +321,6 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                 mode="minimum-order"
                 canEdit={canEdit}
               />
-            </TabsContent>
-          </div>
-
-          {/* Sidebar */}
-          <div className="w-80 border-l bg-background overflow-y-auto">
-            <TabsContent value="view" className="m-0">
-              <StructureBuilder
-                floorPlan={floorPlan}
-                venueId={venueId}
-                selectedElementId={selectedElementId}
-                selectedElementType={selectedElementType}
-                onElementSelect={handleElementSelect}
-                onElementAdd={handleElementAdd}
-                onElementDelete={handleElementDelete}
-                canEdit={canEdit}
-              />
-            </TabsContent>
-            <TabsContent value="content" className="m-0">
-              {canEdit ? (
-                <ContentEditor
-                  selectedZone={getSelectedZone()}
-                  selectedTable={getSelectedTable()}
-                  floorPlan={floorPlan}
-                  onElementSelect={handleElementSelect}
-                />
-              ) : (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>המפה נעולה - לא ניתן לערוך</p>
-                </div>
-              )}
-            </TabsContent>
-            <TabsContent value="staffing" className="m-0">
-              {canEdit ? (
-                <StaffingEditor
-                  selectedZone={getSelectedZone()}
-                  selectedTable={getSelectedTable()}
-                  floorPlan={floorPlan}
-                  roles={roles}
-                  onElementSelect={handleElementSelect}
-                />
-              ) : (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>המפה נעולה - לא ניתן לערוך</p>
-                </div>
-              )}
-            </TabsContent>
-            <TabsContent value="minimum-order" className="m-0">
-              {canEdit ? (
-                <MinimumOrderEditor
-                  selectedZone={getSelectedZone()}
-                  selectedTable={getSelectedTable()}
-                  floorPlan={floorPlan}
-                  onElementSelect={handleElementSelect}
-                />
-              ) : (
-                <div className="p-8 text-center text-muted-foreground">
-                  <p>המפה נעולה - לא ניתן לערוך</p>
-                </div>
-              )}
             </TabsContent>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { UtensilsCrossed, Music, Building2, Users, Sparkles, X } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createFloorPlan } from "../actions/floorPlanActions";
+import { useTranslations } from "@/core/i18n/provider";
 
 interface FloorPlanTemplateSelectorProps {
   venueId: string;
@@ -22,48 +23,56 @@ interface Template {
   color: string;
 }
 
-const templates: Template[] = [
+const getTemplates = (
+  t: (key: string, options?: { defaultValue: string }) => string
+): Template[] => [
   {
     id: "empty",
-    name: "מפה ריקה",
-    description: "התחל מאפס",
+    name: t("floorPlan.emptyTemplate", { defaultValue: "מפה ריקה" }),
+    description: t("floorPlan.emptyTemplateDescription", { defaultValue: "התחל מאפס" }),
     icon: Sparkles,
     color: "#6B7280"
   },
   {
     id: "restaurant",
-    name: "מסעדה",
-    description: "מבנה אופטימלי למסעדה",
+    name: t("floorPlan.restaurantTemplate", { defaultValue: "מסעדה" }),
+    description: t("floorPlan.restaurantTemplateDescription", {
+      defaultValue: "מבנה אופטימלי למסעדה"
+    }),
     icon: UtensilsCrossed,
     color: "#10B981"
   },
   {
     id: "bar",
-    name: "בר",
-    description: "מבנה אופטימלי לבר",
+    name: t("floorPlan.barTemplate", { defaultValue: "בר" }),
+    description: t("floorPlan.barTemplateDescription", { defaultValue: "מבנה אופטימלי לבר" }),
     icon: Music,
     color: "#3B82F6"
   },
   {
     id: "club",
-    name: "מועדון",
-    description: "מבנה אופטימלי למועדון",
+    name: t("floorPlan.clubTemplate", { defaultValue: "מועדון" }),
+    description: t("floorPlan.clubTemplateDescription", { defaultValue: "מבנה אופטימלי למועדון" }),
     icon: Building2,
     color: "#8B5CF6"
   },
   {
     id: "event-hall",
-    name: "אולם אירועים",
-    description: "מבנה אופטימלי לאולם אירועים",
+    name: t("floorPlan.eventHallTemplate", { defaultValue: "אולם אירועים" }),
+    description: t("floorPlan.eventHallTemplateDescription", {
+      defaultValue: "מבנה אופטימלי לאולם אירועים"
+    }),
     icon: Users,
     color: "#F59E0B"
   }
 ];
 
 export function FloorPlanTemplateSelector({ venueId, onCancel }: FloorPlanTemplateSelectorProps) {
+  const { t } = useTranslations();
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const templates = getTemplates(t);
 
   const handleCreate = async () => {
     if (!selectedTemplate) return;
@@ -73,7 +82,9 @@ export function FloorPlanTemplateSelector({ venueId, onCancel }: FloorPlanTempla
       const templateData = getTemplateData(selectedTemplate);
       const result = await createFloorPlan({
         venueId,
-        name: templates.find((t) => t.id === selectedTemplate)?.name || "מפה חדשה",
+        name:
+          templates.find((tmpl) => tmpl.id === selectedTemplate)?.name ||
+          t("floorPlan.newFloorPlan", { defaultValue: "מפה חדשה" }),
         isDefault: false,
         ...templateData
       });
@@ -94,8 +105,14 @@ export function FloorPlanTemplateSelector({ venueId, onCancel }: FloorPlanTempla
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div>
-            <h2 className="text-2xl font-bold">בחר טמפלט למפה</h2>
-            <p className="text-muted-foreground mt-1">בחר טמפלט להתחלה או התחל מאפס</p>
+            <h2 className="text-2xl font-bold">
+              {t("floorPlan.selectTemplate", { defaultValue: "בחר טמפלט למפה" })}
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              {t("floorPlan.selectTemplateDescription", {
+                defaultValue: "בחר טמפלט להתחלה או התחל מאפס"
+              })}
+            </p>
           </div>
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="h-5 w-5" />
@@ -150,14 +167,16 @@ export function FloorPlanTemplateSelector({ venueId, onCancel }: FloorPlanTempla
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t">
           <Button variant="outline" onClick={onCancel}>
-            ביטול
+            {t("common.cancel", { defaultValue: "ביטול" })}
           </Button>
           <Button
             onClick={handleCreate}
             disabled={!selectedTemplate || isCreating}
             className="gap-2"
           >
-            {isCreating ? "יוצר..." : "צור מפה"}
+            {isCreating
+              ? t("floorPlan.creating", { defaultValue: "יוצר..." })
+              : t("floorPlan.createFloorPlanFromTemplate", { defaultValue: "צור מפה" })}
           </Button>
         </div>
       </div>

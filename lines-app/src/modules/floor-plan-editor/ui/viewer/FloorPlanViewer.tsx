@@ -48,7 +48,7 @@ export function FloorPlanViewer({
           variant="ghost"
           size="icon"
           onClick={handleZoomIn}
-          title={t("zoomIn", { defaultValue: "Zoom In" })}
+          title={t("floorPlan.zoomIn", { defaultValue: "הגדל" })}
         >
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -56,7 +56,7 @@ export function FloorPlanViewer({
           variant="ghost"
           size="icon"
           onClick={handleZoomOut}
-          title={t("zoomOut", { defaultValue: "Zoom Out" })}
+          title={t("floorPlan.zoomOut", { defaultValue: "הקטן" })}
         >
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -64,7 +64,7 @@ export function FloorPlanViewer({
           variant="ghost"
           size="icon"
           onClick={handleReset}
-          title={t("resetView", { defaultValue: "Reset View" })}
+          title={t("floorPlan.resetView", { defaultValue: "איפוס תצוגה" })}
         >
           <Maximize2 className="h-4 w-4" />
         </Button>
@@ -108,7 +108,9 @@ export function FloorPlanViewer({
               onClick={() => onElementSelect(zone.id, "zone")}
               onTableClick={(tableId) => onElementSelect(tableId, "table")}
               onDelete={onElementDelete ? () => onElementDelete(zone.id, "zone") : undefined}
-              onTableDelete={onElementDelete ? (tableId) => onElementDelete(tableId, "table") : undefined}
+              onTableDelete={
+                onElementDelete ? (tableId) => onElementDelete(tableId, "table") : undefined
+              }
               mode={mode}
               canEdit={canEdit}
             />
@@ -119,7 +121,7 @@ export function FloorPlanViewer({
       {/* Info Bar */}
       <div className="px-4 py-2 border-t bg-background/80 backdrop-blur text-sm text-muted-foreground flex items-center justify-between">
         <span>
-          {t("zoom", { defaultValue: "Zoom" })}: {Math.round(zoom * 100)}%
+          {t("floorPlan.zoom", { defaultValue: "זום" })}: {Math.round(zoom * 100)}%
         </span>
         <span>
           {floorPlan.zones.length} {t("zones", { defaultValue: "zones" })} •
