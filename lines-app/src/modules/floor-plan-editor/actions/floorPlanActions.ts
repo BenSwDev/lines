@@ -71,6 +71,23 @@ export async function getDefaultFloorPlan(venueId: string): Promise<{
 }
 
 /**
+ * Get all lines for a venue (for floor plan assignment)
+ */
+export async function getVenueLines(venueId: string): Promise<{
+  success: boolean;
+  data?: { id: string; name: string; color: string }[];
+  error?: string;
+}> {
+  try {
+    const lines = await floorPlanService.getVenueLines(venueId);
+    return { success: true, data: lines };
+  } catch (error) {
+    console.error("Error getting venue lines:", error);
+    return { success: false, error: "Failed to get venue lines" };
+  }
+}
+
+/**
  * Get floor plan statistics
  */
 export async function getFloorPlanStats(id: string): Promise<{

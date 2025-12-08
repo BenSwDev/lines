@@ -118,6 +118,22 @@ export const floorPlanService = {
     return floorPlan as FloorPlanWithDetails | null;
   },
 
+  /**
+   * Get all lines for a venue (for floor plan assignment)
+   */
+  async getVenueLines(venueId: string): Promise<{ id: string; name: string; color: string }[]> {
+    const lines = await prisma.line.findMany({
+      where: { venueId },
+      select: {
+        id: true,
+        name: true,
+        color: true
+      },
+      orderBy: { name: "asc" }
+    });
+    return lines;
+  },
+
   // --------------------------------------------------------------------------
   // CREATE OPERATIONS
   // --------------------------------------------------------------------------
