@@ -25,7 +25,8 @@
     "redo": "חזור",
     "duplicate": "שכפל",
     "finish": "סיום",
-    "current": "current"
+    "current": "current",
+    "default": "ברירת מחדל"
   },
   "floorPlan": {
     "title": "תכנון מקום",
@@ -226,11 +227,13 @@
     "emptyTemplate": "מפה ריקה",
     "emptyTemplateDescription": "התחל מאפס",
     "restaurantTemplate": "מסעדה",
+    "restaurantTemplateDescription": "מבנה אופטימלי למסעדה",
     "barTemplate": "בר",
     "barTemplateDescription": "מבנה אופטימלי לבר",
     "clubTemplate": "מועדון",
     "clubTemplateDescription": "מבנה אופטימלי למועדון",
     "eventHallTemplate": "אולם אירועים",
+    "eventHallTemplateDescription": "מבנה אופטימלי לאולם אירועים",
     "newFloorPlan": "מפה חדשה",
     "creating": "יוצר...",
     "createFloorPlanFromTemplate": "צור מפה",
@@ -252,6 +255,8 @@
     "tablesInZone": "שולחנות באיזור",
     "editContent": "עריכת תכולה",
     "selectElementToEdit": "בחר אלמנט לעריכה",
+    "selectLinePlaceholder": "בחר ליין",
+    "descriptionPlaceholder": "הזן תיאור",
     "editMinimumOrder": "עריכת מינימום הזמנה",
     "minimumOrderAmount": "סכום מינימום הזמנה",
     "quickPresets": "ערכים מהירים",
@@ -281,7 +286,9 @@
     "selectedArea": "איזור מיוחד נבחר",
     "resetView": "איפוס תצוגה",
     "zoom": "זום",
-    "namePlaceholder": "הכנס שם מפה..."
+    "namePlaceholder": "הכנס שם מפה...",
+    "selectLine": "בחר ליין (אופציונלי)",
+    "generalSettings": "הגדרות כלליות למפה"
   },
   "tickets": {
     "title": "הגדרות כרטיסים",
@@ -361,13 +368,13 @@
     "addressAriaLabel": "כתובת",
     "savingAriaLabel": "שומר שינויים",
     "saveAriaLabel": "שמור שינויים",
-    "phonePlaceholder": "phonePlaceholder",
-    "emailPlaceholder": "emailPlaceholder",
-    "addressPlaceholder": "addressPlaceholder"
+    "phonePlaceholder": "הזן מספר טלפון",
+    "emailPlaceholder": "הזן כתובת אימייל",
+    "addressPlaceholder": "הזן כתובת מלאה"
   },
   "workspace": {
     "backToHome": "חזרה לבית",
-    "info": "פרטי מקום",
+    "info": "מידע כללי",
     "settings": "הגדרות מקום",
     "lines": "ליינים",
     "calendar": "לוח שנה",
@@ -378,7 +385,6 @@
     "myVenues": "המקומות שלי",
     "noVenuesYet": "אין מקומות עדיין",
     "navigation": "מידע והגדרות",
-    "info": "מידע כללי",
     "structure": "מבנה (מפות)",
     "menus": "תפריטים",
     "roles": "תפקידים והיררכיה",
@@ -673,7 +679,12 @@
         "title": "תכנוני מקום אינטראקטיביים",
         "subtitle": "ניהול מקום ויזואלי",
         "content": "צור תכנוני מקום מפורטים עם שולחנות, אזורים, ברים ואזורים מיוחדים. ממשק גרירה ושחרור עם תבניות מקצועיות.",
-        "highlights": ["עורך גרירה ושחרור", "תבניות מקצועיות", "סוגי מפות מרובים", "יכולות ייצוא"]
+        "highlights": [
+          "עורך גרירה ושחרור",
+          "תבניות מקצועיות",
+          "סוגי מפות מרובים",
+          "יכולות ייצוא"
+        ]
       }
     },
     "question": {

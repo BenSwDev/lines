@@ -25,7 +25,8 @@
     "redo": "Redo",
     "duplicate": "Duplicate",
     "finish": "Finish",
-    "current": "current"
+    "current": "current",
+    "default": "Default"
   },
   "floorPlan": {
     "title": "Floor Plan",
@@ -226,11 +227,13 @@
     "emptyTemplate": "Empty Template",
     "emptyTemplateDescription": "Start from scratch",
     "restaurantTemplate": "Restaurant",
+    "restaurantTemplateDescription": "Optimal structure for a restaurant",
     "barTemplate": "Bar",
     "barTemplateDescription": "Optimal structure for a bar",
     "clubTemplate": "Club",
     "clubTemplateDescription": "Optimal structure for a club",
     "eventHallTemplate": "Event Hall",
+    "eventHallTemplateDescription": "Optimal structure for an event hall",
     "newFloorPlan": "New Floor Plan",
     "creating": "Creating...",
     "createFloorPlanFromTemplate": "Create Floor Plan",
@@ -252,6 +255,8 @@
     "tablesInZone": "Tables in Zone",
     "editContent": "Edit Content",
     "selectElementToEdit": "Select an element to edit its content",
+    "selectLinePlaceholder": "Select a line",
+    "descriptionPlaceholder": "Enter description",
     "editMinimumOrder": "Edit Minimum Order",
     "minimumOrderAmount": "Minimum Order Amount",
     "quickPresets": "Quick Presets",
@@ -282,9 +287,9 @@
     "resetView": "Reset View",
     "zoom": "Zoom",
     "lockedViewOnly": "The floor plan is locked - view only. To edit, unlock it in the floor plan settings.",
-    "eventHallTemplateDescription": "Optimal structure for an event hall",
-    "restaurantTemplateDescription": "Optimal structure for a restaurant",
-    "namePlaceholder": "Enter floor plan name..."
+    "namePlaceholder": "Enter floor plan name...",
+    "selectLine": "Select Line",
+    "generalSettings": "General Settings"
   },
   "tickets": {
     "title": "Ticket Settings",
@@ -364,9 +369,9 @@
     "addressAriaLabel": "Address",
     "savingAriaLabel": "Saving changes",
     "saveAriaLabel": "Save changes",
-    "phonePlaceholder": "phonePlaceholder",
-    "emailPlaceholder": "emailPlaceholder",
-    "addressPlaceholder": "addressPlaceholder"
+    "phonePlaceholder": "Enter phone number",
+    "emailPlaceholder": "Enter email address",
+    "addressPlaceholder": "Enter full address"
   },
   "workspace": {
     "backToHome": "Back to Home",
@@ -383,6 +388,13 @@
     "navigation": "Navigation",
     "dashboard": "Dashboard",
     "dashboardDescription": "Overview of activity and settings",
+    "structure": "Structure (Maps)",
+    "menus": "Menus",
+    "roles": "Roles & Hierarchy",
+    "reservations": "Reservation Settings",
+    "tickets": "Tickets",
+    "inventory": "Inventory",
+    "team": "Team",
     "floorPlans": "Floor Plans",
     "activeToday": "Active Today",
     "totalEvents": "Total Events",
@@ -399,7 +411,14 @@
     "noLinesYet": "No Lines Yet",
     "noLinesYetDescription": "Create your first line to get started",
     "createFirstLine": "Create First Line",
-    "open": "Open"
+    "open": "Open",
+    "structure": "Structure",
+    "menus": "Menus",
+    "roles": "Roles",
+    "reservations": "Reservations",
+    "tickets": "Tickets",
+    "inventory": "Inventory",
+    "team": "Team"
   },
   "lines": {
     "days": "Days",
