@@ -17,18 +17,12 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({
-  onAddElement,
-  onUseTemplate,
-  className = ""
-}: EmptyStateProps) {
+export function EmptyState({ onAddElement, onUseTemplate, className = "" }: EmptyStateProps) {
   const { t } = useTranslations();
   const device = useDevice();
 
   return (
-    <div
-      className={`flex flex-col items-center justify-center h-full p-8 ${className}`}
-    >
+    <div className={`flex flex-col items-center justify-center h-full p-8 ${className}`}>
       <Card className="max-w-md w-full p-8 text-center space-y-6">
         <div className="flex justify-center">
           <div className="rounded-full bg-muted p-6">
@@ -46,27 +40,16 @@ export function EmptyState({
           </p>
         </div>
 
-        <div
-          className={`flex gap-3 ${device.isMobile ? "flex-col" : "flex-row justify-center"}`}
-        >
+        <div className={`flex gap-3 ${device.isMobile ? "flex-col" : "flex-row justify-center"}`}>
           {onUseTemplate && (
-            <Button
-              onClick={onUseTemplate}
-              size="lg"
-              className="gap-2 flex-1"
-            >
+            <Button onClick={onUseTemplate} size="lg" className="gap-2 flex-1">
               <Sparkles className="h-5 w-5" />
               {t("floorPlan.templates") || "התחל עם תבנית"}
             </Button>
           )}
 
           {onAddElement && (
-            <Button
-              onClick={onAddElement}
-              variant="outline"
-              size="lg"
-              className="gap-2 flex-1"
-            >
+            <Button onClick={onAddElement} variant="outline" size="lg" className="gap-2 flex-1">
               <Plus className="h-5 w-5" />
               {t("floorPlan.addElement") || "הוסף אובייקט"}
             </Button>
@@ -76,4 +59,3 @@ export function EmptyState({
     </div>
   );
 }
-

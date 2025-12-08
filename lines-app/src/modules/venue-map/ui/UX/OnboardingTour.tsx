@@ -58,7 +58,7 @@ export function OnboardingTour({
 
     // Try data attribute first
     let element = document.querySelector(`[data-tour="${step.target}"]`) as HTMLElement;
-    
+
     // Fallback to CSS selector
     if (!element) {
       element = document.querySelector(step.target) as HTMLElement;
@@ -149,11 +149,7 @@ export function OnboardingTour({
   return (
     <>
       {/* Overlay */}
-      <div
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={handleNext}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={handleNext} aria-hidden="true" />
 
       {/* Highlight target element */}
       {targetElement && (
@@ -169,22 +165,14 @@ export function OnboardingTour({
       )}
 
       {/* Tooltip */}
-      <Card
-        className="fixed z-50 max-w-sm p-6 shadow-xl"
-        style={getTooltipPosition()}
-      >
+      <Card className="fixed z-50 max-w-sm p-6 shadow-xl" style={getTooltipPosition()}>
         <div className="space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-1">{step.title}</h3>
               <p className="text-sm text-muted-foreground">{step.description}</p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSkip}
-              className="h-6 w-6"
-            >
+            <Button variant="ghost" size="icon" onClick={handleSkip} className="h-6 w-6">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -195,22 +183,13 @@ export function OnboardingTour({
             </div>
             <div className="flex gap-2">
               {!isFirst && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handlePrevious}
-                >
+                <Button variant="outline" size="sm" onClick={handlePrevious}>
                   <ArrowRight className="h-4 w-4 ml-1" />
                   {t("common.previous") || "הקודם"}
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={handleNext}
-              >
-                {isLast
-                  ? t("common.finish") || "סיום"
-                  : t("common.next") || "הבא"}
+              <Button size="sm" onClick={handleNext}>
+                {isLast ? t("common.finish") || "סיום" : t("common.next") || "הבא"}
                 {!isLast && <ArrowLeft className="h-4 w-4 mr-1" />}
               </Button>
             </div>
@@ -220,4 +199,3 @@ export function OnboardingTour({
     </>
   );
 }
-

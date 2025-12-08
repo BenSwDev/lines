@@ -76,8 +76,7 @@ export function useSearchElements<T extends { name: string; type?: string }>(
     const query = searchQuery.toLowerCase();
     return elements.filter(
       (el) =>
-        el.name.toLowerCase().includes(query) ||
-        (el.type && el.type.toLowerCase().includes(query))
+        el.name.toLowerCase().includes(query) || (el.type && el.type.toLowerCase().includes(query))
     );
   }, [elements, searchQuery]);
 }
@@ -101,10 +100,7 @@ export function useVirtualScroll<T>(
       const containerHeight = container.clientHeight;
 
       const start = Math.floor(scrollTop / itemHeight);
-      const end = Math.min(
-        start + Math.ceil(containerHeight / itemHeight) + 5,
-        items.length
-      );
+      const end = Math.min(start + Math.ceil(containerHeight / itemHeight) + 5, items.length);
 
       setVisibleRange({ start, end });
     }, 16); // ~60fps
@@ -168,10 +164,7 @@ export function useMemoizedCalculation<T>(
 /**
  * Callback memoization helper
  */
-export function useStableCallback<T extends (...args: unknown[]) => unknown>(
-  callback: T
-): T {
+export function useStableCallback<T extends (...args: unknown[]) => unknown>(callback: T): T {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useCallback(callback, []) as T;
 }
-

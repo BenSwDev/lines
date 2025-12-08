@@ -8,12 +8,20 @@ export default auth((req) => {
   const userId = req.auth?.user?.id;
 
   // Detect demo mode from query params or path
-  const isInDemoMode = isDemoMode(nextUrl.searchParams) || 
-                       nextUrl.pathname.startsWith("/demo") ||
-                       isDemoUserId(userId);
+  const isInDemoMode =
+    isDemoMode(nextUrl.searchParams) ||
+    nextUrl.pathname.startsWith("/demo") ||
+    isDemoUserId(userId);
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/", "/demo", "/demo-experience", "/auth/login", "/auth/register", "/api/auth"];
+  const publicRoutes = [
+    "/",
+    "/demo",
+    "/demo-experience",
+    "/auth/login",
+    "/auth/register",
+    "/api/auth"
+  ];
 
   const isPublicRoute = publicRoutes.some((route) => nextUrl.pathname.startsWith(route));
 
@@ -34,12 +42,12 @@ export default auth((req) => {
     if (venueIdMatch) {
       const venueId = venueIdMatch[1];
       const isDemoVenue = isDemoVenueId(venueId);
-      
+
       // Real users cannot access demo venues
       if (isDemoVenue && !isInDemoMode) {
         return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
       }
-      
+
       // Demo users can only access demo venues
       if (isInDemoMode && !isDemoVenue) {
         return NextResponse.redirect(new URL("/demo", nextUrl.origin));
@@ -55,7 +63,11 @@ export default auth((req) => {
   }
 
   // If logged in and trying to access login/register, redirect to dashboard
-  if (isLoggedIn && !isInDemoMode && (nextUrl.pathname === "/auth/login" || nextUrl.pathname === "/auth/register")) {
+  if (
+    isLoggedIn &&
+    !isInDemoMode &&
+    (nextUrl.pathname === "/auth/login" || nextUrl.pathname === "/auth/register")
+  ) {
     return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
   }
 

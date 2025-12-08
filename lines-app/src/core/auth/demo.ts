@@ -64,4 +64,3 @@ export function validateDemoAccess(
 
   return { allowed: true };
 }
-

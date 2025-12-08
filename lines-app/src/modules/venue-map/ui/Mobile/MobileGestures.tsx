@@ -59,14 +59,8 @@ export function MobileGestures({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{ touchAction: "none" }}
-      {...handlers}
-    >
+    <div ref={containerRef} className={className} style={{ touchAction: "none" }} {...handlers}>
       {children}
     </div>
   );
 }
-

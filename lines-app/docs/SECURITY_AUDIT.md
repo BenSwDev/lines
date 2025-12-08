@@ -26,11 +26,13 @@ There is a **critical security vulnerability** where demo/test mode and authenti
 **File**: `lines-app/middleware.ts`
 
 **Problem**:
+
 - `/venues` is in `protectedRoutes` but demo can still access it
 - No check for demo mode vs real authentication
 - No separation between demo/test users and real users
 
 **Current Code**:
+
 ```typescript
 const protectedRoutes = ["/dashboard", "/venues", "/api/venues"];
 const isProtectedRoute = protectedRoutes.some((route) => nextUrl.pathname.startsWith(route));
@@ -48,6 +50,7 @@ if (!isLoggedIn && isProtectedRoute) {
 **File**: `lines-app/src/app/venues/[venueId]/map/page.tsx`
 
 **Problem**:
+
 - Uses `getCurrentUser()` which might return demo user
 - No check if user is demo/test user
 - No separation between demo and real data
@@ -57,6 +60,7 @@ if (!isLoggedIn && isProtectedRoute) {
 **File**: `lines-app/src/modules/demo-system/index.ts`
 
 **Problem**:
+
 - Demo users might be treated as real authenticated users
 - No clear separation between demo and production data
 - Demo users can access real venue data
@@ -64,6 +68,7 @@ if (!isLoggedIn && isProtectedRoute) {
 ### 4. Actions/Services
 
 **Problem**:
+
 - Server actions don't check if user is demo/test
 - No validation that user owns the venue
 - Demo users can modify real data
@@ -139,8 +144,7 @@ if (!isLoggedIn && isProtectedRoute) {
 
 ```typescript
 // Add demo mode detection
-const isDemoMode = nextUrl.pathname.startsWith("/demo") || 
-                   nextUrl.searchParams.has("demo");
+const isDemoMode = nextUrl.pathname.startsWith("/demo") || nextUrl.searchParams.has("demo");
 
 // Block demo users from protected routes
 if (isDemoMode && isProtectedRoute) {
@@ -209,4 +213,3 @@ if (isDemo) {
 **Priority**: CRITICAL - Fix immediately before Phase 5  
 **Estimated Time**: 2-4 hours  
 **Risk**: HIGH - Data leakage, unauthorized access
-

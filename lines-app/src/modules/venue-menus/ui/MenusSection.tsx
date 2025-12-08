@@ -81,9 +81,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
   return (
     <div className="space-y-4">
       {/* Page Hero */}
-      {pageConfig && (
-        <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
-      )}
+      {pageConfig && <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />}
 
       <div className="flex items-center justify-between">
         <div>

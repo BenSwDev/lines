@@ -137,9 +137,7 @@ export function RolesTab({ venueId }: RolesTabProps) {
     <>
       <div className="space-y-4">
         {/* Page Hero */}
-        {pageConfig && (
-          <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
-        )}
+        {pageConfig && <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />}
 
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -233,7 +231,10 @@ export function RolesTab({ venueId }: RolesTabProps) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" data-tour="roles-departments">
+          <div
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
+            data-tour="roles-departments"
+          >
             {filteredRoles.map((role, index) => (
               <RoleCard
                 key={role.id}

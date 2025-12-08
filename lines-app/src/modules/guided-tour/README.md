@@ -11,6 +11,7 @@
 The Guided Tour module provides a step-by-step interactive guidance system that works on real application screens. It helps users understand how to use the application by showing tooltips, highlights, and explanations directly on the actual pages.
 
 This module is designed to:
+
 - Guide users through the application setup process
 - Explain key features on each page
 - Provide short, clear, focused explanations
@@ -82,7 +83,7 @@ import { TourProvider, TourOverlay, TourProgressBar, TourButton } from "@/module
   <TourOverlay />
   <TourProgressBar />
   <TourButton />
-</TourProvider>
+</TourProvider>;
 ```
 
 ### Adding Tour Steps to a Page
@@ -90,9 +91,7 @@ import { TourProvider, TourOverlay, TourProgressBar, TourButton } from "@/module
 1. Add `data-tour` attributes to elements you want to highlight:
 
 ```tsx
-<Button data-tour="lines-create-button">
-  צור ליין חדש
-</Button>
+<Button data-tour="lines-create-button">צור ליין חדש</Button>
 ```
 
 2. Define the step in `tourContent.ts`:
@@ -144,6 +143,7 @@ The tour follows this order:
 Context provider that manages tour state.
 
 **Props:**
+
 - `children: ReactNode` - Child components
 - `autoStart?: boolean` - Auto-start tour on mount
 - `pageId?: TourPageId` - Current page ID
@@ -153,6 +153,7 @@ Context provider that manages tour state.
 Hook to access tour state and actions.
 
 **Returns:**
+
 - `isActive: boolean` - Is tour currently active
 - `currentStep: TourStep | null` - Current step
 - `progress: TourProgress | null` - Tour progress
@@ -227,4 +228,3 @@ Stored in localStorage:
 ---
 
 **Last Updated:** 2025-01-15
-

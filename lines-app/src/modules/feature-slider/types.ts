@@ -24,4 +24,3 @@ export type FeatureSliderConfig = {
   slidesToShow?: number;
   infinite?: boolean;
 };
-

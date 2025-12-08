@@ -112,9 +112,7 @@ export function LinesTab() {
   return (
     <div className="space-y-6">
       {/* Page Hero */}
-      {pageConfig && (
-        <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
-      )}
+      {pageConfig && <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />}
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -122,11 +120,7 @@ export function LinesTab() {
           <h1 className="text-3xl font-bold tracking-tight">ליינים</h1>
           <p className="text-muted-foreground">נהל אירועים חוזרים עם לוחות זמנים וצבעים</p>
         </div>
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          size="lg"
-          data-tour="lines-create-button"
-        >
+        <Button onClick={() => setIsCreateOpen(true)} size="lg" data-tour="lines-create-button">
           <Plus className="ml-2 h-5 w-5" />
           צור ליין חדש
         </Button>

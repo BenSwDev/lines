@@ -20,14 +20,7 @@ export const tourStepIdSchema = z.enum([
   "menus-list"
 ]);
 
-export const tourPageIdSchema = z.enum([
-  "lines",
-  "roles",
-  "map",
-  "menus",
-  "info",
-  "calendar"
-]);
+export const tourPageIdSchema = z.enum(["lines", "roles", "map", "menus", "info", "calendar"]);
 
 export const tourStepSchema = z.object({
   id: tourStepIdSchema,
@@ -76,4 +69,3 @@ export type TourStepInput = z.infer<typeof tourStepSchema>;
 export type TourPageInput = z.infer<typeof tourPageSchema>;
 export type TourProgressInput = z.infer<typeof tourProgressSchema>;
 export type TourConfigInput = z.infer<typeof tourConfigSchema>;
-

@@ -115,9 +115,7 @@ export function FeatureSlider({
                   <div
                     className={cn(
                       "flex h-20 w-20 items-center justify-center rounded-2xl text-4xl shadow-lg",
-                      feature.gradient
-                        ? `bg-gradient-to-br ${feature.gradient}`
-                        : "bg-primary"
+                      feature.gradient ? `bg-gradient-to-br ${feature.gradient}` : "bg-primary"
                     )}
                   >
                     {feature.icon}
@@ -207,4 +205,3 @@ export function FeatureSlider({
     </div>
   );
 }
-

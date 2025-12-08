@@ -63,4 +63,3 @@ export function getDemoUser(businessType: DemoBusinessType): DemoUser {
 export function getAllDemoUsers(): DemoUser[] {
   return Object.values(demoUsers);
 }
-

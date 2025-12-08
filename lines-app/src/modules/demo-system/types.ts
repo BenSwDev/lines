@@ -3,13 +3,7 @@
  * Public demo system - NO real authentication
  */
 
-export type DemoBusinessType = 
-  | "restaurant" 
-  | "bar" 
-  | "event-hall" 
-  | "cafe" 
-  | "hotel" 
-  | "club";
+export type DemoBusinessType = "restaurant" | "bar" | "event-hall" | "cafe" | "hotel" | "club";
 
 export type DemoUser = {
   id: string;
@@ -37,4 +31,3 @@ export type DemoPageConfig = {
     message: string;
   };
 };
-

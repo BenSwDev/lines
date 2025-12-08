@@ -38,11 +38,7 @@ interface TourProviderProps {
   pageId?: TourPageId;
 }
 
-export function TourProvider({
-  children,
-  autoStart = false,
-  pageId
-}: TourProviderProps) {
+export function TourProvider({ children, autoStart = false, pageId }: TourProviderProps) {
   const [isActive, setIsActive] = useState(false);
   const [currentStepId, setCurrentStepId] = useState<TourStepId | null>(null);
   const [progress, setProgress] = useState<TourProgress | null>(null);
@@ -220,4 +216,3 @@ export function useTour(): TourContextValue {
   }
   return context;
 }
-

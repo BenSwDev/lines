@@ -9,7 +9,8 @@ export const linesFeatures: FeatureCard[] = [
   {
     id: "create-line",
     title: "צור ליין חדש - התחל עכשיו",
-    description: "הגדר אירועים חוזרים עם לוחות זמנים גמישים. המערכת תיצור את כל האירועים אוטומטית - שבועי, חודשי, או מותאם אישית. חסכו שעות של עבודה ידנית!",
+    description:
+      "הגדר אירועים חוזרים עם לוחות זמנים גמישים. המערכת תיצור את כל האירועים אוטומטית - שבועי, חודשי, או מותאם אישית. חסכו שעות של עבודה ידנית!",
     icon: "📅",
     gradient: "from-blue-500 to-cyan-500",
     actions: [
@@ -25,7 +26,8 @@ export const linesFeatures: FeatureCard[] = [
   {
     id: "color-coding",
     title: "15 צבעים ייחודיים",
-    description: "זיהוי מהיר וניהול ויזואלי - כל ליין עם צבע משלו. ניהול קל ונוח של כל האירועים שלך",
+    description:
+      "זיהוי מהיר וניהול ויזואלי - כל ליין עם צבע משלו. ניהול קל ונוח של כל האירועים שלך",
     icon: "🎨",
     gradient: "from-purple-500 to-pink-500",
     badge: "ויזואלי"
@@ -33,7 +35,8 @@ export const linesFeatures: FeatureCard[] = [
   {
     id: "auto-events",
     title: "יצירה אוטומטית של אירועים",
-    description: "המערכת יוצרת את כל האירועים אוטומטית לפי הליינים שלך. לא צריך ליצור ידנית - הכל קורה בעצמו!",
+    description:
+      "המערכת יוצרת את כל האירועים אוטומטית לפי הליינים שלך. לא צריך ליצור ידנית - הכל קורה בעצמו!",
     icon: "⚡",
     gradient: "from-yellow-500 to-orange-500",
     badge: "חכם"
@@ -41,7 +44,8 @@ export const linesFeatures: FeatureCard[] = [
   {
     id: "calendar-view",
     title: "לוח שנה מלא",
-    description: "ראה את כל האירועים בלוח שנה אינטואיטיבי עם סינון מתקדם. ניהול קל של כל האירועים במקום אחד",
+    description:
+      "ראה את כל האירועים בלוח שנה אינטואיטיבי עם סינון מתקדם. ניהול קל של כל האירועים במקום אחד",
     icon: "📆",
     gradient: "from-green-500 to-emerald-500",
     badge: "מקיף"
@@ -52,7 +56,8 @@ export const rolesFeatures: FeatureCard[] = [
   {
     id: "manage-roles",
     title: "ניהול תפקידים - ארגן את הצוות",
-    description: "הגדר תפקידים ומחלקות - מטבח, בר, שירות, ניהול. כל הליינים משתמשים באותם תפקידים - ארגון יעיל ומקצועי",
+    description:
+      "הגדר תפקידים ומחלקות - מטבח, בר, שירות, ניהול. כל הליינים משתמשים באותם תפקידים - ארגון יעיל ומקצועי",
     icon: "👥",
     gradient: "from-indigo-500 to-blue-500",
     actions: [
@@ -68,7 +73,8 @@ export const rolesFeatures: FeatureCard[] = [
   {
     id: "hierarchy",
     title: "היררכיה ארגונית ויזואלית",
-    description: "ארגן את הצוות בהיררכיה - תפקידים ניהוליים ותפקידים רגילים. תצוגה ויזואלית ברורה של המבנה הארגוני",
+    description:
+      "ארגן את הצוות בהיררכיה - תפקידים ניהוליים ותפקידים רגילים. תצוגה ויזואלית ברורה של המבנה הארגוני",
     icon: "🏢",
     gradient: "from-purple-500 to-indigo-500",
     badge: "מבנה"
@@ -87,7 +93,8 @@ export const mapFeatures: FeatureCard[] = [
   {
     id: "visual-map",
     title: "מפה ויזואלית אינטראקטיבית",
-    description: "צור מפה ויזואלית של המקום עם אזורים ושולחנות. ניהול קל של כל המפה - גרור, שנה, וצור בקלות",
+    description:
+      "צור מפה ויזואלית של המקום עם אזורים ושולחנות. ניהול קל של כל המפה - גרור, שנה, וצור בקלות",
     icon: "🗺️",
     gradient: "from-teal-500 to-cyan-500",
     actions: [
@@ -103,7 +110,8 @@ export const mapFeatures: FeatureCard[] = [
   {
     id: "zones",
     title: "אזורים מאורגנים",
-    description: "חלק את המקום לאזורים - חלל פנימי, חלל חיצוני, בר. ניהול קל של כל האזורים במקום אחד",
+    description:
+      "חלק את המקום לאזורים - חלל פנימי, חלל חיצוני, בר. ניהול קל של כל האזורים במקום אחד",
     icon: "📍",
     gradient: "from-blue-500 to-teal-500",
     badge: "ארגון"
@@ -122,7 +130,8 @@ export const menusFeatures: FeatureCard[] = [
   {
     id: "upload-menu",
     title: "העלאת תפריטים - פשוט ומהיר",
-    description: "העלה תפריטים ומסמכים - PDF או תמונות. כל התפריטים שלך במקום אחד - נוח, מהיר, ומאורגן",
+    description:
+      "העלה תפריטים ומסמכים - PDF או תמונות. כל התפריטים שלך במקום אחד - נוח, מהיר, ומאורגן",
     icon: "📄",
     gradient: "from-violet-500 to-purple-500",
     actions: [
@@ -138,10 +147,10 @@ export const menusFeatures: FeatureCard[] = [
   {
     id: "menu-management",
     title: "ניהול מרכזי של תפריטים",
-    description: "נהל את כל התפריטים במקום אחד - כללי או ספציפיים לליין. גישה מהירה ונוחה לכל התפריטים",
+    description:
+      "נהל את כל התפריטים במקום אחד - כללי או ספציפיים לליין. גישה מהירה ונוחה לכל התפריטים",
     icon: "📚",
     gradient: "from-rose-500 to-pink-500",
     badge: "מרכזי"
   }
 ];
-

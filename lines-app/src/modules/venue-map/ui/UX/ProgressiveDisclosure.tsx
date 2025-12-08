@@ -46,15 +46,10 @@ export function ProgressiveDisclosure({
           className="w-full justify-between"
         >
           <span>{title}</span>
-          {isOpen ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
+          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       )}
       {(isOpen || level === 1) && <div>{children}</div>}
     </div>
   );
 }
-

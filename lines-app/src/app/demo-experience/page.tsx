@@ -92,7 +92,9 @@ export default function DemoExperiencePage() {
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg">
                     {businessTypeIcons[user.businessType]}
                   </div>
-                  <CardTitle className="text-2xl">{businessTypeLabels[user.businessType]}</CardTitle>
+                  <CardTitle className="text-2xl">
+                    {businessTypeLabels[user.businessType]}
+                  </CardTitle>
                   <CardDescription>{businessTypeDescriptions[user.businessType]}</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -140,4 +142,3 @@ export default function DemoExperiencePage() {
 function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(" ");
 }
-

@@ -14,6 +14,8 @@ import { translateError } from "@/utils/translateError";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FeatureSlider, mapFeatures } from "@/modules/feature-slider";
 import { PageHero, getPageConfig } from "@/modules/demo-system";
+import { LoadingState } from "./UX/LoadingState";
+import { ErrorBoundary } from "./UX/ErrorBoundary";
 
 type VenueMapPageProps = {
   venueId: string;
@@ -87,7 +89,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
         }));
 
         allElements.push(...zoneElements, ...tableElements, ...areaElements);
-        
+
         // Auto-link elements to zones after loading
         const zones = allElements.filter((el) => el.type === "zone");
         const linkedElements = allElements.map((element) => {
@@ -99,7 +101,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           // Always find the current containing zone (even if already linked to another)
           // This ensures that if an element is moved from zone A to zone B, it gets updated to zone B
           const containingZone = findContainingZone(element, zones);
-          
+
           if (containingZone) {
             // Element is in a zone - link to it (even if it was linked to a different zone before)
             return {
@@ -118,7 +120,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
 
           return element;
         });
-        
+
         setElements(linkedElements);
       } else {
         const errorMsg = !result.success && "error" in result ? result.error : null;
@@ -145,11 +147,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   }, [venueId]);
 
   if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="text-muted-foreground">{t("common.loading")}</div>
-      </div>
-    );
+    return <LoadingState type="full" />;
   }
 
   const pageConfig = getPageConfig("map");
@@ -157,9 +155,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   return (
     <div className="space-y-4">
       {/* Page Hero */}
-      {pageConfig && (
-        <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
-      )}
+      {pageConfig && <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />}
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -198,14 +194,16 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
         </div>
       )}
 
-      <div data-tour="map-zones">
-        <FloorPlanEditorV2
-          venueId={venueId}
-          initialElements={elements}
-          initialCapacity={venueCapacity}
-          userId={userId}
-        />
-      </div>
+      <ErrorBoundary>
+        <div data-tour="map-zones">
+          <FloorPlanEditorV2
+            venueId={venueId}
+            initialElements={elements}
+            initialCapacity={venueCapacity}
+            userId={userId}
+          />
+        </div>
+      </ErrorBoundary>
     </div>
   );
 }

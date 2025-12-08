@@ -10,8 +10,7 @@ import { getAllStepIds } from "../data/tourContent";
 import { cn } from "@/lib/utils";
 
 export function TourOverlay() {
-  const { isActive, currentStep, prevStep, skipStep, stopTour, completeStep } =
-    useTour();
+  const { isActive, currentStep, prevStep, skipStep, stopTour, completeStep } = useTour();
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({});
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -238,4 +237,3 @@ export function TourOverlay() {
     </AnimatePresence>
   );
 }
-

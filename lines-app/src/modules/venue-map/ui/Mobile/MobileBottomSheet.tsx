@@ -6,7 +6,13 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
@@ -31,10 +37,7 @@ export function MobileBottomSheet({
 }: MobileBottomSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="bottom"
-        className={`h-[85vh] max-h-[600px] rounded-t-2xl ${className}`}
-      >
+      <SheetContent side="bottom" className={`h-[85vh] max-h-[600px] rounded-t-2xl ${className}`}>
         <SheetHeader className="text-right">
           {title && <SheetTitle>{title}</SheetTitle>}
           {description && <SheetDescription>{description}</SheetDescription>}
@@ -55,4 +58,3 @@ export function MobileBottomSheet({
     </Sheet>
   );
 }
-

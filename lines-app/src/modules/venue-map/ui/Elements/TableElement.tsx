@@ -15,7 +15,7 @@ interface TableElementProps {
   isSelected: boolean;
   isInteractive: boolean;
   onMouseDown?: (e: React.MouseEvent | React.TouchEvent) => void;
-  onDoubleClick?: () => void;
+  onDoubleClick?: (e?: React.MouseEvent) => void;
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
@@ -83,9 +83,21 @@ export const TableElement = memo(function TableElement({
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
         onDoubleClick={onDoubleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onMouseDown?.(e as unknown as React.MouseEvent);
+          }
+          if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault();
+            onDoubleClick?.(e as unknown as React.MouseEvent);
+          }
+        }}
         role="button"
-        tabIndex={0}
-        aria-label={`${element.name} - ${element.seats || 0} seats`}
+        tabIndex={isInteractive ? 0 : -1}
+        aria-label={`Table: ${element.name} - ${element.seats || 0} seats${parentZone ? ` in zone ${parentZone.name}` : ""}`}
+        aria-pressed={isSelected}
+        aria-disabled={!isInteractive}
       >
         <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
           <div className="font-semibold text-sm truncate w-full">{element.name}</div>
@@ -107,9 +119,21 @@ export const TableElement = memo(function TableElement({
       onMouseDown={onMouseDown}
       onTouchStart={onMouseDown}
       onDoubleClick={onDoubleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onMouseDown?.(e as unknown as React.MouseEvent);
+        }
+        if (e.key === "Enter" && e.shiftKey) {
+          e.preventDefault();
+          onDoubleClick?.(e as unknown as React.MouseEvent);
+        }
+      }}
       role="button"
-      tabIndex={0}
-      aria-label={`${element.name} - ${element.seats || 0} seats`}
+      tabIndex={isInteractive ? 0 : -1}
+      aria-label={`Table: ${element.name} - ${element.seats || 0} seats${parentZone ? ` in zone ${parentZone.name}` : ""}`}
+      aria-pressed={isSelected}
+      aria-disabled={!isInteractive}
     >
       <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
         <div className="font-semibold text-sm truncate w-full">{element.name}</div>
@@ -123,4 +147,3 @@ export const TableElement = memo(function TableElement({
     </div>
   );
 });
-

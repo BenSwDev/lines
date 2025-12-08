@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { venuesService } from "@/modules/venues/services/venuesService";
 import { createVenueSchema } from "@/modules/venues/schemas/venueSchemas";
 import { getCurrentUser } from "@/core/auth/session";
+import { isDemoUserId } from "@/core/auth/demo";
 import {
   successResponse,
   handleApiError,
@@ -18,6 +19,13 @@ export async function GET() {
       });
     }
 
+    // CRITICAL: Block demo users from accessing protected API
+    if (isDemoUserId(user.id)) {
+      return new Response(JSON.stringify({ error: "Demo users cannot access protected routes" }), {
+        status: 403
+      });
+    }
+
     const venues = await venuesService.listUserVenues(user.id);
     return successResponse(venues);
   } catch (error) {
@@ -30,6 +38,13 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser();
     if (!user?.id) {
       return unauthorizedResponse();
+    }
+
+    // CRITICAL: Block demo users from accessing protected API
+    if (isDemoUserId(user.id)) {
+      return new Response(JSON.stringify({ error: "Demo users cannot access protected routes" }), {
+        status: 403
+      });
     }
 
     const body = await request.json();

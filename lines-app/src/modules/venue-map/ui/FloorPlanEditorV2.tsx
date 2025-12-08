@@ -32,13 +32,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   Plus,
-  Square,
   Trash2,
   Save,
   Grid,
   Layout,
   List,
-  MapPin,
   X,
   Sparkles,
   Minimize2,
@@ -72,6 +70,14 @@ import { loadUserTemplates, saveTemplate, deleteTemplate } from "../actions/temp
 import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
 import { AddElementDialog } from "./AddElementDialog";
+import { QuickAddDialog } from "./QuickAddDialog";
+import { QuickEditPanel } from "./QuickEditPanel";
+import {
+  getTableDefaults,
+  getZoneDefaults,
+  getAreaDefaults,
+  getNextElementName
+} from "../utils/smartDefaults";
 import {
   getZoneTypeConfig,
   getElementTypeConfig,
@@ -89,6 +95,11 @@ import {
   calculateBounds,
   type AlignmentGuide
 } from "../utils/alignmentGuides";
+import { EmptyState } from "./UX/EmptyState";
+import { ContextualToolbar } from "./UX/ContextualToolbar";
+import { SuccessAnimation } from "./UX/SuccessAnimation";
+import { HelpPanel } from "./UX/HelpPanel";
+// import { ResponsiveDialog } from "./Dialogs/ResponsiveDialog"; // Reserved for future use
 import {
   alignElements,
   distributeElements,
@@ -167,7 +178,7 @@ interface FloorPlanEditorV2Props {
 const DEFAULT_TABLE_SIZE = 80;
 const DEFAULT_ZONE_SIZE = 200;
 const DEFAULT_AREA_SIZE = 100;
-const GRID_SIZE = 20;
+export const GRID_SIZE = 20;
 
 export function FloorPlanEditorV2({
   venueId,
@@ -194,6 +205,8 @@ export function FloorPlanEditorV2({
   const [saveProgress, setSaveProgress] = useState(0);
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [saveHistory, setSaveHistory] = useState<
     Array<{
       timestamp: Date;
@@ -214,6 +227,9 @@ export function FloorPlanEditorV2({
   const [helpDialogOpen, setHelpDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [addElementDialogOpen, setAddElementDialogOpen] = useState(false);
+  const [quickAddDialogOpen, setQuickAddDialogOpen] = useState(false);
+  const [quickEditPanelOpen, setQuickEditPanelOpen] = useState(false);
+  const [quickEditPosition, setQuickEditPosition] = useState<{ x: number; y: number } | null>(null);
   const [showTips, setShowTips] = useState(false);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -596,6 +612,17 @@ export function FloorPlanEditorV2({
     return elements.filter((el) => el.type === "zone");
   }, [elements]);
 
+  // Get selected elements array for ContextualToolbar
+  const selectedElements = useMemo(() => {
+    const selectedIds =
+      selectedElementIds.size > 0
+        ? selectedElementIds
+        : selectedElementId
+          ? new Set([selectedElementId])
+          : new Set();
+    return elements.filter((e) => selectedIds.has(e.id));
+  }, [selectedElementIds, selectedElementId, elements]);
+
   // Bulk operations
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleAlign = useCallback(
@@ -678,6 +705,37 @@ export function FloorPlanEditorV2({
     },
     [selectedElementIds, selectedElementId, elements, updateElementsWithHistory, toast, t]
   );
+
+  // Wrapper functions for ContextualToolbar (must be after _handleAlign and _handleDistribute)
+  const handleContextualAlign = useCallback(
+    (type: "left" | "center" | "right" | "top" | "middle" | "bottom") => {
+      const alignmentMap: Record<string, AlignmentType> = {
+        left: "left",
+        center: "center",
+        right: "right",
+        top: "top",
+        middle: "middle",
+        bottom: "bottom"
+      };
+      _handleAlign(alignmentMap[type] || "left");
+    },
+    [_handleAlign]
+  );
+
+  const handleContextualDistribute = useCallback(
+    (type: "horizontal" | "vertical") => {
+      const distributionMap: Record<string, DistributionType> = {
+        horizontal: "horizontal",
+        vertical: "vertical"
+      };
+      _handleDistribute(distributionMap[type] || "horizontal");
+    },
+    [_handleDistribute]
+  );
+
+  const handleContextualDuplicate = useCallback(() => {
+    handleDuplicate();
+  }, [handleDuplicate]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleResizeToSameSize = useCallback(() => {
@@ -798,7 +856,7 @@ export function FloorPlanEditorV2({
         // Always find the current containing zone (even if already linked to another)
         // This ensures that if an element is moved from zone A to zone B, it gets updated to zone B
         const containingZone = findContainingZone(element, zones);
-        
+
         if (containingZone) {
           // Element is in a zone - link to it (even if it was linked to a different zone before)
           return {
@@ -821,7 +879,140 @@ export function FloorPlanEditorV2({
     []
   );
 
-  // Handle adding zone with zone type
+  // Quick Add Handlers - using smart defaults
+  const handleQuickAddTable = useCallback(() => {
+    const centerX = 1000;
+    const centerY = 1000;
+    const defaults = getTableDefaults(elements);
+
+    // Snap to grid
+    const snappedX = Math.round((centerX - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedY = Math.round((centerY - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedSize = Math.round(defaults.size / GRID_SIZE) * GRID_SIZE;
+
+    const newElement: FloorPlanElement = {
+      id: `table-${Date.now()}`,
+      type: "table",
+      name: defaults.name,
+      x: snappedX,
+      y: snappedY,
+      width: snappedSize,
+      height: snappedSize,
+      rotation: 0,
+      shape: "rectangle",
+      color: defaults.color,
+      seats: defaults.seats,
+      tableType: "table"
+    };
+
+    const newElements = [...elements, newElement];
+    const linkedElements = autoLinkElementsToZones(newElements);
+    updateElementsWithHistory(linkedElements);
+    setSelectedElementId(newElement.id);
+  }, [elements, updateElementsWithHistory, autoLinkElementsToZones]);
+
+  // Bulk Add - Add 5 tables at once
+  const handleBulkAddTables = useCallback(() => {
+    const centerX = 1000;
+    const centerY = 1000;
+    const newTables: FloorPlanElement[] = [];
+
+    for (let i = 0; i < 5; i++) {
+      const defaults = getTableDefaults([...elements, ...newTables]);
+      const offsetX = (i % 3) * (defaults.size + GRID_SIZE * 2);
+      const offsetY = Math.floor(i / 3) * (defaults.size + GRID_SIZE * 2);
+
+      const snappedX = Math.round((centerX - defaults.size / 2 + offsetX) / GRID_SIZE) * GRID_SIZE;
+      const snappedY = Math.round((centerY - defaults.size / 2 + offsetY) / GRID_SIZE) * GRID_SIZE;
+      const snappedSize = Math.round(defaults.size / GRID_SIZE) * GRID_SIZE;
+
+      newTables.push({
+        id: `table-${Date.now()}-${i}`,
+        type: "table",
+        name: defaults.name,
+        x: snappedX,
+        y: snappedY,
+        width: snappedSize,
+        height: snappedSize,
+        rotation: 0,
+        shape: "rectangle",
+        color: defaults.color,
+        seats: defaults.seats,
+        tableType: "table"
+      });
+    }
+
+    const newElements = [...elements, ...newTables];
+    const linkedElements = autoLinkElementsToZones(newElements);
+    updateElementsWithHistory(linkedElements);
+    setSelectedElementIds(new Set(newTables.map((t) => t.id)));
+    toast({
+      title: t("success.tablesAdded") || "שולחנות נוספו",
+      description: t("success.tablesAddedDescription", { count: "5" }) || "5 שולחנות נוספו בהצלחה"
+    });
+  }, [elements, updateElementsWithHistory, autoLinkElementsToZones, toast, t]);
+
+  const handleQuickAddZone = useCallback(() => {
+    const centerX = 1000;
+    const centerY = 1000;
+    const defaults = getZoneDefaults(elements);
+
+    // Snap to grid
+    const snappedX = Math.round((centerX - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedY = Math.round((centerY - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedSize = Math.round(defaults.size / GRID_SIZE) * GRID_SIZE;
+
+    const newElement: FloorPlanElement = {
+      id: `zone-${Date.now()}`,
+      type: "zone",
+      name: defaults.name,
+      x: snappedX,
+      y: snappedY,
+      width: snappedSize,
+      height: snappedSize,
+      rotation: 0,
+      shape: "rectangle",
+      color: defaults.color,
+      zoneType: defaults.type
+    };
+
+    const newElements = [...elements, newElement];
+    const linkedElements = autoLinkElementsToZones(newElements);
+    updateElementsWithHistory(linkedElements);
+    setSelectedElementId(newElement.id);
+  }, [elements, updateElementsWithHistory, autoLinkElementsToZones]);
+
+  const handleQuickAddArea = useCallback(() => {
+    const centerX = 1000;
+    const centerY = 1000;
+    const defaults = getAreaDefaults(elements);
+
+    // Snap to grid
+    const snappedX = Math.round((centerX - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedY = Math.round((centerY - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedSize = Math.round(defaults.size / GRID_SIZE) * GRID_SIZE;
+
+    const newElement: FloorPlanElement = {
+      id: `area-${Date.now()}`,
+      type: "specialArea",
+      name: defaults.name,
+      x: snappedX,
+      y: snappedY,
+      width: snappedSize,
+      height: snappedSize,
+      rotation: 0,
+      shape: "rectangle",
+      color: defaults.color,
+      areaType: defaults.type
+    };
+
+    const newElements = [...elements, newElement];
+    const linkedElements = autoLinkElementsToZones(newElements);
+    updateElementsWithHistory(linkedElements);
+    setSelectedElementId(newElement.id);
+  }, [elements, updateElementsWithHistory, autoLinkElementsToZones]);
+
+  // Handle adding zone with zone type (for advanced mode)
   const handleAddZone = useCallback(
     (zoneType: ZoneType) => {
       const centerX = 1000;
@@ -837,7 +1028,7 @@ export function FloorPlanEditorV2({
       const newElement: FloorPlanElement = {
         id: `zone-${Date.now()}`,
         type: "zone",
-        name: `${zoneConfig.label} ${elements.filter((e) => e.type === "zone" && e.zoneType === zoneType).length + 1}`,
+        name: getNextElementName("zone", elements, zoneConfig.label),
         x: snappedX,
         y: snappedY,
         width: snappedSize,
@@ -899,7 +1090,7 @@ export function FloorPlanEditorV2({
       const newElement: FloorPlanElement = {
         id: `${type}-${Date.now()}`,
         type,
-        name: `${elementConfig.label} ${elements.filter((e) => e.type === type).length + 1}`,
+        name: getNextElementName(type, elements, elementConfig.label),
         x: snappedX,
         y: snappedY,
         width: snappedWidth,
@@ -979,10 +1170,67 @@ export function FloorPlanEditorV2({
     [elements, selectedElementId, selectedElementIds, updateElementsWithHistory]
   );
 
-  // Open edit dialog
-  const handleEditElement = useCallback((element: FloorPlanElement) => {
-    setEditingElement({ ...element });
-    setEditDialogOpen(true);
+  // Wrapper for ContextualToolbar delete action
+  const handleContextualDelete = useCallback(() => {
+    const selectedIds =
+      selectedElementIds.size > 0
+        ? selectedElementIds
+        : selectedElementId
+          ? new Set([selectedElementId as string])
+          : new Set<string>();
+    selectedIds.forEach((id) => handleDeleteElement(id));
+    setSelectedElementIds(new Set());
+    setSelectedElementId(null);
+  }, [selectedElementIds, selectedElementId, handleDeleteElement]);
+
+  // Handle editing element - Quick Edit for simple mode, Full Edit for advanced
+  const handleEditElement = useCallback(
+    (element: FloorPlanElement, event?: React.MouseEvent) => {
+      if (simpleMode && event) {
+        // Quick Edit Panel - show at mouse position
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (rect) {
+          setQuickEditPosition({
+            x: event.clientX - rect.left + 20,
+            y: event.clientY - rect.top + 20
+          });
+          setEditingElement(element);
+          setQuickEditPanelOpen(true);
+        }
+      } else {
+        // Full Edit Dialog
+        setEditingElement({ ...element });
+        setEditDialogOpen(true);
+      }
+    },
+    [simpleMode]
+  );
+
+  // Handle Quick Edit Save
+  const handleQuickEditSave = useCallback(
+    (updates: Partial<FloorPlanElement>) => {
+      if (!editingElement) return;
+
+      const updatedElement = { ...editingElement, ...updates };
+      const updatedElements = elements.map((e) =>
+        e.id === editingElement.id ? updatedElement : e
+      );
+
+      // Auto-link after update
+      const linkedElements = autoLinkElementsToZones(updatedElements);
+      updateElementsWithHistory(linkedElements);
+      setQuickEditPanelOpen(false);
+      setEditingElement(null);
+      setQuickEditPosition(null);
+    },
+    [editingElement, elements, updateElementsWithHistory, autoLinkElementsToZones]
+  );
+
+  // Handle Quick Edit Cancel
+  const handleQuickEditCancel = useCallback(() => {
+    setQuickEditPanelOpen(false);
+    setEditingElement(null);
+    setQuickEditPosition(null);
   }, []);
 
   // Save edited element
@@ -1045,33 +1293,24 @@ export function FloorPlanEditorV2({
         let newSelection: Set<string>;
         let newSelectedElementId: string | null;
 
-        if (e.shiftKey && selectedElementIds.size > 0) {
-          // Shift+Click: Add range of elements
-          newSelection = new Set(selectedElementIds);
-          const selectedIds = Array.from(selectedElementIds);
-          const lastSelected = elements.find((el) => el.id === selectedIds[selectedIds.length - 1]);
-          if (lastSelected) {
-            const startX = Math.min(lastSelected.x, element.x);
-            const endX = Math.max(lastSelected.x + lastSelected.width, element.x + element.width);
-            const startY = Math.min(lastSelected.y, element.y);
-            const endY = Math.max(lastSelected.y + lastSelected.height, element.y + element.height);
+        if (e.shiftKey) {
+          // Shift+Click: Duplicate element
+          e.preventDefault();
+          e.stopPropagation();
+          const duplicated = clipboardManagerRef.current.duplicate([element]);
+          const newElements = [...elements, ...duplicated];
+          const linkedElements = autoLinkElementsToZones(newElements);
+          updateElementsWithHistory(linkedElements);
+          setSelectedElementId(duplicated[0].id);
+          toast({
+            title: t("success.duplicated"),
+            description: t("success.duplicatedDescription", { count: "1" })
+          });
+          return;
+        }
 
-            elements.forEach((el) => {
-              if (
-                el.x >= startX &&
-                el.x + el.width <= endX &&
-                el.y >= startY &&
-                el.y + el.height <= endY
-              ) {
-                newSelection.add(el.id);
-              }
-            });
-          } else {
-            newSelection.add(element.id);
-          }
-          newSelectedElementId = element.id;
-        } else if (e.ctrlKey || e.metaKey) {
-          // Ctrl/Cmd+Click: Toggle element in selection
+        if (e.ctrlKey || e.metaKey) {
+          // Ctrl+Click: Add to selection (multi-select)
           newSelection = new Set(selectedElementIds);
           if (newSelection.has(element.id)) {
             newSelection.delete(element.id);
@@ -1813,8 +2052,8 @@ export function FloorPlanEditorV2({
                 }
 
                 // Always snap to grid for clean alignment (grid is always enabled)
-                  newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-                  newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+                newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+                newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
 
                 // No canvas bounds constraint for infinite canvas
                 // Allow elements to move freely
@@ -1838,8 +2077,8 @@ export function FloorPlanEditorV2({
             let newY = startPos.y + deltaY;
 
             // Always snap to grid for clean alignment
-              newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-              newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+            newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+            newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
 
             // No canvas bounds constraint for infinite canvas - allow free movement
 
@@ -1914,11 +2153,11 @@ export function FloorPlanEditorV2({
           }
 
           // Always snap to grid for clean alignment and consistent sizing
-            newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
-            newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
-            newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
-            newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-          
+          newWidth = Math.round(newWidth / GRID_SIZE) * GRID_SIZE;
+          newHeight = Math.round(newHeight / GRID_SIZE) * GRID_SIZE;
+          newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+          newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+
           // Ensure minimum size after snapping
           if (newWidth < GRID_SIZE) newWidth = GRID_SIZE;
           if (newHeight < GRID_SIZE) newHeight = GRID_SIZE;
@@ -2282,11 +2521,11 @@ export function FloorPlanEditorV2({
               if (selectedIds.has(el.id)) {
                 let newX = el.x + deltaX;
                 let newY = el.y + deltaY;
-                
+
                 // Snap to grid for clean alignment
                 newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
                 newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
-                
+
                 // No canvas bounds for infinite canvas - allow free movement
                 return { ...el, x: newX, y: newY };
               }
@@ -2598,6 +2837,12 @@ export function FloorPlanEditorV2({
           ...prev.slice(0, 9) // Keep last 10 saves
         ]);
 
+        // Show success animation
+        setSuccessMessage(
+          `נשמרו: ${savedCounts.tablesCount} שולחנות, ${savedCounts.zonesCount} אזורים, ${savedCounts.areasCount} אזורים מיוחדים`
+        );
+        setShowSuccessAnimation(true);
+
         toast({
           title: t("success.detailsUpdated"),
           description: `נשמרו: ${savedCounts.tablesCount} שולחנות, ${savedCounts.zonesCount} אזורים, ${savedCounts.areasCount} אזורים מיוחדים`,
@@ -2780,8 +3025,13 @@ export function FloorPlanEditorV2({
                           variant="default"
                           className="gap-2"
                           onClick={() => setTemplateDialogOpen(true)}
+                          data-tour="map-templates-button"
+                          aria-label={
+                            t("floorPlan.templates") ||
+                            "התחל עם תבנית - בחר תבנית מוכנה או התחל מאפס"
+                          }
                         >
-                          <Sparkles className="h-4 w-4" />
+                          <Sparkles className="h-4 w-4" aria-hidden="true" />
                           {t("floorPlan.templates") || "התחל עם תבנית"}
                         </Button>
                       </TooltipTrigger>
@@ -2804,9 +3054,14 @@ export function FloorPlanEditorV2({
                           variant="outline"
                           size="default"
                           className="gap-2"
-                          onClick={() => setAddElementDialogOpen(true)}
+                          onClick={() => setQuickAddDialogOpen(true)}
+                          data-tour="map-add-button"
+                          aria-label={
+                            t("floorPlan.addElement") ||
+                            "הוסף שולחן או אזור - לחץ כדי להוסיף אלמנטים למפה"
+                          }
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-4 w-4" aria-hidden="true" />
                           {t("floorPlan.addElement") || "הוסף שולחן או אזור"}
                         </Button>
                       </TooltipTrigger>
@@ -2847,550 +3102,550 @@ export function FloorPlanEditorV2({
               ) : (
                 /* Advanced Mode Toolbar - All Features */
                 <>
-              {/* Group 1: Templates, Create & Add */}
-              <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
-                {/* Templates Button - First and Most Important */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="default"
-                      variant="default"
-                      className="gap-2"
-                      onClick={() => setTemplateDialogOpen(true)}
-                    >
-                      <Sparkles className="h-4 w-4" />
-                      {t("floorPlan.templates") || "טמפלטים"}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
+                  {/* Group 1: Templates, Create & Add */}
+                  <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
+                    {/* Templates Button - First and Most Important */}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="default"
+                          variant="default"
+                          className="gap-2"
+                          onClick={() => setTemplateDialogOpen(true)}
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          {t("floorPlan.templates") || "טמפלטים"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
                           <div className="font-semibold">
                             {t("floorPlan.templates") || "טמפלטים"}
                           </div>
-                      <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                          <div className="text-xs">בחר תבנית התחלתית לבחירה</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="default"
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => setTemplateDialogOpen(true)}
-                    >
-                      <Plus className="h-5 w-5" />
-                      {t("floorPlan.createMap")}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.createMap")}</div>
-                      <div className="text-xs">בחר תבנית מקצועית או התחל מאפס</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="default"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => setTemplateDialogOpen(true)}
+                        >
+                          <Plus className="h-5 w-5" />
+                          {t("floorPlan.createMap")}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.createMap")}</div>
+                          <div className="text-xs">בחר תבנית מקצועית או התחל מאפס</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="default"
-                      className="gap-2"
-                      onClick={() => setAddElementDialogOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      {t("floorPlan.addElement")}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.addElement")}</div>
-                      <div className="text-xs">הוסף שולחנות, אזורים ואזורים מיוחדים</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="default"
+                          className="gap-2"
+                          onClick={() => setAddElementDialogOpen(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          {t("floorPlan.addElement")}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.addElement")}</div>
+                          <div className="text-xs">הוסף שולחנות, אזורים ואזורים מיוחדים</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
 
-              {/* Group 2: Edit Actions */}
-              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleUndo}
-                      disabled={!historyManagerRef.current.canUndo()}
-                    >
-                      <Undo2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">ביטול פעולה</div>
-                      <div className="text-xs">Ctrl+Z</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRedo}
-                      disabled={!historyManagerRef.current.canRedo()}
-                    >
-                      <Redo2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">חזרה על פעולה</div>
-                      <div className="text-xs">Ctrl+Shift+Z</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopy}
-                      disabled={selectedElementIds.size === 0 && !selectedElementId}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">העתק</div>
-                      <div className="text-xs">Ctrl+C</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePaste}
-                      disabled={!clipboardManagerRef.current.hasData()}
-                    >
-                      <Clipboard className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">הדבק</div>
-                      <div className="text-xs">Ctrl+V</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDuplicate}
-                      disabled={selectedElementIds.size === 0 && !selectedElementId}
-                    >
-                      <Files className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">שכפול</div>
-                      <div className="text-xs">Ctrl+D</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                {/* Bulk Operations - only show when multiple elements selected */}
-                {(selectedElementIds.size > 1 ||
-                  (selectedElementId && selectedElementIds.size > 0)) && (
+                  {/* Group 2: Edit Actions */}
+                  <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleUndo}
+                          disabled={!historyManagerRef.current.canUndo()}
+                        >
+                          <Undo2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">ביטול פעולה</div>
+                          <div className="text-xs">Ctrl+Z</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRedo}
+                          disabled={!historyManagerRef.current.canRedo()}
+                        >
+                          <Redo2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">חזרה על פעולה</div>
+                          <div className="text-xs">Ctrl+Shift+Z</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCopy}
+                          disabled={selectedElementIds.size === 0 && !selectedElementId}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">העתק</div>
+                          <div className="text-xs">Ctrl+C</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePaste}
+                          disabled={!clipboardManagerRef.current.hasData()}
+                        >
+                          <Clipboard className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">הדבק</div>
+                          <div className="text-xs">Ctrl+V</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDuplicate}
+                          disabled={selectedElementIds.size === 0 && !selectedElementId}
+                        >
+                          <Files className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">שכפול</div>
+                          <div className="text-xs">Ctrl+D</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    {/* Bulk Operations - only show when multiple elements selected */}
+                    {(selectedElementIds.size > 1 ||
+                      (selectedElementId && selectedElementIds.size > 0)) && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Layout className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                              <DropdownMenuItem
+                                onClick={() => _handleAlign("left")}
+                                disabled={selectedElementIds.size < 2 && !selectedElementId}
+                              >
+                                יישור שמאל
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => _handleAlign("right")}
+                                disabled={selectedElementIds.size < 2 && !selectedElementId}
+                              >
+                                יישור ימין
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => _handleAlign("top")}
+                                disabled={selectedElementIds.size < 2 && !selectedElementId}
+                              >
+                                יישור עליון
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => _handleAlign("bottom")}
+                                disabled={selectedElementIds.size < 2 && !selectedElementId}
+                              >
+                                יישור תחתון
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => _handleAlign("center")}
+                                disabled={selectedElementIds.size < 2 && !selectedElementId}
+                              >
+                                יישור מרכז
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => _handleResizeToSameSize()}
+                                disabled={selectedElementIds.size < 2 && !selectedElementId}
+                              >
+                                גודל אחיד
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  const selectedIds =
+                                    selectedElementIds.size > 0
+                                      ? selectedElementIds
+                                      : selectedElementId
+                                        ? new Set([selectedElementId])
+                                        : new Set();
+                                  if (selectedIds.size > 0) {
+                                    const newColor = prompt("הזן צבע חדש (hex):", "#3B82F6");
+                                    if (newColor) {
+                                      const newElements = elements.map((el) =>
+                                        selectedIds.has(el.id) ? { ...el, color: newColor } : el
+                                      );
+                                      updateElementsWithHistory(newElements);
+                                    }
+                                  }
+                                }}
+                                disabled={selectedElementIds.size === 0 && !selectedElementId}
+                              >
+                                שנה צבע
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            <div className="font-semibold">פעולות קבוצתיות</div>
+                            <div className="text-xs">יישור, גודל אחיד, שינוי צבע ועוד</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+
+                  {/* Group 3: View Controls */}
+                  <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowGrid(!showGrid)}
+                          className={showGrid ? "bg-primary/10" : ""}
+                          aria-label={t("floorPlan.grid") || "הצג/הסתר רשת עזר"}
+                          aria-checked={showGrid}
+                          role="switch"
+                        >
+                          <Grid className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.grid")}</div>
+                          <div className="text-xs">הצג/הסתר רשת עזר</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowRuler(!showRuler)}
+                          className={showRuler ? "bg-primary/10" : ""}
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">סרגל מדידה</div>
+                          <div className="text-xs">הצג/הסתר סרגל מדידה</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newScale = prompt(
+                              "הגדר קנה מידה (1px = X מטרים):",
+                              scale.toString()
+                            );
+                            if (newScale !== null) {
+                              const parsed = parseFloat(newScale);
+                              if (!isNaN(parsed) && parsed > 0) {
+                                setScale(parsed);
+                              }
+                            }
+                          }}
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">קנה מידה</div>
+                          <div className="text-xs">1px = {scale} מטרים</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowMeasurements(!showMeasurements)}
+                          className={showMeasurements ? "bg-primary/10" : ""}
+                        >
+                          <Grid className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">הצג מידות</div>
+                          <div className="text-xs">הצג מידות על אלמנטים</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
+                        >
+                          <ZoomOut className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
+                          <div className="text-xs">הקטן תצוגה</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setZoom(1)}
+                          className="min-w-[60px]"
+                        >
+                          {Math.round(zoom * 100)}%
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.resetZoom")}</div>
+                          <div className="text-xs">איפוס תצוגה</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setZoom(Math.min(2, zoom + 0.1))}
+                        >
+                          <ZoomIn className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
+                          <div className="text-xs">הגדל תצוגה</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  {/* Group 4: Fullscreen */}
+                  <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" onClick={() => setIsFullscreen(true)}>
+                          <Maximize2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">מסך מלא</div>
+                          <div className="text-xs">F11</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  {/* Group 5: Help */}
+                  <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" onClick={() => setHelpDialogOpen(true)}>
+                          <HelpCircle className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">מדריך למשתמש</div>
+                          <div className="text-xs">למד איך להשתמש בכלים</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  {/* Group 6: Export */}
+                  <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2">
+                              <Files className="h-4 w-4" />
+                              ייצוא
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const input = document.createElement("input");
+                                input.type = "file";
+                                input.accept = "image/*";
+                                input.onchange = (e) => {
+                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      const result = event.target?.result as string;
+                                      setBackgroundImage(result);
+                                      toast({
+                                        title: "תמונה הועלתה",
+                                        description: "התמונה הוגדרה כבסיס למפה"
+                                      });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                };
+                                input.click();
+                              }}
+                            >
+                              <Files className="mr-2 h-4 w-4" />
+                              ייבא תמונה כבסיס
+                            </DropdownMenuItem>
+                            {backgroundImage && (
+                              <>
+                                <DropdownMenuItem onClick={() => setBackgroundImage(null)}>
+                                  <X className="mr-2 h-4 w-4" />
+                                  הסר תמונת רקע
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const newOpacity = prompt(
+                                      "הזן שקיפות (0-1):",
+                                      backgroundImageOpacity.toString()
+                                    );
+                                    if (newOpacity !== null) {
+                                      const opacity = parseFloat(newOpacity);
+                                      if (!isNaN(opacity) && opacity >= 0 && opacity <= 1) {
+                                        setBackgroundImageOpacity(opacity);
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  שנה שקיפות
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            <DropdownMenuItem onClick={handleExportPNG} disabled={isSaving}>
+                              <Files className="mr-2 h-4 w-4" />
+                              PNG
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleExportJPEG} disabled={isSaving}>
+                              <Files className="mr-2 h-4 w-4" />
+                              JPEG
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleExportPDF} disabled={isSaving}>
+                              <Files className="mr-2 h-4 w-4" />
+                              PDF
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="space-y-1">
+                          <div className="font-semibold">ייצוא מפה</div>
+                          <div className="text-xs">ייצא את המפה לתמונה או PDF</div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+
+                  {/* Group 7: More Options */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">
-                            <Layout className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start">
-                          <DropdownMenuItem
-                            onClick={() => _handleAlign("left")}
-                            disabled={selectedElementIds.size < 2 && !selectedElementId}
-                          >
-                            יישור שמאל
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => _handleAlign("right")}
-                            disabled={selectedElementIds.size < 2 && !selectedElementId}
-                          >
-                            יישור ימין
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => _handleAlign("top")}
-                            disabled={selectedElementIds.size < 2 && !selectedElementId}
-                          >
-                            יישור עליון
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => _handleAlign("bottom")}
-                            disabled={selectedElementIds.size < 2 && !selectedElementId}
-                          >
-                            יישור תחתון
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => _handleAlign("center")}
-                            disabled={selectedElementIds.size < 2 && !selectedElementId}
-                          >
-                            יישור מרכז
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => _handleResizeToSameSize()}
-                            disabled={selectedElementIds.size < 2 && !selectedElementId}
-                          >
-                            גודל אחיד
-                          </DropdownMenuItem>
+                          {userId && elements.length > 0 && (
+                            <DropdownMenuItem onClick={() => setSaveTemplateDialogOpen(true)}>
+                              <Save className="mr-2 h-4 w-4" />
+                              שמור כתבנית
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => {
-                              const selectedIds =
-                                selectedElementIds.size > 0
-                                  ? selectedElementIds
-                                  : selectedElementId
-                                    ? new Set([selectedElementId])
-                                    : new Set();
-                              if (selectedIds.size > 0) {
-                                const newColor = prompt("הזן צבע חדש (hex):", "#3B82F6");
-                                if (newColor) {
-                                  const newElements = elements.map((el) =>
-                                    selectedIds.has(el.id) ? { ...el, color: newColor } : el
-                                  );
-                                  updateElementsWithHistory(newElements);
-                                }
+                              setIsDrawingPolygon(!isDrawingPolygon);
+                              if (isDrawingPolygon) {
+                                cancelPolygonDrawing();
                               }
                             }}
-                            disabled={selectedElementIds.size === 0 && !selectedElementId}
                           >
-                            שנה צבע
+                            <Pencil className="mr-2 h-4 w-4" />
+                            {t("floorPlan.shapes.polygon")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSimpleMode(true)}>
+                            <Minimize2 className="mr-2 h-4 w-4" />
+                            חזור למצב פשוט
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TooltipTrigger>
                     <TooltipContent>
                       <div className="space-y-1">
-                        <div className="font-semibold">פעולות קבוצתיות</div>
-                        <div className="text-xs">יישור, גודל אחיד, שינוי צבע ועוד</div>
+                        <div className="font-semibold">{t("floorPlan.moreOptions")}</div>
+                        <div className="text-xs">אפשרויות נוספות</div>
                       </div>
                     </TooltipContent>
                   </Tooltip>
-                )}
-              </div>
-
-              {/* Group 3: View Controls */}
-              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowGrid(!showGrid)}
-                      className={showGrid ? "bg-primary/10" : ""}
-                      aria-label={t("floorPlan.grid") || "הצג/הסתר רשת עזר"}
-                      aria-checked={showGrid}
-                      role="switch"
-                    >
-                      <Grid className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.grid")}</div>
-                      <div className="text-xs">הצג/הסתר רשת עזר</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowRuler(!showRuler)}
-                      className={showRuler ? "bg-primary/10" : ""}
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">סרגל מדידה</div>
-                      <div className="text-xs">הצג/הסתר סרגל מדידה</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                            const newScale = prompt(
-                              "הגדר קנה מידה (1px = X מטרים):",
-                              scale.toString()
-                            );
-                        if (newScale !== null) {
-                          const parsed = parseFloat(newScale);
-                          if (!isNaN(parsed) && parsed > 0) {
-                            setScale(parsed);
-                          }
-                        }
-                      }}
-                    >
-                      <Info className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">קנה מידה</div>
-                      <div className="text-xs">1px = {scale} מטרים</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowMeasurements(!showMeasurements)}
-                      className={showMeasurements ? "bg-primary/10" : ""}
-                    >
-                      <Grid className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">הצג מידות</div>
-                      <div className="text-xs">הצג מידות על אלמנטים</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}
-                    >
-                      <ZoomOut className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.zoomOut")}</div>
-                      <div className="text-xs">הקטן תצוגה</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setZoom(1)}
-                      className="min-w-[60px]"
-                    >
-                      {Math.round(zoom * 100)}%
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.resetZoom")}</div>
-                      <div className="text-xs">איפוס תצוגה</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setZoom(Math.min(2, zoom + 0.1))}
-                    >
-                      <ZoomIn className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">{t("floorPlan.zoomIn")}</div>
-                      <div className="text-xs">הגדל תצוגה</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Group 4: Fullscreen */}
-              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={() => setIsFullscreen(true)}>
-                      <Maximize2 className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">מסך מלא</div>
-                      <div className="text-xs">F11</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Group 5: Help */}
-              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={() => setHelpDialogOpen(true)}>
-                      <HelpCircle className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">מדריך למשתמש</div>
-                      <div className="text-xs">למד איך להשתמש בכלים</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Group 6: Export */}
-              <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Files className="h-4 w-4" />
-                          ייצוא
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "image/*";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const result = event.target?.result as string;
-                                  setBackgroundImage(result);
-                                  toast({
-                                    title: "תמונה הועלתה",
-                                    description: "התמונה הוגדרה כבסיס למפה"
-                                  });
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            };
-                            input.click();
-                          }}
-                        >
-                          <Files className="mr-2 h-4 w-4" />
-                          ייבא תמונה כבסיס
-                        </DropdownMenuItem>
-                        {backgroundImage && (
-                          <>
-                            <DropdownMenuItem onClick={() => setBackgroundImage(null)}>
-                              <X className="mr-2 h-4 w-4" />
-                              הסר תמונת רקע
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                const newOpacity = prompt(
-                                  "הזן שקיפות (0-1):",
-                                  backgroundImageOpacity.toString()
-                                );
-                                if (newOpacity !== null) {
-                                  const opacity = parseFloat(newOpacity);
-                                  if (!isNaN(opacity) && opacity >= 0 && opacity <= 1) {
-                                    setBackgroundImageOpacity(opacity);
-                                  }
-                                }
-                              }}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              שנה שקיפות
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        <DropdownMenuItem onClick={handleExportPNG} disabled={isSaving}>
-                          <Files className="mr-2 h-4 w-4" />
-                          PNG
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportJPEG} disabled={isSaving}>
-                          <Files className="mr-2 h-4 w-4" />
-                          JPEG
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleExportPDF} disabled={isSaving}>
-                          <Files className="mr-2 h-4 w-4" />
-                          PDF
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-1">
-                      <div className="font-semibold">ייצוא מפה</div>
-                      <div className="text-xs">ייצא את המפה לתמונה או PDF</div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              {/* Group 7: More Options */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {userId && elements.length > 0 && (
-                        <DropdownMenuItem onClick={() => setSaveTemplateDialogOpen(true)}>
-                          <Save className="mr-2 h-4 w-4" />
-                          שמור כתבנית
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setIsDrawingPolygon(!isDrawingPolygon);
-                          if (isDrawingPolygon) {
-                            cancelPolygonDrawing();
-                          }
-                        }}
-                      >
-                        <Pencil className="mr-2 h-4 w-4" />
-                        {t("floorPlan.shapes.polygon")}
-                      </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setSimpleMode(true)}>
-                            <Minimize2 className="mr-2 h-4 w-4" />
-                            חזור למצב פשוט
-                          </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="space-y-1">
-                    <div className="font-semibold">{t("floorPlan.moreOptions")}</div>
-                    <div className="text-xs">אפשרויות נוספות</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
                 </>
               )}
             </div>
@@ -3444,12 +3699,15 @@ export function FloorPlanEditorV2({
                   </Tooltip>
                 </>
               )}
-              {/* Save Status & Progress */}
+              {/* Save Status & Progress - Enhanced */}
               {isSaving && (
-                <div className="flex items-center gap-2 min-w-[200px]">
-                  <div className="flex-1 space-y-1">
-                    <div className="text-xs text-muted-foreground">{saveStatus}</div>
-                    <Progress value={saveProgress} className="h-2" />
+                <div className="flex items-center gap-3 min-w-[250px] bg-muted/50 rounded-lg px-3 py-2 border">
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-foreground">{saveStatus}</span>
+                      <span className="text-xs text-muted-foreground">{saveProgress}%</span>
+                    </div>
+                    <Progress value={saveProgress} className="h-2 transition-all duration-300" />
                   </div>
                 </div>
               )}
@@ -3466,8 +3724,13 @@ export function FloorPlanEditorV2({
                     size="sm"
                     className="gap-2"
                     variant="default"
+                    data-tour="map-save-button"
+                    aria-label={
+                      isSaving ? t("common.saving") || "שומר..." : t("common.save") || "שמור מפה"
+                    }
+                    aria-busy={isSaving}
                   >
-                    <Save className="h-4 w-4" />
+                    <Save className="h-4 w-4" aria-hidden="true" />
                     {isSaving ? t("common.loading") : t("common.save")}
                   </Button>
                 </TooltipTrigger>
@@ -3492,6 +3755,17 @@ export function FloorPlanEditorV2({
               </Tooltip>
             </div>
           </div>
+        )}
+
+        {/* Contextual Toolbar - Shows when elements are selected */}
+        {selectedElements.length > 0 && (
+          <ContextualToolbar
+            selectedElements={selectedElements}
+            onAlign={handleContextualAlign}
+            onDistribute={handleContextualDistribute}
+            onDuplicate={handleContextualDuplicate}
+            onDelete={handleContextualDelete}
+          />
         )}
 
         {/* View Mode Tabs and Map Type Selector - Hidden in fullscreen */}
@@ -3809,11 +4083,22 @@ export function FloorPlanEditorV2({
                     role="application"
                     aria-label="Floor plan canvas"
                     aria-describedby="canvas-description"
+                    aria-live="polite"
+                    aria-atomic="true"
                     tabIndex={0}
+                    onKeyDown={(e) => {
+                      // Allow keyboard navigation within canvas
+                      if (e.key === "Tab") {
+                        // Let Tab work for focus management
+                        return;
+                      }
+                      // Other keys handled by global handler
+                    }}
                   >
                     <div id="canvas-description" className="sr-only">
-                      Interactive floor plan canvas. Use arrow keys to move selected elements,
-                      Ctrl+Z to undo, Ctrl+Shift+Z to redo, Delete to remove elements.
+                      Interactive floor plan canvas. Use arrow keys to move selected elements, Enter
+                      or Space to select, Shift+Enter to edit, Ctrl+Z to undo, Ctrl+Shift+Z to redo,
+                      Delete to remove elements.
                     </div>
                     {/* Selection Box - Enhanced visibility for multi-select */}
                     {isSelecting && selectionBox && (
@@ -4001,7 +4286,9 @@ export function FloorPlanEditorV2({
                         );
                       })()}
                     {/* Alignment Guides Visualization - only show when actively dragging */}
-                    {showAlignmentGuides && isDragging && alignmentGuides.length > 0 &&
+                    {showAlignmentGuides &&
+                      isDragging &&
+                      alignmentGuides.length > 0 &&
                       alignmentGuides.map((guide, index) => (
                         <div
                           key={index}
@@ -4021,7 +4308,7 @@ export function FloorPlanEditorV2({
                         />
                       ))}
 
-                    {/* Empty Canvas Message */}
+                    {/* Empty Canvas Message - Using EmptyState Component */}
                     {elements.length === 0 && (
                       <div
                         style={{
@@ -4029,31 +4316,17 @@ export function FloorPlanEditorV2({
                           top: "50%",
                           left: "50%",
                           transform: "translate(-50%, -50%)",
-                          textAlign: "center",
                           zIndex: 10,
+                          width: "100%",
+                          height: "100%",
                           pointerEvents: "none"
                         }}
                       >
-                        <div
-                          className="bg-card/90 backdrop-blur-sm border-2 border-dashed border-primary/50 rounded-lg p-8 max-w-md"
-                          style={{ pointerEvents: "auto" }}
-                        >
-                          <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
-                          <h3 className="text-xl font-semibold mb-2">
-                            {t("floorPlan.emptyCanvasTitle")}
-                          </h3>
-                          <p className="text-muted-foreground mb-4">
-                            {t("floorPlan.emptyCanvasDescription")}
-                          </p>
-                          <Button
-                            onClick={() => setTemplateDialogOpen(true)}
-                            className="gap-2"
-                            size="lg"
-                            style={{ pointerEvents: "auto" }}
-                          >
-                            <Plus className="h-5 w-5" />
-                            {t("floorPlan.createMap")}
-                          </Button>
+                        <div style={{ pointerEvents: "auto" }}>
+                          <EmptyState
+                            onUseTemplate={() => setTemplateDialogOpen(true)}
+                            onAddElement={() => setQuickAddDialogOpen(true)}
+                          />
                         </div>
                       </div>
                     )}
@@ -4125,7 +4398,7 @@ export function FloorPlanEditorV2({
                             }
                             isInteractive={!isLocked}
                             onMouseDown={(e) => handleElementMouseDown(e, element)}
-                            onDoubleClick={() => handleEditElement(element)}
+                            onDoubleClick={(e) => handleEditElement(element, e)}
                             onEdit={() => {
                               const elementToEdit = elements.find((e) => e.id === element.id);
                               if (elementToEdit) {
@@ -5028,7 +5301,7 @@ export function FloorPlanEditorV2({
                         }
                         isInteractive={true}
                         onMouseDown={(e) => handleElementMouseDown(e, element)}
-                        onDoubleClick={() => handleEditElement(element)}
+                        onDoubleClick={(e) => handleEditElement(element, e)}
                         onEdit={() => {
                           const elementToEdit = elements.find((e) => e.id === element.id);
                           if (elementToEdit) {
@@ -5071,13 +5344,34 @@ export function FloorPlanEditorV2({
           </DialogContent>
         </Dialog>
 
-        {/* Add Element Dialog - Beautiful card-based UI */}
-        <AddElementDialog
-          open={addElementDialogOpen}
-          onOpenChange={setAddElementDialogOpen}
-          onAddZone={handleAddZone}
-          onAddElement={handleAddElementByCategory}
-        />
+        {/* Quick Add Dialog - Simple 3-button layout for simple mode */}
+        {simpleMode ? (
+          <QuickAddDialog
+            open={quickAddDialogOpen}
+            onOpenChange={setQuickAddDialogOpen}
+            onAddTable={handleQuickAddTable}
+            onAddZone={handleQuickAddZone}
+            onAddArea={handleQuickAddArea}
+            onBulkAddTables={handleBulkAddTables}
+          />
+        ) : (
+          <AddElementDialog
+            open={addElementDialogOpen}
+            onOpenChange={setAddElementDialogOpen}
+            onAddZone={handleAddZone}
+            onAddElement={handleAddElementByCategory}
+          />
+        )}
+
+        {/* Quick Edit Panel - Simple inline editing */}
+        {quickEditPanelOpen && editingElement && quickEditPosition && (
+          <QuickEditPanel
+            element={editingElement}
+            onSave={handleQuickEditSave}
+            onCancel={handleQuickEditCancel}
+            position={quickEditPosition}
+          />
+        )}
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -5264,100 +5558,15 @@ export function FloorPlanEditorV2({
         )}
 
         {/* Help/Demo Dialog */}
-        <Dialog open={helpDialogOpen} onOpenChange={setHelpDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                מדריך למשתמש - יצירת מפה
-              </DialogTitle>
-              <DialogDescription>למד איך להשתמש בכלי יצירת המפה בצורה מקצועית</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 py-4">
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  יצירת מפה
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  לחץ על &quot;יצירת מפה&quot; כדי להתחיל. תוכל לבחור תבנית מקצועית (בר, מסעדה, אולם
-                  אירועים וכו&apos;) או להתחיל מאפס.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Square className="h-4 w-4" />
-                  הוספת אלמנטים
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  לחץ על &quot;הוסף אלמנט&quot; כדי להוסיף שולחנות, אזורים, כניסות, יציאות, מטבח,
-                  שירותים ועוד.
-                </p>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>גרור אלמנטים כדי להזיז אותם</li>
-                  <li>לחץ על אלמנט כדי לבחור אותו</li>
-                  <li>לחץ פעמיים על אלמנט כדי לערוך אותו</li>
-                  <li>גרור את הפינות כדי לשנות גודל</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  אזורים
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  אזורים הם תחומים שמכילים שולחנות. גרור שולחן לתוך אזור כדי לקשר אותו אליו. שולחנות
-                  בתוך אזור יורשים את צבע האזור.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Grid className="h-4 w-4" />
-                  ניווט בקנבס
-                </h3>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>גלגלת עכבר: הזז את הקנבס (pan)</li>
-                  <li>Ctrl/Cmd + גלגלת: הגדל/הקטן (zoom)</li>
-                  <li>לחץ ימני + גרור: הזז את הקנבס</li>
-                  <li>Space + גרור: הזז את הקנבס</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Copy className="h-4 w-4" />
-                  קיצורי מקלדת
-                </h3>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>Ctrl+Z: ביטול פעולה</li>
-                  <li>Ctrl+Shift+Z: חזרה על פעולה</li>
-                  <li>Ctrl+C: העתק</li>
-                  <li>Ctrl+V: הדבק</li>
-                  <li>Ctrl+D: שכפול</li>
-                  <li>Delete: מחיקה</li>
-                </ul>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <Save className="h-4 w-4" />
-                  שמירה
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  לחץ על &quot;שמור&quot; כדי לשמור את כל השינויים. כל האלמנטים (שולחנות, אזורים,
-                  אזורים מיוחדים) יישמרו במסד הנתונים.
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={() => setHelpDialogOpen(false)}>הבנתי</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Help Panel - Enhanced */}
+        <HelpPanel open={helpDialogOpen} onOpenChange={setHelpDialogOpen} />
       </div>
+      {/* Success Animation */}
+      <SuccessAnimation
+        show={showSuccessAnimation}
+        message={successMessage}
+        onComplete={() => setShowSuccessAnimation(false)}
+      />
     </TooltipProvider>
   );
 }
@@ -5368,7 +5577,7 @@ interface ElementRendererProps {
   isSelected: boolean;
   isInteractive: boolean;
   onMouseDown: (e: React.MouseEvent) => void;
-  onDoubleClick: () => void;
+  onDoubleClick?: (e?: React.MouseEvent) => void;
   onDelete: () => void;
   onEdit?: () => void;
   onVertexDrag?: (vertexIndex: number, newPoint: Point) => void;

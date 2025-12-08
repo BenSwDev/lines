@@ -14,7 +14,7 @@ export interface ResponsiveValue<T> {
 
 export function useResponsive<T>(values: ResponsiveValue<T>): T {
   const device = useDevice();
-  
+
   return useMemo(() => {
     if (device.isMobile) return values.mobile;
     if (device.isTablet) return values.tablet;
@@ -22,11 +22,7 @@ export function useResponsive<T>(values: ResponsiveValue<T>): T {
   }, [device.isMobile, device.isTablet, values]);
 }
 
-export function useResponsiveValue<T>(
-  mobile: T,
-  tablet: T,
-  desktop: T
-): T {
+export function useResponsiveValue<T>(mobile: T, tablet: T, desktop: T): T {
   return useResponsive({ mobile, tablet, desktop });
 }
 
@@ -42,7 +38,7 @@ export function useGridSize(): number {
  */
 export function useCanvasSize(): { width: number; height: number } {
   const device = useDevice();
-  
+
   return useMemo(() => {
     if (device.isMobile) {
       // Mobile: smaller canvas, optimized for touch
@@ -78,4 +74,3 @@ export function useElementSizes(): {
     desktop: { table: 80, zone: 200, area: 100 }
   });
 }
-

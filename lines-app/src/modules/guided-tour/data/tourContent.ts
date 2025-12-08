@@ -1,6 +1,6 @@
 /**
  * Guided Tour Content
- * 
+ *
  * All tour steps and pages configuration
  */
 
@@ -95,10 +95,33 @@ export const tourSteps: TourStep[] = [
     id: "map-intro",
     pageId: "map",
     title: "מפת המקום - ארגון ויזואלי",
-    description:
-      "כאן יוצרים את המפה של המקום. אפשר ליצור מפה כללית או מפות ספציפיות לכל ליין.",
+    description: "כאן יוצרים את המפה של המקום. אפשר ליצור מפה כללית או מפות ספציפיות לכל ליין.",
     position: "center",
+    nextStepId: "map-templates-button",
+    skipable: true
+  },
+  {
+    id: "map-templates-button",
+    pageId: "map",
+    title: "התחל עם תבנית",
+    description:
+      "לחץ כאן כדי לבחור תבנית מוכנה. זה הדרך המהירה ביותר להתחיל - תבניות כוללות שולחנות ואזורים מוכנים.",
+    targetSelector: '[data-tour="map-templates-button"]',
+    position: "bottom",
+    nextStepId: "map-add-button",
+    prevStepId: "map-intro",
+    skipable: true
+  },
+  {
+    id: "map-add-button",
+    pageId: "map",
+    title: "הוסף אלמנטים",
+    description:
+      "לחץ כאן כדי להוסיף שולחנות, אזורים או אזורים מיוחדים למפה. תוכל לגרור אותם אחר כך למקום הרצוי.",
+    targetSelector: '[data-tour="map-add-button"]',
+    position: "bottom",
     nextStepId: "map-zones",
+    prevStepId: "map-templates-button",
     skipable: true
   },
   {
@@ -110,7 +133,7 @@ export const tourSteps: TourStep[] = [
     targetSelector: '[data-tour="map-zones"]',
     position: "top",
     nextStepId: "map-tables",
-    prevStepId: "map-intro",
+    prevStepId: "map-add-button",
     skipable: true
   },
   {
@@ -121,7 +144,18 @@ export const tourSteps: TourStep[] = [
       "שולחנות יכולים להיות כללים (לכל הליינים) או ספציפיים לליין מסוים. כל שולחן יכול להיות באזור מסוים.",
     targetSelector: '[data-tour="map-tables"]',
     position: "top",
+    nextStepId: "map-save-button",
     prevStepId: "map-zones",
+    skipable: true
+  },
+  {
+    id: "map-save-button",
+    pageId: "map",
+    title: "שמור את המפה",
+    description: "לחץ כאן כדי לשמור את כל השינויים. חשוב לשמור אחרי כל שינוי כדי לא לאבד עבודה.",
+    targetSelector: '[data-tour="map-save-button"]',
+    position: "top",
+    prevStepId: "map-tables",
     skipable: true
   },
 
@@ -130,8 +164,7 @@ export const tourSteps: TourStep[] = [
     id: "menus-intro",
     pageId: "menus",
     title: "תפריטים - ניהול מסמכים",
-    description:
-      "כאן מעלים תפריטים ומסמכים. כל תפריט יכול להיות כללי או ספציפי לליין מסוים.",
+    description: "כאן מעלים תפריטים ומסמכים. כל תפריט יכול להיות כללי או ספציפי לליין מסוים.",
     position: "center",
     nextStepId: "menus-upload",
     skipable: true
@@ -183,7 +216,14 @@ export const tourPages: TourPage[] = [
     id: "map",
     title: "מפת המקום",
     description: "ארגון ויזואלי של המקום - אזורים ושולחנות",
-    steps: ["map-intro", "map-zones", "map-tables"],
+    steps: [
+      "map-intro",
+      "map-templates-button",
+      "map-add-button",
+      "map-zones",
+      "map-tables",
+      "map-save-button"
+    ],
     order: 3
   },
   {
@@ -232,4 +272,3 @@ export function getAllStepIds(): string[] {
     });
   return ordered;
 }
-

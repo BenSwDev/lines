@@ -1,6 +1,6 @@
 /**
  * Guided Tour Module - TypeScript Types
- * 
+ *
  * Types for the guided tour system that provides step-by-step guidance
  * on real application screens with tooltips and highlights.
  */
@@ -14,8 +14,11 @@ export type TourStepId =
   | "roles-departments"
   | "roles-hierarchy"
   | "map-intro"
+  | "map-templates-button"
+  | "map-add-button"
   | "map-zones"
   | "map-tables"
+  | "map-save-button"
   | "menus-intro"
   | "menus-upload"
   | "menus-list";
@@ -62,4 +65,3 @@ export interface TourConfig {
   allowSkip: boolean;
   storageKey: string;
 }
-

@@ -13,25 +13,25 @@ interface ResponsiveToolbarProps {
   // Simple mode
   simpleMode: boolean;
   onToggleSimpleMode: () => void;
-  
+
   // Actions
   onTemplateClick: () => void;
   onAddElementClick: () => void;
   onSaveClick: () => void;
   isSaving?: boolean;
-  
+
   // Stats
   tablesCount?: number;
   totalCapacity?: number;
   validationWarningsCount?: number;
-  
+
   // Advanced features (optional)
   onAutoFix?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
-  
+
   // Fullscreen
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
@@ -102,4 +102,3 @@ export function ResponsiveToolbar({
     />
   );
 }
-

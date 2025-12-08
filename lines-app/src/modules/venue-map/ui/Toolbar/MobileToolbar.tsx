@@ -100,9 +100,7 @@ export function MobileToolbar({
                     variant="outline"
                   >
                     <Sparkles className="h-6 w-6" />
-                    <span className="text-sm">
-                      {t("floorPlan.templates") || "תבניות"}
-                    </span>
+                    <span className="text-sm">{t("floorPlan.templates") || "תבניות"}</span>
                   </Button>
                   <Button
                     onClick={() => {
@@ -113,9 +111,7 @@ export function MobileToolbar({
                     variant="outline"
                   >
                     <Plus className="h-6 w-6" />
-                    <span className="text-sm">
-                      {t("floorPlan.addElement") || "הוסף"}
-                    </span>
+                    <span className="text-sm">{t("floorPlan.addElement") || "הוסף"}</span>
                   </Button>
                 </div>
                 <Button
@@ -133,10 +129,8 @@ export function MobileToolbar({
             ) : (
               /* Advanced Mode */
               <div className="flex flex-col gap-4 p-4 overflow-y-auto">
-                <h3 className="text-lg font-semibold">
-                  {t("floorPlan.tools") || "כלים"}
-                </h3>
-                
+                <h3 className="text-lg font-semibold">{t("floorPlan.tools") || "כלים"}</h3>
+
                 {/* Primary Actions */}
                 <div className="grid grid-cols-2 gap-3">
                   <Button
@@ -148,9 +142,7 @@ export function MobileToolbar({
                     variant="outline"
                   >
                     <Sparkles className="h-6 w-6" />
-                    <span className="text-sm">
-                      {t("floorPlan.templates") || "תבניות"}
-                    </span>
+                    <span className="text-sm">{t("floorPlan.templates") || "תבניות"}</span>
                   </Button>
                   <Button
                     onClick={() => {
@@ -161,9 +153,7 @@ export function MobileToolbar({
                     variant="outline"
                   >
                     <Plus className="h-6 w-6" />
-                    <span className="text-sm">
-                      {t("floorPlan.addElement") || "הוסף"}
-                    </span>
+                    <span className="text-sm">{t("floorPlan.addElement") || "הוסף"}</span>
                   </Button>
                 </div>
 
@@ -236,4 +226,3 @@ export function MobileToolbar({
     </>
   );
 }
-

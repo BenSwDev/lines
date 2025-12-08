@@ -19,12 +19,7 @@ export const linesPageConfig: DemoPageConfig = {
     ],
     keyMessage: "חסכו שעות של עבודה ידנית - המערכת עושה את זה בשבילכם"
   },
-  features: [
-    "צור ליין חדש",
-    "קידוד צבעים",
-    "יצירת אירועים אוטומטית",
-    "תצוגת לוח שנה"
-  ],
+  features: ["צור ליין חדש", "קידוד צבעים", "יצירת אירועים אוטומטית", "תצוגת לוח שנה"],
   cta: {
     label: "התחל לנהל את הליינים שלך",
     message: "הרשם עכשיו וקבל גישה מלאה לכל התכונות"
@@ -45,11 +40,7 @@ export const rolesPageConfig: DemoPageConfig = {
     ],
     keyMessage: "ארגן את הצוות שלך בצורה מקצועית - הכל במקום אחד"
   },
-  features: [
-    "ניהול תפקידים",
-    "היררכיה ארגונית",
-    "מחלקות"
-  ],
+  features: ["ניהול תפקידים", "היררכיה ארגונית", "מחלקות"],
   cta: {
     label: "התחל לארגן את הצוות",
     message: "הרשם עכשיו וקבל כלים מקצועיים לניהול צוות"
@@ -70,11 +61,7 @@ export const mapPageConfig: DemoPageConfig = {
     ],
     keyMessage: "ראה את המקום שלך במבט אחד - ניהול ויזואלי ופשוט"
   },
-  features: [
-    "מפה ויזואלית",
-    "אזורים",
-    "שולחנות"
-  ],
+  features: ["מפה ויזואלית", "אזורים", "שולחנות"],
   cta: {
     label: "צור את המפה הראשונה שלך",
     message: "הרשם עכשיו וקבל כלים מקצועיים לניהול מפות"
@@ -95,10 +82,7 @@ export const menusPageConfig: DemoPageConfig = {
     ],
     keyMessage: "כל התפריטים שלך במקום אחד - נוח, מהיר, ומאורגן"
   },
-  features: [
-    "העלאת תפריטים",
-    "ניהול תפריטים"
-  ],
+  features: ["העלאת תפריטים", "ניהול תפריטים"],
   cta: {
     label: "התחל לנהל את התפריטים",
     message: "הרשם עכשיו וקבל כלים מקצועיים לניהול תפריטים"
@@ -115,4 +99,3 @@ export const pageConfigs: Record<string, DemoPageConfig> = {
 export function getPageConfig(pageId: string): DemoPageConfig | undefined {
   return pageConfigs[pageId];
 }
-

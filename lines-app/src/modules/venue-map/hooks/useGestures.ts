@@ -56,7 +56,7 @@ export function useGestures(handlers: GestureHandlers) {
       if (lastTapRef.current) {
         const timeDiff = now - lastTapRef.current.time;
         const distance = getDistance(coords, lastTapRef.current);
-        
+
         if (timeDiff < DOUBLE_TAP_DURATION && distance < 50) {
           // Double tap detected
           handlers.onDoubleTap?.({ x: coords.x, y: coords.y, target: target as EventTarget });
@@ -111,7 +111,7 @@ export function useGestures(handlers: GestureHandlers) {
   const handlePan = useCallback(
     (e: MouseEvent | TouchEvent) => {
       if (!panStartRef.current) return;
-      
+
       const coords = getCoordinates(e);
       const deltaX = coords.x - panStartRef.current.x;
       const deltaY = coords.y - panStartRef.current.y;
@@ -135,7 +135,7 @@ export function useGestures(handlers: GestureHandlers) {
   const handlePinchStart = useCallback(
     (e: TouchEvent) => {
       if (e.touches.length !== 2) return;
-      
+
       const touch1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       const touch2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
       const distance = getDistance(touch1, touch2);
@@ -274,4 +274,3 @@ export function useGestures(handlers: GestureHandlers) {
     onTouchCancel: handleTouchCancel
   };
 }
-

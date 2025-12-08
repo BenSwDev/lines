@@ -4,4 +4,3 @@
  */
 
 export { ResponsiveDialog } from "./ResponsiveDialog";
-

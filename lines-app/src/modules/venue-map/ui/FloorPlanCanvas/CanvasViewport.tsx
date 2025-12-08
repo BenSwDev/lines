@@ -46,7 +46,9 @@ export function CanvasViewport({
   const [zoom, setZoom] = useState(initialZoom);
   const [panOffset, setPanOffset] = useState(initialPan);
   const [isPanning, setIsPanning] = useState(false);
-  const panStartRef = useRef<{ x: number; y: number; offsetX: number; offsetY: number } | null>(null);
+  const panStartRef = useRef<{ x: number; y: number; offsetX: number; offsetY: number } | null>(
+    null
+  );
 
   // Update parent on zoom/pan change
   useEffect(() => {
@@ -137,8 +139,8 @@ export function CanvasViewport({
 
       setZoom(newZoom);
       setPanOffset({
-        x: (containerRect.width / 2 - centerX * newZoom),
-        y: (containerRect.height / 2 - centerY * newZoom)
+        x: containerRect.width / 2 - centerX * newZoom,
+        y: containerRect.height / 2 - centerY * newZoom
       });
     },
     [maxZoom]
@@ -293,12 +295,8 @@ export function CanvasViewport({
           top: "50%",
           transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
           transformOrigin: "center center",
-          backgroundImage: backgroundImage
-            ? `url(${backgroundImage})`
-            : gridBackground,
-          backgroundSize: backgroundImage
-            ? "contain"
-            : `${gridSize / zoom}px ${gridSize / zoom}px`,
+          backgroundImage: backgroundImage ? `url(${backgroundImage})` : gridBackground,
+          backgroundSize: backgroundImage ? "contain" : `${gridSize / zoom}px ${gridSize / zoom}px`,
           backgroundRepeat: backgroundImage ? "no-repeat" : "repeat",
           backgroundPosition: "center",
           opacity: backgroundImage ? backgroundImageOpacity : 1
@@ -312,9 +310,7 @@ export function CanvasViewport({
       {/* Zoom Controls - Mobile: bottom, Desktop: top-right */}
       <div
         className={`absolute z-50 flex items-center gap-2 ${
-          device.isMobile
-            ? "bottom-4 left-1/2 -translate-x-1/2"
-            : "top-4 right-4"
+          device.isMobile ? "bottom-4 left-1/2 -translate-x-1/2" : "top-4 right-4"
         }`}
       >
         <button
@@ -323,12 +319,7 @@ export function CanvasViewport({
           aria-label="Zoom out"
           type="button"
         >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -346,12 +337,7 @@ export function CanvasViewport({
           aria-label="Zoom in"
           type="button"
         >
-          <svg
-            className="h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -386,4 +372,3 @@ export function CanvasViewport({
     </div>
   );
 }
-

@@ -50,7 +50,7 @@ export function useDevice(): DeviceInfo {
     const height = window.innerHeight;
     const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
     const hasMouse = window.matchMedia("(pointer: fine)").matches;
-    
+
     let type: DeviceType = "desktop";
     if (width < BREAKPOINTS.mobile) {
       type = "mobile";
@@ -83,7 +83,7 @@ export function useDevice(): DeviceInfo {
       const height = window.innerHeight;
       const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
       const hasMouse = window.matchMedia("(pointer: fine)").matches;
-      
+
       let type: DeviceType = "desktop";
       if (width < BREAKPOINTS.mobile) {
         type = "mobile";
@@ -122,4 +122,3 @@ export function useDevice(): DeviceInfo {
 
   return deviceInfo;
 }
-

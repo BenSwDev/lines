@@ -15,7 +15,7 @@ interface LazyElementRendererProps {
   isSelected: boolean;
   isInteractive: boolean;
   onMouseDown?: (e: React.MouseEvent | React.TouchEvent) => void;
-  onDoubleClick?: () => void;
+  onDoubleClick?: (e?: React.MouseEvent) => void;
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
@@ -108,4 +108,3 @@ export const LazyElementRenderer = memo(function LazyElementRenderer({
     </div>
   );
 });
-

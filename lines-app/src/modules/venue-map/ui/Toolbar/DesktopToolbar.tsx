@@ -121,11 +121,7 @@ export function DesktopToolbar({
                 </Tooltip>
               </div>
 
-              <Button
-                variant="outline"
-                onClick={onToggleSimpleMode}
-                className="gap-2"
-              >
+              <Button variant="outline" onClick={onToggleSimpleMode} className="gap-2">
                 <Maximize2 className="h-4 w-4" />
                 {t("floorPlan.advancedMode") || "מצב מתקדם"}
               </Button>
@@ -149,9 +145,7 @@ export function DesktopToolbar({
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
-                      <div className="font-semibold">
-                        {t("floorPlan.templates") || "תבניות"}
-                      </div>
+                      <div className="font-semibold">{t("floorPlan.templates") || "תבניות"}</div>
                       <div className="text-xs">בחר תבנית מוכנה</div>
                     </div>
                   </TooltipContent>
@@ -174,9 +168,7 @@ export function DesktopToolbar({
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
-                      <div className="font-semibold">
-                        {t("floorPlan.addElement") || "הוסף"}
-                      </div>
+                      <div className="font-semibold">{t("floorPlan.addElement") || "הוסף"}</div>
                       <div className="text-xs">הוסף שולחן, אזור או אובייקט</div>
                     </div>
                   </TooltipContent>
@@ -188,12 +180,7 @@ export function DesktopToolbar({
                 <div className="flex items-center gap-1 border-r pr-2 md:pr-3">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={onUndo}
-                        disabled={!canUndo}
-                      >
+                      <Button variant="outline" size="sm" onClick={onUndo} disabled={!canUndo}>
                         <Undo2 className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -203,12 +190,7 @@ export function DesktopToolbar({
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={onRedo}
-                        disabled={!canRedo}
-                      >
+                      <Button variant="outline" size="sm" onClick={onRedo} disabled={!canRedo}>
                         <Redo2 className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -224,12 +206,7 @@ export function DesktopToolbar({
                 <div className="flex items-center gap-2 border-r pr-2 md:pr-3">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={onAutoFix}
-                        className="gap-2"
-                      >
+                      <Button variant="outline" size="sm" onClick={onAutoFix} className="gap-2">
                         <Wand2 className="h-4 w-4" />
                         {t("floorPlan.autoFix") || "תיקון אוטומטי"}
                       </Button>
@@ -253,11 +230,7 @@ export function DesktopToolbar({
               )}
 
               {/* Toggle Simple Mode */}
-              <Button
-                variant="outline"
-                onClick={onToggleSimpleMode}
-                className="gap-2"
-              >
+              <Button variant="outline" onClick={onToggleSimpleMode} className="gap-2">
                 <Minimize2 className="h-4 w-4" />
                 {t("floorPlan.simpleMode") || "מצב פשוט"}
               </Button>
@@ -277,11 +250,7 @@ export function DesktopToolbar({
           {onToggleFullscreen && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onToggleFullscreen}
-                >
+                <Button variant="outline" size="sm" onClick={onToggleFullscreen}>
                   {isFullscreen ? (
                     <Minimize2 className="h-4 w-4" />
                   ) : (
@@ -300,12 +269,7 @@ export function DesktopToolbar({
           {/* Save Button */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                onClick={onSaveClick}
-                disabled={isSaving}
-                size="sm"
-                className="gap-2"
-              >
+              <Button onClick={onSaveClick} disabled={isSaving} size="sm" className="gap-2">
                 <Save className="h-4 w-4" />
                 {isSaving ? t("common.loading") : t("common.save")}
               </Button>
@@ -325,4 +289,3 @@ export function DesktopToolbar({
     </TooltipProvider>
   );
 }
-

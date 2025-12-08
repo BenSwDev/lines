@@ -92,4 +92,3 @@ export function PageHero({ hero, cta, className }: PageHeroProps) {
     </motion.div>
   );
 }
-

@@ -1,14 +1,10 @@
 /**
  * Guided Tour Service
- * 
+ *
  * Business logic for managing tour state, progress, and navigation
  */
 
-import type {
-  TourStep,
-  TourStepId,
-  TourProgress
-} from "../types";
+import type { TourStep, TourStepId, TourProgress } from "../types";
 
 const STORAGE_KEY = "lines-tour-progress";
 
@@ -56,10 +52,7 @@ export function resetTourProgress(): void {
 /**
  * Check if step is completed
  */
-export function isStepCompleted(
-  stepId: TourStepId,
-  progress: TourProgress | null
-): boolean {
+export function isStepCompleted(stepId: TourStepId, progress: TourProgress | null): boolean {
   if (!progress) return false;
   return progress.completedSteps.includes(stepId);
 }
@@ -67,10 +60,7 @@ export function isStepCompleted(
 /**
  * Mark step as completed
  */
-export function markStepCompleted(
-  stepId: TourStepId,
-  progress: TourProgress | null
-): TourProgress {
+export function markStepCompleted(stepId: TourStepId, progress: TourProgress | null): TourProgress {
   const newProgress: TourProgress = progress || {
     currentStepId: null,
     completedSteps: [],
@@ -91,10 +81,7 @@ export function markStepCompleted(
 /**
  * Get next step ID
  */
-export function getNextStepId(
-  currentStep: TourStep,
-  allSteps: TourStep[]
-): TourStepId | null {
+export function getNextStepId(currentStep: TourStep, allSteps: TourStep[]): TourStepId | null {
   if (currentStep.nextStepId) {
     return currentStep.nextStepId;
   }
@@ -111,10 +98,7 @@ export function getNextStepId(
 /**
  * Get previous step ID
  */
-export function getPrevStepId(
-  currentStep: TourStep,
-  allSteps: TourStep[]
-): TourStepId | null {
+export function getPrevStepId(currentStep: TourStep, allSteps: TourStep[]): TourStepId | null {
   if (currentStep.prevStepId) {
     return currentStep.prevStepId;
   }
@@ -131,10 +115,7 @@ export function getPrevStepId(
 /**
  * Check if tour is completed
  */
-export function isTourCompleted(
-  progress: TourProgress | null,
-  totalSteps: number
-): boolean {
+export function isTourCompleted(progress: TourProgress | null, totalSteps: number): boolean {
   if (!progress) return false;
   return progress.completedSteps.length >= totalSteps;
 }
@@ -142,11 +123,7 @@ export function isTourCompleted(
 /**
  * Get completion percentage
  */
-export function getCompletionPercentage(
-  progress: TourProgress | null,
-  totalSteps: number
-): number {
+export function getCompletionPercentage(progress: TourProgress | null, totalSteps: number): number {
   if (!progress || totalSteps === 0) return 0;
   return Math.round((progress.completedSteps.length / totalSteps) * 100);
 }
-

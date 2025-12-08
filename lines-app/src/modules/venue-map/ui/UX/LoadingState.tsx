@@ -13,10 +13,7 @@ interface LoadingStateProps {
   className?: string;
 }
 
-export function LoadingState({
-  type = "canvas",
-  className = ""
-}: LoadingStateProps) {
+export function LoadingState({ type = "canvas", className = "" }: LoadingStateProps) {
   if (type === "full") {
     return (
       <div className={`flex flex-col gap-4 p-4 ${className}`}>
@@ -52,4 +49,3 @@ export function LoadingState({
     </div>
   );
 }
-

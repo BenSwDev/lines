@@ -6,15 +6,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Copy,
-  Trash2,
-  Layers,
-  Group
-} from "lucide-react";
+import { AlignLeft, AlignCenter, AlignRight, Copy, Trash2, Layers, Group } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { useDevice } from "../../hooks";
 import type { FloorPlanElement } from "../FloorPlanEditorV2";
@@ -159,4 +151,3 @@ export function ContextualToolbar({
     </div>
   );
 }
-

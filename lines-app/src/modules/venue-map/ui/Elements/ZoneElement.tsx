@@ -13,7 +13,7 @@ interface ZoneElementProps {
   isSelected: boolean;
   isInteractive: boolean;
   onMouseDown?: (e: React.MouseEvent | React.TouchEvent) => void;
-  onDoubleClick?: () => void;
+  onDoubleClick?: (e?: React.MouseEvent) => void;
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
@@ -42,9 +42,7 @@ export const ZoneElement = memo(function ZoneElement({
     border: `2px dashed ${borderColor}`,
     backgroundColor: "transparent",
     zIndex: 1, // Zones always have lower z-index
-    boxShadow: isSelected
-      ? "0 4px 12px rgba(59, 130, 246, 0.3)"
-      : "0 2px 4px rgba(0,0,0,0.1)",
+    boxShadow: isSelected ? "0 4px 12px rgba(59, 130, 246, 0.3)" : "0 2px 4px rgba(0,0,0,0.1)",
     outline: isSearchMatch && !isSelected ? "2px solid #F59E0B" : undefined,
     outlineOffset: isSearchMatch && !isSelected ? "2px" : undefined,
     display: "flex",
@@ -111,9 +109,21 @@ export const ZoneElement = memo(function ZoneElement({
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
         onDoubleClick={onDoubleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onMouseDown?.(e as unknown as React.MouseEvent);
+          }
+          if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault();
+            onDoubleClick?.(e as unknown as React.MouseEvent);
+          }
+        }}
         role="button"
-        tabIndex={0}
-        aria-label={`Zone: ${element.name}`}
+        tabIndex={isInteractive ? 0 : -1}
+        aria-label={`Zone: ${element.name}${element.description ? ` - ${element.description}` : ""}`}
+        aria-pressed={isSelected}
+        aria-disabled={!isInteractive}
       >
         <div className="pointer-events-none text-center px-2 absolute inset-0 flex flex-col items-center justify-center">
           <div className="font-semibold text-sm truncate w-full">{element.name}</div>
@@ -134,19 +144,28 @@ export const ZoneElement = memo(function ZoneElement({
       onMouseDown={onMouseDown}
       onTouchStart={onMouseDown}
       onDoubleClick={onDoubleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onMouseDown?.(e as unknown as React.MouseEvent);
+        }
+        if (e.key === "Enter" && e.shiftKey) {
+          e.preventDefault();
+          onDoubleClick?.(e as unknown as React.MouseEvent);
+        }
+      }}
       role="button"
-      tabIndex={0}
-      aria-label={`Zone: ${element.name}`}
+      tabIndex={isInteractive ? 0 : -1}
+      aria-label={`Zone: ${element.name}${element.description ? ` - ${element.description}` : ""}`}
+      aria-pressed={isSelected}
+      aria-disabled={!isInteractive}
     >
       <div className="pointer-events-none text-center px-2 absolute inset-0 flex flex-col items-center justify-center">
         <div className="font-semibold text-sm truncate w-full">{element.name}</div>
         {element.description && (
-          <div className="text-xs text-muted-foreground truncate w-full">
-            {element.description}
-          </div>
+          <div className="text-xs text-muted-foreground truncate w-full">{element.description}</div>
         )}
       </div>
     </div>
   );
 });
-

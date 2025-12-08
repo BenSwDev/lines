@@ -14,7 +14,7 @@ interface SpecialAreaElementProps {
   isSelected: boolean;
   isInteractive: boolean;
   onMouseDown?: (e: React.MouseEvent | React.TouchEvent) => void;
-  onDoubleClick?: () => void;
+  onDoubleClick?: (e?: React.MouseEvent) => void;
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
@@ -82,9 +82,21 @@ export const SpecialAreaElement = memo(function SpecialAreaElement({
         onMouseDown={onMouseDown}
         onTouchStart={onMouseDown}
         onDoubleClick={onDoubleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onMouseDown?.(e as unknown as React.MouseEvent);
+          }
+          if (e.key === "Enter" && e.shiftKey) {
+            e.preventDefault();
+            onDoubleClick?.(e as unknown as React.MouseEvent);
+          }
+        }}
         role="button"
-        tabIndex={0}
-        aria-label={`${element.type === "security" ? "Security" : "Special Area"}: ${element.name}`}
+        tabIndex={isInteractive ? 0 : -1}
+        aria-label={`${element.type === "security" ? "Security Area" : "Special Area"}: ${element.name}`}
+        aria-pressed={isSelected}
+        aria-disabled={!isInteractive}
       >
         <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
           <div className="font-semibold text-sm truncate w-full">{element.name}</div>
@@ -100,9 +112,21 @@ export const SpecialAreaElement = memo(function SpecialAreaElement({
       onMouseDown={onMouseDown}
       onTouchStart={onMouseDown}
       onDoubleClick={onDoubleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onMouseDown?.(e as unknown as React.MouseEvent);
+        }
+        if (e.key === "Enter" && e.shiftKey) {
+          e.preventDefault();
+          onDoubleClick?.(e as unknown as React.MouseEvent);
+        }
+      }}
       role="button"
-      tabIndex={0}
-      aria-label={`${element.type === "security" ? "Security" : "Special Area"}: ${element.name}`}
+      tabIndex={isInteractive ? 0 : -1}
+      aria-label={`${element.type === "security" ? "Security Area" : "Special Area"}: ${element.name}`}
+      aria-pressed={isSelected}
+      aria-disabled={!isInteractive}
     >
       <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
         <div className="font-semibold text-sm truncate w-full">{element.name}</div>
@@ -110,4 +134,3 @@ export const SpecialAreaElement = memo(function SpecialAreaElement({
     </div>
   );
 });
-

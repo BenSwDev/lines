@@ -12,4 +12,3 @@ export { TourProvider, useTour } from "./ui/TourProvider";
 export { TourOverlay } from "./ui/TourOverlay";
 export { TourProgressBar } from "./ui/TourProgressBar";
 export { TourButton } from "./ui/TourButton";
-
