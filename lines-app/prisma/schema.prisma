@@ -103,6 +103,7 @@ model Venue {
   reservationSettings ReservationSettings?
   floorPlanTemplates  FloorPlanTemplate[]
   roles               Role[]
+  floorPlans          FloorPlan[]
 
   @@index([userId])
   @@map("venues")
@@ -145,12 +146,55 @@ model Menu {
 }
 
 // ============================================================================
+// FLOOR PLANS
+// ============================================================================
+
+model FloorPlan {
+  id          String   @id @default(cuid())
+  venueId     String   @map("venue_id")
+  name        String
+  description String?
+  isDefault   Boolean  @default(false) @map("is_default")
+  isLocked    Boolean  @default(false) @map("is_locked")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  venue              Venue            @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  zones              Zone[]
+  venueAreas         VenueArea[]
+  lines              FloorPlanLine[]
+  customOccurrences  LineOccurrence[] @relation("CustomFloorPlan")
+
+  @@index([venueId])
+  @@index([venueId, isDefault])
+  @@map("floor_plans")
+}
+
+// Junction table for FloorPlan <-> Line many-to-many
+model FloorPlanLine {
+  floorPlanId String   @map("floor_plan_id")
+  lineId      String   @map("line_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  floorPlan FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  line      Line      @relation(fields: [lineId], references: [id], onDelete: Cascade)
+
+  @@id([floorPlanId, lineId])
+  @@index([floorPlanId])
+  @@index([lineId])
+  @@map("floor_plan_lines")
+}
+
+// ============================================================================
 // SEATING: ZONES & TABLES
 // ============================================================================
 
 model Zone {
   id            String   @id @default(cuid())
   venueId       String
+  floorPlanId   String?  @map("floor_plan_id")
   name          String
   color         String
   description   String?
@@ -161,16 +205,22 @@ model Zone {
   height        Decimal? @db.Decimal(10, 2)
   shape         String?  @default("rectangle") // rectangle, circle, polygon
   polygonPoints Json?    // For custom polygon shapes
+  // Content settings
+  zoneNumber    Int?     @map("zone_number")
+  // Staffing
+  staffingRules Json?    @map("staffing_rules") // { roleId: count }[]
   // Pricing
   zoneMinimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לאיזור
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relationships
-  venue  Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  tables Table[]
+  venue     Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  floorPlan FloorPlan? @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  tables    Table[]
 
   @@index([venueId])
+  @@index([floorPlanId])
   @@index([venueId, positionX, positionY])
   @@map("zones")
 }
@@ -190,8 +240,10 @@ model Table {
   shape     String?  @default("rectangle") // rectangle, circle, oval, square
   tableType String?  @default("table") // table, bar, counter
   // Pricing and numbering
-  tableNumber  Int?     // מספר שולחן
+  tableNumber  Int?     @map("table_number") // מספר שולחן
   minimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לשולחן
+  // Staffing
+  staffingRules Json?   @map("staffing_rules") // { roleId: count }[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -223,7 +275,8 @@ model Line {
   venue                    Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
   occurrences              LineOccurrence[]
   reservationExclusions    ReservationSettingsLineExclusion[]
-  reservationSettings     LineReservationSettings?
+  reservationSettings      LineReservationSettings?
+  floorPlans               FloorPlanLine[]              // Many-to-many with FloorPlan
 
   @@index([venueId])
   @@index([venueId, color])
@@ -231,30 +284,33 @@ model Line {
 }
 
 model LineOccurrence {
-  id          String   @id @default(cuid())
-  lineId      String
-  venueId     String
-  date        String
-  startTime   String
-  endTime     String
-  isExpected  Boolean  @default(true)
-  isActive    Boolean  @default(true)
-  title       String?
-  subtitle    String?
-  description String?  @db.Text
-  location    String?
-  contact     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  lineId            String
+  venueId           String
+  customFloorPlanId String?  @map("custom_floor_plan_id") // Optional custom floor plan for this event
+  date              String
+  startTime         String
+  endTime           String
+  isExpected        Boolean  @default(true)
+  isActive          Boolean  @default(true)
+  title             String?
+  subtitle          String?
+  description       String?  @db.Text
+  location          String?
+  contact           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relationships
-  line  Line  @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  line            Line       @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  venue           Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  customFloorPlan FloorPlan? @relation("CustomFloorPlan", fields: [customFloorPlanId], references: [id], onDelete: SetNull)
 
   @@unique([lineId, date])
   @@index([venueId])
   @@index([lineId])
   @@index([date])
+  @@index([customFloorPlanId])
   @@map("line_occurrences")
 }
 
@@ -263,25 +319,28 @@ model LineOccurrence {
 // ============================================================================
 
 model VenueArea {
-  id        String   @id @default(cuid())
-  venueId   String
-  areaType  String   // entrance, exit, kitchen, restroom, dj_booth, stage, storage, bar, etc.
-  name      String
-  positionX Decimal  @db.Decimal(10, 2)
-  positionY Decimal  @db.Decimal(10, 2)
-  width     Decimal  @db.Decimal(10, 2)
-  height    Decimal  @db.Decimal(10, 2)
-  rotation  Decimal? @default(0) @db.Decimal(5, 2)
-  shape     String?  @default("rectangle")
-  icon      String?  // Icon identifier for UI
-  color     String?  // Hex color
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  venueId     String
+  floorPlanId String?  @map("floor_plan_id")
+  areaType    String   // entrance, exit, kitchen, restroom, dj_booth, stage, storage, bar, etc.
+  name        String
+  positionX   Decimal  @db.Decimal(10, 2)
+  positionY   Decimal  @db.Decimal(10, 2)
+  width       Decimal  @db.Decimal(10, 2)
+  height      Decimal  @db.Decimal(10, 2)
+  rotation    Decimal? @default(0) @db.Decimal(5, 2)
+  shape       String?  @default("rectangle")
+  icon        String?  // Icon identifier for UI
+  color       String?  // Hex color
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relationships
-  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venue     Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  floorPlan FloorPlan? @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
 
   @@index([venueId])
+  @@index([floorPlanId])
   @@map("venue_areas")
 }
 

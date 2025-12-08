@@ -37,7 +37,11 @@ import {
   MapPin,
   FileText,
   BookOpen,
-  Users
+  Users,
+  Layers,
+  Ticket,
+  Package,
+  UsersRound
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -239,6 +243,47 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                               <Link href={`/venues/${currentVenue.id}/roles`}>
                                 <Users className="h-4 w-4" />
                                 <span>תפקידים והיררכיה</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        </SidebarMenu>
+                      </SidebarGroupContent>
+                    </SidebarGroup>
+
+                    {/* Venue Settings */}
+                    <SidebarGroup>
+                      <SidebarGroupLabel>{t("workspace.settings", { defaultValue: "הגדרות מקום" })}</SidebarGroupLabel>
+                      <SidebarGroupContent>
+                        <SidebarMenu>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/structure")}>
+                              <Link href={`/venues/${currentVenue.id}/settings/structure`}>
+                                <Layers className="h-4 w-4" />
+                                <span>מבנה (מפות)</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/tickets")}>
+                              <Link href={`/venues/${currentVenue.id}/settings/tickets`}>
+                                <Ticket className="h-4 w-4" />
+                                <span>כרטיסים</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/inventory")}>
+                              <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
+                                <Package className="h-4 w-4" />
+                                <span>מלאי</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/team")}>
+                              <Link href={`/venues/${currentVenue.id}/settings/team`}>
+                                <UsersRound className="h-4 w-4" />
+                                <span>צוות ויחצנים</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
