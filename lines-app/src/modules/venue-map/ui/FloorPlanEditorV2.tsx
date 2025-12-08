@@ -28,6 +28,8 @@ import {
   Grid,
   X,
   Sparkles,
+  Layout,
+  List,
   Minimize2,
   Maximize2,
   ZoomIn,
@@ -326,9 +328,10 @@ export function FloorPlanEditorV2({
   const [hiddenElements] = useState<Set<string>>(new Set());
 
   // Search/filter
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterZone, setFilterZone] = useState<string | null>(null);
-  const [filterElementType, setFilterElementType] = useState<ElementType | "all">("all");
+  // Search/filter moved to sidebar - keeping for element highlighting only
+  const searchQuery = "";
+  const filterZone: string | null = null;
+  const filterElementType: ElementType | "all" = "all";
 
   // Minimap
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1151,15 +1154,12 @@ export function FloorPlanEditorV2({
   }, [selectedElementIds, selectedElementId, handleDeleteElement]);
 
   // Handle editing element - Click on map -> Edit in list (select element in sidebar)
-  const handleEditElement = useCallback(
-    (element: FloorPlanElement) => {
-      // Click on object in map -> Edit in list (select element in sidebar)
-      setSelectedElementId(element.id);
-      setSelectedElementIds(new Set([element.id]));
-      // Element will be shown in PropertiesPanel automatically
-    },
-    []
-  );
+  const handleEditElement = useCallback((element: FloorPlanElement) => {
+    // Click on object in map -> Edit in list (select element in sidebar)
+    setSelectedElementId(element.id);
+    setSelectedElementIds(new Set([element.id]));
+    // Element will be shown in PropertiesPanel automatically
+  }, []);
 
   // Handle Quick Edit Save
   const handleQuickEditSave = useCallback(
@@ -4224,7 +4224,7 @@ export function FloorPlanEditorV2({
                         }
                         isInteractive={!isLocked}
                         onMouseDown={(e) => handleElementMouseDown(e, element)}
-                        onDoubleClick={(e) => handleEditElement(element, e)}
+                        onDoubleClick={() => handleEditElement(element)}
                         onEdit={() => {
                           const elementToEdit = elements.find((e) => e.id === element.id);
                           if (elementToEdit) {
@@ -4979,7 +4979,7 @@ export function FloorPlanEditorV2({
                         }
                         isInteractive={true}
                         onMouseDown={(e) => handleElementMouseDown(e, element)}
-                        onDoubleClick={(e) => handleEditElement(element, e)}
+                        onDoubleClick={() => handleEditElement(element)}
                         onEdit={() => {
                           const elementToEdit = elements.find((e) => e.id === element.id);
                           if (elementToEdit) {
