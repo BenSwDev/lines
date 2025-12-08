@@ -1,20 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { FloorPlanList } from "@/modules/floor-plan-editor";
-import { getFloorPlans, createFloorPlan } from "@/modules/floor-plan-editor/actions/floorPlanActions";
+import { FloorPlanTemplateSelector } from "@/modules/floor-plan-editor/ui/FloorPlanTemplateSelector";
+import { getFloorPlans } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import type { FloorPlanListItem } from "@/modules/floor-plan-editor/types";
-import { useTranslations } from "@/core/i18n/provider";
 
 export default function StructurePage() {
   const params = useParams();
-  const router = useRouter();
-  const { t } = useTranslations();
   const venueId = params.venueId as string;
 
   const [floorPlans, setFloorPlans] = useState<FloorPlanListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -32,22 +31,8 @@ export default function StructurePage() {
     loadData();
   }, [venueId]);
 
-  const handleCreateNew = async () => {
-    try {
-      // Create empty floor plan and navigate directly to editor
-      const result = await createFloorPlan({
-        venueId,
-        name: t("newFloorPlan", { defaultValue: "מפה חדשה" }),
-        isDefault: false
-      });
-
-      if (result.success && result.data) {
-        // Navigate directly to editor
-        router.push(`/venues/${venueId}/settings/structure/${result.data.id}`);
-      }
-    } catch (error) {
-      console.error("Error creating floor plan:", error);
-    }
+  const handleCreateNew = () => {
+    setShowTemplateSelector(true);
   };
 
   if (isLoading) {
@@ -61,12 +46,16 @@ export default function StructurePage() {
   }
 
   return (
-    <div className="container py-8">
-      <FloorPlanList
-        venueId={venueId}
-        floorPlans={floorPlans}
-        onCreateNew={handleCreateNew}
-      />
-    </div>
+    <>
+      {showTemplateSelector && (
+        <FloorPlanTemplateSelector
+          venueId={venueId}
+          onCancel={() => setShowTemplateSelector(false)}
+        />
+      )}
+      <div className="container py-8">
+        <FloorPlanList venueId={venueId} floorPlans={floorPlans} onCreateNew={handleCreateNew} />
+      </div>
+    </>
   );
 }

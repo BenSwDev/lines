@@ -438,6 +438,103 @@ export const floorPlanService = {
   },
 
   // --------------------------------------------------------------------------
+  // CREATE ZONE/TABLE/AREA OPERATIONS
+  // --------------------------------------------------------------------------
+
+  /**
+   * Create a new zone
+   */
+  async createZone(input: {
+    floorPlanId: string;
+    venueId: string;
+    name: string;
+    color: string;
+    positionX?: number;
+    positionY?: number;
+    width?: number;
+    height?: number;
+    description?: string;
+  }) {
+    return prisma.zone.create({
+      data: {
+        venue: { connect: { id: input.venueId } },
+        floorPlan: { connect: { id: input.floorPlanId } },
+        name: input.name,
+        color: input.color,
+        positionX: input.positionX,
+        positionY: input.positionY,
+        width: input.width,
+        height: input.height,
+        description: input.description
+      }
+    });
+  },
+
+  /**
+   * Create a new table
+   */
+  async createTable(input: {
+    zoneId: string;
+    name: string;
+    seats?: number;
+    positionX?: number;
+    positionY?: number;
+    width?: number;
+    height?: number;
+    shape?: string;
+    tableType?: string;
+  }) {
+    return prisma.table.create({
+      data: {
+        zone: { connect: { id: input.zoneId } },
+        name: input.name,
+        seats: input.seats,
+        positionX: input.positionX,
+        positionY: input.positionY,
+        width: input.width,
+        height: input.height,
+        shape: input.shape,
+        tableType: input.tableType
+      }
+    });
+  },
+
+  /**
+   * Create a new venue area
+   */
+  async createVenueArea(input: {
+    floorPlanId: string;
+    venueId: string;
+    areaType: string;
+    name: string;
+    positionX: number;
+    positionY: number;
+    width: number;
+    height: number;
+    rotation?: number;
+    shape?: string;
+    icon?: string;
+    color?: string;
+  }) {
+    return prisma.venueArea.create({
+      data: {
+        venue: { connect: { id: input.venueId } },
+        floorPlan: { connect: { id: input.floorPlanId } },
+        areaType: input.areaType,
+        name: input.name,
+        positionX: input.positionX,
+        positionY: input.positionY,
+        width: input.width,
+        height: input.height,
+        rotation: input.rotation,
+        shape: input.shape,
+        icon: input.icon,
+        color: input.color
+      }
+    });
+  },
+
+  // --------------------------------------------------------------------------
   // DELETE OPERATIONS
   // --------------------------------------------------------------------------
 
@@ -446,6 +543,33 @@ export const floorPlanService = {
    */
   async deleteFloorPlan(id: string): Promise<void> {
     await prisma.floorPlan.delete({
+      where: { id }
+    });
+  },
+
+  /**
+   * Delete a zone
+   */
+  async deleteZone(id: string): Promise<void> {
+    await prisma.zone.delete({
+      where: { id }
+    });
+  },
+
+  /**
+   * Delete a table
+   */
+  async deleteTable(id: string): Promise<void> {
+    await prisma.table.delete({
+      where: { id }
+    });
+  },
+
+  /**
+   * Delete a venue area
+   */
+  async deleteVenueArea(id: string): Promise<void> {
+    await prisma.venueArea.delete({
       where: { id }
     });
   },

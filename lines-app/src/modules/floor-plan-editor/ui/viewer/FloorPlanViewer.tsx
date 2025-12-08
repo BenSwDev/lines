@@ -5,20 +5,25 @@ import { useTranslations } from "@/core/i18n/provider";
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { InteractiveElement } from "./InteractiveElement";
 import type { EditorMode, FloorPlanWithDetails, Zone, Table, VenueArea } from "../../types";
 
 interface FloorPlanViewerProps {
   floorPlan: FloorPlanWithDetails;
   selectedElementId: string | null;
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
+  onElementDelete?: (id: string, type: "zone" | "table" | "area") => void;
   mode: EditorMode;
+  canEdit?: boolean;
 }
 
 export function FloorPlanViewer({
   floorPlan,
   selectedElementId,
   onElementSelect,
-  mode
+  onElementDelete,
+  mode,
+  canEdit = true
 }: FloorPlanViewerProps) {
   const { t } = useTranslations();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,16 +84,19 @@ export function FloorPlanViewer({
             height: canvasBounds.height + 200
           }}
         >
-          {/* Venue Areas (Background) */}
-          {floorPlan.venueAreas.map((area) => (
-            <VenueAreaElement
-              key={area.id}
-              area={area}
-              isSelected={selectedElementId === area.id}
-              onClick={() => onElementSelect(area.id, "area")}
-              mode={mode}
-            />
-          ))}
+          {/* Venue Areas (Background) - Only show in view mode */}
+          {mode === "view" &&
+            floorPlan.venueAreas.map((area) => (
+              <VenueAreaElement
+                key={area.id}
+                area={area}
+                isSelected={selectedElementId === area.id}
+                onClick={() => onElementSelect(area.id, "area")}
+                onDelete={onElementDelete ? () => onElementDelete(area.id, "area") : undefined}
+                mode={mode}
+                canEdit={canEdit}
+              />
+            ))}
 
           {/* Zones */}
           {floorPlan.zones.map((zone) => (
@@ -99,7 +107,10 @@ export function FloorPlanViewer({
               selectedTableId={selectedElementId}
               onClick={() => onElementSelect(zone.id, "zone")}
               onTableClick={(tableId) => onElementSelect(tableId, "table")}
+              onDelete={onElementDelete ? () => onElementDelete(zone.id, "zone") : undefined}
+              onTableDelete={onElementDelete ? (tableId) => onElementDelete(tableId, "table") : undefined}
               mode={mode}
+              canEdit={canEdit}
             />
           ))}
         </div>
@@ -127,7 +138,10 @@ interface ZoneElementProps {
   selectedTableId: string | null;
   onClick: () => void;
   onTableClick: (tableId: string) => void;
+  onDelete?: () => void;
+  onTableDelete?: (tableId: string) => void;
   mode: EditorMode;
+  canEdit?: boolean;
 }
 
 function ZoneElement({
@@ -136,7 +150,10 @@ function ZoneElement({
   selectedTableId,
   onClick,
   onTableClick,
-  mode
+  onDelete,
+  onTableDelete,
+  mode,
+  canEdit = true
 }: ZoneElementProps) {
   const posX = Number(zone.positionX ?? 0);
   const posY = Number(zone.positionY ?? 0);
@@ -178,24 +195,22 @@ function ZoneElement({
   };
 
   return (
-    <div
-      className={cn(
-        "absolute rounded-lg border-2 transition-all cursor-pointer",
-        isSelected
-          ? "ring-4 ring-primary/50 border-primary shadow-lg"
-          : "border-dashed hover:border-solid"
-      )}
+    <InteractiveElement
+      id={zone.id}
+      type="zone"
+      x={posX}
+      y={posY}
+      width={width}
+      height={height}
+      isSelected={isSelected}
+      canEdit={canEdit && mode === "view"}
+      onSelect={onClick}
+      onDelete={onDelete}
+      className="rounded-lg border-2"
       style={{
-        left: posX,
-        top: posY,
-        width,
-        height,
         backgroundColor: `${zone.color}20`,
-        borderColor: zone.color
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
+        borderColor: zone.color,
+        borderStyle: isSelected ? "solid" : "dashed"
       }}
     >
       {/* Zone Label */}
@@ -210,18 +225,22 @@ function ZoneElement({
       {/* Mode Overlay */}
       {getOverlayContent()}
 
-      {/* Tables */}
-      {zone.tables.map((table) => (
-        <TableElement
-          key={table.id}
-          table={table}
-          zoneColor={zone.color}
-          isSelected={selectedTableId === table.id}
-          onClick={() => onTableClick(table.id)}
-          mode={mode}
-        />
-      ))}
-    </div>
+      {/* Tables - positioned relative to zone */}
+      <div className="relative w-full h-full">
+        {zone.tables.map((table) => (
+          <TableElement
+            key={table.id}
+            table={table}
+            zoneColor={zone.color}
+            isSelected={selectedTableId === table.id}
+            onClick={() => onTableClick(table.id)}
+            onDelete={onTableDelete ? () => onTableDelete(table.id) : undefined}
+            mode={mode}
+            canEdit={canEdit}
+          />
+        ))}
+      </div>
+    </InteractiveElement>
   );
 }
 
@@ -231,10 +250,20 @@ interface TableElementProps {
   zoneColor: string;
   isSelected: boolean;
   onClick: () => void;
+  onDelete?: () => void;
   mode: EditorMode;
+  canEdit?: boolean;
 }
 
-function TableElement({ table, zoneColor, isSelected, onClick, mode }: TableElementProps) {
+function TableElement({
+  table,
+  zoneColor,
+  isSelected,
+  onClick,
+  onDelete,
+  mode,
+  canEdit = true
+}: TableElementProps) {
   const posX = Number(table.positionX ?? 10);
   const posY = Number(table.positionY ?? 10);
   const width = Number(table.width ?? 40);
@@ -283,29 +312,28 @@ function TableElement({ table, zoneColor, isSelected, onClick, mode }: TableElem
   };
 
   return (
-    <div
+    <InteractiveElement
+      id={table.id}
+      type="table"
+      x={posX}
+      y={posY}
+      width={width}
+      height={height}
+      rotation={rotation}
+      isSelected={isSelected}
+      canEdit={canEdit && mode === "view"}
+      onSelect={onClick}
+      onDelete={onDelete}
       className={cn(
-        "absolute bg-white dark:bg-gray-800 border-2 transition-all cursor-pointer flex items-center justify-center shadow-sm",
-        isSelected
-          ? "ring-2 ring-primary shadow-lg scale-110 z-10"
-          : "hover:shadow-md hover:scale-105",
+        "bg-white dark:bg-gray-800 border-2 flex items-center justify-center shadow-sm",
         isCircle ? "rounded-full" : "rounded-md"
       )}
       style={{
-        left: posX,
-        top: posY,
-        width,
-        height,
-        transform: `rotate(${rotation}deg)`,
         borderColor: zoneColor
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
       }}
     >
       {getModeContent()}
-    </div>
+    </InteractiveElement>
   );
 }
 
@@ -314,10 +342,18 @@ interface VenueAreaElementProps {
   area: VenueArea;
   isSelected: boolean;
   onClick: () => void;
+  onDelete?: () => void;
   mode: EditorMode;
+  canEdit?: boolean;
 }
 
-function VenueAreaElement({ area, isSelected, onClick }: VenueAreaElementProps) {
+function VenueAreaElement({
+  area,
+  isSelected,
+  onClick,
+  onDelete,
+  canEdit = true
+}: VenueAreaElementProps) {
   const posX = Number(area.positionX);
   const posY = Number(area.positionY);
   const width = Number(area.width);
@@ -347,31 +383,28 @@ function VenueAreaElement({ area, isSelected, onClick }: VenueAreaElementProps) 
   };
 
   return (
-    <div
-      className={cn(
-        "absolute rounded-lg border transition-all cursor-pointer",
-        isSelected
-          ? "ring-2 ring-primary shadow-lg"
-          : "hover:shadow-md opacity-80 hover:opacity-100"
-      )}
+    <InteractiveElement
+      id={area.id}
+      type="area"
+      x={posX}
+      y={posY}
+      width={width}
+      height={height}
+      rotation={Number(area.rotation ?? 0)}
+      isSelected={isSelected}
+      canEdit={canEdit}
+      onSelect={onClick}
+      onDelete={onDelete}
+      className="rounded-lg border"
       style={{
-        left: posX,
-        top: posY,
-        width,
-        height,
-        backgroundColor: area.color ?? "#6B7280",
-        transform: `rotate(${Number(area.rotation ?? 0)}deg)`
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
+        backgroundColor: area.color ?? "#6B7280"
       }}
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
         <span className="text-2xl">{getIcon()}</span>
         <span className="text-xs font-medium mt-1">{area.name}</span>
       </div>
-    </div>
+    </InteractiveElement>
   );
 }
 

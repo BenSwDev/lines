@@ -12,6 +12,7 @@ export const staffingRuleSchema = z.object({
 });
 
 export const createTableSchema = z.object({
+  zoneId: z.string().optional(),
   name: z.string().min(1, "Name is required"),
   seats: z.number().int().min(1).optional(),
   positionX: z.number().optional(),
@@ -24,6 +25,8 @@ export const createTableSchema = z.object({
 });
 
 export const createZoneSchema = z.object({
+  floorPlanId: z.string().optional(),
+  venueId: z.string().optional(),
   name: z.string().min(1, "Name is required"),
   color: z.string().min(1, "Color is required"),
   description: z.string().optional(),
@@ -37,12 +40,15 @@ export const createZoneSchema = z.object({
 });
 
 export const createVenueAreaSchema = z.object({
+  floorPlanId: z.string().optional(),
+  venueId: z.string().optional(),
   areaType: z.string().min(1, "Area type is required"),
   name: z.string().min(1, "Name is required"),
   positionX: z.number(),
   positionY: z.number(),
   width: z.number(),
   height: z.number(),
+  rotation: z.number().optional(),
   shape: z.string().optional(),
   icon: z.string().optional(),
   color: z.string().optional()

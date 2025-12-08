@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { prisma } from "@/core/integrations/prisma";
 import { floorPlanService } from "../services/floorPlanService";
 import {
   createFloorPlanSchema,
@@ -8,7 +9,10 @@ import {
   updateZoneContentSchema,
   updateTableContentSchema,
   updateStaffingSchema,
-  updateMinimumOrderSchema
+  updateMinimumOrderSchema,
+  createZoneSchema,
+  createTableSchema,
+  createVenueAreaSchema
 } from "../schemas/floorPlanSchemas";
 import type { FloorPlanWithDetails, FloorPlanListItem } from "../types";
 
@@ -322,5 +326,312 @@ export async function deleteFloorPlan(
       return { success: false, error: error.message };
     }
     return { success: false, error: "Failed to delete floor plan" };
+  }
+}
+
+// ============================================================================
+// STRUCTURE BUILDING ACTIONS (Create, Delete, Update Position)
+// ============================================================================
+
+/**
+ * Create a new zone
+ */
+export async function createZone(input: unknown): Promise<{
+  success: boolean;
+  data?: { id: string };
+  error?: string;
+}> {
+  try {
+    const validated = createZoneSchema.parse(input);
+    const zone = await floorPlanService.createZone({
+      floorPlanId: validated.floorPlanId!,
+      venueId: validated.venueId!,
+      name: validated.name,
+      color: validated.color,
+      positionX: validated.positionX,
+      positionY: validated.positionY,
+      width: validated.width,
+      height: validated.height,
+      description: validated.description
+    });
+
+    // Get floor plan for revalidation
+    const floorPlan = await prisma.floorPlan.findUnique({
+      where: { id: validated.floorPlanId! },
+      select: { venueId: true, id: true }
+    });
+
+    if (floorPlan) {
+      revalidatePath(`/venues/${floorPlan.venueId}/settings/structure/${floorPlan.id}`);
+    }
+
+    return { success: true, data: { id: zone.id } };
+  } catch (error) {
+    console.error("Error creating zone:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to create zone" };
+  }
+}
+
+/**
+ * Create a new table
+ */
+export async function createTable(input: unknown): Promise<{
+  success: boolean;
+  data?: { id: string };
+  error?: string;
+}> {
+  try {
+    const validated = createTableSchema.parse(input);
+    const table = await floorPlanService.createTable({
+      zoneId: validated.zoneId!,
+      name: validated.name,
+      seats: validated.seats,
+      positionX: validated.positionX,
+      positionY: validated.positionY,
+      width: validated.width,
+      height: validated.height,
+      shape: validated.shape,
+      tableType: validated.tableType
+    });
+
+    // Get zone for revalidation
+    const zone = await prisma.zone.findUnique({
+      where: { id: validated.zoneId! },
+      include: {
+        floorPlan: {
+          select: { venueId: true, id: true }
+        }
+      }
+    });
+
+    if (zone?.floorPlan) {
+      revalidatePath(`/venues/${zone.floorPlan.venueId}/settings/structure/${zone.floorPlan.id}`);
+    }
+
+    return { success: true, data: { id: table.id } };
+  } catch (error) {
+    console.error("Error creating table:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to create table" };
+  }
+}
+
+/**
+ * Create a new venue area
+ */
+export async function createVenueArea(input: unknown): Promise<{
+  success: boolean;
+  data?: { id: string };
+  error?: string;
+}> {
+  try {
+    const validated = createVenueAreaSchema.parse(input);
+    const area = await floorPlanService.createVenueArea({
+      floorPlanId: validated.floorPlanId!,
+      venueId: validated.venueId!,
+      areaType: validated.areaType,
+      name: validated.name,
+      positionX: validated.positionX,
+      positionY: validated.positionY,
+      width: validated.width,
+      height: validated.height,
+      rotation: validated.rotation,
+      shape: validated.shape,
+      icon: validated.icon,
+      color: validated.color
+    });
+
+    // Get floor plan for revalidation
+    const floorPlan = await prisma.floorPlan.findUnique({
+      where: { id: validated.floorPlanId! },
+      select: { venueId: true, id: true }
+    });
+
+    if (floorPlan) {
+      revalidatePath(`/venues/${floorPlan.venueId}/settings/structure/${floorPlan.id}`);
+    }
+
+    return { success: true, data: { id: area.id } };
+  } catch (error) {
+    console.error("Error creating venue area:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to create venue area" };
+  }
+}
+
+/**
+ * Delete a zone
+ */
+export async function deleteZone(zoneId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    // Get zone for revalidation
+    const zone = await prisma.zone.findUnique({
+      where: { id: zoneId },
+      include: {
+        floorPlan: {
+          select: { venueId: true, id: true }
+        }
+      }
+    });
+
+    await floorPlanService.deleteZone(zoneId);
+
+    if (zone?.floorPlan) {
+      revalidatePath(`/venues/${zone.floorPlan.venueId}/settings/structure/${zone.floorPlan.id}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting zone:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to delete zone" };
+  }
+}
+
+/**
+ * Delete a table
+ */
+export async function deleteTable(tableId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    // Get table for revalidation
+    const table = await prisma.table.findUnique({
+      where: { id: tableId },
+      include: {
+        zone: {
+          include: {
+            floorPlan: {
+              select: { venueId: true, id: true }
+            }
+          }
+        }
+      }
+    });
+
+    await floorPlanService.deleteTable(tableId);
+
+    if (table?.zone?.floorPlan) {
+      revalidatePath(
+        `/venues/${table.zone.floorPlan.venueId}/settings/structure/${table.zone.floorPlan.id}`
+      );
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting table:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to delete table" };
+  }
+}
+
+/**
+ * Delete a venue area
+ */
+export async function deleteVenueArea(areaId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    // Get area for revalidation
+    const area = await prisma.venueArea.findUnique({
+      where: { id: areaId },
+      include: {
+        floorPlan: {
+          select: { venueId: true, id: true }
+        }
+      }
+    });
+
+    await floorPlanService.deleteVenueArea(areaId);
+
+    if (area?.floorPlan) {
+      revalidatePath(`/venues/${area.floorPlan.venueId}/settings/structure/${area.floorPlan.id}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting venue area:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to delete venue area" };
+  }
+}
+
+/**
+ * Update element position and size (for drag, resize, rotate)
+ */
+export async function updateElementPosition(input: {
+  type: "zone" | "table" | "area";
+  id: string;
+  positionX?: number;
+  positionY?: number;
+  width?: number;
+  height?: number;
+  rotation?: number;
+}): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const { type, id, ...updates } = input;
+
+    if (type === "zone") {
+      await prisma.zone.update({
+        where: { id },
+        data: {
+          positionX: updates.positionX,
+          positionY: updates.positionY,
+          width: updates.width,
+          height: updates.height
+        }
+      });
+    } else if (type === "table") {
+      await prisma.table.update({
+        where: { id },
+        data: {
+          positionX: updates.positionX,
+          positionY: updates.positionY,
+          width: updates.width,
+          height: updates.height,
+          rotation: updates.rotation
+        }
+      });
+    } else if (type === "area") {
+      await prisma.venueArea.update({
+        where: { id },
+        data: {
+          positionX: updates.positionX,
+          positionY: updates.positionY,
+          width: updates.width,
+          height: updates.height,
+          rotation: updates.rotation
+        }
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating element position:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to update element position" };
   }
 }

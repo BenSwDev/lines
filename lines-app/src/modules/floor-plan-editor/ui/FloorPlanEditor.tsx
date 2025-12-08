@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, FileText, Users, DollarSign, Settings, Save } from "lucide-react";
+import { ArrowLeft, Eye, FileText, Users, DollarSign, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,15 @@ import { FloorPlanViewer } from "./viewer/FloorPlanViewer";
 import { ContentEditor } from "./modes/ContentEditor";
 import { StaffingEditor } from "./modes/StaffingEditor";
 import { MinimumOrderEditor } from "./modes/MinimumOrderEditor";
+import { StructureBuilder } from "./modes/StructureBuilder";
+import {
+  createZone,
+  createTable,
+  createVenueArea,
+  deleteZone,
+  deleteTable,
+  deleteVenueArea
+} from "../actions/floorPlanActions";
 import type { EditorMode, FloorPlanWithDetails, Zone, Table } from "../types";
 
 interface FloorPlanEditorProps {
@@ -25,7 +34,6 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
   const [selectedElementType, setSelectedElementType] = useState<"zone" | "table" | "area" | null>(
     null
   );
-  const [isSaving] = useState(false);
 
   // Check if floor plan is locked - only allow editing in view mode if locked
   const isLocked = floorPlan.isLocked;
@@ -57,6 +65,51 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
     return null;
   };
 
+  const handleElementAdd = async (
+    type: "zone" | "table" | "area",
+    data: unknown
+  ): Promise<void> => {
+    try {
+      if (type === "zone") {
+        const result = await createZone(data);
+        if (result.success && result.data) {
+          router.refresh();
+        }
+      } else if (type === "table") {
+        // Need zoneId for table - should be passed in data
+        const result = await createTable(data);
+        if (result.success && result.data) {
+          router.refresh();
+        }
+      } else if (type === "area") {
+        const result = await createVenueArea(data);
+        if (result.success && result.data) {
+          router.refresh();
+        }
+      }
+    } catch (error) {
+      console.error("Error adding element:", error);
+    }
+  };
+
+  const handleElementDelete = async (
+    id: string,
+    type: "zone" | "table" | "area"
+  ): Promise<void> => {
+    try {
+      if (type === "zone") {
+        await deleteZone(id);
+      } else if (type === "table") {
+        await deleteTable(id);
+      } else if (type === "area") {
+        await deleteVenueArea(id);
+      }
+      router.refresh();
+    } catch (error) {
+      console.error("Error deleting element:", error);
+    }
+  };
+
   const tabs = [
     { id: "view", label: "מבנה מקום כללי", icon: Eye },
     { id: "content", label: "תכולה", icon: FileText },
@@ -74,17 +127,16 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
           </Button>
           <div>
             <h1 className="text-xl font-semibold">{floorPlan.name}</h1>
-            <p className="text-sm text-muted-foreground">{floorPlan.description || "אין תיאור"}</p>
+            {floorPlan.description && (
+              <p className="text-sm text-muted-foreground">{floorPlan.description}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Settings className="h-4 w-4" />
+          {isLocked && <span className="text-sm text-muted-foreground">🔒 נעול</span>}
+          <Button variant="outline" size="sm" onClick={handleBack}>
+            <Settings className="h-4 w-4 mr-2" />
             הגדרות
-          </Button>
-          <Button size="sm" className="gap-2" disabled={isSaving}>
-            <Save className="h-4 w-4" />
-            {isSaving ? "שומר..." : "שמור"}
           </Button>
         </div>
       </div>
@@ -144,7 +196,9 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                 floorPlan={floorPlan}
                 selectedElementId={selectedElementId}
                 onElementSelect={handleElementSelect}
+                onElementDelete={handleElementDelete}
                 mode="view"
+                canEdit={canEdit}
               />
             </TabsContent>
             <TabsContent value="content" className="m-0 h-full">
@@ -153,6 +207,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                 selectedElementId={selectedElementId}
                 onElementSelect={handleElementSelect}
                 mode="content"
+                canEdit={canEdit}
               />
             </TabsContent>
             <TabsContent value="staffing" className="m-0 h-full">
@@ -161,6 +216,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                 selectedElementId={selectedElementId}
                 onElementSelect={handleElementSelect}
                 mode="staffing"
+                canEdit={canEdit}
               />
             </TabsContent>
             <TabsContent value="minimum-order" className="m-0 h-full">
@@ -169,6 +225,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                 selectedElementId={selectedElementId}
                 onElementSelect={handleElementSelect}
                 mode="minimum-order"
+                canEdit={canEdit}
               />
             </TabsContent>
           </div>
@@ -176,11 +233,15 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
           {/* Sidebar */}
           <div className="w-80 border-l bg-background overflow-y-auto">
             <TabsContent value="view" className="m-0">
-              <ViewSidebar
+              <StructureBuilder
                 floorPlan={floorPlan}
+                venueId={venueId}
                 selectedElementId={selectedElementId}
                 selectedElementType={selectedElementType}
                 onElementSelect={handleElementSelect}
+                onElementAdd={handleElementAdd}
+                onElementDelete={handleElementDelete}
+                canEdit={canEdit}
               />
             </TabsContent>
             <TabsContent value="content" className="m-0">
@@ -229,133 +290,6 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
           </div>
         </div>
       </Tabs>
-    </div>
-  );
-}
-
-// View Mode Sidebar
-interface ViewSidebarProps {
-  floorPlan: FloorPlanWithDetails;
-  selectedElementId: string | null;
-  selectedElementType: "zone" | "table" | "area" | null;
-  onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
-}
-
-function ViewSidebar({
-  floorPlan,
-  selectedElementId,
-  selectedElementType,
-  onElementSelect
-}: ViewSidebarProps) {
-  const [filters, setFilters] = useState({
-    showZones: true,
-    showTables: true,
-    showBars: true,
-    showAreas: true
-  });
-
-  // Calculate stats
-  const totalZones = floorPlan.zones.length;
-  const totalTables = floorPlan.zones.reduce((acc, z) => acc + z.tables.length, 0);
-  const totalSeats = floorPlan.zones.reduce(
-    (acc, z) => acc + z.tables.reduce((acc2, table) => acc2 + (table.seats ?? 0), 0),
-    0
-  );
-  const barCount = floorPlan.venueAreas.filter((a) => a.areaType === "bar").length;
-
-  return (
-    <div className="p-4 space-y-6">
-      {/* Stats Summary */}
-      <div className="space-y-2">
-        <h3 className="font-semibold">📊 סיכום</h3>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="p-2 bg-muted rounded-lg">
-            <div className="text-2xl font-bold">{totalZones}</div>
-            <div className="text-muted-foreground">איזורים</div>
-          </div>
-          <div className="p-2 bg-muted rounded-lg">
-            <div className="text-2xl font-bold">{totalTables}</div>
-            <div className="text-muted-foreground">שולחנות</div>
-          </div>
-          <div className="p-2 bg-muted rounded-lg">
-            <div className="text-2xl font-bold">{totalSeats}</div>
-            <div className="text-muted-foreground">מושבים</div>
-          </div>
-          <div className="p-2 bg-muted rounded-lg">
-            <div className="text-2xl font-bold">{barCount}</div>
-            <div className="text-muted-foreground">ברים</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="space-y-2">
-        <h3 className="font-semibold">🔍 סינון תצוגה</h3>
-        <div className="space-y-2">
-          {[
-            { key: "showZones", label: "איזורים" },
-            { key: "showTables", label: "שולחנות" },
-            { key: "showBars", label: "ברים" },
-            { key: "showAreas", label: "אזורים מיוחדים" }
-          ].map(({ key, label }) => (
-            <label key={key} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters[key as keyof typeof filters]}
-                onChange={(e) => setFilters((prev) => ({ ...prev, [key]: e.target.checked }))}
-                className="rounded"
-              />
-              <span className="text-sm">{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Element List */}
-      <div className="space-y-2">
-        <h3 className="font-semibold">📋 אלמנטים</h3>
-        <div className="space-y-1 max-h-[400px] overflow-y-auto">
-          {floorPlan.zones.map((zone) => (
-            <div key={zone.id}>
-              <button
-                className={cn(
-                  "w-full text-left p-2 rounded-lg text-sm hover:bg-muted transition-colors",
-                  selectedElementId === zone.id &&
-                    selectedElementType === "zone" &&
-                    "bg-muted ring-2 ring-primary"
-                )}
-                onClick={() => onElementSelect(zone.id, "zone")}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: zone.color }} />
-                  <span className="font-medium">{zone.name}</span>
-                  <span className="text-muted-foreground ml-auto">({zone.tables.length})</span>
-                </div>
-              </button>
-              {/* Tables under zone */}
-              <div className="ml-4 space-y-0.5">
-                {zone.tables.map((table) => (
-                  <button
-                    key={table.id}
-                    className={cn(
-                      "w-full text-left p-1.5 rounded text-xs hover:bg-muted/50 transition-colors",
-                      selectedElementId === table.id &&
-                        selectedElementType === "table" &&
-                        "bg-muted ring-1 ring-primary"
-                    )}
-                    onClick={() => onElementSelect(table.id, "table")}
-                  >
-                    <span>{table.name}</span>
-                    {table.seats && (
-                      <span className="text-muted-foreground ml-1">({table.seats} מושבים)</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
