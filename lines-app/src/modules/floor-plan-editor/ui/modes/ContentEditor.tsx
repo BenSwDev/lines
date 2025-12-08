@@ -103,18 +103,18 @@ function ZoneContentEditor({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-lg">
-            ✏️ {t("editZone", { defaultValue: "Edit Zone" })}
+            ✏️ {t("floorPlan.editZone", { defaultValue: "עריכת איזור" })}
           </h3>
           <p className="text-sm text-muted-foreground">{zone.name}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onBack}>
-          {t("back", { defaultValue: "Back" })}
+          {t("common.back", { defaultValue: "חזרה" })}
         </Button>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="zone-name">{t("name", { defaultValue: "Name" })}</Label>
+          <Label htmlFor="zone-name">{t("floorPlan.name", { defaultValue: "שם" })}</Label>
           <Input
             id="zone-name"
             value={formData.name}
@@ -123,7 +123,9 @@ function ZoneContentEditor({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="zone-number">{t("zoneNumber", { defaultValue: "Zone Number" })}</Label>
+          <Label htmlFor="zone-number">
+            {t("floorPlan.zoneNumber", { defaultValue: "מספר איזור" })}
+          </Label>
           <Input
             id="zone-number"
             type="number"
@@ -134,12 +136,14 @@ function ZoneContentEditor({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="zone-desc">{t("description", { defaultValue: "Description" })}</Label>
+          <Label htmlFor="zone-desc">{t("floorPlan.description", { defaultValue: "תיאור" })}</Label>
           <Textarea
             id="zone-desc"
             value={formData.description}
             onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-            placeholder={t("descriptionPlaceholder", { defaultValue: "Optional description..." })}
+            placeholder={t("floorPlan.descriptionPlaceholder", {
+              defaultValue: "תיאור אופציונלי..."
+            })}
             rows={3}
           />
         </div>
@@ -147,8 +151,8 @@ function ZoneContentEditor({
         <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
           <Save className="h-4 w-4" />
           {isPending
-            ? t("saving", { defaultValue: "Saving..." })
-            : t("save", { defaultValue: "Save Changes" })}
+            ? t("floorPlan.saving", { defaultValue: "שומר..." })
+            : t("floorPlan.save", { defaultValue: "שמור" })}
         </Button>
       </div>
 
@@ -156,7 +160,7 @@ function ZoneContentEditor({
       {tables.length > 0 && (
         <div className="space-y-2">
           <h4 className="font-medium">
-            {t("tablesInZone", { defaultValue: "Tables in Zone" })} ({tables.length})
+            {t("floorPlan.tablesInZone", { defaultValue: "שולחנות באיזור" })} ({tables.length})
           </h4>
           <div className="space-y-1 max-h-[200px] overflow-y-auto">
             {tables.map((table) => (
@@ -167,7 +171,7 @@ function ZoneContentEditor({
               >
                 <span>{table.name}</span>
                 <span className="text-muted-foreground">
-                  {table.seats} {t("seats", { defaultValue: "seats" })}
+                  {table.seats} {t("floorPlan.seats", { defaultValue: "מושבים" })}
                 </span>
               </button>
             ))}
@@ -218,18 +222,18 @@ function TableContentEditor({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-lg">
-            ✏️ {t("editTable", { defaultValue: "Edit Table" })}
+            ✏️ {t("floorPlan.editTable", { defaultValue: "עריכת שולחן" })}
           </h3>
           <p className="text-sm text-muted-foreground">{table.name}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onBack}>
-          {t("back", { defaultValue: "Back" })}
+          {t("common.back", { defaultValue: "חזרה" })}
         </Button>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="table-name">{t("name", { defaultValue: "Name" })}</Label>
+          <Label htmlFor="table-name">{t("floorPlan.name", { defaultValue: "שם" })}</Label>
           <Input
             id="table-name"
             value={formData.name}
@@ -238,7 +242,9 @@ function TableContentEditor({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="table-number">{t("tableNumber", { defaultValue: "Table Number" })}</Label>
+          <Label htmlFor="table-number">
+            {t("floorPlan.tableNumber", { defaultValue: "מספר שולחן" })}
+          </Label>
           <Input
             id="table-number"
             type="number"
@@ -249,7 +255,7 @@ function TableContentEditor({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="table-seats">{t("seats", { defaultValue: "Seats" })}</Label>
+          <Label htmlFor="table-seats">{t("floorPlan.seats", { defaultValue: "מושבים" })}</Label>
           <Input
             id="table-seats"
             type="number"
@@ -262,8 +268,8 @@ function TableContentEditor({
         <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
           <Save className="h-4 w-4" />
           {isPending
-            ? t("saving", { defaultValue: "Saving..." })
-            : t("save", { defaultValue: "Save Changes" })}
+            ? t("floorPlan.saving", { defaultValue: "שומר..." })
+            : t("floorPlan.save", { defaultValue: "שמור" })}
         </Button>
       </div>
     </div>
@@ -296,10 +302,10 @@ function ElementListView({ floorPlan, onElementSelect }: ElementListViewProps) {
     <div className="p-4 space-y-4">
       <div>
         <h3 className="font-semibold text-lg">
-          📝 {t("editContent", { defaultValue: "Edit Content" })}
+          📝 {t("floorPlan.editContent", { defaultValue: "עריכת תכולה" })}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {t("selectElementToEdit", { defaultValue: "Select an element to edit its content" })}
+          {t("floorPlan.selectElementToEdit", { defaultValue: "בחר אלמנט לעריכה" })}
         </p>
       </div>
 
@@ -327,7 +333,7 @@ function ElementListView({ floorPlan, onElementSelect }: ElementListViewProps) {
                   onElementSelect(zone.id, "zone");
                 }}
               >
-                {t("edit", { defaultValue: "Edit" })}
+                {t("floorPlan.edit", { defaultValue: "עריכה" })}
               </Button>
             </button>
             {expandedZones.has(zone.id) && zone.tables.length > 0 && (
@@ -340,7 +346,7 @@ function ElementListView({ floorPlan, onElementSelect }: ElementListViewProps) {
                   >
                     <span>{table.name}</span>
                     <span className="text-muted-foreground">
-                      {table.seats} {t("seats", { defaultValue: "seats" })}
+                      {table.seats} {t("floorPlan.seats", { defaultValue: "מושבים" })}
                     </span>
                   </button>
                 ))}

@@ -59,7 +59,7 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
   const handleDuplicate = async (floorPlan: FloorPlanListItem) => {
     setIsDuplicating(floorPlan.id);
     try {
-      const newName = `${floorPlan.name} (העתק)`;
+      const newName = `${floorPlan.name} (${t("floorPlan.copy", { defaultValue: "העתק" })})`;
       const result = await duplicateFloorPlan(floorPlan.id, newName, venueId);
       if (result.success) {
         router.refresh();

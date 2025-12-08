@@ -102,19 +102,19 @@ function MinimumOrderForm({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-lg">
-            💰 {t("editMinimumOrder", { defaultValue: "Edit Minimum Order" })}
+            💰 {t("floorPlan.editMinimumOrder", { defaultValue: "עריכת מינימום הזמנה" })}
           </h3>
           <p className="text-sm text-muted-foreground">{target.name}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onBack}>
-          {t("back", { defaultValue: "Back" })}
+          {t("common.back", { defaultValue: "חזרה" })}
         </Button>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="minimum-price">
-            {t("minimumOrderAmount", { defaultValue: "Minimum Order Amount" })}
+            {t("floorPlan.minimumOrderAmount", { defaultValue: "סכום מינימום הזמנה" })}
           </Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -133,7 +133,7 @@ function MinimumOrderForm({
 
         {/* Quick Presets */}
         <div className="space-y-2">
-          <Label>{t("quickPresets", { defaultValue: "Quick Presets" })}</Label>
+          <Label>{t("floorPlan.quickPresets", { defaultValue: "ערכים מהירים" })}</Label>
           <div className="flex flex-wrap gap-2">
             {[100, 200, 300, 500, 750, 1000].map((preset) => (
               <Button
@@ -152,13 +152,13 @@ function MinimumOrderForm({
         <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
           <Save className="h-4 w-4" />
           {isPending
-            ? t("saving", { defaultValue: "Saving..." })
-            : t("save", { defaultValue: "Save Changes" })}
+            ? t("floorPlan.saving", { defaultValue: "שומר..." })
+            : t("floorPlan.save", { defaultValue: "שמור" })}
         </Button>
 
         {/* Clear button */}
         <Button variant="ghost" onClick={() => setMinimumPrice("")} className="w-full">
-          {t("clearMinimum", { defaultValue: "Clear Minimum" })}
+          {t("floorPlan.clearMinimum", { defaultValue: "נקה מינימום" })}
         </Button>
       </div>
     </div>
@@ -182,29 +182,29 @@ function MinimumOrderSummaryView({ floorPlan, onElementSelect }: MinimumOrderSum
     <div className="p-4 space-y-6">
       <div>
         <h3 className="font-semibold text-lg">
-          💰 {t("minimumOrderOverview", { defaultValue: "Minimum Order Overview" })}
+          💰 {t("floorPlan.minimumOrderOverview", { defaultValue: "סקירת מינימום הזמנה" })}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {t("selectElementToEditMinimum", {
-            defaultValue: "Select a zone or table to set minimum order"
+          {t("floorPlan.selectElementToEditMinimum", {
+            defaultValue: "בחר איזור או שולחן להגדרת מינימום הזמנה"
           })}
         </p>
       </div>
 
       {/* Summary */}
       <div className="p-4 bg-muted rounded-lg space-y-3">
-        <h4 className="font-medium">📊 {t("summary", { defaultValue: "Summary" })}</h4>
+        <h4 className="font-medium">📊 {t("floorPlan.summary", { defaultValue: "סיכום" })}</h4>
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold">{zonesWithMinimum.length}</div>
             <div className="text-sm text-muted-foreground">
-              {t("zonesWithMinimum", { defaultValue: "Zones with minimum" })}
+              {t("floorPlan.zonesWithMinimum", { defaultValue: "איזורים עם מינימום" })}
             </div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold">{tablesWithMinimum.length}</div>
             <div className="text-sm text-muted-foreground">
-              {t("tablesWithMinimum", { defaultValue: "Tables with minimum" })}
+              {t("floorPlan.tablesWithMinimum", { defaultValue: "שולחנות עם מינימום" })}
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ function MinimumOrderSummaryView({ floorPlan, onElementSelect }: MinimumOrderSum
 
       {/* Zone List */}
       <div className="space-y-2">
-        <h4 className="font-medium">{t("byZone", { defaultValue: "By Zone" })}</h4>
+        <h4 className="font-medium">{t("floorPlan.byZone", { defaultValue: "לפי איזור" })}</h4>
         {floorPlan.zones.map((zone) => {
           const zoneMin = zone.zoneMinimumPrice ? Number(zone.zoneMinimumPrice) : null;
 
@@ -233,7 +233,7 @@ function MinimumOrderSummaryView({ floorPlan, onElementSelect }: MinimumOrderSum
                   </span>
                 ) : (
                   <span className="text-sm text-muted-foreground">
-                    {t("notSet", { defaultValue: "Not set" })}
+                    {t("floorPlan.notSet", { defaultValue: "לא הוגדר" })}
                   </span>
                 )}
               </div>
@@ -246,7 +246,7 @@ function MinimumOrderSummaryView({ floorPlan, onElementSelect }: MinimumOrderSum
       {tablesWithMinimum.length > 0 && (
         <div className="space-y-2">
           <h4 className="font-medium">
-            {t("tablesWithSpecialMinimum", { defaultValue: "Tables with Special Minimum" })}
+            {t("floorPlan.tablesWithSpecialMinimum", { defaultValue: "שולחנות עם מינימום מיוחד" })}
           </h4>
           {floorPlan.zones.map((zone) =>
             zone.tables

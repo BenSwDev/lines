@@ -142,27 +142,29 @@ function StaffingForm({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-lg">
-            👥 {t("editStaffing", { defaultValue: "Edit Staffing" })}
+            👥 {t("floorPlan.editStaffing", { defaultValue: "עריכת סידור עבודה" })}
           </h3>
           <p className="text-sm text-muted-foreground">{target.name}</p>
         </div>
         <Button variant="ghost" size="sm" onClick={onBack}>
-          {t("back", { defaultValue: "Back" })}
+          {t("common.back", { defaultValue: "חזרה" })}
         </Button>
       </div>
 
       {roles.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>{t("noRolesDefined", { defaultValue: "No roles defined yet" })}</p>
+          <p>{t("floorPlan.noRolesDefined", { defaultValue: "לא הוגדרו תפקידים עדיין" })}</p>
           <p className="text-sm">
-            {t("defineRolesFirst", { defaultValue: "Define roles in Roles & Hierarchy first" })}
+            {t("floorPlan.defineRolesFirst", {
+              defaultValue: "הגדר תפקידים תחילה בתפקידים והיררכיה"
+            })}
           </p>
         </div>
       ) : (
         <>
           <div className="space-y-3">
-            <Label>{t("rolesNeeded", { defaultValue: "Roles Needed" })}</Label>
+            <Label>{t("floorPlan.rolesNeeded", { defaultValue: "תפקידים נדרשים" })}</Label>
             {roles.map((role) => (
               <div
                 key={role.id}
@@ -199,7 +201,7 @@ function StaffingForm({
           <div className="p-3 bg-muted rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-medium">
-                {t("totalStaff", { defaultValue: "Total Staff" })}
+                {t("floorPlan.totalStaff", { defaultValue: 'סה"כ צוות' })}
               </span>
               <span className="text-2xl font-bold">{totalStaff}</span>
             </div>
@@ -208,16 +210,15 @@ function StaffingForm({
           <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
             <Save className="h-4 w-4" />
             {isPending
-              ? t("saving", { defaultValue: "Saving..." })
-              : t("save", { defaultValue: "Save Changes" })}
+              ? t("floorPlan.saving", { defaultValue: "שומר..." })
+              : t("floorPlan.save", { defaultValue: "שמור" })}
           </Button>
         </>
       )}
 
       <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg text-sm">
         <p className="text-blue-700 dark:text-blue-300">
-          💡{" "}
-          {t("staffingTip", { defaultValue: "This will be used as default for scheduling shifts" })}
+          💡 {t("floorPlan.staffingTip", { defaultValue: "זה ישמש כברירת מחדל לסידור משמרות" })}
         </p>
       </div>
     </div>
@@ -262,18 +263,20 @@ function StaffingSummaryView({ floorPlan, roles, onElementSelect }: StaffingSumm
     <div className="p-4 space-y-6">
       <div>
         <h3 className="font-semibold text-lg">
-          👥 {t("staffingOverview", { defaultValue: "Staffing Overview" })}
+          👥 {t("floorPlan.staffingOverview", { defaultValue: "סקירת סידור עבודה" })}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {t("selectElementToEditStaffing", {
-            defaultValue: "Select a zone or table to edit staffing"
+          {t("floorPlan.selectElementToEditStaffing", {
+            defaultValue: "בחר איזור או שולחן לעריכת סידור עבודה"
           })}
         </p>
       </div>
 
       {/* Summary */}
       <div className="p-4 bg-muted rounded-lg space-y-3">
-        <h4 className="font-medium">📊 {t("totalNeeds", { defaultValue: "Total Needs" })}</h4>
+        <h4 className="font-medium">
+          📊 {t("floorPlan.totalNeeds", { defaultValue: "צרכים כוללים" })}
+        </h4>
         {roles.length > 0 ? (
           <div className="space-y-2">
             {roles.map((role) => (
@@ -286,20 +289,20 @@ function StaffingSummaryView({ floorPlan, roles, onElementSelect }: StaffingSumm
               </div>
             ))}
             <div className="border-t pt-2 flex justify-between font-bold">
-              <span>{t("total", { defaultValue: "Total" })}</span>
+              <span>{t("floorPlan.total", { defaultValue: 'סה"כ' })}</span>
               <span>{grandTotal}</span>
             </div>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
-            {t("noRolesDefined", { defaultValue: "No roles defined" })}
+            {t("floorPlan.noRolesDefined", { defaultValue: "לא הוגדרו תפקידים" })}
           </p>
         )}
       </div>
 
       {/* Zone List */}
       <div className="space-y-2">
-        <h4 className="font-medium">{t("byZone", { defaultValue: "By Zone" })}</h4>
+        <h4 className="font-medium">{t("floorPlan.byZone", { defaultValue: "לפי איזור" })}</h4>
         {floorPlan.zones.map((zone) => {
           const zoneRules = (zone.staffingRules as StaffingRule[] | null) ?? [];
           const zoneTotal = zoneRules.reduce((acc, r) => acc + r.count, 0);
@@ -316,7 +319,9 @@ function StaffingSummaryView({ floorPlan, roles, onElementSelect }: StaffingSumm
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  {zoneTotal > 0 ? `${zoneTotal} 👤` : t("notSet", { defaultValue: "Not set" })}
+                  {zoneTotal > 0
+                    ? `${zoneTotal} 👤`
+                    : t("floorPlan.notSet", { defaultValue: "לא הוגדר" })}
                 </span>
               </div>
             </button>

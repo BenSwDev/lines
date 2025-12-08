@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { RotateCw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/core/i18n/provider";
 import { updateElementPosition } from "../../actions/floorPlanActions";
 
 interface InteractiveElementProps {
@@ -38,6 +39,7 @@ export function InteractiveElement({
   className,
   style
 }: InteractiveElementProps) {
+  const { t } = useTranslations();
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -222,7 +224,7 @@ export function InteractiveElement({
           <button
             className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-lg hover:bg-destructive/90 z-50"
             onClick={handleDelete}
-            title="מחק"
+            title={t("common.delete", { defaultValue: "מחק" })}
           >
             <X className="h-3 w-3" />
           </button>

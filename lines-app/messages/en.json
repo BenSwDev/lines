@@ -111,7 +111,14 @@
     "newFloorPlan": "New Floor Plan",
     "linkToLines": "Link to Lines (optional)",
     "creating": "Creating...",
-    "table": "Table"
+    "table": "Table",
+    "copy": "Copy",
+    "mainSeatingArea": "Main Seating Area",
+    "vipArea": "VIP Area",
+    "mainBar": "Main Bar",
+    "danceFloor": "Dance Floor",
+    "mainHall": "Main Hall",
+    "tableNumber": "Table"
   },
   "tickets": {
     "title": "Ticket Settings",

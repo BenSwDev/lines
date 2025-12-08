@@ -79,7 +79,7 @@ export function FloorPlanTemplateSelector({ venueId, onCancel }: FloorPlanTempla
 
     setIsCreating(true);
     try {
-      const templateData = getTemplateData(selectedTemplate);
+      const templateData = getTemplateData(selectedTemplate, t);
       const result = await createFloorPlan({
         venueId,
         name:
@@ -185,20 +185,23 @@ export function FloorPlanTemplateSelector({ venueId, onCancel }: FloorPlanTempla
 }
 
 // Template data generators
-function getTemplateData(templateType: TemplateType) {
+function getTemplateData(
+  templateType: TemplateType,
+  t: (key: string, options?: { defaultValue: string }) => string
+) {
   switch (templateType) {
     case "restaurant":
       return {
         zones: [
           {
-            name: "איזור ישיבה ראשי",
+            name: t("floorPlan.mainSeatingArea", { defaultValue: "איזור ישיבה ראשי" }),
             color: "#3B82F6",
             positionX: 100,
             positionY: 100,
             width: 300,
             height: 250,
             tables: Array.from({ length: 8 }, (_, i) => ({
-              name: `שולחן ${i + 1}`,
+              name: `${t("floorPlan.tableNumber", { defaultValue: "שולחן" })} ${i + 1}`,
               seats: 4,
               positionX: 50 + (i % 4) * 60,
               positionY: 50 + Math.floor(i / 4) * 70,
@@ -207,7 +210,7 @@ function getTemplateData(templateType: TemplateType) {
             }))
           },
           {
-            name: "איזור VIP",
+            name: t("floorPlan.vipArea", { defaultValue: "איזור VIP" }),
             color: "#F59E0B",
             positionX: 450,
             positionY: 100,
@@ -226,7 +229,7 @@ function getTemplateData(templateType: TemplateType) {
         venueAreas: [
           {
             areaType: "kitchen",
-            name: "מטבח",
+            name: t("floorPlan.kitchen", { defaultValue: "מטבח" }),
             positionX: 100,
             positionY: 400,
             width: 200,
@@ -236,7 +239,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "bar",
-            name: "בר",
+            name: t("floorPlan.bar", { defaultValue: "בר" }),
             positionX: 350,
             positionY: 400,
             width: 150,
@@ -246,7 +249,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "entrance",
-            name: "כניסה",
+            name: t("floorPlan.entrance", { defaultValue: "כניסה" }),
             positionX: 550,
             positionY: 50,
             width: 100,
@@ -261,14 +264,14 @@ function getTemplateData(templateType: TemplateType) {
       return {
         zones: [
           {
-            name: "איזור ישיבה",
+            name: t("floorPlan.seatingZone", { defaultValue: "איזור שולחנות" }),
             color: "#3B82F6",
             positionX: 100,
             positionY: 100,
             width: 400,
             height: 300,
             tables: Array.from({ length: 12 }, (_, i) => ({
-              name: `שולחן ${i + 1}`,
+              name: `${t("floorPlan.tableNumber", { defaultValue: "שולחן" })} ${i + 1}`,
               seats: 4,
               positionX: 50 + (i % 4) * 80,
               positionY: 50 + Math.floor(i / 4) * 80,
@@ -280,7 +283,7 @@ function getTemplateData(templateType: TemplateType) {
         venueAreas: [
           {
             areaType: "bar",
-            name: "בר ראשי",
+            name: t("floorPlan.mainBar", { defaultValue: "בר ראשי" }),
             positionX: 550,
             positionY: 100,
             width: 200,
@@ -290,7 +293,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "dj_booth",
-            name: "די ג'יי",
+            name: t("floorPlan.djBooth", { defaultValue: "די ג'יי" }),
             positionX: 550,
             positionY: 450,
             width: 200,
@@ -300,7 +303,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "entrance",
-            name: "כניסה",
+            name: t("floorPlan.entrance", { defaultValue: "כניסה" }),
             positionX: 100,
             positionY: 50,
             width: 100,
@@ -315,14 +318,14 @@ function getTemplateData(templateType: TemplateType) {
       return {
         zones: [
           {
-            name: "רחבת ריקודים",
+            name: t("floorPlan.danceFloor", { defaultValue: "רחבת ריקודים" }),
             color: "#8B5CF6",
             positionX: 100,
             positionY: 100,
             width: 500,
             height: 400,
             tables: Array.from({ length: 20 }, (_, i) => ({
-              name: `שולחן ${i + 1}`,
+              name: `${t("floorPlan.tableNumber", { defaultValue: "שולחן" })} ${i + 1}`,
               seats: 4,
               positionX: 50 + (i % 5) * 90,
               positionY: 50 + Math.floor(i / 5) * 90,
@@ -331,7 +334,7 @@ function getTemplateData(templateType: TemplateType) {
             }))
           },
           {
-            name: "איזור VIP",
+            name: t("floorPlan.vipArea", { defaultValue: "איזור VIP" }),
             color: "#F59E0B",
             positionX: 650,
             positionY: 100,
@@ -350,7 +353,7 @@ function getTemplateData(templateType: TemplateType) {
         venueAreas: [
           {
             areaType: "bar",
-            name: "בר ראשי",
+            name: t("floorPlan.mainBar", { defaultValue: "בר ראשי" }),
             positionX: 100,
             positionY: 550,
             width: 300,
@@ -360,7 +363,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "dj_booth",
-            name: "די ג'יי",
+            name: t("floorPlan.djBooth", { defaultValue: "די ג'יי" }),
             positionX: 450,
             positionY: 550,
             width: 200,
@@ -370,7 +373,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "stage",
-            name: "במה",
+            name: t("floorPlan.stage", { defaultValue: "במה" }),
             positionX: 700,
             positionY: 450,
             width: 150,
@@ -380,7 +383,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "entrance",
-            name: "כניסה",
+            name: t("floorPlan.entrance", { defaultValue: "כניסה" }),
             positionX: 100,
             positionY: 50,
             width: 100,
@@ -395,14 +398,14 @@ function getTemplateData(templateType: TemplateType) {
       return {
         zones: [
           {
-            name: "אולם ראשי",
+            name: t("floorPlan.mainHall", { defaultValue: "אולם ראשי" }),
             color: "#3B82F6",
             positionX: 100,
             positionY: 100,
             width: 600,
             height: 500,
             tables: Array.from({ length: 30 }, (_, i) => ({
-              name: `שולחן ${i + 1}`,
+              name: `${t("floorPlan.tableNumber", { defaultValue: "שולחן" })} ${i + 1}`,
               seats: 8,
               positionX: 50 + (i % 6) * 90,
               positionY: 50 + Math.floor(i / 6) * 100,
@@ -411,7 +414,7 @@ function getTemplateData(templateType: TemplateType) {
             }))
           },
           {
-            name: "איזור VIP",
+            name: t("floorPlan.vipArea", { defaultValue: "איזור VIP" }),
             color: "#F59E0B",
             positionX: 750,
             positionY: 100,
@@ -430,7 +433,7 @@ function getTemplateData(templateType: TemplateType) {
         venueAreas: [
           {
             areaType: "stage",
-            name: "במה",
+            name: t("floorPlan.stage", { defaultValue: "במה" }),
             positionX: 100,
             positionY: 650,
             width: 400,
@@ -440,7 +443,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "kitchen",
-            name: "מטבח",
+            name: t("floorPlan.kitchen", { defaultValue: "מטבח" }),
             positionX: 550,
             positionY: 650,
             width: 200,
@@ -450,7 +453,7 @@ function getTemplateData(templateType: TemplateType) {
           },
           {
             areaType: "entrance",
-            name: "כניסה",
+            name: t("floorPlan.entrance", { defaultValue: "כניסה" }),
             positionX: 400,
             positionY: 50,
             width: 150,

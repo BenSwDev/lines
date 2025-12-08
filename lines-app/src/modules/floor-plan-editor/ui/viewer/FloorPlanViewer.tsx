@@ -124,9 +124,9 @@ export function FloorPlanViewer({
           {t("floorPlan.zoom", { defaultValue: "זום" })}: {Math.round(zoom * 100)}%
         </span>
         <span>
-          {floorPlan.zones.length} {t("zones", { defaultValue: "zones" })} •
+          {floorPlan.zones.length} {t("floorPlan.zones", { defaultValue: "איזורים" })} •
           {floorPlan.zones.reduce((acc, z) => acc + z.tables.length, 0)}{" "}
-          {t("tables", { defaultValue: "tables" })}
+          {t("floorPlan.tables", { defaultValue: "שולחנות" })}
         </span>
       </div>
     </div>

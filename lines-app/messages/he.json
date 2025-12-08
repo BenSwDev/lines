@@ -142,7 +142,15 @@
     "eventHallTemplate": "אולם אירועים",
     "eventHallTemplateDescription": "מבנה אופטימלי לאולם אירועים",
     "createFloorPlanFromTemplate": "צור מפה",
-    "dragResizeRotate": "גרור, שנה גודל וסובב ישירות במפה"
+    "dragResizeRotate": "גרור, שנה גודל וסובב ישירות במפה",
+    "locked": "נעול",
+    "copy": "העתק",
+    "mainSeatingArea": "איזור ישיבה ראשי",
+    "vipArea": "איזור VIP",
+    "mainBar": "בר ראשי",
+    "danceFloor": "רחבת ריקודים",
+    "mainHall": "אולם ראשי",
+    "tableNumber": "שולחן"
   },
   "tickets": {
     "title": "הגדרות כרטיסים",
