@@ -46,7 +46,7 @@ export function VenuesHomePage() {
       setVenues((prev) => [result.data, ...prev]);
       setIsCreateOpen(false);
       // Auto-navigate to new venue
-      router.push(`/venues/${result.data.id}/info`);
+      router.push(`/venues/${result.data.id}`);
     } else {
       const errorMsg = !result.success && "error" in result ? result.error : null;
       setError(errorMsg ? translateError(errorMsg, t) : t("errors.creatingVenue"));
@@ -65,7 +65,7 @@ export function VenuesHomePage() {
   };
 
   const handleSelectVenue = (venueId: string) => {
-    router.push(`/venues/${venueId}/info`);
+    router.push(`/venues/${venueId}`);
   };
 
   return (

@@ -68,7 +68,7 @@ export function VenuesDashboard() {
       if (shouldStartTour) {
         router.push(`/venues/${result.data.id}/lines?startTour=true`);
       } else {
-        router.push(`/venues/${result.data.id}/info`);
+        router.push(`/venues/${result.data.id}`);
       }
     } else {
       const errorMsg = !result.success && "error" in result ? result.error : null;
@@ -100,7 +100,7 @@ export function VenuesDashboard() {
   };
 
   const handleSelect = (venueId: string) => {
-    router.push(`/venues/${venueId}/info`);
+    router.push(`/venues/${venueId}`);
   };
 
   if (isLoading) {
