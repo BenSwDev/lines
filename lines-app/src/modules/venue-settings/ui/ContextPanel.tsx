@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Trash2, X } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
-import type { FloorPlanElement, SpecialAreaType } from "@/modules/venue-map/ui/FloorPlanEditorV2";
+import type { FloorPlanElement, SpecialAreaType } from "@/modules/venue-map/types";
 import { AREA_TYPE_COLORS } from "@/modules/venue-map/config/floorPlanDesignTokens";
 
 interface ContextPanelProps {

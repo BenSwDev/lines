@@ -2,12 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "@/core/i18n/provider";
-import {
-  FloorPlanEditorV2,
-  type FloorPlanElement,
-  type ElementShape,
-  type SpecialAreaType
-} from "./FloorPlanEditorV2";
+import { FloorPlanEditor } from "./FloorPlanEditor";
+import type { FloorPlanElement, ElementShape, SpecialAreaType } from "../types";
 import { loadVenueFloorPlan } from "../actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
@@ -26,7 +22,6 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   const { toast } = useToast();
   const [elements, setElements] = useState<FloorPlanElement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [venueCapacity] = useState(0);
 
   const loadData = async () => {
     try {
@@ -162,10 +157,9 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
 
       <ErrorBoundary>
         <div className="flex-1 overflow-hidden">
-          <FloorPlanEditorV2
+          <FloorPlanEditor
             venueId={venueId}
             initialElements={elements}
-            initialCapacity={venueCapacity}
             userId={userId}
           />
         </div>

@@ -3,8 +3,8 @@
  * Automatically arranges elements in a grid pattern
  */
 
-import type { FloorPlanElement } from "../ui/FloorPlanEditorV2";
-import { GRID_SIZE } from "../ui/FloorPlanEditorV2";
+import type { FloorPlanElement } from "../types";
+import { GRID_SIZE } from "../types";
 
 export interface ArrangementOptions {
   startX?: number;

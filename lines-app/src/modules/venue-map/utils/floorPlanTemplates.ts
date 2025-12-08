@@ -1,4 +1,4 @@
-import type { FloorPlanElement, ElementType, SpecialAreaType } from "../ui/FloorPlanEditorV2";
+import type { FloorPlanElement, ElementType, SpecialAreaType } from "../types";
 
 export type VenueTemplateType =
   | "event_hall"

@@ -6,7 +6,7 @@
 "use client";
 
 import { memo } from "react";
-import type { FloorPlanElement } from "../FloorPlanEditorV2";
+import type { FloorPlanElement } from "../../types";
 
 interface ZoneElementProps {
   element: FloorPlanElement;
@@ -17,6 +17,7 @@ interface ZoneElementProps {
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
+  viewMode?: "minimal" | "detailed";
 }
 
 export const ZoneElement = memo(function ZoneElement({
@@ -25,7 +26,8 @@ export const ZoneElement = memo(function ZoneElement({
   isInteractive,
   onMouseDown,
   onDoubleClick,
-  isSearchMatch = false
+  isSearchMatch = false,
+  viewMode = "detailed"
 }: ZoneElementProps) {
   const borderColor = element.color || "#3B82F6";
 
@@ -125,14 +127,16 @@ export const ZoneElement = memo(function ZoneElement({
         aria-pressed={isSelected}
         aria-disabled={!isInteractive}
       >
-        <div className="pointer-events-none text-center px-2 absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-semibold text-sm truncate w-full">{element.name}</div>
-          {element.description && (
-            <div className="text-xs text-muted-foreground truncate w-full">
-              {element.description}
-            </div>
-          )}
-        </div>
+        {viewMode === "detailed" && (
+          <div className="pointer-events-none text-center px-2 absolute inset-0 flex flex-col items-center justify-center">
+            <div className="font-semibold text-sm truncate w-full">{element.name}</div>
+            {element.description && (
+              <div className="text-xs text-muted-foreground truncate w-full">
+                {element.description}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }

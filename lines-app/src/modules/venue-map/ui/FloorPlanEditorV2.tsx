@@ -62,7 +62,6 @@ import { findContainingZone } from "../utils/zoneContainment";
 import { FreeTransform } from "./FreeTransform";
 import { AddElementDialog } from "./AddElementDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
-import { QuickEditPanel } from "./QuickEditPanel";
 import {
   getTableDefaults,
   getZoneDefaults,
@@ -90,7 +89,6 @@ import { EmptyState } from "./UX/EmptyState";
 import { ContextualToolbar } from "./UX/ContextualToolbar";
 import { SuccessAnimation } from "./UX/SuccessAnimation";
 import { HelpPanel } from "./UX/HelpPanel";
-import { SimpleSidebar } from "./Sidebar/SimpleSidebar";
 import { useDevice } from "../hooks/useDevice";
 // import { arrangeInGrid } from "../utils/smartAutoArrangement"; // Reserved for future use
 // import { ResponsiveDialog } from "./Dialogs/ResponsiveDialog"; // Reserved for future use
@@ -223,8 +221,9 @@ export function FloorPlanEditorV2({
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   const [addElementDialogOpen, setAddElementDialogOpen] = useState(false);
   const [quickAddDialogOpen, setQuickAddDialogOpen] = useState(false);
-  const [quickEditPanelOpen, setQuickEditPanelOpen] = useState(false);
-  const [quickEditPosition, setQuickEditPosition] = useState<{ x: number; y: number } | null>(null);
+  // QuickEditPanel removed - using EditPanel in new FloorPlanEditor
+  // const [quickEditPanelOpen, setQuickEditPanelOpen] = useState(false);
+  // const [quickEditPosition, setQuickEditPosition] = useState<{ x: number; y: number } | null>(null);
   const [showTips, setShowTips] = useState(false);
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -240,9 +239,9 @@ export function FloorPlanEditorV2({
   // });
   const layers = useMemo(
     () => ({
-      zones: { visible: true, locked: false },
-      tables: { visible: true, locked: false },
-      specialAreas: { visible: true, locked: false }
+    zones: { visible: true, locked: false },
+    tables: { visible: true, locked: false },
+    specialAreas: { visible: true, locked: false }
     }),
     []
   );
@@ -961,6 +960,7 @@ export function FloorPlanEditorV2({
     setSelectedElementId(newElement.id);
   }, [elements, updateElementsWithHistory, autoLinkElementsToZones]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleQuickAddBar = useCallback(() => {
     const centerX = 1000;
     const centerY = 1000;
@@ -1201,7 +1201,8 @@ export function FloorPlanEditorV2({
     // Element will be shown in PropertiesPanel automatically
   }, []);
 
-  // Handle Quick Edit Save
+  // Handle Quick Edit Save (removed - using EditPanel in new FloorPlanEditor)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleQuickEditSave = useCallback(
     (updates: Partial<FloorPlanElement>) => {
       if (!editingElement) return;
@@ -1214,19 +1215,13 @@ export function FloorPlanEditorV2({
       // Auto-link after update
       const linkedElements = autoLinkElementsToZones(updatedElements);
       updateElementsWithHistory(linkedElements);
-      setQuickEditPanelOpen(false);
+      // QuickEditPanel removed
       setEditingElement(null);
-      setQuickEditPosition(null);
     },
     [editingElement, elements, updateElementsWithHistory, autoLinkElementsToZones]
   );
 
-  // Handle Quick Edit Cancel
-  const handleQuickEditCancel = useCallback(() => {
-    setQuickEditPanelOpen(false);
-    setEditingElement(null);
-    setQuickEditPosition(null);
-  }, []);
+  // QuickEditPanel removed - using EditPanel in new FloorPlanEditor
 
   // Save edited element
   const handleSaveEdit = useCallback(() => {
@@ -1256,7 +1251,8 @@ export function FloorPlanEditorV2({
     setEditingElement(null);
   }, [editingElement, elements, updateElementsWithHistory, autoLinkElementsToZones]);
 
-  // Handle element save from Properties Panel
+  // Handle element save from Properties Panel (removed - using EditPanel in new FloorPlanEditor)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSaveElement = useCallback(
     (updates: Partial<FloorPlanElement>) => {
       if (!selectedElementId) return;
@@ -3809,21 +3805,12 @@ export function FloorPlanEditorV2({
                 device.isDesktop ? "w-[280px]" : "w-[240px]"
               }`}
             >
-              <SimpleSidebar
-                elements={elements}
-                selectedElementId={selectedElementId}
-                onSelectElement={setSelectedElementId}
-                onAddTable={handleQuickAddTable}
-                onAddZone={handleQuickAddZone}
-                onAddBar={handleQuickAddBar}
-                onDeleteElement={handleDeleteElement}
-                onSaveElement={(id, updates) => {
-                  const element = elements.find((e) => e.id === id);
-                  if (element) {
-                    handleSaveElement({ ...element, ...updates });
-                  }
-                }}
-              />
+              {/* SimpleSidebar removed - using HierarchicalSidebar in new FloorPlanEditor */}
+              <div className="w-[320px] border-r bg-card p-4">
+                <p className="text-sm text-muted-foreground">
+                  Please use the new FloorPlanEditor
+                </p>
+              </div>
             </div>
           )}
           <Card ref={containerRef} className="relative flex-1 overflow-hidden p-0">
@@ -5081,14 +5068,7 @@ export function FloorPlanEditorV2({
         )}
 
         {/* Quick Edit Panel - Simple inline editing */}
-        {quickEditPanelOpen && editingElement && quickEditPosition && (
-          <QuickEditPanel
-            element={editingElement}
-            onSave={handleQuickEditSave}
-            onCancel={handleQuickEditCancel}
-            position={quickEditPosition}
-          />
-        )}
+        {/* QuickEditPanel removed - using EditPanel in new FloorPlanEditor */}
 
         {/* Edit Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>

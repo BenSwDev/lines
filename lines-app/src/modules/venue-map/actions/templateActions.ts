@@ -3,7 +3,7 @@
 import { prisma } from "@/core/integrations/prisma/client";
 import { revalidatePath } from "next/cache";
 import { withErrorHandling } from "@/core/http/errorHandler";
-import type { FloorPlanElement } from "../ui/FloorPlanEditorV2";
+import type { FloorPlanElement } from "../types";
 import type { Prisma } from "@prisma/client";
 
 export type FloorPlanTemplateItem = {

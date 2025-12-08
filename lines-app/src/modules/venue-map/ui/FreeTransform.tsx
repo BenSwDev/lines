@@ -4,7 +4,7 @@
  */
 
 import React, { useCallback } from "react";
-import type { FloorPlanElement } from "./FloorPlanEditorV2";
+import type { FloorPlanElement } from "../types";
 
 export type TransformHandle =
   | "nw" // North-west (top-left)

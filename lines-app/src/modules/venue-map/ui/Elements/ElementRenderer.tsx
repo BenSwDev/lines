@@ -9,7 +9,7 @@ import { memo } from "react";
 import { TableElement } from "./TableElement";
 import { ZoneElement } from "./ZoneElement";
 import { SpecialAreaElement } from "./SpecialAreaElement";
-import type { FloorPlanElement } from "../FloorPlanEditorV2";
+import type { FloorPlanElement } from "../../types";
 
 interface ElementRendererProps {
   element: FloorPlanElement;
@@ -20,6 +20,7 @@ interface ElementRendererProps {
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
+  viewMode?: "minimal" | "detailed";
 }
 
 export const ElementRenderer = memo(function ElementRenderer({
@@ -30,7 +31,8 @@ export const ElementRenderer = memo(function ElementRenderer({
   onDoubleClick,
   onEdit,
   allElements = [],
-  isSearchMatch = false
+  isSearchMatch = false,
+  viewMode = "detailed"
 }: ElementRendererProps) {
   // Render based on element type
   switch (element.type) {
@@ -45,6 +47,7 @@ export const ElementRenderer = memo(function ElementRenderer({
           onEdit={onEdit}
           allElements={allElements}
           isSearchMatch={isSearchMatch}
+          viewMode={viewMode}
         />
       );
 
@@ -59,6 +62,7 @@ export const ElementRenderer = memo(function ElementRenderer({
           onEdit={onEdit}
           allElements={allElements}
           isSearchMatch={isSearchMatch}
+          viewMode={viewMode}
         />
       );
 
@@ -74,6 +78,7 @@ export const ElementRenderer = memo(function ElementRenderer({
           onEdit={onEdit}
           allElements={allElements}
           isSearchMatch={isSearchMatch}
+          viewMode={viewMode}
         />
       );
 

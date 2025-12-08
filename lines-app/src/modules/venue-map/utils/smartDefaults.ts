@@ -4,8 +4,8 @@
  * "גאוני כמה שזה פשוט" - ערכים חכמים כברירת מחדל
  */
 
-import type { FloorPlanElement, ElementType, SpecialAreaType } from "../ui/FloorPlanEditorV2";
-import { GRID_SIZE } from "../ui/FloorPlanEditorV2";
+import type { FloorPlanElement, ElementType, SpecialAreaType } from "../types";
+import { GRID_SIZE } from "../types";
 
 export interface SmartDefaults {
   table: {

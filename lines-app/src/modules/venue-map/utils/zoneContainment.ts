@@ -3,7 +3,7 @@
  * Checks if a table/element is inside a zone boundary
  */
 
-import type { FloorPlanElement, Point } from "../ui/FloorPlanEditorV2";
+import type { FloorPlanElement, Point } from "../types";
 
 /**
  * Check if a point is inside a rectangle
@@ -183,4 +183,44 @@ export function isElementFullyInZone(element: FloorPlanElement, zone: FloorPlanE
   }
 
   return true;
+}
+
+/**
+ * Auto-link elements to zones
+ * Automatically connects tables/elements to containing zones
+ */
+export function autoLinkElementsToZones(
+  elementsToLink: FloorPlanElement[]
+): FloorPlanElement[] {
+  const zones = elementsToLink.filter((el) => el.type === "zone");
+  if (zones.length === 0) return elementsToLink; // No zones, nothing to link
+
+  return elementsToLink.map((element) => {
+    // Only link tables and other elements that can be in zones (not zones themselves)
+    if (element.type === "zone" || element.type === "specialArea") {
+      return element; // Don't link zones or special areas
+    }
+
+    // Always find the current containing zone (even if already linked to another)
+    // This ensures that if an element is moved from zone A to zone B, it gets updated to zone B
+    const containingZone = findContainingZone(element, zones);
+
+    if (containingZone) {
+      // Element is in a zone - link to it (even if it was linked to a different zone before)
+      return {
+        ...element,
+        zoneId: containingZone.id
+      };
+    }
+
+    // No containing zone found - remove zoneId if it exists
+    if (element.zoneId) {
+      return {
+        ...element,
+        zoneId: undefined
+      };
+    }
+
+    return element;
+  });
 }

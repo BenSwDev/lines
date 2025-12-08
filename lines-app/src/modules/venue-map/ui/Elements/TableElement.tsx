@@ -7,7 +7,7 @@
 
 import { memo } from "react";
 import { Users } from "lucide-react";
-import type { FloorPlanElement } from "../FloorPlanEditorV2";
+import type { FloorPlanElement } from "../../types";
 import { AREA_TYPE_COLORS } from "../../config/floorPlanDesignTokens";
 
 interface TableElementProps {
@@ -19,6 +19,7 @@ interface TableElementProps {
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
+  viewMode?: "minimal" | "detailed";
 }
 
 export const TableElement = memo(function TableElement({
@@ -28,7 +29,8 @@ export const TableElement = memo(function TableElement({
   onMouseDown,
   onDoubleClick,
   allElements = [],
-  isSearchMatch = false
+  isSearchMatch = false,
+  viewMode = "detailed"
 }: TableElementProps) {
   // Find parent zone
   const parentZone = element.zoneId
@@ -99,15 +101,17 @@ export const TableElement = memo(function TableElement({
         aria-pressed={isSelected}
         aria-disabled={!isInteractive}
       >
-        <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-semibold text-sm truncate w-full">{element.name}</div>
-          {element.seats && (
-            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
-              <Users className="h-3 w-3" />
-              {element.seats}
-            </div>
-          )}
-        </div>
+        {viewMode === "detailed" && (
+          <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
+            <div className="font-semibold text-sm truncate w-full">{element.name}</div>
+            {element.seats && (
+              <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+                <Users className="h-3 w-3" />
+                {element.seats}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }

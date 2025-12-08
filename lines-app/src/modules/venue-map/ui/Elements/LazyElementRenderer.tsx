@@ -8,7 +8,7 @@
 import { memo, useRef } from "react";
 import { useIntersectionObserver } from "../../utils/performance";
 import { ElementRenderer } from "./ElementRenderer";
-import type { FloorPlanElement } from "../FloorPlanEditorV2";
+import type { FloorPlanElement } from "../../types";
 
 interface LazyElementRendererProps {
   element: FloorPlanElement;

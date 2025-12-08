@@ -6,7 +6,7 @@
 "use client";
 
 import { memo } from "react";
-import type { FloorPlanElement } from "../FloorPlanEditorV2";
+import type { FloorPlanElement } from "../../types";
 import { AREA_TYPE_COLORS } from "../../config/floorPlanDesignTokens";
 
 interface SpecialAreaElementProps {
@@ -18,6 +18,7 @@ interface SpecialAreaElementProps {
   onEdit?: () => void;
   allElements?: FloorPlanElement[];
   isSearchMatch?: boolean;
+  viewMode?: "minimal" | "detailed";
 }
 
 export const SpecialAreaElement = memo(function SpecialAreaElement({
@@ -27,7 +28,8 @@ export const SpecialAreaElement = memo(function SpecialAreaElement({
   onMouseDown,
   onDoubleClick,
   allElements = [],
-  isSearchMatch = false
+  isSearchMatch = false,
+  viewMode = "detailed"
 }: SpecialAreaElementProps) {
   // Find parent zone
   const parentZone = element.zoneId
@@ -98,9 +100,11 @@ export const SpecialAreaElement = memo(function SpecialAreaElement({
         aria-pressed={isSelected}
         aria-disabled={!isInteractive}
       >
-        <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-semibold text-sm truncate w-full">{element.name}</div>
-        </div>
+        {viewMode === "detailed" && (
+          <div className="pointer-events-none text-center px-1 absolute inset-0 flex flex-col items-center justify-center">
+            <div className="font-semibold text-sm truncate w-full">{element.name}</div>
+          </div>
+        )}
       </div>
     );
   }
