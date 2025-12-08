@@ -32,7 +32,8 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const result = await loadVenueFloorPlan(venueId);
+      // CRITICAL: Pass userId for ownership validation
+      const result = await loadVenueFloorPlan(venueId, userId);
       if (result.success && "data" in result && result.data) {
         const allElements: FloorPlanElement[] = [];
 

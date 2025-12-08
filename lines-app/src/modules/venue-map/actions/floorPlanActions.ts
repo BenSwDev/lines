@@ -52,9 +52,21 @@ export type VenueAreaItem = {
 
 /**
  * Load all floor plan elements for a venue (tables, zones, and venue areas) with visual properties
+ * CRITICAL: This function should validate ownership for real venues
  */
-export async function loadVenueFloorPlan(venueId: string) {
+export async function loadVenueFloorPlan(venueId: string, userId?: string) {
   return withErrorHandling(async () => {
+    // CRITICAL: Validate ownership for real venues (not demo)
+    if (userId && !venueId.startsWith("demo-venue-")) {
+      const venue = await prisma.venue.findUnique({
+        where: { id: venueId },
+        select: { userId: true }
+      });
+
+      if (!venue || venue.userId !== userId) {
+        throw new Error("Unauthorized: You don't own this venue");
+      }
+    }
     // Load tables
     const tables = await prisma.table.findMany({
       where: {
@@ -156,14 +168,32 @@ export async function loadVenueTables(venueId: string) {
 /**
  * Save all floor plan elements (tables, zones, and venue areas) with visual properties
  * Creates/updates/deletes elements as needed
+ * CRITICAL: This function should validate ownership and block demo mode
  */
 export async function saveVenueFloorPlan(
   venueId: string,
   tables: TableItem[],
   zones: ZoneItem[],
-  venueAreas: VenueAreaItem[]
+  venueAreas: VenueAreaItem[],
+  userId?: string
 ) {
   try {
+    // CRITICAL: Block demo mode from saving to database
+    if (venueId.startsWith("demo-venue-")) {
+      throw new Error("Cannot save demo data - demo mode is read-only");
+    }
+
+    // CRITICAL: Validate ownership for real venues
+    if (userId) {
+      const venue = await prisma.venue.findUnique({
+        where: { id: venueId },
+        select: { userId: true }
+      });
+
+      if (!venue || venue.userId !== userId) {
+        throw new Error("Unauthorized: You don't own this venue");
+      }
+    }
     // Save zones
     const existingZones = await prisma.zone.findMany({
       where: { venueId },
