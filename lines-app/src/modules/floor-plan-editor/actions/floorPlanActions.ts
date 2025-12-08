@@ -611,36 +611,41 @@ export async function updateElementPosition(input: {
   try {
     const { type, id, ...updates } = input;
 
+    // Filter out undefined values to prevent Prisma errors
+    const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([, value]) => value !== undefined)
+    );
+
     if (type === "zone") {
       await prisma.zone.update({
         where: { id },
         data: {
-          positionX: updates.positionX,
-          positionY: updates.positionY,
-          width: updates.width,
-          height: updates.height
+          ...(cleanUpdates.positionX !== undefined && { positionX: cleanUpdates.positionX }),
+          ...(cleanUpdates.positionY !== undefined && { positionY: cleanUpdates.positionY }),
+          ...(cleanUpdates.width !== undefined && { width: cleanUpdates.width }),
+          ...(cleanUpdates.height !== undefined && { height: cleanUpdates.height })
         }
       });
     } else if (type === "table") {
       await prisma.table.update({
         where: { id },
         data: {
-          positionX: updates.positionX,
-          positionY: updates.positionY,
-          width: updates.width,
-          height: updates.height,
-          rotation: updates.rotation
+          ...(cleanUpdates.positionX !== undefined && { positionX: cleanUpdates.positionX }),
+          ...(cleanUpdates.positionY !== undefined && { positionY: cleanUpdates.positionY }),
+          ...(cleanUpdates.width !== undefined && { width: cleanUpdates.width }),
+          ...(cleanUpdates.height !== undefined && { height: cleanUpdates.height }),
+          ...(cleanUpdates.rotation !== undefined && { rotation: cleanUpdates.rotation })
         }
       });
     } else if (type === "area") {
       await prisma.venueArea.update({
         where: { id },
         data: {
-          positionX: updates.positionX,
-          positionY: updates.positionY,
-          width: updates.width,
-          height: updates.height,
-          rotation: updates.rotation
+          ...(cleanUpdates.positionX !== undefined && { positionX: cleanUpdates.positionX }),
+          ...(cleanUpdates.positionY !== undefined && { positionY: cleanUpdates.positionY }),
+          ...(cleanUpdates.width !== undefined && { width: cleanUpdates.width }),
+          ...(cleanUpdates.height !== undefined && { height: cleanUpdates.height }),
+          ...(cleanUpdates.rotation !== undefined && { rotation: cleanUpdates.rotation })
         }
       });
     }
