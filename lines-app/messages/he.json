@@ -334,6 +334,7 @@
     "rotate": "סיבוב",
     "delete": "מחק",
     "tables": "שולחנות",
+    "bars": "ברים",
     "zones": "אזורים",
     "specialAreas": {
       "entrance": "כניסה",
@@ -405,6 +406,7 @@
     "seats": "מקומות",
     "tableType": "סוג שולחן",
     "table": "שולחן",
+    "bar": "בר",
     "counter": "דלפק",
     "color": "צבע",
     "description": "תיאור",

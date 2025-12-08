@@ -90,7 +90,7 @@ import { EmptyState } from "./UX/EmptyState";
 import { ContextualToolbar } from "./UX/ContextualToolbar";
 import { SuccessAnimation } from "./UX/SuccessAnimation";
 import { HelpPanel } from "./UX/HelpPanel";
-import { ContextAwareSidebar } from "./Sidebar/ContextAwareSidebar";
+import { SimpleSidebar } from "./Sidebar/SimpleSidebar";
 import { useDevice } from "../hooks/useDevice";
 // import { arrangeInGrid } from "../utils/smartAutoArrangement"; // Reserved for future use
 // import { ResponsiveDialog } from "./Dialogs/ResponsiveDialog"; // Reserved for future use
@@ -232,11 +232,20 @@ export function FloorPlanEditorV2({
   const [showRuler, setShowRuler] = useState(false);
   const [scale, setScale] = useState(1); // 1px = scale meters
   const [showMeasurements, setShowMeasurements] = useState(false);
-  const [layers, setLayers] = useState({
-    zones: { visible: true, locked: false },
-    tables: { visible: true, locked: false },
-    specialAreas: { visible: true, locked: false }
-  });
+  // Layers state - kept for future use
+  // const [layers, setLayers] = useState({
+  //   zones: { visible: true, locked: false },
+  //   tables: { visible: true, locked: false },
+  //   specialAreas: { visible: true, locked: false }
+  // });
+  const layers = useMemo(
+    () => ({
+      zones: { visible: true, locked: false },
+      tables: { visible: true, locked: false },
+      specialAreas: { visible: true, locked: false }
+    }),
+    []
+  );
   // Custom templates removed - using only recommended templates for simplicity
   // const [customTemplates, setCustomTemplates] = useState<...>([]);
 
@@ -952,6 +961,37 @@ export function FloorPlanEditorV2({
     setSelectedElementId(newElement.id);
   }, [elements, updateElementsWithHistory, autoLinkElementsToZones]);
 
+  const handleQuickAddBar = useCallback(() => {
+    const centerX = 1000;
+    const centerY = 1000;
+    const defaults = getTableDefaults(elements);
+
+    // Snap to grid
+    const snappedX = Math.round((centerX - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedY = Math.round((centerY - defaults.size / 2) / GRID_SIZE) * GRID_SIZE;
+    const snappedSize = Math.round(defaults.size / GRID_SIZE) * GRID_SIZE;
+
+    const newElement: FloorPlanElement = {
+      id: `bar-${Date.now()}`,
+      type: "table",
+      name: defaults.name.replace("שולחן", "בר"),
+      x: snappedX,
+      y: snappedY,
+      width: snappedSize * 1.5, // Bars are wider
+      height: snappedSize,
+      rotation: 0,
+      shape: "rectangle",
+      color: defaults.color,
+      seats: defaults.seats,
+      tableType: "bar"
+    };
+
+    const newElements = [...elements, newElement];
+    const linkedElements = autoLinkElementsToZones(newElements);
+    updateElementsWithHistory(linkedElements);
+    setSelectedElementId(newElement.id);
+  }, [elements, updateElementsWithHistory, autoLinkElementsToZones]);
+
   const handleQuickAddArea = useCallback(() => {
     const centerX = 1000;
     const centerY = 1000;
@@ -1232,43 +1272,43 @@ export function FloorPlanEditorV2({
     [selectedElementId, elements, updateElementsWithHistory, autoLinkElementsToZones]
   );
 
-  // Handle layer visibility toggle
-  const handleToggleLayerVisibility = useCallback((layer: "zones" | "tables" | "specialAreas") => {
-    setLayers((prev) => ({
-      ...prev,
-      [layer]: { ...prev[layer], visible: !prev[layer].visible }
-    }));
-  }, []);
+  // Layer visibility and lock handlers - kept for future use
+  // const handleToggleLayerVisibility = useCallback((layer: "zones" | "tables" | "specialAreas") => {
+  //   setLayers((prev) => ({
+  //     ...prev,
+  //     [layer]: { ...prev[layer], visible: !prev[layer].visible }
+  //   }));
+  // }, []);
 
-  // Handle layer lock toggle
-  const handleToggleLayerLock = useCallback((layer: "zones" | "tables" | "specialAreas") => {
-    setLayers((prev) => ({
-      ...prev,
-      [layer]: { ...prev[layer], locked: !prev[layer].locked }
-    }));
-  }, []);
+  // const handleToggleLayerLock = useCallback((layer: "zones" | "tables" | "specialAreas") => {
+  //   setLayers((prev) => ({
+  //     ...prev,
+  //     [layer]: { ...prev[layer], locked: !prev[layer].locked }
+  //   }));
+  // }, []);
 
   // Handle bulk actions
-  const handleBulkAction = useCallback(
-    (action: string, elementIds: string[]) => {
-      if (action === "delete") {
-        elementIds.forEach((id) => handleDeleteElement(id));
-      } else if (action === "changeColor") {
-        // TODO: Implement color change dialog
-        toast({
-          title: t("floorPlan.colorChange") || "שינוי צבע",
-          description: t("floorPlan.colorChangeDescription") || "פונקציה זו תהיה זמינה בקרוב"
-        });
-      } else if (action === "moveToZone") {
-        // TODO: Implement zone move dialog
-        toast({
-          title: t("floorPlan.moveToZone") || "העבר לאזור",
-          description: t("floorPlan.moveToZoneDescription") || "פונקציה זו תהיה זמינה בקרוב"
-        });
-      }
-    },
-    [handleDeleteElement, toast, t]
-  );
+  // Bulk actions - kept for future use
+  // const handleBulkAction = useCallback(
+  //   (action: string, elementIds: string[]) => {
+  //     if (action === "delete") {
+  //       elementIds.forEach((id) => handleDeleteElement(id));
+  //     } else if (action === "changeColor") {
+  //       // TODO: Implement color change dialog
+  //       toast({
+  //         title: t("floorPlan.colorChange") || "שינוי צבע",
+  //         description: t("floorPlan.colorChangeDescription") || "פונקציה זו תהיה זמינה בקרוב"
+  //       });
+  //     } else if (action === "moveToZone") {
+  //       // TODO: Implement zone move dialog
+  //       toast({
+  //         title: t("floorPlan.moveToZone") || "העבר לאזור",
+  //         description: t("floorPlan.moveToZoneDescription") || "פונקציה זו תהיה זמינה בקרוב"
+  //       });
+  //     }
+  //   },
+  //   [handleDeleteElement, toast, t]
+  // );
 
   // Context panel removed - using Edit Dialog instead
 
@@ -3769,21 +3809,20 @@ export function FloorPlanEditorV2({
                 device.isDesktop ? "w-[280px]" : "w-[240px]"
               }`}
             >
-              <ContextAwareSidebar
+              <SimpleSidebar
                 elements={elements}
                 selectedElementId={selectedElementId}
-                selectedElementIds={selectedElementIds}
                 onSelectElement={setSelectedElementId}
                 onAddTable={handleQuickAddTable}
                 onAddZone={handleQuickAddZone}
-                onAddArea={handleQuickAddArea}
+                onAddBar={handleQuickAddBar}
                 onDeleteElement={handleDeleteElement}
-                onEditElement={handleEditElement}
-                onBulkAction={handleBulkAction}
-                onSaveElement={handleSaveElement}
-                layers={layers}
-                onToggleLayerVisibility={handleToggleLayerVisibility}
-                onToggleLayerLock={handleToggleLayerLock}
+                onSaveElement={(id, updates) => {
+                  const element = elements.find((e) => e.id === id);
+                  if (element) {
+                    handleSaveElement({ ...element, ...updates });
+                  }
+                }}
               />
             </div>
           )}

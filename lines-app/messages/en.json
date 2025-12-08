@@ -334,6 +334,7 @@
     "rotate": "Rotate",
     "delete": "Delete",
     "tables": "Tables",
+    "bars": "Bars",
     "zones": "Zones",
     "specialAreas": {
       "entrance": "Entrance",
@@ -405,6 +406,7 @@
     "seats": "Seats",
     "tableType": "Table Type",
     "table": "Table",
+    "bar": "Bar",
     "counter": "Counter",
     "color": "Color",
     "description": "Description",

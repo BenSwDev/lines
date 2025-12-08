@@ -12,8 +12,6 @@ import { loadVenueFloorPlan } from "../actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
 import { findContainingZone } from "../utils/zoneContainment";
-import { FeatureSlider, mapFeatures } from "@/modules/feature-slider";
-import { PageHero, getPageConfig } from "@/modules/demo-system";
 import { LoadingState } from "./UX/LoadingState";
 import { ErrorBoundary } from "./UX/ErrorBoundary";
 
@@ -29,7 +27,6 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   const [elements, setElements] = useState<FloorPlanElement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [venueCapacity] = useState(0);
-  const [showFeatureSlider, setShowFeatureSlider] = useState(elements.length === 0);
 
   const loadData = async () => {
     try {
@@ -150,52 +147,21 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
     return <LoadingState type="full" />;
   }
 
-  const pageConfig = getPageConfig("map");
-
   return (
-    <div className="space-y-4">
-      {/* Page Hero */}
-      {pageConfig && <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />}
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {t("settings.venueMap") || "מפת המקום"} - {venueName}
-              </h1>
-              <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                BETA
-              </span>
-            </div>
-            <p className="text-muted-foreground">
-              {t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}
-            </p>
-          </div>
+    <div className="h-full flex flex-col">
+      <div className="flex items-center justify-between p-4 border-b">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("settings.venueMap") || "מפת המקום"} - {venueName}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("settings.seatingDescription") || "מפה מלאה של המקום עם כל האלמנטים"}
+          </p>
         </div>
       </div>
 
-      {/* Feature Slider */}
-      {showFeatureSlider && !isLoading && (
-        <div className="mb-8">
-          <FeatureSlider
-            features={mapFeatures}
-            config={{
-              autoPlay: true,
-              autoPlayInterval: 4000,
-              showDots: true,
-              showArrows: true,
-              slidesToShow: 1,
-              infinite: true
-            }}
-            onClose={() => setShowFeatureSlider(false)}
-            className="mb-6"
-          />
-        </div>
-      )}
-
       <ErrorBoundary>
-        <div data-tour="map-zones">
+        <div className="flex-1 overflow-hidden">
           <FloorPlanEditorV2
             venueId={venueId}
             initialElements={elements}
