@@ -10,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -22,21 +21,11 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Plus,
-  Trash2,
   Save,
   Grid,
-  Layout,
-  List,
   X,
   Sparkles,
   Minimize2,
@@ -221,7 +210,7 @@ export function FloorPlanEditorV2({
   >([]);
   const [showGrid, setShowGrid] = useState(true); // Grid always enabled for clean alignment
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
-  const [viewMode, setViewMode] = useState<"interactive" | "nonInteractive">("interactive");
+  // Removed viewMode - everything is together now
   const [venueCapacity, setVenueCapacity] = useState(initialCapacity);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingElement, setEditingElement] = useState<FloorPlanElement | null>(null);
@@ -588,10 +577,7 @@ export function FloorPlanEditorV2({
     return filtered;
   }, [elements, searchQuery, filterZone, filterElementType]);
 
-  // Get unique zones for filter dropdown
-  const availableZones = useMemo(() => {
-    return elements.filter((el) => el.type === "zone");
-  }, [elements]);
+  // Get unique zones for filter dropdown - moved to sidebar
 
   // Get selected elements array for ContextualToolbar
   const selectedElements = useMemo(() => {
@@ -1164,27 +1150,15 @@ export function FloorPlanEditorV2({
     setSelectedElementId(null);
   }, [selectedElementIds, selectedElementId, handleDeleteElement]);
 
-  // Handle editing element - Quick Edit for simple mode, Full Edit for advanced
+  // Handle editing element - Click on map -> Edit in list (select element in sidebar)
   const handleEditElement = useCallback(
-    (element: FloorPlanElement, event?: React.MouseEvent) => {
-      if (simpleMode && event) {
-        // Quick Edit Panel - show at mouse position
-        const rect = canvasRef.current?.getBoundingClientRect();
-        if (rect) {
-          setQuickEditPosition({
-            x: event.clientX - rect.left + 20,
-            y: event.clientY - rect.top + 20
-          });
-          setEditingElement(element);
-          setQuickEditPanelOpen(true);
-        }
-      } else {
-        // Full Edit Dialog
-        setEditingElement({ ...element });
-        setEditDialogOpen(true);
-      }
+    (element: FloorPlanElement) => {
+      // Click on object in map -> Edit in list (select element in sidebar)
+      setSelectedElementId(element.id);
+      setSelectedElementIds(new Set([element.id]));
+      // Element will be shown in PropertiesPanel automatically
     },
-    [simpleMode]
+    []
   );
 
   // Handle Quick Edit Save
@@ -1301,7 +1275,7 @@ export function FloorPlanEditorV2({
   // Mouse down on element
   const handleElementMouseDown = useCallback(
     (e: React.MouseEvent, element: FloorPlanElement) => {
-      if (viewMode === "nonInteractive") return;
+      // Removed viewMode check - always interactive
 
       // Don't start drag if we're already resizing or rotating
       if (isResizing || isRotating) return;
@@ -1520,7 +1494,6 @@ export function FloorPlanEditorV2({
       setDraggedElement(element);
     },
     [
-      viewMode,
       selectedElementIds,
       selectedElementId,
       elements,
@@ -1539,7 +1512,7 @@ export function FloorPlanEditorV2({
   // Handle canvas mouse down for selection box or pan
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (!canvasRef.current || viewMode !== "interactive" || isDrawingPolygon) return;
+      if (!canvasRef.current || isDrawingPolygon) return;
 
       // Check if click is on canvas (not on an element)
       const target = e.target as HTMLElement;
@@ -1626,12 +1599,12 @@ export function FloorPlanEditorV2({
         setSelectedElementIds(new Set());
       }
     },
-    [viewMode, isDrawingPolygon, screenToCanvas, elements, selectionMode, longPressThreshold]
+    [isDrawingPolygon, screenToCanvas, elements, selectionMode, longPressThreshold]
   );
 
   // Mouse wheel zoom - professional implementation like Excalidraw
   useEffect(() => {
-    if (viewMode === "nonInteractive" || !containerRef.current) return;
+    if (!containerRef.current) return;
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -1675,7 +1648,7 @@ export function FloorPlanEditorV2({
     const container = containerRef.current;
     container.addEventListener("wheel", handleWheel, { passive: false });
     return () => container.removeEventListener("wheel", handleWheel);
-  }, [viewMode, zoom, panOffset]);
+  }, [zoom, panOffset]);
 
   // Handle rotate start
   const handleRotateStart = useCallback(
@@ -1758,7 +1731,7 @@ export function FloorPlanEditorV2({
 
   // Keyboard shortcuts
   useEffect(() => {
-    if (viewMode === "nonInteractive") return;
+    // Always interactive - removed viewMode check
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in inputs
@@ -1870,7 +1843,6 @@ export function FloorPlanEditorV2({
     selectedElementIds,
     elements,
     canvasSize,
-    viewMode,
     handleDeleteElement,
     autoLinkElementsToZones,
     updateElementsWithHistory,
@@ -1884,7 +1856,7 @@ export function FloorPlanEditorV2({
 
   // Mouse move - handle dragging, resizing, and rotating
   useEffect(() => {
-    if (viewMode === "nonInteractive") return;
+    // Always interactive - removed viewMode check
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
@@ -2404,16 +2376,14 @@ export function FloorPlanEditorV2({
       longPressStartRef.current = null;
     };
 
-    // Always listen in interactive mode to handle all interactions including long press
-    if (viewMode === "interactive") {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+    // Always listen to handle all interactions including long press
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
-      return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
   }, [
     isDragging,
     isResizing,
@@ -2424,7 +2394,6 @@ export function FloorPlanEditorV2({
     resizeHandle,
     elements,
     canvasSize,
-    viewMode,
     showGrid,
     zoom,
     selectedElementIds,
@@ -2967,7 +2936,7 @@ export function FloorPlanEditorV2({
   // Click canvas to deselect or add polygon point
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
-      if (!canvasRef.current || viewMode !== "interactive") return;
+      if (!canvasRef.current) return;
 
       if (isDrawingPolygon) {
         const canvasPos = screenToCanvas(e.clientX, e.clientY);
@@ -2978,7 +2947,7 @@ export function FloorPlanEditorV2({
         setSelectedElementId(null);
       }
     },
-    [viewMode, isDrawingPolygon, polygonPoints, screenToCanvas]
+    [isDrawingPolygon, polygonPoints, screenToCanvas]
   );
 
   // Finish polygon drawing
@@ -3789,81 +3758,7 @@ export function FloorPlanEditorV2({
           />
         )}
 
-        {/* View Mode Tabs and Map Type Selector - Hidden in fullscreen */}
-        {!isFullscreen && (
-          <div className="flex shrink-0 items-center justify-between gap-4">
-            <Tabs
-              value={viewMode}
-              onValueChange={(v) => setViewMode(v as "interactive" | "nonInteractive")}
-            >
-              <TabsList>
-                <TabsTrigger value="interactive">
-                  <Layout className="ml-2 h-4 w-4" />
-                  {t("floorPlan.interactiveView")}
-                </TabsTrigger>
-                <TabsTrigger value="nonInteractive">
-                  <List className="ml-2 h-4 w-4" />
-                  {t("floorPlan.nonInteractiveView")}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="flex items-center gap-2 flex-1 max-w-2xl">
-              <Input
-                placeholder={t("common.search") || "חיפוש אלמנטים..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="max-w-xs"
-              />
-              <Select
-                value={filterElementType}
-                onValueChange={(v) => setFilterElementType(v as ElementType | "all")}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder={t("floorPlan.filterByType") || "סינון לפי סוג"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
-                  <SelectItem value="table">{t("floorPlan.tables") || "שולחנות"}</SelectItem>
-                  <SelectItem value="zone">{t("floorPlan.zones") || "אזורים"}</SelectItem>
-                  <SelectItem value="specialArea">
-                    {t("floorPlan.specialAreas.other") || "אזורים מיוחדים"}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              {availableZones.length > 0 && (
-                <Select
-                  value={filterZone || "all"}
-                  onValueChange={(v) => setFilterZone(v === "all" ? null : v)}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder={t("floorPlan.filterByZone") || "סינון לפי אזור"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("common.all") || "הכל"}</SelectItem>
-                    {availableZones.map((zone) => (
-                      <SelectItem key={zone.id} value={zone.id}>
-                        {zone.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {(searchQuery || filterElementType !== "all" || filterZone) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setFilterElementType("all");
-                    setFilterZone(null);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
+        {/* Search/Filter moved to sidebar - removed from top bar */}
 
         {/* Main Content - Canvas-Centric Layout with Sidebar */}
         <div className="flex flex-1 overflow-hidden">
@@ -3892,488 +3787,475 @@ export function FloorPlanEditorV2({
               />
             </div>
           )}
-          {viewMode === "interactive" ? (
-            <>
-              <Card ref={containerRef} className="relative flex-1 overflow-hidden p-0">
+          <Card ref={containerRef} className="relative flex-1 overflow-hidden p-0">
+            <div
+              className="relative w-full h-full overflow-hidden"
+              style={{
+                cursor: panMode
+                  ? isPanning
+                    ? "grabbing"
+                    : "grab"
+                  : isPanning
+                    ? "grabbing"
+                    : "default",
+                position: "relative"
+              }}
+            >
+              {/* Ruler - Top */}
+              {showRuler && (
                 <div
-                  className="relative w-full h-full overflow-hidden"
                   style={{
-                    cursor: panMode
-                      ? isPanning
-                        ? "grabbing"
-                        : "grab"
-                      : isPanning
-                        ? "grabbing"
-                        : "default",
-                    position: "relative"
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: "30px",
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    borderBottom: "1px solid rgba(0,0,0,0.1)",
+                    zIndex: 10,
+                    pointerEvents: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    paddingLeft: `${panOffset.x}px`,
+                    transform: `scale(${zoom})`,
+                    transformOrigin: "top left"
                   }}
                 >
-                  {/* Ruler - Top */}
-                  {showRuler && (
+                  {Array.from({ length: Math.ceil(2000 / (100 / scale)) }).map((_, i) => (
                     <div
+                      key={i}
                       style={{
                         position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        height: "30px",
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                        borderBottom: "1px solid rgba(0,0,0,0.1)",
-                        zIndex: 10,
-                        pointerEvents: "none",
+                        left: `${(i * 100) / scale}px`,
+                        height: "100%",
+                        borderLeft: "1px solid rgba(0,0,0,0.2)",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        paddingTop: "4px",
+                        fontSize: "10px",
+                        color: "rgba(0,0,0,0.6)"
+                      }}
+                    >
+                      {(i * 100) / scale}m
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Ruler - Left */}
+              {showRuler && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    width: "30px",
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    borderRight: "1px solid rgba(0,0,0,0.1)",
+                    zIndex: 10,
+                    pointerEvents: "none",
+                    display: "flex",
+                    flexDirection: "column",
+                    paddingTop: `${panOffset.y}px`,
+                    transform: `scale(${zoom})`,
+                    transformOrigin: "top left"
+                  }}
+                >
+                  {Array.from({ length: Math.ceil(2000 / (100 / scale)) }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: "absolute",
+                        top: `${(i * 100) / scale}px`,
+                        width: "100%",
+                        borderTop: "1px solid rgba(0,0,0,0.2)",
                         display: "flex",
                         alignItems: "center",
-                        paddingLeft: `${panOffset.x}px`,
-                        transform: `scale(${zoom})`,
-                        transformOrigin: "top left"
+                        paddingLeft: "4px",
+                        fontSize: "10px",
+                        color: "rgba(0,0,0,0.6)",
+                        writingMode: "vertical-rl",
+                        textOrientation: "mixed"
                       }}
                     >
-                      {Array.from({ length: Math.ceil(2000 / (100 / scale)) }).map((_, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            position: "absolute",
-                            left: `${(i * 100) / scale}px`,
-                            height: "100%",
-                            borderLeft: "1px solid rgba(0,0,0,0.2)",
-                            display: "flex",
-                            alignItems: "flex-start",
-                            paddingTop: "4px",
-                            fontSize: "10px",
-                            color: "rgba(0,0,0,0.6)"
-                          }}
-                        >
-                          {(i * 100) / scale}m
-                        </div>
-                      ))}
+                      {(i * 100) / scale}m
                     </div>
-                  )}
-                  {/* Ruler - Left */}
-                  {showRuler && (
+                  ))}
+                </div>
+              )}
+              <div
+                ref={canvasRef}
+                className="absolute bg-background"
+                style={{
+                  cursor: panMode ? (isPanning ? "grabbing" : "grab") : "default",
+                  minWidth: "2000px",
+                  minHeight: "2000px",
+                  width: "2000px",
+                  height: "2000px",
+                  left: "50%",
+                  top: "50%",
+                  transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
+                  transformOrigin: "center center",
+                  backgroundImage: backgroundImage
+                    ? `url(${backgroundImage})`
+                    : showGrid
+                      ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                             linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
+                      : undefined,
+                  backgroundSize: backgroundImage ? "contain" : `${20 / zoom}px ${20 / zoom}px`,
+                  backgroundRepeat: backgroundImage ? "no-repeat" : "repeat",
+                  backgroundPosition: "center",
+                  opacity: backgroundImage ? backgroundImageOpacity : 1
+                }}
+                onClick={handleCanvasClick}
+                onMouseDown={handleCanvasMouseDown}
+                role="application"
+                aria-label="Floor plan canvas"
+                aria-describedby="canvas-description"
+                aria-live="polite"
+                aria-atomic="true"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  // Allow keyboard navigation within canvas
+                  if (e.key === "Tab") {
+                    // Let Tab work for focus management
+                    return;
+                  }
+                  // Other keys handled by global handler
+                }}
+              >
+                <div id="canvas-description" className="sr-only">
+                  Interactive floor plan canvas. Use arrow keys to move selected elements, Enter or
+                  Space to select, Shift+Enter to edit, Ctrl+Z to undo, Ctrl+Shift+Z to redo, Delete
+                  to remove elements.
+                </div>
+                {/* Selection Box - Enhanced visibility for multi-select */}
+                {isSelecting && selectionBox && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
+                      top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
+                      width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
+                      height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`,
+                      border: "2px solid #3B82F6",
+                      backgroundColor: "rgba(59, 130, 246, 0.15)",
+                      borderRadius: "4px",
+                      pointerEvents: "none",
+                      zIndex: 998,
+                      boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)"
+                    }}
+                  />
+                )}
+                {/* Multi-select helper message */}
+                {selectedElementIds.size > 1 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "10px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      backgroundColor: "rgba(59, 130, 246, 0.95)",
+                      color: "white",
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      zIndex: 1001,
+                      pointerEvents: "none",
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+                    }}
+                  >
+                    {selectedElementIds.size} אובייקטים נבחרו • לחץ Ctrl/Cmd+Click להוספה/הסרה •
+                    Shift+Click לבחירת טווח
+                  </div>
+                )}
+                {/* Zone movement helper message */}
+                {selectedElementId &&
+                  elements.find((e) => e.id === selectedElementId)?.type === "zone" &&
+                  elements.filter((e) => e.zoneId === selectedElementId).length > 0 && (
                     <div
                       style={{
                         position: "absolute",
-                        top: 0,
-                        left: 0,
-                        bottom: 0,
-                        width: "30px",
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                        borderRight: "1px solid rgba(0,0,0,0.1)",
-                        zIndex: 10,
+                        top: selectedElementIds.size > 1 ? "50px" : "10px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        backgroundColor: "rgba(16, 185, 129, 0.95)",
+                        color: "white",
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        zIndex: 1001,
                         pointerEvents: "none",
-                        display: "flex",
-                        flexDirection: "column",
-                        paddingTop: `${panOffset.y}px`,
-                        transform: `scale(${zoom})`,
-                        transformOrigin: "top left"
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
                       }}
                     >
-                      {Array.from({ length: Math.ceil(2000 / (100 / scale)) }).map((_, i) => (
-                        <div
-                          key={i}
-                          style={{
-                            position: "absolute",
-                            top: `${(i * 100) / scale}px`,
-                            width: "100%",
-                            borderTop: "1px solid rgba(0,0,0,0.2)",
-                            display: "flex",
-                            alignItems: "center",
-                            paddingLeft: "4px",
-                            fontSize: "10px",
-                            color: "rgba(0,0,0,0.6)",
-                            writingMode: "vertical-rl",
-                            textOrientation: "mixed"
-                          }}
-                        >
-                          {(i * 100) / scale}m
-                        </div>
-                      ))}
+                      כל האובייקטים באזור יזוזו איתך (
+                      {elements.filter((e) => e.zoneId === selectedElementId).length} אובייקטים)
                     </div>
                   )}
-                  <div
-                    ref={canvasRef}
-                    className="absolute bg-background"
+                {/* Polygon drawing preview */}
+                {isDrawingPolygon && polygonPoints.length > 0 && (
+                  <svg
                     style={{
-                      cursor: panMode ? (isPanning ? "grabbing" : "grab") : "default",
-                      minWidth: "2000px",
-                      minHeight: "2000px",
-                      width: "2000px",
-                      height: "2000px",
-                      left: "50%",
-                      top: "50%",
-                      transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${zoom})`,
-                      transformOrigin: "center center",
-                      backgroundImage: backgroundImage
-                        ? `url(${backgroundImage})`
-                        : showGrid
-                          ? `linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                             linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)`
-                          : undefined,
-                      backgroundSize: backgroundImage ? "contain" : `${20 / zoom}px ${20 / zoom}px`,
-                      backgroundRepeat: backgroundImage ? "no-repeat" : "repeat",
-                      backgroundPosition: "center",
-                      opacity: backgroundImage ? backgroundImageOpacity : 1
-                    }}
-                    onClick={handleCanvasClick}
-                    onMouseDown={handleCanvasMouseDown}
-                    role="application"
-                    aria-label="Floor plan canvas"
-                    aria-describedby="canvas-description"
-                    aria-live="polite"
-                    aria-atomic="true"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      // Allow keyboard navigation within canvas
-                      if (e.key === "Tab") {
-                        // Let Tab work for focus management
-                        return;
-                      }
-                      // Other keys handled by global handler
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      pointerEvents: "none",
+                      zIndex: 999
                     }}
                   >
-                    <div id="canvas-description" className="sr-only">
-                      Interactive floor plan canvas. Use arrow keys to move selected elements, Enter
-                      or Space to select, Shift+Enter to edit, Ctrl+Z to undo, Ctrl+Shift+Z to redo,
-                      Delete to remove elements.
-                    </div>
-                    {/* Selection Box - Enhanced visibility for multi-select */}
-                    {isSelecting && selectionBox && (
+                    <polyline
+                      points={polygonPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+                      fill="none"
+                      stroke="#3B82F6"
+                      strokeWidth="2"
+                      strokeDasharray="5,5"
+                    />
+                    {polygonPoints.map((point, i) => (
+                      <circle key={i} cx={point.x} cy={point.y} r="4" fill="#3B82F6" />
+                    ))}
+                  </svg>
+                )}
+                {isDrawingPolygon && polygonPoints.length >= 3 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "20px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      backgroundColor: "rgba(0, 0, 0, 0.8)",
+                      color: "white",
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      zIndex: 1000
+                    }}
+                  >
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={finishPolygonDrawing}
+                      className="mr-2"
+                    >
+                      {t("common.save")}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={cancelPolygonDrawing}>
+                      {t("common.cancel")}
+                    </Button>
+                  </div>
+                )}
+                {/* Visual Feedback Overlay */}
+                {(isDragging || isResizing || isRotating) &&
+                  draggedElement &&
+                  (() => {
+                    // Check if table is in a zone
+                    const zones = elements.filter((el) => el.type === "zone");
+                    const containingZone =
+                      draggedElement.type === "table"
+                        ? findContainingZone(draggedElement, zones)
+                        : null;
+
+                    return (
                       <div
                         style={{
                           position: "absolute",
-                          left: `${Math.min(selectionBox.startX, selectionBox.endX)}px`,
-                          top: `${Math.min(selectionBox.startY, selectionBox.endY)}px`,
-                          width: `${Math.abs(selectionBox.endX - selectionBox.startX)}px`,
-                          height: `${Math.abs(selectionBox.endY - selectionBox.startY)}px`,
-                          border: "2px solid #3B82F6",
-                          backgroundColor: "rgba(59, 130, 246, 0.15)",
-                          borderRadius: "4px",
-                          pointerEvents: "none",
-                          zIndex: 998,
-                          boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)"
-                        }}
-                      />
-                    )}
-                    {/* Multi-select helper message */}
-                    {selectedElementIds.size > 1 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "10px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          backgroundColor: "rgba(59, 130, 246, 0.95)",
-                          color: "white",
-                          padding: "8px 16px",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          zIndex: 1001,
-                          pointerEvents: "none",
-                          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
-                        }}
-                      >
-                        {selectedElementIds.size} אובייקטים נבחרו • לחץ Ctrl/Cmd+Click להוספה/הסרה •
-                        Shift+Click לבחירת טווח
-                      </div>
-                    )}
-                    {/* Zone movement helper message */}
-                    {selectedElementId &&
-                      elements.find((e) => e.id === selectedElementId)?.type === "zone" &&
-                      elements.filter((e) => e.zoneId === selectedElementId).length > 0 && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: selectedElementIds.size > 1 ? "50px" : "10px",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            backgroundColor: "rgba(16, 185, 129, 0.95)",
-                            color: "white",
-                            padding: "8px 16px",
-                            borderRadius: "8px",
-                            fontSize: "14px",
-                            fontWeight: 500,
-                            zIndex: 1001,
-                            pointerEvents: "none",
-                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
-                          }}
-                        >
-                          כל האובייקטים באזור יזוזו איתך (
-                          {elements.filter((e) => e.zoneId === selectedElementId).length} אובייקטים)
-                        </div>
-                      )}
-                    {/* Polygon drawing preview */}
-                    {isDrawingPolygon && polygonPoints.length > 0 && (
-                      <svg
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          pointerEvents: "none",
-                          zIndex: 999
-                        }}
-                      >
-                        <polyline
-                          points={polygonPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-                          fill="none"
-                          stroke="#3B82F6"
-                          strokeWidth="2"
-                          strokeDasharray="5,5"
-                        />
-                        {polygonPoints.map((point, i) => (
-                          <circle key={i} cx={point.x} cy={point.y} r="4" fill="#3B82F6" />
-                        ))}
-                      </svg>
-                    )}
-                    {isDrawingPolygon && polygonPoints.length >= 3 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: "20px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
+                          top: `${draggedElement.y - 30}px`,
+                          left: `${draggedElement.x}px`,
                           backgroundColor: "rgba(0, 0, 0, 0.8)",
                           color: "white",
-                          padding: "8px 16px",
-                          borderRadius: "8px",
-                          zIndex: 1000
+                          padding: "4px 8px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          pointerEvents: "none",
+                          zIndex: 1000,
+                          whiteSpace: "nowrap"
                         }}
                       >
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={finishPolygonDrawing}
-                          className="mr-2"
-                        >
-                          {t("common.save")}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={cancelPolygonDrawing}>
-                          {t("common.cancel")}
-                        </Button>
-                      </div>
-                    )}
-                    {/* Visual Feedback Overlay */}
-                    {(isDragging || isResizing || isRotating) &&
-                      draggedElement &&
-                      (() => {
-                        // Check if table is in a zone
-                        const zones = elements.filter((el) => el.type === "zone");
-                        const containingZone =
-                          draggedElement.type === "table"
-                            ? findContainingZone(draggedElement, zones)
-                            : null;
-
-                        return (
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: `${draggedElement.y - 30}px`,
-                              left: `${draggedElement.x}px`,
-                              backgroundColor: "rgba(0, 0, 0, 0.8)",
-                              color: "white",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              pointerEvents: "none",
-                              zIndex: 1000,
-                              whiteSpace: "nowrap"
-                            }}
-                          >
-                            {isDragging && (
-                              <>
-                                X: {Math.round(draggedElement.x)}px (
-                                {Math.round(draggedElement.x * scale * 100) / 100}m), Y:{" "}
-                                {Math.round(draggedElement.y)}px (
-                                {Math.round(draggedElement.y * scale * 100) / 100}m)
-                                {containingZone && (
-                                  <span
-                                    style={{
-                                      marginLeft: "8px",
-                                      color: containingZone.color || "#3B82F6"
-                                    }}
-                                  >
-                                    • {containingZone.name}
-                                  </span>
-                                )}
-                              </>
+                        {isDragging && (
+                          <>
+                            X: {Math.round(draggedElement.x)}px (
+                            {Math.round(draggedElement.x * scale * 100) / 100}m), Y:{" "}
+                            {Math.round(draggedElement.y)}px (
+                            {Math.round(draggedElement.y * scale * 100) / 100}m)
+                            {containingZone && (
+                              <span
+                                style={{
+                                  marginLeft: "8px",
+                                  color: containingZone.color || "#3B82F6"
+                                }}
+                              >
+                                • {containingZone.name}
+                              </span>
                             )}
-                            {isResizing && (
-                              <>
-                                {Math.round(draggedElement.width)}×
-                                {Math.round(draggedElement.height)}px (
-                                {Math.round(draggedElement.width * scale * 100) / 100}m ×{" "}
-                                {Math.round(draggedElement.height * scale * 100) / 100}m)
-                                {containingZone && (
-                                  <span
-                                    style={{
-                                      marginLeft: "8px",
-                                      color: containingZone.color || "#3B82F6"
-                                    }}
-                                  >
-                                    • {containingZone.name}
-                                  </span>
-                                )}
-                              </>
+                          </>
+                        )}
+                        {isResizing && (
+                          <>
+                            {Math.round(draggedElement.width)}×{Math.round(draggedElement.height)}px
+                            ({Math.round(draggedElement.width * scale * 100) / 100}m ×{" "}
+                            {Math.round(draggedElement.height * scale * 100) / 100}m)
+                            {containingZone && (
+                              <span
+                                style={{
+                                  marginLeft: "8px",
+                                  color: containingZone.color || "#3B82F6"
+                                }}
+                              >
+                                • {containingZone.name}
+                              </span>
                             )}
-                            {isRotating && <>{Math.round(draggedElement.rotation)}°</>}
-                          </div>
-                        );
-                      })()}
-                    {/* Alignment Guides Visualization - only show when actively dragging */}
-                    {showAlignmentGuides &&
-                      isDragging &&
-                      alignmentGuides.length > 0 &&
-                      alignmentGuides.map((guide, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            position: "absolute",
-                            [guide.type === "vertical" ? "left" : "top"]: `${guide.position}px`,
-                            [guide.type === "vertical" ? "width" : "height"]: "1px",
-                            [guide.type === "vertical" ? "height" : "width"]:
-                              guide.type === "vertical"
-                                ? `${canvasSize.height}px`
-                                : `${canvasSize.width}px`,
-                            backgroundColor: "#3B82F6",
-                            opacity: 0.5,
-                            pointerEvents: "none",
-                            zIndex: 997
-                          }}
-                        />
-                      ))}
-
-                    {/* Empty Canvas Message - Using EmptyState Component */}
-                    {elements.length === 0 && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "50%",
-                          left: "50%",
-                          transform: "translate(-50%, -50%)",
-                          zIndex: 10,
-                          width: "100%",
-                          height: "100%",
-                          pointerEvents: "none"
-                        }}
-                      >
-                        <div style={{ pointerEvents: "auto" }}>
-                          <EmptyState
-                            onUseTemplate={() => setTemplateDialogOpen(true)}
-                            onAddElement={() => setQuickAddDialogOpen(true)}
-                          />
-                        </div>
+                          </>
+                        )}
+                        {isRotating && <>{Math.round(draggedElement.rotation)}°</>}
                       </div>
-                    )}
+                    );
+                  })()}
+                {/* Alignment Guides Visualization - only show when actively dragging */}
+                {showAlignmentGuides &&
+                  isDragging &&
+                  alignmentGuides.length > 0 &&
+                  alignmentGuides.map((guide, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        position: "absolute",
+                        [guide.type === "vertical" ? "left" : "top"]: `${guide.position}px`,
+                        [guide.type === "vertical" ? "width" : "height"]: "1px",
+                        [guide.type === "vertical" ? "height" : "width"]:
+                          guide.type === "vertical"
+                            ? `${canvasSize.height}px`
+                            : `${canvasSize.width}px`,
+                        backgroundColor: "#3B82F6",
+                        opacity: 0.5,
+                        pointerEvents: "none",
+                        zIndex: 997
+                      }}
+                    />
+                  ))}
 
-                    {/* Render Elements - Zones first (lower z-index), then other elements */}
-                    {filteredElements
-                      .filter((element) => {
-                        if (hiddenElements.has(element.id)) return false;
-                        // Filter by layer visibility
-                        if (element.type === "zone" && !layers.zones.visible) return false;
-                        if (element.type === "table" && !layers.tables.visible) return false;
-                        if (element.type === "specialArea" && !layers.specialAreas.visible)
-                          return false;
-
-                        // Hide bar stools by default - only show if parent bar has showStools = true
-                        if (
-                          element.type === "table" &&
-                          element.tableType === "bar" &&
-                          element.name?.includes("כיסא בר")
-                        ) {
-                          // Find parent bar - look for nearby bar table (not zone)
-                          const parentBar = elements.find(
-                            (e) =>
-                              e.type === "table" &&
-                              e.tableType === "bar" &&
-                              e.id !== element.id &&
-                              !e.name?.includes("כיסא בר") &&
-                              Math.abs(e.x - element.x) < 300 &&
-                              Math.abs(e.y - element.y) < 300
-                          );
-                          // If no parent bar found or parent bar doesn't have showStools, hide the stool
-                          if (!parentBar || !parentBar.showStools) {
-                            return false;
-                          }
-                        }
-
-                        return true;
-                      })
-                      .sort((a, b) => {
-                        // Zones first (z-index 1), then other elements (z-index 10)
-                        if (a.type === "zone" && b.type !== "zone") return -1;
-                        if (a.type !== "zone" && b.type === "zone") return 1;
-                        return 0;
-                      })
-                      .map((element) => {
-                        // Check if element is locked
-                        const isLocked =
-                          (element.type === "zone" && layers.zones.locked) ||
-                          (element.type === "table" && layers.tables.locked) ||
-                          (element.type === "specialArea" && layers.specialAreas.locked);
-
-                        // Highlight search matches
-                        const isSearchMatch =
-                          searchQuery.trim() &&
-                          (element.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            element.description
-                              ?.toLowerCase()
-                              .includes(searchQuery.toLowerCase()) ||
-                            element.notes?.toLowerCase().includes(searchQuery.toLowerCase()));
-
-                        return (
-                          <ElementRenderer
-                            showMeasurements={showMeasurements}
-                            scale={scale}
-                            key={element.id}
-                            element={element}
-                            isSelected={
-                              selectedElementId === element.id || selectedElementIds.has(element.id)
-                            }
-                            isInteractive={!isLocked}
-                            onMouseDown={(e) => handleElementMouseDown(e, element)}
-                            onDoubleClick={(e) => handleEditElement(element, e)}
-                            onEdit={() => {
-                              const elementToEdit = elements.find((e) => e.id === element.id);
-                              if (elementToEdit) {
-                                handleEditElement(elementToEdit);
-                              }
-                            }}
-                            onDelete={() => handleDeleteElement(element.id)}
-                            onVertexDrag={(vertexIndex, newPoint) => {
-                              setElements(
-                                elements.map((e) =>
-                                  e.id === element.id && e.polygonPoints
-                                    ? {
-                                        ...e,
-                                        polygonPoints: e.polygonPoints.map((p, i) =>
-                                          i === vertexIndex ? newPoint : p
-                                        )
-                                      }
-                                    : e
-                                )
-                              );
-                            }}
-                            allElements={elements}
-                            onResizeStart={(e, handle) => handleResizeStart(e, element, handle)}
-                            onRotateStart={(e) => handleRotateStart(e, element)}
-                            isSearchMatch={!!isSearchMatch}
-                          />
-                        );
-                      })}
+                {/* Empty Canvas Message - Using EmptyState Component */}
+                {elements.length === 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      zIndex: 10,
+                      width: "100%",
+                      height: "100%",
+                      pointerEvents: "none"
+                    }}
+                  >
+                    <div style={{ pointerEvents: "auto" }}>
+                      <EmptyState
+                        onUseTemplate={() => setTemplateDialogOpen(true)}
+                        onAddElement={() => setQuickAddDialogOpen(true)}
+                      />
+                    </div>
                   </div>
-                </div>
-              </Card>
-            </>
-          ) : (
-            <NonInteractiveView
-              elements={elements}
-              onEdit={handleEditElement}
-              onDelete={handleDeleteElement}
-            />
-          )}
+                )}
+
+                {/* Render Elements - Zones first (lower z-index), then other elements */}
+                {filteredElements
+                  .filter((element) => {
+                    if (hiddenElements.has(element.id)) return false;
+                    // Filter by layer visibility
+                    if (element.type === "zone" && !layers.zones.visible) return false;
+                    if (element.type === "table" && !layers.tables.visible) return false;
+                    if (element.type === "specialArea" && !layers.specialAreas.visible)
+                      return false;
+
+                    // Hide bar stools by default - only show if parent bar has showStools = true
+                    if (
+                      element.type === "table" &&
+                      element.tableType === "bar" &&
+                      element.name?.includes("כיסא בר")
+                    ) {
+                      // Find parent bar - look for nearby bar table (not zone)
+                      const parentBar = elements.find(
+                        (e) =>
+                          e.type === "table" &&
+                          e.tableType === "bar" &&
+                          e.id !== element.id &&
+                          !e.name?.includes("כיסא בר") &&
+                          Math.abs(e.x - element.x) < 300 &&
+                          Math.abs(e.y - element.y) < 300
+                      );
+                      // If no parent bar found or parent bar doesn't have showStools, hide the stool
+                      if (!parentBar || !parentBar.showStools) {
+                        return false;
+                      }
+                    }
+
+                    return true;
+                  })
+                  .sort((a, b) => {
+                    // Zones first (z-index 1), then other elements (z-index 10)
+                    if (a.type === "zone" && b.type !== "zone") return -1;
+                    if (a.type !== "zone" && b.type === "zone") return 1;
+                    return 0;
+                  })
+                  .map((element) => {
+                    // Check if element is locked
+                    const isLocked =
+                      (element.type === "zone" && layers.zones.locked) ||
+                      (element.type === "table" && layers.tables.locked) ||
+                      (element.type === "specialArea" && layers.specialAreas.locked);
+
+                    // Highlight search matches
+                    const isSearchMatch =
+                      searchQuery.trim() &&
+                      (element.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        element.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        element.notes?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+                    return (
+                      <ElementRenderer
+                        showMeasurements={showMeasurements}
+                        scale={scale}
+                        key={element.id}
+                        element={element}
+                        isSelected={
+                          selectedElementId === element.id || selectedElementIds.has(element.id)
+                        }
+                        isInteractive={!isLocked}
+                        onMouseDown={(e) => handleElementMouseDown(e, element)}
+                        onDoubleClick={(e) => handleEditElement(element, e)}
+                        onEdit={() => {
+                          const elementToEdit = elements.find((e) => e.id === element.id);
+                          if (elementToEdit) {
+                            handleEditElement(elementToEdit);
+                          }
+                        }}
+                        onDelete={() => handleDeleteElement(element.id)}
+                        onVertexDrag={(vertexIndex, newPoint) => {
+                          setElements(
+                            elements.map((e) =>
+                              e.id === element.id && e.polygonPoints
+                                ? {
+                                    ...e,
+                                    polygonPoints: e.polygonPoints.map((p, i) =>
+                                      i === vertexIndex ? newPoint : p
+                                    )
+                                  }
+                                : e
+                            )
+                          );
+                        }}
+                        allElements={elements}
+                        onResizeStart={(e, handle) => handleResizeStart(e, element, handle)}
+                        onRotateStart={(e) => handleRotateStart(e, element)}
+                        isSearchMatch={!!isSearchMatch}
+                      />
+                    );
+                  })}
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Context Panel removed - using Edit Dialog instead when edit button is clicked */}
@@ -6585,111 +6467,4 @@ function PolygonVertex({ point, index, element, allElements, onDrag }: PolygonVe
 }
 
 // Non-Interactive View Component
-interface NonInteractiveViewProps {
-  elements: FloorPlanElement[];
-  onEdit: (element: FloorPlanElement) => void;
-  onDelete: (id: string) => void;
-}
-
-function NonInteractiveView({ elements, onEdit, onDelete }: NonInteractiveViewProps) {
-  const { t } = useTranslations();
-  const [filterType, setFilterType] = useState<ElementType | "all">("all");
-
-  const filteredElements = elements.filter((e) => filterType === "all" || e.type === filterType);
-
-  const tables = elements.filter((e) => e.type === "table");
-  const zones = elements.filter((e) => e.type === "zone");
-  const specialAreas = elements.filter((e) => e.type === "specialArea");
-
-  return (
-    <div className="flex flex-1 gap-4 overflow-hidden">
-      {/* List View */}
-      <Card className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-4">
-          {/* Filter Tabs */}
-          <div className="flex gap-2 border-b pb-2">
-            <Button
-              variant={filterType === "all" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterType("all")}
-            >
-              {t("common.all")}
-            </Button>
-            <Button
-              variant={filterType === "table" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterType("table")}
-            >
-              {t("floorPlan.tables")} ({tables.length})
-            </Button>
-            <Button
-              variant={filterType === "zone" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterType("zone")}
-            >
-              {t("floorPlan.zones")} ({zones.length})
-            </Button>
-            <Button
-              variant={filterType === "specialArea" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setFilterType("specialArea")}
-            >
-              {t("floorPlan.specialAreas.other")} ({specialAreas.length})
-            </Button>
-          </div>
-
-          {/* Elements List */}
-          <div className="space-y-2">
-            {filteredElements.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">{t("common.empty")}</div>
-            ) : (
-              filteredElements.map((element) => (
-                <Card key={element.id} className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div
-                        className="w-12 h-12 rounded border flex items-center justify-center text-xs font-semibold"
-                        style={{
-                          backgroundColor:
-                            element.type === "zone"
-                              ? element.color || "#3B82F6"
-                              : element.type === "specialArea"
-                                ? element.color || "#10B981"
-                                : "rgba(255, 255, 255, 0.95)",
-                          color:
-                            element.type === "zone" || element.type === "specialArea"
-                              ? "white"
-                              : "inherit"
-                        }}
-                      >
-                        {element.name.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-semibold">{element.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {element.type === "table" && element.seats
-                            ? `${element.seats} ${t("common.seats")}`
-                            : element.type === "zone"
-                              ? `${t("floorPlan.zones")}`
-                              : t(`floorPlan.specialAreas.${element.areaType || "other"}`)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => onEdit(element)}>
-                        {t("common.edit")}
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={() => onDelete(element.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
+// NonInteractiveView removed - everything is together now

@@ -22,28 +22,28 @@ export function HelpPanel({ open, onOpenChange }: HelpPanelProps) {
   const quickTips = [
     {
       icon: Sparkles,
-      title: "התחל עם תבנית",
-      description: "בחר תבנית מוכנה כדי להתחיל במהירות"
+      title: "צור מפה, הוסף אזורים ושולחנות",
+      description: "כללי או ספציפיים לליין - צור מפה ויזואלית אינטראקטיבית עם אזורים ושולחנות"
     },
     {
       icon: Plus,
-      title: "הוסף אלמנטים",
-      description: "לחץ על 'הוסף' כדי להוסיף שולחנות, אזורים או אזורים מיוחדים"
+      title: "מפות כלליות או ספציפיות לליין",
+      description: "ניהול קיבולת וישיבה - צור מפות שונות למטרות שונות"
+    },
+    {
+      icon: Grid,
+      title: "ראה את המקום שלך במבט אחד",
+      description: "ניהול ויזואלי ופשוט - הכל במקום אחד"
+    },
+    {
+      icon: Layers,
+      title: "עריכה ברשימה, הזזה במפה",
+      description: "לחיצה על אובייקט במפה -> עריכה ברשימה. במפה רק להזזה"
     },
     {
       icon: Save,
       title: "שמור תמיד",
       description: "לחץ על 'שמור' כדי לשמור את השינויים שלך"
-    },
-    {
-      icon: Grid,
-      title: "יישור אוטומטי",
-      description: "הכל מיושר אוטומטית לרשת - אין צורך לדאוג ליישור"
-    },
-    {
-      icon: Layers,
-      title: "קישור אוטומטי",
-      description: "שולחנות שנגררים לאזור מקושרים אוטומטית"
     }
   ];
 
@@ -110,15 +110,40 @@ export function HelpPanel({ open, onOpenChange }: HelpPanelProps) {
       </TabsContent>
 
       <TabsContent value="guide" className="space-y-4 mt-4">
-        <Card className="p-4">
-          <h4 className="font-semibold mb-2">מדריך מהיר</h4>
-          <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-            <li>בחר תבנית מוכנה או התחל מאפס</li>
-            <li>הוסף שולחנות ואזורים על ידי לחיצה על &apos;הוסף&apos;</li>
-            <li>גרור אלמנטים כדי להזיז אותם</li>
-            <li>לחץ פעמיים על אלמנט כדי לערוך אותו</li>
-            <li>שמור את המפה שלך</li>
-          </ol>
+        <Card className="p-4 space-y-4">
+          <div>
+            <h4 className="font-semibold mb-2">חלוקה ברורה בין רשימה למפה</h4>
+            <div className="space-y-3 text-sm">
+              <div className="p-3 bg-primary/5 rounded-lg">
+                <div className="font-semibold mb-1">📋 ברשימה - עריכה ויצירה:</div>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground mr-4">
+                  <li>יצירת אלמנטים חדשים (שולחנות, אזורים, אזורים מיוחדים)</li>
+                  <li>עריכת שמות, כמות מושבים, צבעים</li>
+                  <li>מחיקת אלמנטים</li>
+                  <li>סינון וחיפוש</li>
+                </ul>
+              </div>
+              <div className="p-3 bg-secondary/5 rounded-lg">
+                <div className="font-semibold mb-1">🗺️ במפה - הזזה בלבד:</div>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground mr-4">
+                  <li>גרור אלמנטים כדי להזיז אותם</li>
+                  <li>לחיצה על אובייקט - עריכה ברשימה (לא במפה)</li>
+                  <li>שינוי גודל וסיבוב</li>
+                  <li>יישור אוטומטי לרשת</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div className="pt-4 border-t">
+            <h4 className="font-semibold mb-2">מדריך מהיר</h4>
+            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+              <li>בחר תבנית מוכנה או התחל מאפס</li>
+              <li>הוסף שולחנות ואזורים ברשימה (לחץ על כפתורי הוספה)</li>
+              <li>גרור אלמנטים במפה כדי להזיז אותם</li>
+              <li>לחץ על אובייקט במפה כדי לערוך אותו ברשימה</li>
+              <li>שמור את המפה שלך</li>
+            </ol>
+          </div>
         </Card>
       </TabsContent>
     </Tabs>
