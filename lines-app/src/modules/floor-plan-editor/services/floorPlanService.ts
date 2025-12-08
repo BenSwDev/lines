@@ -356,10 +356,15 @@ export const floorPlanService = {
       }
     }
 
+    // Filter out undefined values to prevent Prisma errors
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([, value]) => value !== undefined)
+    );
+
     // Update floor plan
     const updated = await prisma.floorPlan.update({
       where: { id },
-      data: updateData
+      data: cleanUpdateData
     });
 
     // Update line associations if provided (one-to-one: each line can only be linked to one floor plan)
