@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,9 +22,10 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { List, Clock, Palette, ChevronDown, X, Settings, Copy, Check } from "lucide-react";
+import { List, Clock, Palette, ChevronDown, X, Settings, Copy, Check, Trash2 } from "lucide-react";
 import { createLine } from "../actions/createLine";
 import { updateLine } from "../actions/updateLine";
+import { deleteLine } from "../actions/deleteLine";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
@@ -490,24 +491,72 @@ export function CreateLineDialog({
 
   const selectedDays = daySchedules.map((s) => s.day);
 
+  const handleDelete = async () => {
+    if (!existingLine) return;
+
+    if (!confirm(t("lines.confirmDelete", { defaultValue: "האם אתה בטוח שברצונך למחוק את הליין הזה?" }))) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await deleteLine(venueId, existingLine.id);
+      if (result.success) {
+        toast({
+          title: t("success.deleted", { defaultValue: "נמחק בהצלחה" }),
+          description: t("lines.lineDeleted", { defaultValue: "הליין נמחק בהצלחה" })
+        });
+        onSuccess();
+        onClose();
+      } else {
+        toast({
+          title: t("errors.generic"),
+          description: result.error ? translateError(result.error, t) : t("errors.deleteFailed"),
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting line:", error);
+      toast({
+        title: t("errors.generic"),
+        description: t("errors.deleteFailed"),
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
               <List className="h-6 w-6 text-primary-foreground" />
             </div>
-            <div>
-              <DialogTitle className="text-2xl font-bold">
+            <div className="flex-1">
+              <SheetTitle className="text-2xl font-bold">
                 {existingLine ? "עריכת ליין" : "יצירת ליין חדש"}
-              </DialogTitle>
-              <DialogDescription className="text-base">
+              </SheetTitle>
+              <SheetDescription className="text-base">
                 הגדר לוח זמנים, ימים וצבע לאירועים חוזרים
-              </DialogDescription>
+              </SheetDescription>
             </div>
+            {existingLine && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                onClick={handleDelete}
+                disabled={isSubmitting}
+                className="flex-shrink-0"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
-        </DialogHeader>
+        </SheetHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6 py-4">
@@ -915,14 +964,14 @@ export function CreateLineDialog({
             )}
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isSubmitting || isCheckingCollisions}
             >
-              ביטול
+              {t("common.cancel", { defaultValue: "ביטול" })}
             </Button>
             <Button
               type="submit"
@@ -930,11 +979,15 @@ export function CreateLineDialog({
                 isSubmitting || isCheckingCollisions || !name.trim() || daySchedules.length === 0
               }
             >
-              {isSubmitting || isCheckingCollisions ? "בודק..." : existingLine ? "עדכון" : "יצירה"}
+              {isSubmitting || isCheckingCollisions
+                ? t("lines.checking", { defaultValue: "בודק..." })
+                : existingLine
+                  ? t("common.save", { defaultValue: "עדכון" })
+                  : t("common.create", { defaultValue: "יצירה" })}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

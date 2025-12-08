@@ -184,21 +184,7 @@ export function WeeklyScheduleView({
                           </Badge>
                         </div>
 
-                        {/* Quick Actions */}
-                        <div className="flex items-center justify-between pt-2 border-t border-border/30">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs group-hover:text-primary transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onLineClick(line.id);
-                            }}
-                          >
-                            <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
-                            {t("common.view", { defaultValue: "צפה" })}
-                          </Button>
-                        </div>
+                        {/* Quick Actions - Click anywhere on card opens drawer */}
                       </CardContent>
                     </Card>
                   ))

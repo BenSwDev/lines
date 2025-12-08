@@ -86,11 +86,14 @@ export function LinesPage() {
   };
 
   const handleLineSelect = (lineId: string | null) => {
-    setSelectedLineId(lineId);
     if (lineId) {
-      router.push(`/venues/${venueId}/lines?lineId=${lineId}`, { scroll: false });
+      setSelectedLineId(lineId);
+      setEditingLine(lines.find((l) => l.id === lineId) || null);
+      setIsCreateOpen(true);
     } else {
-      router.push(`/venues/${venueId}/lines`, { scroll: false });
+      setSelectedLineId(null);
+      setEditingLine(null);
+      setIsCreateOpen(false);
     }
   };
 
@@ -123,36 +126,31 @@ export function LinesPage() {
         onCreateLine={handleCreateLine}
       />
 
-      {/* Main Content - Full Width */}
+      {/* Main Content - Full Width - Always show schedule, Sheet overlays it */}
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-6 py-6">
-          {selectedLineId ? (
-            <LineDetailView
-              lineId={selectedLineId}
-              venueId={venueId}
-              onBack={() => handleLineSelect(null)}
-            />
-          ) : (
-            <WeeklyScheduleView
-              lines={filteredLines}
-              weekStartDay={weekStartDay}
-              onLineClick={handleLineSelect}
-            />
-          )}
+          <WeeklyScheduleView
+            lines={filteredLines}
+            weekStartDay={weekStartDay}
+            onLineClick={handleLineSelect}
+          />
         </div>
       </div>
 
-      {/* Create/Edit Dialog */}
+      {/* Create/Edit Sheet - Opens from side, overlays schedule */}
       <CreateLineDialog
         isOpen={isCreateOpen}
         onClose={() => {
           setIsCreateOpen(false);
           setEditingLine(null);
+          setSelectedLineId(null);
         }}
         venueId={venueId}
         onSuccess={() => {
           loadData();
           setEditingLine(null);
+          setSelectedLineId(null);
+          setIsCreateOpen(false);
         }}
         existingLine={editingLine}
       />
