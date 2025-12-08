@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles, Calendar, Palette, Zap, Play } from "lucide-react";
+import { ArrowRight, Sparkles, Calendar, Palette, Zap } from "lucide-react";
 
 type HeroProps = {
   isAuthenticated: boolean;
@@ -43,20 +43,12 @@ export function Hero({ isAuthenticated }: HeroProps) {
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             {isAuthenticated ? (
-              <>
-                <Link href="/dashboard">
-                  <Button size="lg" className="group gap-2">
-                    כניסה ל-Dashboard
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-                <Link href="/demo-experience">
-                  <Button size="lg" variant="outline" className="gap-2">
-                    <Play className="h-4 w-4" />
-                    צפה בהדמיה
-                  </Button>
-                </Link>
-              </>
+              <Link href="/dashboard">
+                <Button size="lg" className="group gap-2">
+                  כניסה ל-Dashboard
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
             ) : (
               <>
                 <Link href="/auth/register">
@@ -65,10 +57,9 @@ export function Hero({ isAuthenticated }: HeroProps) {
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Link href="/demo-experience">
+                <Link href="/auth/login">
                   <Button size="lg" variant="outline" className="gap-2">
-                    <Play className="h-4 w-4" />
-                    צפה בהדמיה
+                    התחבר
                   </Button>
                 </Link>
               </>

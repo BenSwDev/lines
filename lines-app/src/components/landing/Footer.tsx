@@ -29,15 +29,6 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/demo"
-                  className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-                >
-                  <span className="h-1 w-1 rounded-full bg-primary/0 group-hover:bg-primary transition-all duration-200" />
-                  הדמיה
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/auth/register"
                   className="group flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
                 >

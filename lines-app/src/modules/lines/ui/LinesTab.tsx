@@ -14,8 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
 import type { Line } from "@prisma/client";
-import { FeatureSlider, linesFeatures } from "@/modules/feature-slider";
-import { PageHero, getPageConfig } from "@/modules/demo-system";
 
 export function LinesTab() {
   const params = useParams();
@@ -29,7 +27,6 @@ export function LinesTab() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingLine, setEditingLine] = useState<Line | null>(null);
-  const [showFeatureSlider, setShowFeatureSlider] = useState(lines.length === 0);
 
   const loadLines = async () => {
     setIsLoading(true);
@@ -107,13 +104,8 @@ export function LinesTab() {
     );
   }
 
-  const pageConfig = getPageConfig("lines");
-
   return (
     <div className="space-y-6">
-      {/* Page Hero */}
-      {pageConfig && <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />}
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -140,42 +132,6 @@ export function LinesTab() {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Feature Slider */}
-      {showFeatureSlider && (
-        <div className="mb-8">
-          <FeatureSlider
-            features={linesFeatures.map((f) => ({
-              ...f,
-              actions: f.actions?.map((a) => ({
-                ...a,
-                onClick: () => {
-                  if (a.label === "צור עכשיו") {
-                    setIsCreateOpen(true);
-                    setShowFeatureSlider(false);
-                  }
-                }
-              }))
-            }))}
-            config={{
-              autoPlay: true,
-              autoPlayInterval: 4000,
-              showDots: true,
-              showArrows: true,
-              slidesToShow: 1,
-              infinite: true
-            }}
-            onAction={(featureId, actionLabel) => {
-              if (actionLabel === "צור עכשיו") {
-                setIsCreateOpen(true);
-                setShowFeatureSlider(false);
-              }
-            }}
-            onClose={() => setShowFeatureSlider(false)}
-            className="mb-6"
-          />
         </div>
       )}
 
