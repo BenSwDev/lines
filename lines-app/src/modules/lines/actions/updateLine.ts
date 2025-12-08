@@ -29,21 +29,36 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
 
     const validated = updateLineSchema.parse(input);
 
-    // Build update data object, filtering out undefined values
+    // Build update data object, filtering out undefined values and non-DB fields
     // Note: We need to use UncheckedUpdateInput to directly set floorPlanId field
+    // Only include fields that exist in the Line model
     const updateData: Prisma.LineUncheckedUpdateInput = {};
 
+    // Only add fields that exist in the Line model schema
     if (validated.name !== undefined) updateData.name = validated.name;
     if (validated.days !== undefined) updateData.days = validated.days;
     if (validated.startTime !== undefined) updateData.startTime = validated.startTime;
     if (validated.endTime !== undefined) updateData.endTime = validated.endTime;
     if (validated.frequency !== undefined) updateData.frequency = validated.frequency;
     if (validated.color !== undefined) updateData.color = validated.color;
-    if (validated.floorPlanId !== undefined) updateData.floorPlanId = validated.floorPlanId;
+    if (validated.floorPlanId !== undefined) {
+      updateData.floorPlanId = validated.floorPlanId;
+    }
 
-    // Filter out any undefined values that might have been set
+    // Filter out any undefined values and non-DB fields (like daySchedules, selectedDates, manualDates)
+    const allowedFields = [
+      "name",
+      "days",
+      "startTime",
+      "endTime",
+      "frequency",
+      "color",
+      "floorPlanId"
+    ];
     const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([, value]) => value !== undefined)
+      Object.entries(updateData).filter(
+        ([key, value]) => allowedFields.includes(key) && value !== undefined
+      )
     ) as Prisma.LineUncheckedUpdateInput;
 
     // Update the Line - only send defined fields

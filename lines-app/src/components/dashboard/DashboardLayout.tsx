@@ -127,11 +127,8 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                   </SidebarGroupContent>
                 </SidebarGroup>
 
-                {/* Venue Navigation */}
+                {/* Dashboard Overview */}
                 <SidebarGroup>
-                  <SidebarGroupLabel>
-                    {t("workspace.navigation", { defaultValue: "ניווט" })}
-                  </SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       <SidebarMenuItem>
@@ -148,11 +145,22 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* Information & Settings */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>
+                    {t("workspace.navigation", { defaultValue: "מידע והגדרות" })}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
                       <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname?.includes("/calendar")}>
-                          <Link href={`/venues/${currentVenue.id}/calendar`}>
-                            <Calendar className="h-4 w-4" />
-                            <span>{t("workspace.calendar", { defaultValue: "לוח שנה" })}</span>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/info")}>
+                          <Link href={`/venues/${currentVenue.id}/settings/info`}>
+                            <Info className="h-4 w-4" />
+                            <span>{t("workspace.info", { defaultValue: "מידע כללי" })}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -169,25 +177,6 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    </SidebarMenu>
-                  </SidebarGroupContent>
-                </SidebarGroup>
-
-                {/* Venue Settings */}
-                <SidebarGroup>
-                  <SidebarGroupLabel>
-                    {t("workspace.settings", { defaultValue: "הגדרות מקום" })}
-                  </SidebarGroupLabel>
-                  <SidebarGroupContent>
-                    <SidebarMenu>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/info")}>
-                          <Link href={`/venues/${currentVenue.id}/settings/info`}>
-                            <Info className="h-4 w-4" />
-                            <span>{t("workspace.info", { defaultValue: "מידע כללי" })}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
                       <SidebarMenuItem>
                         <SidebarMenuButton
                           asChild
@@ -195,15 +184,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         >
                           <Link href={`/venues/${currentVenue.id}/settings/structure`}>
                             <Layers className="h-4 w-4" />
-                            <span>{t("workspace.structure", { defaultValue: "מבנה (מפות)" })}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/menus")}>
-                          <Link href={`/venues/${currentVenue.id}/settings/menus`}>
-                            <FileText className="h-4 w-4" />
-                            <span>{t("workspace.menus", { defaultValue: "תפריטים" })}</span>
+                            <span>{t("workspace.structure", { defaultValue: "מפה כללית" })}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -217,6 +198,45 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* Calendar - Highlighted */}
+                <SidebarGroup>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname?.includes("/calendar")}
+                          className="bg-primary/10 text-primary font-semibold hover:bg-primary/20"
+                        >
+                          <Link
+                            href={`/venues/${currentVenue.id}/calendar`}
+                            className="flex items-center gap-2 w-full"
+                          >
+                            <Calendar className="h-4 w-4" />
+                            <span className="flex-1">
+                              {t("workspace.calendar", { defaultValue: "לוח שנה" })}
+                            </span>
+                            <Badge variant="secondary" className="text-xs">
+                              {t("common.new", { defaultValue: "חדש" })}
+                            </Badge>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                {/* Venue Settings */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>
+                    {t("workspace.settings", { defaultValue: "הגדרות מקום" })}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
                       <SidebarMenuItem>
                         <SidebarMenuButton
                           asChild
@@ -224,9 +244,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         >
                           <Link href={`/venues/${currentVenue.id}/settings/reservations`}>
                             <BookOpen className="h-4 w-4" />
-                            <span>
-                              {t("workspace.reservations", { defaultValue: "הגדרות הזמנות" })}
-                            </span>
+                            <span>{t("workspace.reservations", { defaultValue: "הזמנות" })}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -242,13 +260,10 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                       <SidebarMenuItem>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={pathname?.includes("/settings/inventory")}
-                        >
-                          <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
-                            <Package className="h-4 w-4" />
-                            <span>{t("workspace.inventory", { defaultValue: "מלאי" })}</span>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/menus")}>
+                          <Link href={`/venues/${currentVenue.id}/settings/menus`}>
+                            <FileText className="h-4 w-4" />
+                            <span>{t("workspace.menus", { defaultValue: "תפריטים" })}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -256,7 +271,18 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                         <SidebarMenuButton asChild isActive={pathname?.includes("/settings/team")}>
                           <Link href={`/venues/${currentVenue.id}/settings/team`}>
                             <Users className="h-4 w-4" />
-                            <span>{t("workspace.team", { defaultValue: "צוות" })}</span>
+                            <span>{t("workspace.team", { defaultValue: "צוות יחסי ציבור" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname?.includes("/settings/inventory")}
+                        >
+                          <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
+                            <Package className="h-4 w-4" />
+                            <span>{t("workspace.inventory", { defaultValue: "מלאי" })}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

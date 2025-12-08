@@ -27,7 +27,8 @@
     "finish": "סיום",
     "current": "current",
     "default": "ברירת מחדל",
-    "view": "צפה"
+    "view": "צפה",
+    "new": "חדש"
   },
   "floorPlan": {
     "title": "תכנון מקום",
@@ -412,13 +413,13 @@
     "myVenues": "המקומות שלי",
     "noVenuesYet": "אין מקומות עדיין",
     "navigation": "מידע והגדרות",
-    "structure": "מבנה (מפות)",
+    "structure": "מפה כללית",
     "menus": "תפריטים",
     "roles": "תפקידים והיררכיה",
-    "reservations": "הגדרות הזמנות",
+    "reservations": "הזמנות",
     "tickets": "כרטיסים",
     "inventory": "מלאי",
-    "team": "צוות",
+    "team": "צוות יחסי ציבור",
     "dashboard": "סקירה כללית",
     "dashboardDescription": "סקירה כללית של הפעילות וההגדרות",
     "floorPlans": "מפות",

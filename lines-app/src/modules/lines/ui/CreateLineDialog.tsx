@@ -212,24 +212,42 @@ export function CreateLineDialog({
     }
 
     // Generate occurrences based on start date and frequency
+    // Always generate until end of calendar year (December 31)
     const occurrences: TimeRange[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (frequency === "oneTime") {
-      // Single occurrence
-      occurrences.push({
-        date: startDate.toISOString().split("T")[0],
-        startTime,
-        endTime
-      });
-    } else if (frequency === "weekly") {
-      // Generate weekly occurrences for 3 months
-      const endDate = new Date(startDate);
-      endDate.setMonth(endDate.getMonth() + 3);
+    // Calculate end of calendar year
+    const endOfYear = new Date(startDate.getFullYear(), 11, 31); // December 31
+    endOfYear.setHours(23, 59, 59, 999);
 
+    // Validation: Check if start date is not in the past
+    if (startDate < today) {
+      setError("תאריך ההתחלה לא יכול להיות בעבר");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validation: Check if there's time remaining in the year
+    if (startDate > endOfYear) {
+      setError("תאריך ההתחלה לא יכול להיות אחרי סוף השנה");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (frequency === "oneTime") {
+      // Single occurrence - only if it's within the year
+      if (startDate <= endOfYear) {
+        occurrences.push({
+          date: startDate.toISOString().split("T")[0],
+          startTime,
+          endTime
+        });
+      }
+    } else if (frequency === "weekly") {
+      // Generate weekly occurrences until end of calendar year
       // Start from the start date and generate all occurrences
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      for (let d = new Date(startDate); d <= endOfYear; d.setDate(d.getDate() + 1)) {
         const dayOfWeek = d.getDay();
         if (selectedDays.includes(dayOfWeek)) {
           occurrences.push({
@@ -240,15 +258,16 @@ export function CreateLineDialog({
         }
       }
     } else if (frequency === "monthly") {
-      // Generate monthly occurrences for 12 months
+      // Generate monthly occurrences until end of calendar year
       // For each selected day, find first occurrence in each month
-      const endDate = new Date(startDate);
-      endDate.setMonth(endDate.getMonth() + 12);
+      const startYear = startDate.getFullYear();
+      const startMonth = startDate.getMonth();
 
-      for (let monthOffset = 0; monthOffset <= 12; monthOffset++) {
-        const currentMonth = new Date(startDate);
-        currentMonth.setMonth(startDate.getMonth() + monthOffset);
+      // Generate for all months from start month until December
+      for (let monthOffset = 0; monthOffset <= 11 - startMonth; monthOffset++) {
+        const currentMonth = new Date(startYear, startMonth + monthOffset, 1);
         const firstOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        const lastOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
         // For each selected day, find first occurrence in this month
         selectedDays.forEach((targetDay) => {
@@ -256,12 +275,17 @@ export function CreateLineDialog({
           // Find first occurrence of targetDay in this month
           while (
             checkDate.getDay() !== targetDay &&
-            checkDate.getMonth() === firstOfMonth.getMonth()
+            checkDate.getMonth() === firstOfMonth.getMonth() &&
+            checkDate <= lastOfMonth
           ) {
             checkDate.setDate(checkDate.getDate() + 1);
           }
-          // Only add if it's in the current month and >= startDate
-          if (checkDate.getMonth() === firstOfMonth.getMonth() && checkDate >= startDate) {
+          // Only add if it's in the current month and >= startDate and <= endOfYear
+          if (
+            checkDate.getMonth() === firstOfMonth.getMonth() &&
+            checkDate >= startDate &&
+            checkDate <= endOfYear
+          ) {
             occurrences.push({
               date: checkDate.toISOString().split("T")[0],
               startTime,
@@ -270,6 +294,13 @@ export function CreateLineDialog({
           }
         });
       }
+    }
+
+    // Validation: Check if any occurrences were generated
+    if (occurrences.length === 0) {
+      setError("לא ניתן ליצור אירועים - אין תאריכים זמינים עד סוף השנה");
+      setIsSubmitting(false);
+      return;
     }
 
     // Check for collisions
