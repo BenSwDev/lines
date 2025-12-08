@@ -13,17 +13,17 @@ export type TourStepId =
   | "roles-intro"
   | "roles-departments"
   | "roles-hierarchy"
-  | "map-intro"
-  | "map-templates-button"
-  | "map-add-button"
-  | "map-zones"
-  | "map-tables"
-  | "map-save-button"
+  | "structure-intro"
+  | "structure-templates-button"
+  | "structure-add-button"
+  | "structure-zones"
+  | "structure-tables"
+  | "structure-save-button"
   | "menus-intro"
   | "menus-upload"
   | "menus-list";
 
-export type TourPageId = "lines" | "roles" | "map" | "menus" | "info" | "calendar";
+export type TourPageId = "lines" | "roles" | "structure" | "menus" | "info" | "calendar";
 
 export interface TourStep {
   id: TourStepId;

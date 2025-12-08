@@ -1,6 +1,5 @@
-import { TicketsPage } from '@/modules/tickets';
+import { TicketsPage } from "@/modules/tickets";
 
 export default function TicketsSettingsPage() {
   return <TicketsPage />;
 }
-

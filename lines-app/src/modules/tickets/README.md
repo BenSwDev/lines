@@ -59,4 +59,3 @@ model TicketSale {
 ## Estimated Release
 
 Q2 2025
-

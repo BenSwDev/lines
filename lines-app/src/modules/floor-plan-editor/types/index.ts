@@ -108,19 +108,14 @@ export interface StaffingRule {
 // UI STATE TYPES
 // ============================================================================
 
-export type EditorMode = 'view' | 'content' | 'staffing' | 'minimum-order';
+export type EditorMode = "view" | "content" | "staffing" | "minimum-order";
 
-export type WizardStep = 
-  | 'shape'
-  | 'size'
-  | 'zones'
-  | 'tables'
-  | 'finish';
+export type WizardStep = "shape" | "size" | "zones" | "tables" | "finish";
 
 export interface EditorState {
   mode: EditorMode;
   selectedElementId: string | null;
-  selectedElementType: 'zone' | 'table' | 'area' | null;
+  selectedElementType: "zone" | "table" | "area" | null;
   filters: {
     showZones: boolean;
     showTables: boolean;
@@ -140,13 +135,13 @@ export interface WizardState {
   selectedLineIds: string[];
 }
 
-export type VenueShape = 'rectangle' | 'square' | 'l-shape' | 'custom';
+export type VenueShape = "rectangle" | "square" | "l-shape" | "custom";
 
-export type VenueSize = 'small' | 'medium' | 'large';
+export type VenueSize = "small" | "medium" | "large";
 
 export interface WizardZone {
   id: string;
-  type: 'seating' | 'bar' | 'restroom' | 'entrance' | 'vip' | 'stage' | 'kitchen' | 'dj-booth';
+  type: "seating" | "bar" | "restroom" | "entrance" | "vip" | "stage" | "kitchen" | "dj-booth";
   name: string;
   color: string;
   tableCount: number;
@@ -222,13 +217,13 @@ export interface UpdateTableContentInput {
 }
 
 export interface UpdateStaffingInput {
-  targetType: 'zone' | 'table';
+  targetType: "zone" | "table";
   targetId: string;
   staffingRules: StaffingRule[];
 }
 
 export interface UpdateMinimumOrderInput {
-  targetType: 'zone' | 'table';
+  targetType: "zone" | "table";
   targetId: string;
   minimumPrice: number;
 }
@@ -274,54 +269,53 @@ export interface FloorPlanListItem {
 
 export const ZONE_TYPE_CONFIGS = {
   seating: {
-    label: 'אזור ישיבה',
-    labelEn: 'Seating Area',
-    icon: '🪑',
-    defaultColor: '#3B82F6',
+    label: "אזור ישיבה",
+    labelEn: "Seating Area",
+    icon: "🪑",
+    defaultColor: "#3B82F6"
   },
   bar: {
-    label: 'בר',
-    labelEn: 'Bar',
-    icon: '🍸',
-    defaultColor: '#F59E0B',
+    label: "בר",
+    labelEn: "Bar",
+    icon: "🍸",
+    defaultColor: "#F59E0B"
   },
   restroom: {
-    label: 'שירותים',
-    labelEn: 'Restroom',
-    icon: '🚻',
-    defaultColor: '#6B7280',
+    label: "שירותים",
+    labelEn: "Restroom",
+    icon: "🚻",
+    defaultColor: "#6B7280"
   },
   entrance: {
-    label: 'כניסה',
-    labelEn: 'Entrance',
-    icon: '🚪',
-    defaultColor: '#10B981',
+    label: "כניסה",
+    labelEn: "Entrance",
+    icon: "🚪",
+    defaultColor: "#10B981"
   },
   vip: {
-    label: 'VIP',
-    labelEn: 'VIP',
-    icon: '⭐',
-    defaultColor: '#8B5CF6',
+    label: "VIP",
+    labelEn: "VIP",
+    icon: "⭐",
+    defaultColor: "#8B5CF6"
   },
   stage: {
-    label: 'במה',
-    labelEn: 'Stage',
-    icon: '🎤',
-    defaultColor: '#EC4899',
+    label: "במה",
+    labelEn: "Stage",
+    icon: "🎤",
+    defaultColor: "#EC4899"
   },
   kitchen: {
-    label: 'מטבח',
-    labelEn: 'Kitchen',
-    icon: '👨‍🍳',
-    defaultColor: '#EF4444',
+    label: "מטבח",
+    labelEn: "Kitchen",
+    icon: "👨‍🍳",
+    defaultColor: "#EF4444"
   },
-  'dj-booth': {
-    label: 'DJ',
-    labelEn: 'DJ Booth',
-    icon: '🎧',
-    defaultColor: '#6366F1',
-  },
+  "dj-booth": {
+    label: "DJ",
+    labelEn: "DJ Booth",
+    icon: "🎧",
+    defaultColor: "#6366F1"
+  }
 } as const;
 
 export type ZoneTypeKey = keyof typeof ZONE_TYPE_CONFIGS;
-

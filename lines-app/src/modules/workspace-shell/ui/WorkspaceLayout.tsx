@@ -18,11 +18,6 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
       href: `/venues/${venue.id}/info`
     },
     {
-      id: "map",
-      label: "מפת המקום",
-      href: `/venues/${venue.id}/map`
-    },
-    {
       id: "menus",
       label: "תפריטים",
       href: `/venues/${venue.id}/menus`
@@ -41,6 +36,11 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
       id: "calendar",
       label: "לוח שנה",
       href: `/venues/${venue.id}/calendar`
+    },
+    {
+      id: "structure",
+      label: "מבנה (מפות)",
+      href: `/venues/${venue.id}/settings/structure`
     }
   ];
 

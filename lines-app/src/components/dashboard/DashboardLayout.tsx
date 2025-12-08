@@ -34,7 +34,6 @@ import {
   Info,
   Calendar,
   List,
-  MapPin,
   FileText,
   BookOpen,
   Users,
@@ -78,14 +77,14 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
   const getCurrentPageId = ():
     | "lines"
     | "roles"
-    | "map"
+    | "structure"
     | "menus"
     | "info"
     | "calendar"
     | undefined => {
     if (pathname?.includes("/lines")) return "lines";
     if (pathname?.includes("/roles")) return "roles";
-    if (pathname?.includes("/map")) return "map";
+    if (pathname?.includes("/settings/structure")) return "structure";
     if (pathname?.includes("/menus")) return "menus";
     if (pathname?.includes("/info")) return "info";
     if (pathname?.includes("/calendar")) return "calendar";
@@ -196,14 +195,6 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/map")}>
-                              <Link href={`/venues/${currentVenue.id}/map`}>
-                                <MapPin className="h-4 w-4" />
-                                <span>מפת המקום</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={pathname?.includes("/menus")}>
                               <Link href={`/venues/${currentVenue.id}/menus`}>
                                 <FileText className="h-4 w-4" />
@@ -252,11 +243,16 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
 
                     {/* Venue Settings */}
                     <SidebarGroup>
-                      <SidebarGroupLabel>{t("workspace.settings", { defaultValue: "הגדרות מקום" })}</SidebarGroupLabel>
+                      <SidebarGroupLabel>
+                        {t("workspace.settings", { defaultValue: "הגדרות מקום" })}
+                      </SidebarGroupLabel>
                       <SidebarGroupContent>
                         <SidebarMenu>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/structure")}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/structure")}
+                            >
                               <Link href={`/venues/${currentVenue.id}/settings/structure`}>
                                 <Layers className="h-4 w-4" />
                                 <span>מבנה (מפות)</span>
@@ -264,7 +260,10 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/tickets")}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/tickets")}
+                            >
                               <Link href={`/venues/${currentVenue.id}/settings/tickets`}>
                                 <Ticket className="h-4 w-4" />
                                 <span>כרטיסים</span>
@@ -272,7 +271,10 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/inventory")}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/inventory")}
+                            >
                               <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
                                 <Package className="h-4 w-4" />
                                 <span>מלאי</span>
@@ -280,7 +282,10 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/settings/team")}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/team")}
+                            >
                               <Link href={`/venues/${currentVenue.id}/settings/team`}>
                                 <UsersRound className="h-4 w-4" />
                                 <span>צוות ויחצנים</span>

@@ -90,72 +90,72 @@ export const tourSteps: TourStep[] = [
     skipable: true
   },
 
-  // ===== MAP PAGE =====
+  // ===== STRUCTURE (FLOOR PLANS) PAGE =====
   {
-    id: "map-intro",
-    pageId: "map",
-    title: "מפת המקום - ארגון ויזואלי",
-    description: "כאן יוצרים את המפה של המקום. אפשר ליצור מפה כללית או מפות ספציפיות לכל ליין.",
+    id: "structure-intro",
+    pageId: "structure",
+    title: "מבנה המקום - ארגון ויזואלי",
+    description: "כאן יוצרים את מפות המקום. אפשר ליצור מפה כללית או מפות ספציפיות לכל ליין.",
     position: "center",
-    nextStepId: "map-templates-button",
+    nextStepId: "structure-templates-button",
     skipable: true
   },
   {
-    id: "map-templates-button",
-    pageId: "map",
+    id: "structure-templates-button",
+    pageId: "structure",
     title: "התחל עם תבנית",
     description:
       "לחץ כאן כדי לבחור תבנית מוכנה. זה הדרך המהירה ביותר להתחיל - תבניות כוללות שולחנות ואזורים מוכנים.",
-    targetSelector: '[data-tour="map-templates-button"]',
+    targetSelector: '[data-tour="structure-templates-button"]',
     position: "bottom",
-    nextStepId: "map-add-button",
-    prevStepId: "map-intro",
+    nextStepId: "structure-add-button",
+    prevStepId: "structure-intro",
     skipable: true
   },
   {
-    id: "map-add-button",
-    pageId: "map",
+    id: "structure-add-button",
+    pageId: "structure",
     title: "הוסף אלמנטים",
     description:
       "לחץ כאן כדי להוסיף שולחנות, אזורים או אזורים מיוחדים למפה. תוכל לגרור אותם אחר כך למקום הרצוי.",
-    targetSelector: '[data-tour="map-add-button"]',
+    targetSelector: '[data-tour="structure-add-button"]',
     position: "bottom",
-    nextStepId: "map-zones",
-    prevStepId: "map-templates-button",
+    nextStepId: "structure-zones",
+    prevStepId: "structure-templates-button",
     skipable: true
   },
   {
-    id: "map-zones",
-    pageId: "map",
+    id: "structure-zones",
+    pageId: "structure",
     title: "אזורים",
     description:
       "אזורים מחלקים את המקום לחלקים - למשל חלל פנימי, חלל חיצוני, בר. כל אזור יכול להכיל שולחנות.",
-    targetSelector: '[data-tour="map-zones"]',
+    targetSelector: '[data-tour="structure-zones"]',
     position: "top",
-    nextStepId: "map-tables",
-    prevStepId: "map-add-button",
+    nextStepId: "structure-tables",
+    prevStepId: "structure-add-button",
     skipable: true
   },
   {
-    id: "map-tables",
-    pageId: "map",
+    id: "structure-tables",
+    pageId: "structure",
     title: "שולחנות",
     description:
       "שולחנות יכולים להיות כללים (לכל הליינים) או ספציפיים לליין מסוים. כל שולחן יכול להיות באזור מסוים.",
-    targetSelector: '[data-tour="map-tables"]',
+    targetSelector: '[data-tour="structure-tables"]',
     position: "top",
-    nextStepId: "map-save-button",
-    prevStepId: "map-zones",
+    nextStepId: "structure-save-button",
+    prevStepId: "structure-zones",
     skipable: true
   },
   {
-    id: "map-save-button",
-    pageId: "map",
+    id: "structure-save-button",
+    pageId: "structure",
     title: "שמור את המפה",
     description: "לחץ כאן כדי לשמור את כל השינויים. חשוב לשמור אחרי כל שינוי כדי לא לאבד עבודה.",
-    targetSelector: '[data-tour="map-save-button"]',
+    targetSelector: '[data-tour="structure-save-button"]',
     position: "top",
-    prevStepId: "map-tables",
+    prevStepId: "structure-tables",
     skipable: true
   },
 
@@ -213,16 +213,16 @@ export const tourPages: TourPage[] = [
     order: 2
   },
   {
-    id: "map",
-    title: "מפת המקום",
+    id: "structure",
+    title: "מבנה (מפות)",
     description: "ארגון ויזואלי של המקום - אזורים ושולחנות",
     steps: [
-      "map-intro",
-      "map-templates-button",
-      "map-add-button",
-      "map-zones",
-      "map-tables",
-      "map-save-button"
+      "structure-intro",
+      "structure-templates-button",
+      "structure-add-button",
+      "structure-zones",
+      "structure-tables",
+      "structure-save-button"
     ],
     order: 3
   },

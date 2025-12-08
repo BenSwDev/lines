@@ -29,7 +29,7 @@ export interface InventoryCategory {
 export interface StockMovement {
   id: string;
   itemId: string;
-  type: 'in' | 'out' | 'adjustment';
+  type: "in" | "out" | "adjustment";
   quantity: number;
   reason?: string;
   performedBy?: string;
@@ -47,4 +47,3 @@ export interface Supplier {
   notes?: string;
   isActive: boolean;
 }
-

@@ -19,7 +19,7 @@ export function TourButton() {
   const getCurrentPageId = (): TourPageId | null => {
     if (pathname.includes("/lines")) return "lines";
     if (pathname.includes("/roles")) return "roles";
-    if (pathname.includes("/map")) return "map";
+    if (pathname.includes("/settings/structure")) return "structure";
     if (pathname.includes("/menus")) return "menus";
     if (pathname.includes("/info")) return "info";
     if (pathname.includes("/calendar")) return "calendar";

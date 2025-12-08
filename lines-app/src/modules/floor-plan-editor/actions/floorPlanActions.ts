@@ -1,19 +1,16 @@
-'use server';
+"use server";
 
-import { revalidatePath } from 'next/cache';
-import { floorPlanService } from '../services/floorPlanService';
+import { revalidatePath } from "next/cache";
+import { floorPlanService } from "../services/floorPlanService";
 import {
   createFloorPlanSchema,
   updateFloorPlanSchema,
   updateZoneContentSchema,
   updateTableContentSchema,
   updateStaffingSchema,
-  updateMinimumOrderSchema,
-} from '../schemas/floorPlanSchemas';
-import type {
-  FloorPlanWithDetails,
-  FloorPlanListItem,
-} from '../types';
+  updateMinimumOrderSchema
+} from "../schemas/floorPlanSchemas";
+import type { FloorPlanWithDetails, FloorPlanListItem } from "../types";
 
 // ============================================================================
 // GET ACTIONS
@@ -31,8 +28,8 @@ export async function getFloorPlans(venueId: string): Promise<{
     const floorPlans = await floorPlanService.getFloorPlansByVenue(venueId);
     return { success: true, data: floorPlans };
   } catch (error) {
-    console.error('Error getting floor plans:', error);
-    return { success: false, error: 'Failed to get floor plans' };
+    console.error("Error getting floor plans:", error);
+    return { success: false, error: "Failed to get floor plans" };
   }
 }
 
@@ -47,12 +44,12 @@ export async function getFloorPlan(id: string): Promise<{
   try {
     const floorPlan = await floorPlanService.getFloorPlanById(id);
     if (!floorPlan) {
-      return { success: false, error: 'Floor plan not found' };
+      return { success: false, error: "Floor plan not found" };
     }
     return { success: true, data: floorPlan };
   } catch (error) {
-    console.error('Error getting floor plan:', error);
-    return { success: false, error: 'Failed to get floor plan' };
+    console.error("Error getting floor plan:", error);
+    return { success: false, error: "Failed to get floor plan" };
   }
 }
 
@@ -68,8 +65,8 @@ export async function getDefaultFloorPlan(venueId: string): Promise<{
     const floorPlan = await floorPlanService.getDefaultFloorPlan(venueId);
     return { success: true, data: floorPlan };
   } catch (error) {
-    console.error('Error getting default floor plan:', error);
-    return { success: false, error: 'Failed to get default floor plan' };
+    console.error("Error getting default floor plan:", error);
+    return { success: false, error: "Failed to get default floor plan" };
   }
 }
 
@@ -90,12 +87,12 @@ export async function getFloorPlanStats(id: string): Promise<{
   try {
     const stats = await floorPlanService.getFloorPlanStats(id);
     if (!stats) {
-      return { success: false, error: 'Floor plan not found' };
+      return { success: false, error: "Floor plan not found" };
     }
     return { success: true, data: stats };
   } catch (error) {
-    console.error('Error getting floor plan stats:', error);
-    return { success: false, error: 'Failed to get floor plan stats' };
+    console.error("Error getting floor plan stats:", error);
+    return { success: false, error: "Failed to get floor plan stats" };
   }
 }
 
@@ -114,16 +111,16 @@ export async function createFloorPlan(input: unknown): Promise<{
   try {
     const validated = createFloorPlanSchema.parse(input);
     const floorPlan = await floorPlanService.createFloorPlan(validated);
-    
+
     revalidatePath(`/venues/${validated.venueId}/settings/structure`);
-    
+
     return { success: true, data: { id: floorPlan.id } };
   } catch (error) {
-    console.error('Error creating floor plan:', error);
+    console.error("Error creating floor plan:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to create floor plan' };
+    return { success: false, error: "Failed to create floor plan" };
   }
 }
 
@@ -141,16 +138,16 @@ export async function duplicateFloorPlan(
 }> {
   try {
     const floorPlan = await floorPlanService.duplicateFloorPlan(floorPlanId, newName);
-    
+
     revalidatePath(`/venues/${venueId}/settings/structure`);
-    
+
     return { success: true, data: { id: floorPlan.id } };
   } catch (error) {
-    console.error('Error duplicating floor plan:', error);
+    console.error("Error duplicating floor plan:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to duplicate floor plan' };
+    return { success: false, error: "Failed to duplicate floor plan" };
   }
 }
 
@@ -169,20 +166,20 @@ export async function updateFloorPlan(input: unknown): Promise<{
     const validated = updateFloorPlanSchema.parse(input);
     const { id, ...data } = validated;
     await floorPlanService.updateFloorPlan(id, data);
-    
+
     // Get venue ID for revalidation
     const floorPlan = await floorPlanService.getFloorPlanById(id);
     if (floorPlan) {
       revalidatePath(`/venues/${floorPlan.venueId}/settings/structure`);
     }
-    
+
     return { success: true };
   } catch (error) {
-    console.error('Error updating floor plan:', error);
+    console.error("Error updating floor plan:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to update floor plan' };
+    return { success: false, error: "Failed to update floor plan" };
   }
 }
 
@@ -199,11 +196,11 @@ export async function updateZoneContent(input: unknown): Promise<{
     await floorPlanService.updateZoneContent(id, data);
     return { success: true };
   } catch (error) {
-    console.error('Error updating zone content:', error);
+    console.error("Error updating zone content:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to update zone content' };
+    return { success: false, error: "Failed to update zone content" };
   }
 }
 
@@ -220,11 +217,11 @@ export async function updateTableContent(input: unknown): Promise<{
     await floorPlanService.updateTableContent(id, data);
     return { success: true };
   } catch (error) {
-    console.error('Error updating table content:', error);
+    console.error("Error updating table content:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to update table content' };
+    return { success: false, error: "Failed to update table content" };
   }
 }
 
@@ -238,20 +235,20 @@ export async function updateStaffing(input: unknown): Promise<{
   try {
     const validated = updateStaffingSchema.parse(input);
     const { targetType, targetId, staffingRules } = validated;
-    
-    if (targetType === 'zone') {
+
+    if (targetType === "zone") {
       await floorPlanService.updateZoneStaffing(targetId, staffingRules);
     } else {
       await floorPlanService.updateTableStaffing(targetId, staffingRules);
     }
-    
+
     return { success: true };
   } catch (error) {
-    console.error('Error updating staffing:', error);
+    console.error("Error updating staffing:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to update staffing' };
+    return { success: false, error: "Failed to update staffing" };
   }
 }
 
@@ -265,20 +262,20 @@ export async function updateMinimumOrder(input: unknown): Promise<{
   try {
     const validated = updateMinimumOrderSchema.parse(input);
     const { targetType, targetId, minimumPrice } = validated;
-    
-    if (targetType === 'zone') {
+
+    if (targetType === "zone") {
       await floorPlanService.updateZoneMinimumPrice(targetId, minimumPrice);
     } else {
       await floorPlanService.updateTableMinimumPrice(targetId, minimumPrice);
     }
-    
+
     return { success: true };
   } catch (error) {
-    console.error('Error updating minimum order:', error);
+    console.error("Error updating minimum order:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to update minimum order' };
+    return { success: false, error: "Failed to update minimum order" };
   }
 }
 
@@ -298,16 +295,15 @@ export async function deleteFloorPlan(
 }> {
   try {
     await floorPlanService.deleteFloorPlan(id);
-    
+
     revalidatePath(`/venues/${venueId}/settings/structure`);
-    
+
     return { success: true };
   } catch (error) {
-    console.error('Error deleting floor plan:', error);
+    console.error("Error deleting floor plan:", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: 'Failed to delete floor plan' };
+    return { success: false, error: "Failed to delete floor plan" };
   }
 }
-

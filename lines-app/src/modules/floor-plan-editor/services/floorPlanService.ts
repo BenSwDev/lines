@@ -1,10 +1,10 @@
-import { prisma } from '@/core/integrations/prisma';
+import { prisma } from "@/core/integrations/prisma";
 import type {
   FloorPlan,
   FloorPlanWithDetails,
   FloorPlanListItem,
-  CreateFloorPlanInput,
-} from '../types';
+  CreateFloorPlanInput
+} from "../types";
 
 // ============================================================================
 // FLOOR PLAN SERVICE
@@ -25,8 +25,8 @@ export const floorPlanService = {
         _count: {
           select: {
             zones: true,
-            venueAreas: true,
-          },
+            venueAreas: true
+          }
         },
         lines: {
           include: {
@@ -34,16 +34,13 @@ export const floorPlanService = {
               select: {
                 id: true,
                 name: true,
-                color: true,
-              },
-            },
-          },
-        },
+                color: true
+              }
+            }
+          }
+        }
       },
-      orderBy: [
-        { isDefault: 'desc' },
-        { createdAt: 'desc' },
-      ],
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }]
     });
 
     return floorPlans as FloorPlanListItem[];
@@ -59,10 +56,10 @@ export const floorPlanService = {
         zones: {
           include: {
             tables: {
-              orderBy: { tableNumber: 'asc' },
-            },
+              orderBy: { tableNumber: "asc" }
+            }
           },
-          orderBy: { zoneNumber: 'asc' },
+          orderBy: { zoneNumber: "asc" }
         },
         venueAreas: true,
         lines: {
@@ -71,18 +68,18 @@ export const floorPlanService = {
               select: {
                 id: true,
                 name: true,
-                color: true,
-              },
-            },
-          },
+                color: true
+              }
+            }
+          }
         },
         _count: {
           select: {
             zones: true,
-            venueAreas: true,
-          },
-        },
-      },
+            venueAreas: true
+          }
+        }
+      }
     });
 
     return floorPlan as FloorPlanWithDetails | null;
@@ -98,10 +95,10 @@ export const floorPlanService = {
         zones: {
           include: {
             tables: {
-              orderBy: { tableNumber: 'asc' },
-            },
+              orderBy: { tableNumber: "asc" }
+            }
           },
-          orderBy: { zoneNumber: 'asc' },
+          orderBy: { zoneNumber: "asc" }
         },
         venueAreas: true,
         lines: {
@@ -110,12 +107,12 @@ export const floorPlanService = {
               select: {
                 id: true,
                 name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
+                color: true
+              }
+            }
+          }
+        }
+      }
     });
 
     return floorPlan as FloorPlanWithDetails | null;
@@ -135,7 +132,7 @@ export const floorPlanService = {
     if (isDefault) {
       await prisma.floorPlan.updateMany({
         where: { venueId, isDefault: true },
-        data: { isDefault: false },
+        data: { isDefault: false }
       });
     }
 
@@ -143,65 +140,73 @@ export const floorPlanService = {
     const floorPlan = await prisma.floorPlan.create({
       data: {
         venue: {
-          connect: { id: venueId },
+          connect: { id: venueId }
         },
         name,
         description,
         isDefault: isDefault ?? false,
         isLocked: false,
-        zones: zones ? {
-          create: zones.map((zone, zoneIndex) => ({
-            venue: {
-              connect: { id: venueId },
-            },
-            name: zone.name,
-            color: zone.color,
-            description: zone.description,
-            positionX: zone.positionX,
-            positionY: zone.positionY,
-            width: zone.width,
-            height: zone.height,
-            shape: zone.shape ?? 'rectangle',
-            zoneNumber: zone.zoneNumber ?? zoneIndex + 1,
-            tables: zone.tables ? {
-              create: zone.tables.map((table, tableIndex) => ({
-                name: table.name,
-                seats: table.seats,
-                positionX: table.positionX,
-                positionY: table.positionY,
-                width: table.width,
-                height: table.height,
-                shape: table.shape ?? 'rectangle',
-                tableType: table.tableType ?? 'table',
-                tableNumber: table.tableNumber ?? tableIndex + 1,
-              })),
-            } : undefined,
-          })),
-        } : undefined,
-        venueAreas: venueAreas ? {
-          create: venueAreas.map((area) => ({
-            venue: {
-              connect: { id: venueId },
-            },
-            areaType: area.areaType,
-            name: area.name,
-            positionX: area.positionX,
-            positionY: area.positionY,
-            width: area.width,
-            height: area.height,
-            shape: area.shape ?? 'rectangle',
-            icon: area.icon,
-            color: area.color,
-          })),
-        } : undefined,
-        lines: lineIds ? {
-          create: lineIds.map((lineId) => ({
-            line: {
-              connect: { id: lineId },
-            },
-          })),
-        } : undefined,
-      },
+        zones: zones
+          ? {
+              create: zones.map((zone, zoneIndex) => ({
+                venue: {
+                  connect: { id: venueId }
+                },
+                name: zone.name,
+                color: zone.color,
+                description: zone.description,
+                positionX: zone.positionX,
+                positionY: zone.positionY,
+                width: zone.width,
+                height: zone.height,
+                shape: zone.shape ?? "rectangle",
+                zoneNumber: zone.zoneNumber ?? zoneIndex + 1,
+                tables: zone.tables
+                  ? {
+                      create: zone.tables.map((table, tableIndex) => ({
+                        name: table.name,
+                        seats: table.seats,
+                        positionX: table.positionX,
+                        positionY: table.positionY,
+                        width: table.width,
+                        height: table.height,
+                        shape: table.shape ?? "rectangle",
+                        tableType: table.tableType ?? "table",
+                        tableNumber: table.tableNumber ?? tableIndex + 1
+                      }))
+                    }
+                  : undefined
+              }))
+            }
+          : undefined,
+        venueAreas: venueAreas
+          ? {
+              create: venueAreas.map((area) => ({
+                venue: {
+                  connect: { id: venueId }
+                },
+                areaType: area.areaType,
+                name: area.name,
+                positionX: area.positionX,
+                positionY: area.positionY,
+                width: area.width,
+                height: area.height,
+                shape: area.shape ?? "rectangle",
+                icon: area.icon,
+                color: area.color
+              }))
+            }
+          : undefined,
+        lines: lineIds
+          ? {
+              create: lineIds.map((lineId) => ({
+                line: {
+                  connect: { id: lineId }
+                }
+              }))
+            }
+          : undefined
+      }
     });
 
     return floorPlan;
@@ -210,20 +215,17 @@ export const floorPlanService = {
   /**
    * Duplicate an existing floor plan
    */
-  async duplicateFloorPlan(
-    floorPlanId: string,
-    newName: string
-  ): Promise<FloorPlan> {
+  async duplicateFloorPlan(floorPlanId: string, newName: string): Promise<FloorPlan> {
     const original = await this.getFloorPlanById(floorPlanId);
     if (!original) {
-      throw new Error('Floor plan not found');
+      throw new Error("Floor plan not found");
     }
 
     // Create duplicate with all nested data
     const duplicate = await prisma.floorPlan.create({
       data: {
         venue: {
-          connect: { id: original.venueId },
+          connect: { id: original.venueId }
         },
         name: newName,
         description: original.description,
@@ -232,7 +234,7 @@ export const floorPlanService = {
         zones: {
           create: original.zones.map((zone) => ({
             venue: {
-              connect: { id: original.venueId },
+              connect: { id: original.venueId }
             },
             name: zone.name,
             color: zone.color,
@@ -242,9 +244,13 @@ export const floorPlanService = {
             width: zone.width,
             height: zone.height,
             shape: zone.shape,
-            polygonPoints: zone.polygonPoints ? JSON.parse(JSON.stringify(zone.polygonPoints)) : undefined,
+            polygonPoints: zone.polygonPoints
+              ? JSON.parse(JSON.stringify(zone.polygonPoints))
+              : undefined,
             zoneNumber: zone.zoneNumber,
-            staffingRules: zone.staffingRules ? JSON.parse(JSON.stringify(zone.staffingRules)) : undefined,
+            staffingRules: zone.staffingRules
+              ? JSON.parse(JSON.stringify(zone.staffingRules))
+              : undefined,
             zoneMinimumPrice: zone.zoneMinimumPrice,
             tables: {
               create: zone.tables.map((table) => ({
@@ -260,15 +266,17 @@ export const floorPlanService = {
                 tableType: table.tableType,
                 tableNumber: table.tableNumber,
                 minimumPrice: table.minimumPrice,
-                staffingRules: table.staffingRules ? JSON.parse(JSON.stringify(table.staffingRules)) : undefined,
-              })),
-            },
-          })),
+                staffingRules: table.staffingRules
+                  ? JSON.parse(JSON.stringify(table.staffingRules))
+                  : undefined
+              }))
+            }
+          }))
         },
         venueAreas: {
           create: original.venueAreas.map((area) => ({
             venue: {
-              connect: { id: original.venueId },
+              connect: { id: original.venueId }
             },
             areaType: area.areaType,
             name: area.name,
@@ -279,10 +287,10 @@ export const floorPlanService = {
             rotation: area.rotation,
             shape: area.shape,
             icon: area.icon,
-            color: area.color,
-          })),
-        },
-      },
+            color: area.color
+          }))
+        }
+      }
     });
 
     return duplicate;
@@ -311,12 +319,12 @@ export const floorPlanService = {
     if (updateData.isDefault) {
       const floorPlan = await prisma.floorPlan.findUnique({
         where: { id },
-        select: { venueId: true },
+        select: { venueId: true }
       });
       if (floorPlan) {
         await prisma.floorPlan.updateMany({
           where: { venueId: floorPlan.venueId, isDefault: true, NOT: { id } },
-          data: { isDefault: false },
+          data: { isDefault: false }
         });
       }
     }
@@ -324,22 +332,22 @@ export const floorPlanService = {
     // Update floor plan
     const updated = await prisma.floorPlan.update({
       where: { id },
-      data: updateData,
+      data: updateData
     });
 
     // Update line associations if provided
     if (lineIds !== undefined) {
       // Remove existing associations
       await prisma.floorPlanLine.deleteMany({
-        where: { floorPlanId: id },
+        where: { floorPlanId: id }
       });
       // Create new associations
       if (lineIds.length > 0) {
         await prisma.floorPlanLine.createMany({
           data: lineIds.map((lineId) => ({
             floorPlanId: id,
-            lineId,
-          })),
+            lineId
+          }))
         });
       }
     }
@@ -356,7 +364,7 @@ export const floorPlanService = {
   ) {
     return prisma.zone.update({
       where: { id },
-      data,
+      data
     });
   },
 
@@ -369,7 +377,7 @@ export const floorPlanService = {
   ) {
     return prisma.table.update({
       where: { id },
-      data,
+      data
     });
   },
 
@@ -379,7 +387,7 @@ export const floorPlanService = {
   async updateZoneStaffing(id: string, staffingRules: unknown) {
     return prisma.zone.update({
       where: { id },
-      data: { staffingRules: staffingRules as object },
+      data: { staffingRules: staffingRules as object }
     });
   },
 
@@ -389,7 +397,7 @@ export const floorPlanService = {
   async updateTableStaffing(id: string, staffingRules: unknown) {
     return prisma.table.update({
       where: { id },
-      data: { staffingRules: staffingRules as object },
+      data: { staffingRules: staffingRules as object }
     });
   },
 
@@ -399,7 +407,7 @@ export const floorPlanService = {
   async updateZoneMinimumPrice(id: string, minimumPrice: number) {
     return prisma.zone.update({
       where: { id },
-      data: { zoneMinimumPrice: minimumPrice },
+      data: { zoneMinimumPrice: minimumPrice }
     });
   },
 
@@ -409,7 +417,7 @@ export const floorPlanService = {
   async updateTableMinimumPrice(id: string, minimumPrice: number) {
     return prisma.table.update({
       where: { id },
-      data: { minimumPrice },
+      data: { minimumPrice }
     });
   },
 
@@ -422,7 +430,7 @@ export const floorPlanService = {
    */
   async deleteFloorPlan(id: string): Promise<void> {
     await prisma.floorPlan.delete({
-      where: { id },
+      where: { id }
     });
   },
 
@@ -439,39 +447,32 @@ export const floorPlanService = {
       include: {
         zones: {
           include: {
-            tables: true,
-          },
+            tables: true
+          }
         },
-        venueAreas: true,
-      },
+        venueAreas: true
+      }
     });
 
     if (!floorPlan) return null;
 
     const totalZones = floorPlan.zones.length;
-    const totalTables = floorPlan.zones.reduce(
-      (acc, zone) => acc + zone.tables.length,
-      0
-    );
+    const totalTables = floorPlan.zones.reduce((acc, zone) => acc + zone.tables.length, 0);
     const totalSeats = floorPlan.zones.reduce(
-      (acc, zone) =>
-        acc + zone.tables.reduce((t, table) => t + (table.seats ?? 0), 0),
+      (acc, zone) => acc + zone.tables.reduce((t, table) => t + (table.seats ?? 0), 0),
       0
     );
     const totalAreas = floorPlan.venueAreas.length;
-    const barCount = floorPlan.venueAreas.filter(
-      (a) => a.areaType === 'bar'
-    ).length;
+    const barCount = floorPlan.venueAreas.filter((a) => a.areaType === "bar").length;
 
     return {
       totalZones,
       totalTables,
       totalSeats,
       totalAreas,
-      barCount,
+      barCount
     };
-  },
+  }
 };
 
 export default floorPlanService;
-

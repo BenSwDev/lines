@@ -33,7 +33,6 @@ export interface TicketSale {
   buyerName?: string;
   buyerEmail?: string;
   buyerPhone?: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'refunded';
+  status: "pending" | "confirmed" | "cancelled" | "refunded";
   createdAt: Date;
 }
-

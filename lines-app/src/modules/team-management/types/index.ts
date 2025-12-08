@@ -8,10 +8,10 @@ export interface TeamMember {
   name: string;
   email?: string;
   phone?: string;
-  type: 'employee' | 'promoter' | 'pr';
+  type: "employee" | "promoter" | "pr";
   roleId?: string;
   commissionRate?: number;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   startDate?: Date;
   endDate?: Date;
   notes?: string;
@@ -25,7 +25,7 @@ export interface Promoter {
   name: string;
   email?: string;
   phone?: string;
-  commissionType: 'fixed' | 'percentage' | 'per_guest';
+  commissionType: "fixed" | "percentage" | "per_guest";
   commissionRate: number;
   totalGuests: number;
   totalEarnings: number;
@@ -40,7 +40,7 @@ export interface GuestListEntry {
   promoterId: string;
   guestName: string;
   guestCount: number;
-  status: 'pending' | 'confirmed' | 'arrived' | 'no_show';
+  status: "pending" | "confirmed" | "arrived" | "no_show";
   notes?: string;
   arrivedAt?: Date;
   createdAt: Date;
@@ -52,8 +52,7 @@ export interface Commission {
   eventId: string;
   amount: number;
   guestCount: number;
-  status: 'pending' | 'approved' | 'paid';
+  status: "pending" | "approved" | "paid";
   paidAt?: Date;
   createdAt: Date;
 }
-
