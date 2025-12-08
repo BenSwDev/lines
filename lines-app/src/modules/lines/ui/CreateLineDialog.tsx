@@ -26,12 +26,12 @@ import { List, Clock, Palette, ChevronDown, X, Settings, Copy, Check, Trash2 } f
 import { createLine } from "../actions/createLine";
 import { updateLine } from "../actions/updateLine";
 import { deleteLine } from "../actions/deleteLine";
+import { checkLineCollisions } from "../actions/checkCollisions";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
 import { COLOR_PALETTE } from "@/core/config/constants";
-import { checkMultipleCollisions, type TimeRange } from "@/core/validation";
-import { lineOccurrenceRepository } from "@/core/db";
+import type { TimeRange } from "@/core/validation";
 import { cn } from "@/lib/utils";
 import type { Line } from "@prisma/client";
 
@@ -323,16 +323,6 @@ export function CreateLineDialog({
     setCollisionError("");
 
     try {
-      // Get all existing occurrences for this venue
-      const existingOccurrences = await lineOccurrenceRepository.findByVenueId(venueId);
-      const existingRanges: TimeRange[] = existingOccurrences
-        .filter((occ) => occ.isActive)
-        .map((occ) => ({
-          date: occ.date,
-          startTime: occ.startTime,
-          endTime: occ.endTime
-        }));
-
       // Build new ranges from selected dates and day schedules
       const newRanges: TimeRange[] = [];
 
@@ -366,19 +356,26 @@ export function CreateLineDialog({
         }
       }
 
-      // Check collisions
-      const result = checkMultipleCollisions(newRanges, existingRanges);
+      // If no ranges to check, return true
+      if (newRanges.length === 0) {
+        return true;
+      }
 
-      if (result.hasCollision) {
+      // Check collisions using server action
+      const result = await checkLineCollisions(venueId, newRanges, existingLine?.id);
+
+      if (!result.success || result.hasCollision) {
         setCollisionError(
-          `נמצאו התנגשויות עם ${result.conflictingRanges.length} אירועים קיימים. לא ניתן ליצור אירועים חופפים באותו זמן.`
+          result.error ||
+            `נמצאו התנגשויות עם ${result.conflictingRanges?.length || 0} אירועים קיימים. לא ניתן ליצור אירועים חופפים באותו זמן.`
         );
         return false;
       }
 
       return true;
-    } catch {
-      setCollisionError("שגיאה בבדיקת התנגשויות");
+    } catch (error) {
+      console.error("Error checking collisions:", error);
+      setCollisionError(error instanceof Error ? error.message : "שגיאה בבדיקת התנגשויות");
       return false;
     } finally {
       setIsCheckingCollisions(false);
@@ -494,7 +491,11 @@ export function CreateLineDialog({
   const handleDelete = async () => {
     if (!existingLine) return;
 
-    if (!confirm(t("lines.confirmDelete", { defaultValue: "האם אתה בטוח שברצונך למחוק את הליין הזה?" }))) {
+    if (
+      !confirm(
+        t("lines.confirmDelete", { defaultValue: "האם אתה בטוח שברצונך למחוק את הליין הזה?" })
+      )
+    ) {
       return;
     }
 
