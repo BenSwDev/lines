@@ -293,7 +293,7 @@ export function CreateLineDialog({
             });
           }
         });
-      }
+    }
     }
 
     // Validation: Check if any occurrences were generated
@@ -310,8 +310,8 @@ export function CreateLineDialog({
       if (!collisionResult.success) {
         setError(collisionResult.error || "נמצאו התנגשויות עם אירועים קיימים");
         setIsSubmitting(false);
-        return;
-      }
+      return;
+    }
 
       // Create daySchedules format
       const daySchedules = selectedDays.map((day) => ({
@@ -462,70 +462,70 @@ export function CreateLineDialog({
             )}
 
             {/* 1. שם הליין */}
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-semibold">
-                שם הליין *
-              </Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="לדוגמה: ערב ג'אז"
-                disabled={isSubmitting}
-                className="h-10"
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-semibold">
+                  שם הליין *
+                </Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="לדוגמה: ערב ג'אז"
+                  disabled={isSubmitting}
+                  className="h-10"
+                />
+              </div>
 
             {/* 2. בחירת ימים */}
-            <div className="space-y-3">
+                    <div className="space-y-3">
               <Label className="text-sm font-semibold">בחר ימים *</Label>
               <div className="flex gap-2 flex-wrap">
                 {DAYS_OF_WEEK.map((day) => {
                   const isSelected = selectedDays.includes(day.value);
                   return (
-                    <button
+                          <button
                       key={day.value}
-                      type="button"
+                            type="button"
                       onClick={() => toggleDay(day.value)}
-                      disabled={isSubmitting}
-                      className={cn(
+                            disabled={isSubmitting}
+                            className={cn(
                         "flex h-12 w-12 items-center justify-center rounded-lg border-2 font-semibold text-sm transition-all",
                         isSelected
                           ? "bg-primary text-primary-foreground border-primary shadow-md"
                           : "bg-background border-border hover:border-primary/50 hover:bg-muted/50"
                       )}
-                    >
+                          >
                       {day.short}
-                    </button>
+                          </button>
                   );
                 })}
-              </div>
+                      </div>
               {selectedDays.length === 0 && (
                 <p className="text-xs text-muted-foreground">יש לבחור לפחות יום אחד</p>
-              )}
-            </div>
+                  )}
+                </div>
 
             {/* 3. תדירות */}
-            <div className="space-y-2">
+                  <div className="space-y-2">
               <Label htmlFor="frequency" className="text-sm font-semibold">
-                תדירות
-              </Label>
+                      תדירות
+                    </Label>
               <Select
                 value={frequency}
                 onValueChange={(value) => setFrequency(value as "weekly" | "monthly" | "oneTime")}
                 disabled={isSubmitting}
               >
                 <SelectTrigger id="frequency" className="h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FREQUENCIES.map((freq) => (
-                    <SelectItem key={freq.value} value={freq.value}>
-                      {freq.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FREQUENCIES.map((freq) => (
+                          <SelectItem key={freq.value} value={freq.value}>
+                            {freq.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
             </div>
 
             {/* 4. תאריך התחלה */}
@@ -543,17 +543,17 @@ export function CreateLineDialog({
                     <Calendar className="h-4 w-4 ml-2" />
                     הקרוב
                   </Button>
-                  <Button
-                    type="button"
+                                  <Button
+                                    type="button"
                     variant={startDateMode === "custom" ? "default" : "outline"}
                     onClick={() => setStartDateMode("custom")}
                     disabled={isSubmitting || selectedDays.length === 0}
                     className="flex-1"
-                  >
+                                  >
                     <Calendar className="h-4 w-4 ml-2" />
                     התאמה אישית
-                  </Button>
-                </div>
+                                  </Button>
+                              </div>
 
                 {startDateMode === "next" && nextOccurrenceDate && (
                   <div className="rounded-lg border bg-muted/30 p-3">
@@ -566,12 +566,12 @@ export function CreateLineDialog({
                 {startDateMode === "custom" && (
                   <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
+                              <div className="space-y-2">
                         <Label className="text-xs">חודש</Label>
                         <Select
                           value={customMonth.toString()}
                           onValueChange={(value) => setCustomMonth(parseInt(value))}
-                          disabled={isSubmitting}
+                                      disabled={isSubmitting}
                         >
                           <SelectTrigger className="h-9">
                             <SelectValue />
@@ -584,27 +584,27 @@ export function CreateLineDialog({
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
+                                  </div>
                       <div className="space-y-2">
                         <Label className="text-xs">שנה</Label>
-                        <Select
+                                  <Select
                           value={customYear.toString()}
                           onValueChange={(value) => setCustomYear(parseInt(value))}
                           disabled={isSubmitting}
-                        >
+                                  >
                           <SelectTrigger className="h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
                             {availableYears.map((year) => (
                               <SelectItem key={year} value={year.toString()}>
                                 {year}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
 
                     {availableDates.length > 0 && (
                       <div className="space-y-2">
@@ -618,11 +618,11 @@ export function CreateLineDialog({
                               {formatDate(date)}
                             </div>
                           ))}
-                        </div>
-                        <p className="text-xs text-muted-foreground">
+                    </div>
+                <p className="text-xs text-muted-foreground">
                           התאריך הראשון ({formatDate(availableDates[0])}) ייבחר אוטומטית
-                        </p>
-                      </div>
+                </p>
+            </div>
                     )}
 
                     {availableDates.length === 0 && (
@@ -630,10 +630,10 @@ export function CreateLineDialog({
                         לא נמצאו תאריכים תואמים לימים שנבחרו בחודש ובשנה שנבחרו
                       </p>
                     )}
-                  </div>
-                )}
-              </div>
-            </div>
+                      </div>
+                        )}
+                      </div>
+                    </div>
 
             {/* 5. שעות פעילות */}
             <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
@@ -654,22 +654,22 @@ export function CreateLineDialog({
                     disabled={isSubmitting}
                     className="h-9"
                   />
-                </div>
-                <div className="space-y-2">
+                  </div>
+                    <div className="space-y-2">
                   <Label htmlFor="endTime" className="text-xs">
                     שעת סיום
                   </Label>
-                  <Input
+                        <Input
                     id="endTime"
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
                     disabled={isSubmitting}
                     className="h-9"
-                  />
-                </div>
-              </div>
-            </div>
+                        />
+                      </div>
+                            </div>
+                        </div>
 
             {/* 6. צבע */}
             <div className="space-y-2">
@@ -693,8 +693,8 @@ export function CreateLineDialog({
                     style={{ backgroundColor: c }}
                   />
                 ))}
-              </div>
-            </div>
+                    </div>
+                </div>
           </div>
 
           <SheetFooter className="gap-2">

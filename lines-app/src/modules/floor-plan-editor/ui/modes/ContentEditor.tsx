@@ -101,24 +101,24 @@ function ZoneContentEditor({
     startTransition(async () => {
       try {
         const result = await updateZoneContent({
-          id: zone.id,
-          name: formData.name,
-          zoneNumber: formData.zoneNumber ? Number(formData.zoneNumber) : null,
-          description: formData.description || null,
-          // Bar-specific fields
-          ...(isBar && {
-            barNumber: formData.barNumber ? Number(formData.barNumber) : null,
-            barName: formData.barName || null,
-            barSeats: formData.barSeats ? Number(formData.barSeats) : null,
-            barMinimumPrice: formData.barMinimumPrice ? Number(formData.barMinimumPrice) : null
-          })
+        id: zone.id,
+        name: formData.name,
+        zoneNumber: formData.zoneNumber ? Number(formData.zoneNumber) : null,
+        description: formData.description || null,
+        // Bar-specific fields
+        ...(isBar && {
+          barNumber: formData.barNumber ? Number(formData.barNumber) : null,
+          barName: formData.barName || null,
+          barSeats: formData.barSeats ? Number(formData.barSeats) : null,
+          barMinimumPrice: formData.barMinimumPrice ? Number(formData.barMinimumPrice) : null
+        })
         });
         if (result.success) {
           toast({
             title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
             description: t("floorPlan.zoneUpdated", { defaultValue: "האיזור עודכן בהצלחה" })
-          });
-          router.refresh();
+      });
+      router.refresh();
         } else {
           toast({
             title: t("errors.generic", { defaultValue: "שגיאה" }),
@@ -332,17 +332,17 @@ function TableContentEditor({
     startTransition(async () => {
       try {
         const result = await updateTableContent({
-          id: table.id,
-          name: formData.name,
-          tableNumber: formData.tableNumber ? Number(formData.tableNumber) : null,
-          seats: formData.seats ? Number(formData.seats) : null
+        id: table.id,
+        name: formData.name,
+        tableNumber: formData.tableNumber ? Number(formData.tableNumber) : null,
+        seats: formData.seats ? Number(formData.seats) : null
         });
         if (result.success) {
           toast({
             title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
             description: t("floorPlan.tableUpdated", { defaultValue: "השולחן עודכן בהצלחה" })
-          });
-          router.refresh();
+      });
+      router.refresh();
         } else {
           toast({
             title: t("errors.generic", { defaultValue: "שגיאה" }),
@@ -518,19 +518,19 @@ function AutoGenerateTablesButton({ zoneId, router }: AutoGenerateTablesButtonPr
     setIsGenerating(true);
     startTransition(async () => {
       try {
-        const result = await autoGenerateTables({
-          zoneId,
-          tableWidth: 60,
-          tableHeight: 60,
-          spacing: 10,
-          defaultSeats: 4
-        });
-        if (result.success) {
+      const result = await autoGenerateTables({
+        zoneId,
+        tableWidth: 60,
+        tableHeight: 60,
+        spacing: 10,
+        defaultSeats: 4
+      });
+      if (result.success) {
           toast({
             title: t("success.created", { defaultValue: "נוצר בהצלחה" }),
             description: t("floorPlan.tablesGenerated", { defaultValue: "שולחנות נוצרו בהצלחה" })
           });
-          router.refresh();
+        router.refresh();
         } else {
           toast({
             title: t("errors.generic", { defaultValue: "שגיאה" }),
@@ -545,7 +545,7 @@ function AutoGenerateTablesButton({ zoneId, router }: AutoGenerateTablesButtonPr
           variant: "destructive"
         });
       } finally {
-        setIsGenerating(false);
+      setIsGenerating(false);
       }
     });
   };

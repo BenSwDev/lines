@@ -159,7 +159,7 @@ export class HierarchyService {
     // Find all root nodes (not in childNodes set)
     roleMap.forEach((node) => {
       if (!childNodes.has(node.id)) {
-        rootRoles.push(node);
+          rootRoles.push(node);
       }
     });
 

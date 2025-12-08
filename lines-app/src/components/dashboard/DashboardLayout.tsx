@@ -365,8 +365,8 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
         </Sidebar>
 
         {/* Main Content */}
-        <main className="flex-1">
-          <div className="border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
@@ -383,7 +383,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
               </div>
             </div>
           </div>
-          <div className="p-6">{children}</div>
+          <div className="flex-1 overflow-hidden">{children}</div>
         </main>
       </div>
     </SidebarProvider>

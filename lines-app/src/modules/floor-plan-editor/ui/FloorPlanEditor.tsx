@@ -183,7 +183,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
             defaultValue: `${type === "zone" ? "איזור" : type === "table" ? "שולחן" : "אזור"} נוצר בהצלחה`
           })
         });
-        router.refresh();
+          router.refresh();
       } else {
         toast({
           title: t("errors.generic", { defaultValue: "שגיאה" }),
@@ -223,7 +223,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
             defaultValue: `${type === "zone" ? "איזור" : type === "table" ? "שולחן" : "אזור"} נמחק בהצלחה`
           })
         });
-        router.refresh();
+      router.refresh();
       } else {
         toast({
           title: t("errors.generic", { defaultValue: "שגיאה" }),
@@ -264,9 +264,9 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
   ] as const;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-screen overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center justify-between px-6 py-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="h-5 w-5" />
@@ -400,9 +400,9 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex overflow-hidden flex-row-reverse">
-          {/* Sidebar - Right side for Hebrew */}
-          <div className="w-80 border-r bg-background overflow-y-auto">
+        <div className="flex-1 flex overflow-hidden flex-row-reverse min-h-0">
+          {/* Sidebar - Right side for Hebrew - Fixed width, no expansion */}
+          <div className="w-80 border-r bg-background overflow-y-auto flex-shrink-0">
             <TabsContent value="view" className="m-0">
               <StructureBuilder
                 floorPlan={floorPlan}
@@ -475,7 +475,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
           </div>
 
           {/* Main Canvas */}
-          <div className="flex-1 p-4 overflow-auto bg-muted/30">
+          <div className="flex-1 p-4 overflow-auto bg-muted/30 min-w-0">
             <TabsContent value="view" className="m-0 h-full">
               <FloorPlanViewer
                 floorPlan={floorPlan}
