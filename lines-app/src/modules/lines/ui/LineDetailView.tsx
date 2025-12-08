@@ -30,6 +30,8 @@ import { getFloorPlans } from "@/modules/floor-plan-editor/actions/floorPlanActi
 import { updateLine } from "../actions/updateLine";
 import { LineReservationSettings } from "./LineReservationSettings";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { translateError } from "@/utils/translateError";
 import type { Line, LineOccurrence } from "@prisma/client";
 import type { FloorPlanListItem } from "@/modules/floor-plan-editor/types";
 
@@ -42,6 +44,7 @@ type LineDetailViewProps = {
 export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps) {
   const router = useRouter();
   const { t } = useTranslations();
+  const { toast } = useToast();
   const [line, setLine] = useState<Line | null>(null);
   const [occurrences, setOccurrences] = useState<LineOccurrence[]>([]);
   const [floorPlans, setFloorPlans] = useState<FloorPlanListItem[]>([]);
@@ -87,12 +90,32 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
     setIsUpdatingFloorPlan(true);
     try {
       const result = await updateLine(venueId, lineId, {
-        floorPlanId: floorPlanId || null
+        floorPlanId: floorPlanId === "none" ? null : floorPlanId
       });
       if (result.success) {
-        setSelectedFloorPlanId(floorPlanId);
+        setSelectedFloorPlanId(floorPlanId === "none" ? null : floorPlanId);
         loadLineData();
+        toast({
+          title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+          description: t("lines.floorPlanUpdated", {
+            defaultValue: "המפה קושרה לליין בהצלחה"
+          })
+        });
+      } else {
+        const errorMsg = !result.success && "error" in result ? result.error : null;
+        toast({
+          title: t("errors.generic"),
+          description: errorMsg ? translateError(errorMsg, t) : t("errors.updatingLine"),
+          variant: "destructive"
+        });
       }
+    } catch (error) {
+      console.error("Error updating floor plan:", error);
+      toast({
+        title: t("errors.generic"),
+        description: t("errors.updatingLine"),
+        variant: "destructive"
+      });
     } finally {
       setIsUpdatingFloorPlan(false);
     }

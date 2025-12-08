@@ -26,7 +26,8 @@
     "duplicate": "שכפל",
     "finish": "סיום",
     "current": "current",
-    "default": "ברירת מחדל"
+    "default": "ברירת מחדל",
+    "view": "צפה"
   },
   "floorPlan": {
     "title": "תכנון מקום",
@@ -448,8 +449,10 @@
     "dateExists": "התאריך כבר קיים",
     "creating": "שגיאה ביצירת הליין",
     "updating": "שגיאה בעדכון הליין",
+    "updatingLine": "שגיאה בעדכון הליין",
     "created": "הליין נוצר בהצלחה",
     "updatedSuccess": "הליין עודכן בהצלחה",
+    "floorPlanUpdated": "המפה קושרה לליין בהצלחה",
     "floorPlan": "מפה וסידור הושבה",
     "selectFloorPlan": "בחר מפה",
     "selectFloorPlanPlaceholder": "בחר מפה",
@@ -474,6 +477,7 @@
     "createLine": "צור ליין חדש",
     "noLinesFound": "לא נמצאו ליינים",
     "noLinesYet": "אין ליינים עדיין",
+    "totalLines": "סה\"כ {count}",
     "overview": "סקירה",
     "settings": "הגדרות",
     "weekly": "שבועי",

@@ -26,7 +26,8 @@
     "duplicate": "Duplicate",
     "finish": "Finish",
     "current": "current",
-    "default": "Default"
+    "default": "Default",
+    "view": "View"
   },
   "floorPlan": {
     "title": "Floor Plan",
@@ -456,8 +457,10 @@
     "dateExists": "Date already exists",
     "creating": "Error creating line",
     "updating": "Error updating line",
+    "updatingLine": "Error updating line",
     "created": "Line created successfully",
     "updatedSuccess": "Line updated successfully",
+    "floorPlanUpdated": "Floor plan linked to line successfully",
     "floorPlan": "Floor Plan & Seating Arrangement",
     "selectFloorPlan": "Select Floor Plan",
     "selectFloorPlanPlaceholder": "Select a floor plan",
@@ -482,6 +485,7 @@
     "createLine": "Create New Line",
     "noLinesFound": "No lines found",
     "noLinesYet": "No lines yet",
+    "totalLines": "Total {count}",
     "overview": "Overview",
     "settings": "Settings",
     "weekly": "Weekly",
