@@ -49,7 +49,7 @@ export function ManageFloorPlanLinesDialog({
           if (result.success && result.data) {
             setAllLines(result.data);
             // Initialize selected lines from floor plan
-            const currentLineIds = new Set(floorPlan.lines.map((fl) => fl.line.id));
+            const currentLineIds = new Set(floorPlan.lines.map((line) => line.id));
             setSelectedLineIds(currentLineIds);
           }
         })

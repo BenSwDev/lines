@@ -16,18 +16,11 @@ export interface FloorPlan {
   updatedAt: Date;
   zones?: Zone[];
   venueAreas?: VenueArea[];
-  lines?: FloorPlanLine[];
-}
-
-export interface FloorPlanLine {
-  floorPlanId: string;
-  lineId: string;
-  createdAt: Date;
-  line?: {
+  lines?: {
     id: string;
     name: string;
     color: string;
-  };
+  }[];
 }
 
 // ============================================================================
@@ -235,7 +228,11 @@ export interface UpdateMinimumOrderInput {
 export interface FloorPlanWithDetails extends FloorPlan {
   zones: (Zone & { tables: Table[] })[];
   venueAreas: VenueArea[];
-  lines: FloorPlanLine[];
+  lines: {
+    id: string;
+    name: string;
+    color: string;
+  }[];
   _count?: {
     zones: number;
     venueAreas: number;
@@ -255,11 +252,9 @@ export interface FloorPlanListItem {
     venueAreas: number;
   };
   lines: {
-    line: {
-      id: string;
-      name: string;
-      color: string;
-    };
+    id: string;
+    name: string;
+    color: string;
   }[];
 }
 

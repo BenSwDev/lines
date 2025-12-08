@@ -16,6 +16,7 @@ export const createLineSchema = z.object({
   endTime: timeSchema, // Legacy - kept for backward compatibility
   frequency: frequencySchema, // Legacy - kept for backward compatibility
   color: colorSchema,
+  floorPlanId: z.string().nullable().optional(), // Optional floor plan assignment
   // New flexible structure - per-day schedules
   daySchedules: z.array(dayScheduleSchema).optional(),
   // Optional occurrence data for initial creation

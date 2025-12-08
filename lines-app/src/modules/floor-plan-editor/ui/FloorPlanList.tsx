@@ -231,13 +231,13 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
                 </div>
                 {floorPlan.lines.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-3">
-                    {floorPlan.lines.slice(0, 3).map((fl) => (
+                    {floorPlan.lines.slice(0, 3).map((line) => (
                       <Badge
-                        key={fl.line.id}
+                        key={line.id}
                         variant="outline"
-                        style={{ borderColor: fl.line.color, color: fl.line.color }}
+                        style={{ borderColor: line.color, color: line.color }}
                       >
-                        {fl.line.name}
+                        {line.name}
                       </Badge>
                     ))}
                     {floorPlan.lines.length > 3 && (

@@ -23,16 +23,16 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  password      String?   // For credentials provider
+  password      String? // For credentials provider
   role          String    @default("user") // user | admin
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // Relationships
-  accounts            Account[]
-  sessions            Session[]
-  venues              Venue[]
-  floorPlanTemplates  FloorPlanTemplate[]
+  accounts           Account[]
+  sessions           Session[]
+  venues             Venue[]
+  floorPlanTemplates FloorPlanTemplate[]
 
   @@map("users")
 }
@@ -87,13 +87,13 @@ model VerificationToken {
 model Venue {
   id         String   @id @default(cuid())
   name       String
-  userId     String   // Owner of the venue
-  layoutData Json?    // Overall floor plan dimensions, scale, grid settings
+  userId     String // Owner of the venue
+  layoutData Json? // Overall floor plan dimensions, scale, grid settings
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   // Relationships
-  user                User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   details             VenueDetails?
   menus               Menu[]
   zones               Zone[]
@@ -110,11 +110,11 @@ model Venue {
 }
 
 model VenueDetails {
-  id      String  @id @default(cuid())
-  venueId String  @unique
-  phone   String?
-  email   String?
-  address String?
+  id       String  @id @default(cuid())
+  venueId  String  @unique
+  phone    String?
+  email    String?
+  address  String?
   currency String? @default("ILS") // ILS, USD, GBP, EUR
 
   // Relationships
@@ -160,31 +160,17 @@ model FloorPlan {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relationships
-  venue              Venue            @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  zones              Zone[]
-  venueAreas         VenueArea[]
-  lines              FloorPlanLine[]
-  customOccurrences  LineOccurrence[] @relation("CustomFloorPlan")
+  venue             Venue                       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  zones             Zone[]
+  venueAreas        VenueArea[]
+  lines             Line[] // Lines using this floor plan (1:1 relationship)
+  customOccurrences LineOccurrence[]            @relation("CustomFloorPlan")
+  lineStaffing      LineFloorPlanStaffing[]
+  lineMinimumOrders LineFloorPlanMinimumOrder[]
 
   @@index([venueId])
   @@index([venueId, isDefault])
   @@map("floor_plans")
-}
-
-// Junction table for FloorPlan <-> Line many-to-many
-model FloorPlanLine {
-  floorPlanId String   @map("floor_plan_id")
-  lineId      String   @map("line_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  // Relationships
-  floorPlan FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
-  line      Line      @relation(fields: [lineId], references: [id], onDelete: Cascade)
-
-  @@id([floorPlanId, lineId])
-  @@index([floorPlanId])
-  @@index([lineId])
-  @@map("floor_plan_lines")
 }
 
 // ============================================================================
@@ -192,32 +178,36 @@ model FloorPlanLine {
 // ============================================================================
 
 model Zone {
-  id            String   @id @default(cuid())
-  venueId       String
-  floorPlanId   String?  @map("floor_plan_id")
-  name          String
-  color         String
-  description   String?
+  id               String   @id @default(cuid())
+  venueId          String
+  floorPlanId      String?  @map("floor_plan_id")
+  name             String
+  color            String
+  description      String?
   // Visual layout properties
-  positionX     Decimal? @db.Decimal(10, 2)
-  positionY     Decimal? @db.Decimal(10, 2)
-  width         Decimal? @db.Decimal(10, 2)
-  height        Decimal? @db.Decimal(10, 2)
-  shape         String?  @default("rectangle") // rectangle, circle, polygon
-  polygonPoints Json?    // For custom polygon shapes
+  positionX        Decimal? @db.Decimal(10, 2)
+  positionY        Decimal? @db.Decimal(10, 2)
+  width            Decimal? @db.Decimal(10, 2)
+  height           Decimal? @db.Decimal(10, 2)
+  shape            String?  @default("rectangle") // rectangle, circle, polygon
+  polygonPoints    Json? // For custom polygon shapes
   // Content settings
-  zoneNumber    Int?     @map("zone_number")
+  zoneNumber       Int?     @map("zone_number")
   // Staffing
-  staffingRules Json?    @map("staffing_rules") // { roleId: count }[]
+  staffingRules    Json?    @map("staffing_rules") // { roleId: count }[]
   // Pricing
   zoneMinimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לאיזור
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   // Relationships
-  venue     Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  floorPlan FloorPlan? @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
-  tables    Table[]
+  venue                       Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  floorPlan                   FloorPlan?                   @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  tables                      Table[]
+  lineStaffing                LineFloorPlanStaffing[]
+  occurrenceStaffing          LineOccurrenceStaffing[]
+  lineFloorPlanMinimumOrders  LineFloorPlanMinimumOrder[]
+  lineOccurrenceMinimumOrders LineOccurrenceMinimumOrder[]
 
   @@index([venueId])
   @@index([floorPlanId])
@@ -226,29 +216,33 @@ model Zone {
 }
 
 model Table {
-  id        String   @id @default(cuid())
-  zoneId    String
-  name      String
-  seats     Int?
-  notes     String?
+  id            String   @id @default(cuid())
+  zoneId        String
+  name          String
+  seats         Int?
+  notes         String?
   // Visual layout properties
-  positionX Decimal? @db.Decimal(10, 2)
-  positionY Decimal? @db.Decimal(10, 2)
-  width     Decimal? @db.Decimal(10, 2)
-  height    Decimal? @db.Decimal(10, 2)
-  rotation  Decimal? @default(0) @db.Decimal(5, 2) // Rotation in degrees
-  shape     String?  @default("rectangle") // rectangle, circle, oval, square
-  tableType String?  @default("table") // table, bar, counter
+  positionX     Decimal? @db.Decimal(10, 2)
+  positionY     Decimal? @db.Decimal(10, 2)
+  width         Decimal? @db.Decimal(10, 2)
+  height        Decimal? @db.Decimal(10, 2)
+  rotation      Decimal? @default(0) @db.Decimal(5, 2) // Rotation in degrees
+  shape         String?  @default("rectangle") // rectangle, circle, oval, square
+  tableType     String?  @default("table") // table, bar, counter
   // Pricing and numbering
-  tableNumber  Int?      // מספר שולחן (uses existing tableNumber column)
-  minimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לשולחן
+  tableNumber   Int? // מספר שולחן (uses existing tableNumber column)
+  minimumPrice  Decimal? @db.Decimal(10, 2) // מינימום הזמנה לשולחן
   // Staffing
-  staffingRules Json?   @map("staffing_rules") // { roleId: count }[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  staffingRules Json?    @map("staffing_rules") // { roleId: count }[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relationships
-  zone Zone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  zone                    Zone                         @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  lineStaffing            LineFloorPlanStaffing[]
+  lineMinimumOrders       LineFloorPlanMinimumOrder[]
+  occurrenceStaffing      LineOccurrenceStaffing[]
+  occurrenceMinimumOrders LineOccurrenceMinimumOrder[]
 
   @@index([zoneId])
   @@index([zoneId, positionX, positionY])
@@ -260,26 +254,30 @@ model Table {
 // ============================================================================
 
 model Line {
-  id        String   @id @default(cuid())
-  venueId   String
-  name      String
-  days      Int[]
-  startTime String
-  endTime   String
-  frequency String   // Enum: weekly, monthly, variable, oneTime
-  color     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  venueId     String
+  floorPlanId String?  @map("floor_plan_id") // Single floor plan per line (1:1)
+  name        String
+  days        Int[]
+  startTime   String
+  endTime     String
+  frequency   String // Enum: weekly, monthly, variable, oneTime
+  color       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relationships
-  venue                    Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  occurrences              LineOccurrence[]
-  reservationExclusions    ReservationSettingsLineExclusion[]
-  reservationSettings      LineReservationSettings?
-  floorPlans               FloorPlanLine[]              // Many-to-many with FloorPlan
+  venue                 Venue                              @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  floorPlan             FloorPlan?                         @relation(fields: [floorPlanId], references: [id], onDelete: SetNull)
+  occurrences           LineOccurrence[]
+  reservationExclusions ReservationSettingsLineExclusion[]
+  reservationSettings   LineReservationSettings?
+  lineStaffing          LineFloorPlanStaffing[]
+  lineMinimumOrders     LineFloorPlanMinimumOrder[]
 
   @@index([venueId])
   @@index([venueId, color])
+  @@index([floorPlanId])
   @@map("lines")
 }
 
@@ -302,9 +300,11 @@ model LineOccurrence {
   updatedAt         DateTime @updatedAt
 
   // Relationships
-  line            Line       @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  venue           Venue      @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  customFloorPlan FloorPlan? @relation("CustomFloorPlan", fields: [customFloorPlanId], references: [id], onDelete: SetNull)
+  line                    Line                         @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  venue                   Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  customFloorPlan         FloorPlan?                   @relation("CustomFloorPlan", fields: [customFloorPlanId], references: [id], onDelete: SetNull)
+  occurrenceStaffing      LineOccurrenceStaffing[]
+  occurrenceMinimumOrders LineOccurrenceMinimumOrder[]
 
   @@unique([lineId, date])
   @@index([venueId])
@@ -322,7 +322,7 @@ model VenueArea {
   id          String   @id @default(cuid())
   venueId     String
   floorPlanId String?  @map("floor_plan_id")
-  areaType    String   // entrance, exit, kitchen, restroom, dj_booth, stage, storage, bar, etc.
+  areaType    String // entrance, exit, kitchen, restroom, dj_booth, stage, storage, bar, etc.
   name        String
   positionX   Decimal  @db.Decimal(10, 2)
   positionY   Decimal  @db.Decimal(10, 2)
@@ -330,8 +330,8 @@ model VenueArea {
   height      Decimal  @db.Decimal(10, 2)
   rotation    Decimal? @default(0) @db.Decimal(5, 2)
   shape       String?  @default("rectangle")
-  icon        String?  // Icon identifier for UI
-  color       String?  // Hex color
+  icon        String? // Icon identifier for UI
+  color       String? // Hex color
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -349,22 +349,22 @@ model VenueArea {
 // ============================================================================
 
 model ReservationSettings {
-  id                    String   @id @default(cuid())
-  venueId               String   @unique @map("venue_id")
+  id                     String   @id @default(cuid())
+  venueId                String   @unique @map("venue_id")
   acceptsReservations    Boolean  @default(false) @map("accepts_reservations") // האם מקבל הזמנות
   allowPersonalLink      Boolean  @default(false) @map("allow_personal_link") // האם מאפשר הזמנה דרך לינק אישי
   requireApproval        Boolean  @default(false) @map("require_approval") // אם מאפשר לינק אישי, האם צריך לאשר
   manualRegistrationOnly Boolean  @default(true) @map("manual_registration_only") // אם לא לינק אישי, רישום ידני בלבד
-  manageWaitlist        Boolean  @default(false) @map("manage_waitlist") // האם לנהל רשימת המתנה
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  manageWaitlist         Boolean  @default(false) @map("manage_waitlist") // האם לנהל רשימת המתנה
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
 
   // Relationships
-  venue              Venue                        @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  excludedLines      ReservationSettingsLineExclusion[]
-  daySchedules       ReservationSettingsDaySchedule[]
-  formFields         ReservationFormField[]
-  formDesign         ReservationFormDesign?
+  venue         Venue                              @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  excludedLines ReservationSettingsLineExclusion[]
+  daySchedules  ReservationSettingsDaySchedule[]
+  formFields    ReservationFormField[]
+  formDesign    ReservationFormDesign?
 
   @@index([venueId])
   @@map("reservation_settings")
@@ -375,15 +375,15 @@ model ReservationSettings {
 // ============================================================================
 
 model FloorPlanTemplate {
-  id          String   @id @default(cuid())
-  userId      String   // Owner of the template
-  venueId     String?  // Optional: template can be venue-specific or global
-  name        String
-  description String?
-  elements    Json     // Array of FloorPlanElement objects
-  defaultCapacity Int? @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  userId          String // Owner of the template
+  venueId         String? // Optional: template can be venue-specific or global
+  name            String
+  description     String?
+  elements        Json // Array of FloorPlanElement objects
+  defaultCapacity Int?     @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relationships
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -417,7 +417,7 @@ model ReservationSettingsDaySchedule {
   startTime             String   @map("start_time") // HH:MM format (24-hour)
   endTime               String   @map("end_time") // HH:MM format (24-hour)
   intervalMinutes       Int?     @map("interval_minutes") // מרווחים בדקות (אופציונלי)
-  customerMessage       String?  @db.Text @map("customer_message") // טקסט חופשי שיוצג ללקוח
+  customerMessage       String?  @map("customer_message") @db.Text // טקסט חופשי שיוצג ללקוח
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
@@ -436,17 +436,17 @@ model ReservationSettingsDaySchedule {
 model ReservationFormField {
   id                    String   @id @default(cuid())
   reservationSettingsId String   @map("reservation_settings_id")
-  fieldType            String   @map("field_type") // "name", "email", "phone", "custom"
-  fieldKey             String   @map("field_key") // Unique key for the field (e.g., "name", "email", "custom_1")
-  label                String   // Display label (e.g., "שם מלא", "אימייל")
-  placeholder          String?  // Placeholder text
-  isRequired           Boolean  @default(false) @map("is_required")
-  isEnabled            Boolean  @default(true) @map("is_enabled")
-  order                Int      @default(0) // Display order
-  validationRules      Json?    @map("validation_rules") // JSON: { minLength, maxLength, pattern, etc. }
-  options              Json?    // For select/radio fields: array of { value, label }
-  createdAt            DateTime @default(now()) @map("created_at")
-  updatedAt            DateTime @updatedAt @map("updated_at")
+  fieldType             String   @map("field_type") // "name", "email", "phone", "custom"
+  fieldKey              String   @map("field_key") // Unique key for the field (e.g., "name", "email", "custom_1")
+  label                 String // Display label (e.g., "שם מלא", "אימייל")
+  placeholder           String? // Placeholder text
+  isRequired            Boolean  @default(false) @map("is_required")
+  isEnabled             Boolean  @default(true) @map("is_enabled")
+  order                 Int      @default(0) // Display order
+  validationRules       Json?    @map("validation_rules") // JSON: { minLength, maxLength, pattern, etc. }
+  options               Json? // For select/radio fields: array of { value, label }
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
   // Relationships
   reservationSettings ReservationSettings @relation(fields: [reservationSettingsId], references: [id], onDelete: Cascade)
@@ -485,32 +485,32 @@ model ReservationFormDesign {
 // ============================================================================
 
 model LineReservationSettings {
-  id                    String   @id @default(cuid())
-  lineId                String   @unique @map("line_id")
-  allowPersonalLink      Boolean  @default(false) @map("allow_personal_link")
-  requireApproval        Boolean  @default(false) @map("require_approval")
-  manageWaitlist         Boolean  @default(false) @map("manage_waitlist")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(cuid())
+  lineId            String   @unique @map("line_id")
+  allowPersonalLink Boolean  @default(false) @map("allow_personal_link")
+  requireApproval   Boolean  @default(false) @map("require_approval")
+  manageWaitlist    Boolean  @default(false) @map("manage_waitlist")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   // Relationships
-  line                  Line                        @relation(fields: [lineId], references: [id], onDelete: Cascade)
-  daySchedules         LineReservationDaySchedule[]
+  line         Line                         @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  daySchedules LineReservationDaySchedule[]
 
   @@index([lineId])
   @@map("line_reservation_settings")
 }
 
 model LineReservationDaySchedule {
-  id                    String   @id @default(cuid())
+  id                        String   @id @default(cuid())
   lineReservationSettingsId String   @map("line_reservation_settings_id")
-  dayOfWeek             Int      @map("day_of_week") // 0=Sunday, 1=Monday, ..., 6=Saturday
-  startTime             String   @map("start_time") // HH:MM format (24-hour)
-  endTime               String   @map("end_time") // HH:MM format (24-hour)
-  intervalMinutes       Int?     @map("interval_minutes")
-  customerMessage       String?  @db.Text @map("customer_message")
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
+  dayOfWeek                 Int      @map("day_of_week") // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime                 String   @map("start_time") // HH:MM format (24-hour)
+  endTime                   String   @map("end_time") // HH:MM format (24-hour)
+  intervalMinutes           Int?     @map("interval_minutes")
+  customerMessage           String?  @map("customer_message") @db.Text
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
 
   // Relationships
   lineReservationSettings LineReservationSettings @relation(fields: [lineReservationSettingsId], references: [id], onDelete: Cascade)
@@ -525,27 +525,27 @@ model LineReservationDaySchedule {
 // ============================================================================
 
 model Role {
-  id                String    @id @default(cuid())
-  venueId           String
-  name              String
-  description       String?
-  icon              String?
-  color             String
-  parentRoleId      String?
-  order             Int       @default(0)
-  isActive          Boolean   @default(true)
+  id                 String   @id @default(cuid())
+  venueId            String
+  name               String
+  description        String?
+  icon               String?
+  color              String
+  parentRoleId       String?
+  order              Int      @default(0)
+  isActive           Boolean  @default(true)
   requiresManagement Boolean  @default(false)
-  isManagementRole  Boolean   @default(false)
-  managedRoleId     String?   @unique
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  isManagementRole   Boolean  @default(false)
+  managedRoleId      String?  @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // Relationships
-  venue             Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  parentRole        Role?     @relation("RoleHierarchy", fields: [parentRoleId], references: [id], onDelete: SetNull)
-  childRoles        Role[]    @relation("RoleHierarchy")
-  managedRole       Role?     @relation("RoleManagement", fields: [managedRoleId], references: [id], onDelete: Cascade)
-  managementRole    Role?     @relation("RoleManagement")
+  venue          Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  parentRole     Role?  @relation("RoleHierarchy", fields: [parentRoleId], references: [id], onDelete: SetNull)
+  childRoles     Role[] @relation("RoleHierarchy")
+  managedRole    Role?  @relation("RoleManagement", fields: [managedRoleId], references: [id], onDelete: Cascade)
+  managementRole Role?  @relation("RoleManagement")
 
   @@index([venueId])
   @@index([parentRoleId])
@@ -553,4 +553,102 @@ model Role {
   @@map("roles")
 }
 
+// ============================================================================
+// LINE FLOOR PLAN STAFFING & MINIMUM ORDER
+// ============================================================================
 
+// Staffing rules specific to a Line + FloorPlan combination
+model LineFloorPlanStaffing {
+  id            String   @id @default(cuid())
+  lineId        String   @map("line_id")
+  floorPlanId   String   @map("floor_plan_id")
+  zoneId        String?  @map("zone_id") // null = default for all zones in floor plan
+  tableId       String?  @map("table_id") // null = default for all tables in zone
+  staffingRules Json     @map("staffing_rules") // { roleId: count }[]
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  line      Line      @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  floorPlan FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  zone      Zone?     @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  table     Table?    @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([lineId, floorPlanId, zoneId, tableId])
+  @@index([lineId, floorPlanId])
+  @@index([zoneId])
+  @@index([tableId])
+  @@map("line_floor_plan_staffing")
+}
+
+// Minimum order amounts specific to a Line + FloorPlan combination
+model LineFloorPlanMinimumOrder {
+  id           String   @id @default(cuid())
+  lineId       String   @map("line_id")
+  floorPlanId  String   @map("floor_plan_id")
+  zoneId       String?  @map("zone_id") // null = default for all zones in floor plan
+  tableId      String?  @map("table_id") // null = default for all tables in zone
+  minimumPrice Decimal  @map("minimum_price") @db.Decimal(10, 2)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  line      Line      @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  floorPlan FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
+  zone      Zone?     @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  table     Table?    @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([lineId, floorPlanId, zoneId, tableId])
+  @@index([lineId, floorPlanId])
+  @@index([zoneId])
+  @@index([tableId])
+  @@map("line_floor_plan_minimum_orders")
+}
+
+// ============================================================================
+// LINE OCCURRENCE STAFFING & MINIMUM ORDER (Event-specific overrides)
+// ============================================================================
+
+// Staffing rules specific to a LineOccurrence (event override)
+model LineOccurrenceStaffing {
+  id            String   @id @default(cuid())
+  occurrenceId  String   @map("occurrence_id")
+  zoneId        String?  @map("zone_id") // null = default for all zones
+  tableId       String?  @map("table_id") // null = default for all tables in zone
+  staffingRules Json     @map("staffing_rules") // { roleId: count }[]
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  occurrence LineOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  zone       Zone?          @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  table      Table?         @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([occurrenceId, zoneId, tableId])
+  @@index([occurrenceId])
+  @@index([zoneId])
+  @@index([tableId])
+  @@map("line_occurrence_staffing")
+}
+
+// Minimum order amounts specific to a LineOccurrence (event override)
+model LineOccurrenceMinimumOrder {
+  id           String   @id @default(cuid())
+  occurrenceId String   @map("occurrence_id")
+  zoneId       String?  @map("zone_id") // null = default for all zones
+  tableId      String?  @map("table_id") // null = default for all tables in zone
+  minimumPrice Decimal  @map("minimum_price") @db.Decimal(10, 2)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  occurrence LineOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  zone       Zone?          @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  table      Table?         @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([occurrenceId, zoneId, tableId])
+  @@index([occurrenceId])
+  @@index([zoneId])
+  @@index([tableId])
+  @@map("line_occurrence_minimum_orders")
+}

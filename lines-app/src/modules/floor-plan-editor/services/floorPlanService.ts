@@ -29,14 +29,10 @@ export const floorPlanService = {
           }
         },
         lines: {
-          include: {
-            line: {
-              select: {
-                id: true,
-                name: true,
-                color: true
-              }
-            }
+          select: {
+            id: true,
+            name: true,
+            color: true
           }
         }
       },
@@ -63,14 +59,10 @@ export const floorPlanService = {
         },
         venueAreas: true,
         lines: {
-          include: {
-            line: {
-              select: {
-                id: true,
-                name: true,
-                color: true
-              }
-            }
+          select: {
+            id: true,
+            name: true,
+            color: true
           }
         },
         _count: {
@@ -102,14 +94,10 @@ export const floorPlanService = {
         },
         venueAreas: true,
         lines: {
-          include: {
-            line: {
-              select: {
-                id: true,
-                name: true,
-                color: true
-              }
-            }
+          select: {
+            id: true,
+            name: true,
+            color: true
           }
         }
       }
@@ -212,18 +200,34 @@ export const floorPlanService = {
                 color: area.color
               }))
             }
-          : undefined,
-        lines: lineIds
-          ? {
-              create: lineIds.map((lineId) => ({
-                line: {
-                  connect: { id: lineId }
-                }
-              }))
-            }
           : undefined
       }
     });
+
+    // Link lines to this floor plan (one-to-one: each line can only be linked to one floor plan)
+    if (lineIds && lineIds.length > 0) {
+      // First, unlink these lines from any other floor plan
+      for (const lineId of lineIds) {
+        await prisma.line.updateMany({
+          where: {
+            id: lineId,
+            floorPlanId: { not: floorPlan.id }
+          },
+          data: {
+            floorPlanId: null
+          }
+        });
+      }
+      // Then link them to this floor plan
+      await prisma.line.updateMany({
+        where: {
+          id: { in: lineIds }
+        },
+        data: {
+          floorPlanId: floorPlan.id
+        }
+      });
+    }
 
     return floorPlan;
   },
@@ -358,19 +362,34 @@ export const floorPlanService = {
       data: updateData
     });
 
-    // Update line associations if provided
+    // Update line associations if provided (one-to-one: each line can only be linked to one floor plan)
     if (lineIds !== undefined) {
-      // Remove existing associations
-      await prisma.floorPlanLine.deleteMany({
-        where: { floorPlanId: id }
+      // First, unlink all lines from this floor plan
+      await prisma.line.updateMany({
+        where: { floorPlanId: id },
+        data: { floorPlanId: null }
       });
-      // Create new associations
+      // Then, for each line to be linked, unlink it from any other floor plan and link to this one
       if (lineIds.length > 0) {
-        await prisma.floorPlanLine.createMany({
-          data: lineIds.map((lineId) => ({
-            floorPlanId: id,
-            lineId
-          }))
+        for (const lineId of lineIds) {
+          await prisma.line.updateMany({
+            where: {
+              id: lineId,
+              floorPlanId: { not: id }
+            },
+            data: {
+              floorPlanId: null
+            }
+          });
+        }
+        // Link lines to this floor plan
+        await prisma.line.updateMany({
+          where: {
+            id: { in: lineIds }
+          },
+          data: {
+            floorPlanId: id
+          }
         });
       }
     }
@@ -599,22 +618,25 @@ export const floorPlanService = {
     // For each line to be linked, first unlink it from any other floor plan
     // This ensures one-to-one relationship (each line can only be linked to one floor plan)
     for (const lineId of lineIds) {
-      // Remove this line from all other floor plans
-      await prisma.floorPlanLine.deleteMany({
+      // Remove this line from all other floor plans by setting floorPlanId to null
+      await prisma.line.updateMany({
         where: {
-          lineId,
+          id: lineId,
           floorPlanId: { not: floorPlanId }
+        },
+        data: {
+          floorPlanId: null
         }
       });
     }
 
     // Get current lines linked to this floor plan
-    const currentLinks = await prisma.floorPlanLine.findMany({
+    const currentLines = await prisma.line.findMany({
       where: { floorPlanId },
-      select: { lineId: true }
+      select: { id: true }
     });
 
-    const currentLineIds = new Set(currentLinks.map((link) => link.lineId));
+    const currentLineIds = new Set(currentLines.map((line) => line.id));
     const newLineIds = new Set(lineIds);
 
     // Lines to add
@@ -624,22 +646,26 @@ export const floorPlanService = {
 
     // Remove lines that are no longer linked
     if (toRemove.length > 0) {
-      await prisma.floorPlanLine.deleteMany({
+      await prisma.line.updateMany({
         where: {
-          floorPlanId,
-          lineId: { in: toRemove }
+          id: { in: toRemove },
+          floorPlanId
+        },
+        data: {
+          floorPlanId: null
         }
       });
     }
 
     // Add new line links
     if (toAdd.length > 0) {
-      await prisma.floorPlanLine.createMany({
-        data: toAdd.map((lineId) => ({
-          floorPlanId,
-          lineId
-        })),
-        skipDuplicates: true
+      await prisma.line.updateMany({
+        where: {
+          id: { in: toAdd }
+        },
+        data: {
+          floorPlanId
+        }
       });
     }
   },

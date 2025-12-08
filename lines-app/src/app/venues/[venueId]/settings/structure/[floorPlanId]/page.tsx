@@ -41,3 +41,4 @@ export default async function FloorPlanEditorPage({
 
   return <FloorPlanEditor venueId={venueId} floorPlan={floorPlanResult.data} roles={roles} />;
 }
+

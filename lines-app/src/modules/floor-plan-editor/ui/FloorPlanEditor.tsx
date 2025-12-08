@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Eye, FileText, Users, DollarSign, Save, Edit2, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,16 @@ interface FloorPlanEditorProps {
 export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEditorProps) {
   const { t } = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<EditorMode>("view");
+
+  // Check for mode in URL query params
+  useEffect(() => {
+    const urlMode = searchParams.get("mode");
+    if (urlMode && ["view", "content", "staffing", "minimum-order"].includes(urlMode)) {
+      setMode(urlMode as EditorMode);
+    }
+  }, [searchParams]);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [selectedElementType, setSelectedElementType] = useState<"zone" | "table" | "area" | null>(
     null
@@ -182,7 +191,11 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
       label: t("floorPlan.generalStructure", { defaultValue: "מבנה מקום כללי" }),
       icon: Eye
     },
-    { id: "content", label: t("floorPlan.contentMode", { defaultValue: "תכולה" }), icon: FileText },
+    {
+      id: "content",
+      label: t("floorPlan.contentMode", { defaultValue: "סידור הושבה" }),
+      icon: FileText
+    },
     {
       id: "staffing",
       label: t("floorPlan.staffingMode", { defaultValue: "סידור עבודה" }),
@@ -266,9 +279,9 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
             </span>
           )}
           {canEdit && (
-            <Button 
-              variant="default" 
-              size="sm" 
+            <Button
+              variant="default"
+              size="sm"
               onClick={handleSave}
               disabled={isSaving}
               className="gap-2"
@@ -372,6 +385,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                   selectedTable={getSelectedTable()}
                   floorPlan={floorPlan}
                   roles={roles}
+                  venueId={venueId}
                   onElementSelect={handleElementSelect}
                 />
               ) : (
@@ -390,6 +404,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
                   selectedZone={getSelectedZone()}
                   selectedTable={getSelectedTable()}
                   floorPlan={floorPlan}
+                  venueId={venueId}
                   onElementSelect={handleElementSelect}
                 />
               ) : (

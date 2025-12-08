@@ -302,7 +302,7 @@ function ElementListView({ floorPlan, onElementSelect }: ElementListViewProps) {
     <div className="p-4 space-y-4">
       <div>
         <h3 className="font-semibold text-lg">
-          📝 {t("floorPlan.editContent", { defaultValue: "עריכת תכולה" })}
+          📝 {t("floorPlan.editContent", { defaultValue: "עריכת סידור הושבה" })}
         </h3>
         <p className="text-sm text-muted-foreground">
           {t("floorPlan.selectElementToEdit", { defaultValue: "בחר אלמנט לעריכה" })}

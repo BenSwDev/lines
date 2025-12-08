@@ -211,3 +211,34 @@ export const updateFloorPlanLinesSchema = z.object({
   floorPlanId: z.string(),
   lineIds: z.array(z.string())
 });
+
+// ============================================================================
+// LINE FLOOR PLAN STAFFING SCHEMAS
+// ============================================================================
+
+export const updateLineFloorPlanStaffingSchema = z.object({
+  lineId: z.string(),
+  floorPlanId: z.string(),
+  targetType: z.enum(["zone", "table"]),
+  targetId: z.string().nullable(),
+  staffingRules: z.array(
+    z.object({
+      roleId: z.string(),
+      count: z.number().min(0),
+      roleName: z.string().optional(),
+      roleColor: z.string().optional()
+    })
+  )
+});
+
+// ============================================================================
+// LINE FLOOR PLAN MINIMUM ORDER SCHEMAS
+// ============================================================================
+
+export const updateLineFloorPlanMinimumOrderSchema = z.object({
+  lineId: z.string(),
+  floorPlanId: z.string(),
+  targetType: z.enum(["zone", "table"]),
+  targetId: z.string().nullable(),
+  minimumPrice: z.number().min(0)
+});

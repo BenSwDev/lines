@@ -1,12 +1,24 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Plus, Minus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { useTranslations } from "@/core/i18n/provider";
-import { updateStaffing } from "../../actions/floorPlanActions";
+import {
+  updateStaffing,
+  updateLineFloorPlanStaffing,
+  getVenueLines
+} from "../../actions/floorPlanActions";
+import { lineFloorPlanStaffingService } from "../../services/lineFloorPlanService";
 import type { Zone, Table, FloorPlanWithDetails, StaffingRule } from "../../types";
 
 interface StaffingEditorProps {
@@ -14,6 +26,7 @@ interface StaffingEditorProps {
   selectedTable: Table | null;
   floorPlan: FloorPlanWithDetails;
   roles: { id: string; name: string; color: string }[];
+  venueId: string;
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
 }
 
@@ -22,6 +35,7 @@ export function StaffingEditor({
   selectedTable,
   floorPlan,
   roles,
+  venueId,
   onElementSelect
 }: StaffingEditorProps) {
   const router = useRouter();
@@ -34,6 +48,8 @@ export function StaffingEditor({
         target={selectedTable}
         targetType="table"
         roles={roles}
+        floorPlan={floorPlan}
+        venueId={venueId}
         isPending={isPending}
         startTransition={startTransition}
         onBack={() => onElementSelect(null, null)}
@@ -49,6 +65,8 @@ export function StaffingEditor({
         target={selectedZone}
         targetType="zone"
         roles={roles}
+        floorPlan={floorPlan}
+        venueId={venueId}
         isPending={isPending}
         startTransition={startTransition}
         onBack={() => onElementSelect(null, null)}
@@ -68,6 +86,8 @@ interface StaffingFormProps {
   target: Zone | Table;
   targetType: "zone" | "table";
   roles: { id: string; name: string; color: string }[];
+  floorPlan: FloorPlanWithDetails;
+  venueId: string;
   isPending: boolean;
   startTransition: (callback: () => void) => void;
   onBack: () => void;
@@ -78,25 +98,85 @@ function StaffingForm({
   target,
   targetType,
   roles,
+  floorPlan,
+  venueId,
   isPending,
   startTransition,
   onBack,
   router
 }: StaffingFormProps) {
   const { t } = useTranslations();
+  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
+  const [availableLines, setAvailableLines] = useState<
+    { id: string; name: string; color: string }[]
+  >([]);
+  const [isLoadingLines, setIsLoadingLines] = useState(false);
 
-  // Parse existing staffing rules
-  const existingRules = (target.staffingRules as StaffingRule[] | null) ?? [];
-
-  // Initialize state with role counts
-  const [staffingCounts, setStaffingCounts] = useState<Record<string, number>>(() => {
-    const counts: Record<string, number> = {};
-    for (const role of roles) {
-      const existing = existingRules.find((r) => r.roleId === role.id);
-      counts[role.id] = existing?.count ?? 0;
+  // Load available lines
+  useEffect(() => {
+    async function loadLines() {
+      setIsLoadingLines(true);
+      try {
+        const result = await getVenueLines(venueId);
+        if (result.success && result.data) {
+          setAvailableLines(result.data);
+        }
+      } finally {
+        setIsLoadingLines(false);
+      }
     }
-    return counts;
-  });
+    loadLines();
+  }, [venueId]);
+
+  // Load existing staffing rules based on selected line or default
+  const [staffingCounts, setStaffingCounts] = useState<Record<string, number>>({});
+  const [isLoadingStaffing, setIsLoadingStaffing] = useState(false);
+
+  useEffect(() => {
+    async function loadStaffing() {
+      setIsLoadingStaffing(true);
+      try {
+        let existingRules: StaffingRule[] = [];
+
+        if (selectedLineId) {
+          // Load line-specific staffing
+          const zoneId = targetType === "zone" ? target.id : null;
+          const tableId = targetType === "table" ? target.id : null;
+          const rules = await lineFloorPlanStaffingService.getStaffingRules(
+            selectedLineId,
+            floorPlan.id,
+            zoneId,
+            tableId
+          );
+          existingRules = rules || [];
+        } else {
+          // Load default staffing from target
+          existingRules = (target.staffingRules as StaffingRule[] | null) ?? [];
+        }
+
+        // Initialize state with role counts
+        const counts: Record<string, number> = {};
+        for (const role of roles) {
+          const existing = existingRules.find((r) => r.roleId === role.id);
+          counts[role.id] = existing?.count ?? 0;
+        }
+        setStaffingCounts(counts);
+      } catch (error) {
+        console.error("Error loading staffing:", error);
+        // Fallback to default
+        const existingRules = (target.staffingRules as StaffingRule[] | null) ?? [];
+        const counts: Record<string, number> = {};
+        for (const role of roles) {
+          const existing = existingRules.find((r) => r.roleId === role.id);
+          counts[role.id] = existing?.count ?? 0;
+        }
+        setStaffingCounts(counts);
+      } finally {
+        setIsLoadingStaffing(false);
+      }
+    }
+    loadStaffing();
+  }, [selectedLineId, target, targetType, floorPlan.id, roles]);
 
   const handleIncrement = (roleId: string) => {
     setStaffingCounts((prev) => ({
@@ -126,11 +206,23 @@ function StaffingForm({
           };
         });
 
-      await updateStaffing({
-        targetType,
-        targetId: target.id,
-        staffingRules
-      });
+      if (selectedLineId) {
+        // Save line-specific staffing
+        await updateLineFloorPlanStaffing({
+          lineId: selectedLineId,
+          floorPlanId: floorPlan.id,
+          targetType,
+          targetId: target.id,
+          staffingRules
+        });
+      } else {
+        // Save default staffing
+        await updateStaffing({
+          targetType,
+          targetId: target.id,
+          staffingRules
+        });
+      }
       router.refresh();
     });
   };
@@ -151,7 +243,49 @@ function StaffingForm({
         </Button>
       </div>
 
-      {roles.length === 0 ? (
+      {/* Line Selection */}
+      <div className="space-y-2">
+        <Label>{t("floorPlan.selectLine", { defaultValue: "בחר ליין (אופציונלי)" })}</Label>
+        <Select
+          value={selectedLineId || "default"}
+          onValueChange={(value) => setSelectedLineId(value === "default" ? null : value)}
+          disabled={isLoadingLines}
+        >
+          <SelectTrigger>
+            <SelectValue
+              placeholder={t("floorPlan.selectLinePlaceholder", {
+                defaultValue: "הגדרות כלליות למפה"
+              })}
+            />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">
+              {t("floorPlan.generalSettings", { defaultValue: "הגדרות כלליות למפה" })}
+            </SelectItem>
+            {availableLines.map((line) => (
+              <SelectItem key={line.id} value={line.id}>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: line.color }} />
+                  {line.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {selectedLineId && (
+          <p className="text-xs text-muted-foreground">
+            {t("floorPlan.lineSpecificStaffing", {
+              defaultValue: "סידור עבודה ספציפי לליין זה"
+            })}
+          </p>
+        )}
+      </div>
+
+      {isLoadingStaffing ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>{t("common.loading", { defaultValue: "טוען..." })}</p>
+        </div>
+      ) : roles.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>{t("floorPlan.noRolesDefined", { defaultValue: "לא הוגדרו תפקידים עדיין" })}</p>

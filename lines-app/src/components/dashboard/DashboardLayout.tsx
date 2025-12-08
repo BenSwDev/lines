@@ -31,16 +31,16 @@ import {
   Settings,
   User,
   ChevronDown,
-  Info,
   Calendar,
   List,
-  FileText,
   BookOpen,
   Users,
   Layers,
   Ticket,
   Package,
-  UsersRound
+  Home,
+  Info,
+  FileText
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -183,30 +183,24 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
 
                     {/* Venue Navigation */}
                     <SidebarGroup>
-                      <SidebarGroupLabel>{t("workspace.navigation")}</SidebarGroupLabel>
+                      <SidebarGroupLabel>
+                        {t("workspace.navigation", { defaultValue: "ניווט" })}
+                      </SidebarGroupLabel>
                       <SidebarGroupContent>
                         <SidebarMenu>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/info")}>
-                              <Link href={`/venues/${currentVenue.id}/info`}>
-                                <Info className="h-4 w-4" />
-                                <span>מידע כללי</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/menus")}>
-                              <Link href={`/venues/${currentVenue.id}/menus`}>
-                                <FileText className="h-4 w-4" />
-                                <span>תפריטים</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/lines")}>
-                              <Link href={`/venues/${currentVenue.id}/lines`}>
-                                <List className="h-4 w-4" />
-                                <span>ליינים</span>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={
+                                pathname === `/venues/${currentVenue.id}` ||
+                                pathname === `/venues/${currentVenue.id}/`
+                              }
+                            >
+                              <Link href={`/venues/${currentVenue.id}`}>
+                                <Home className="h-4 w-4" />
+                                <span>
+                                  {t("workspace.dashboard", { defaultValue: "סקירה כללית" })}
+                                </span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -214,15 +208,20 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             <SidebarMenuButton asChild isActive={pathname?.includes("/calendar")}>
                               <Link href={`/venues/${currentVenue.id}/calendar`}>
                                 <Calendar className="h-4 w-4" />
-                                <span>לוח שנה</span>
+                                <span>{t("workspace.calendar", { defaultValue: "לוח שנה" })}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                           <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/roles")}>
-                              <Link href={`/venues/${currentVenue.id}/roles`}>
-                                <Users className="h-4 w-4" />
-                                <span>תפקידים והיררכיה</span>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={
+                                pathname?.includes("/lines") && !pathname?.includes("/settings")
+                              }
+                            >
+                              <Link href={`/venues/${currentVenue.id}/lines`}>
+                                <List className="h-4 w-4" />
+                                <span>{t("workspace.lines", { defaultValue: "ליינים" })}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -240,11 +239,48 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                           <SidebarMenuItem>
                             <SidebarMenuButton
                               asChild
+                              isActive={pathname?.includes("/settings/info")}
+                            >
+                              <Link href={`/venues/${currentVenue.id}/settings/info`}>
+                                <Info className="h-4 w-4" />
+                                <span>{t("workspace.info", { defaultValue: "מידע כללי" })}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton
+                              asChild
                               isActive={pathname?.includes("/settings/structure")}
                             >
                               <Link href={`/venues/${currentVenue.id}/settings/structure`}>
                                 <Layers className="h-4 w-4" />
-                                <span>מבנה (מפות)</span>
+                                <span>
+                                  {t("workspace.structure", { defaultValue: "מבנה (מפות)" })}
+                                </span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/menus")}
+                            >
+                              <Link href={`/venues/${currentVenue.id}/settings/menus`}>
+                                <FileText className="h-4 w-4" />
+                                <span>{t("workspace.menus", { defaultValue: "תפריטים" })}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/roles")}
+                            >
+                              <Link href={`/venues/${currentVenue.id}/settings/roles`}>
+                                <Users className="h-4 w-4" />
+                                <span>
+                                  {t("workspace.roles", { defaultValue: "תפקידים והיררכיה" })}
+                                </span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -255,7 +291,9 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             >
                               <Link href={`/venues/${currentVenue.id}/settings/reservations`}>
                                 <BookOpen className="h-4 w-4" />
-                                <span>הגדרות הזמנות</span>
+                                <span>
+                                  {t("workspace.reservations", { defaultValue: "הגדרות הזמנות" })}
+                                </span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -266,7 +304,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             >
                               <Link href={`/venues/${currentVenue.id}/settings/tickets`}>
                                 <Ticket className="h-4 w-4" />
-                                <span>כרטיסים</span>
+                                <span>{t("workspace.tickets", { defaultValue: "כרטיסים" })}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -277,7 +315,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             >
                               <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
                                 <Package className="h-4 w-4" />
-                                <span>מלאי</span>
+                                <span>{t("workspace.inventory", { defaultValue: "מלאי" })}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -287,8 +325,8 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                               isActive={pathname?.includes("/settings/team")}
                             >
                               <Link href={`/venues/${currentVenue.id}/settings/team`}>
-                                <UsersRound className="h-4 w-4" />
-                                <span>צוות ויחצנים</span>
+                                <Users className="h-4 w-4" />
+                                <span>{t("workspace.team", { defaultValue: "צוות" })}</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>
@@ -309,7 +347,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                           venues.map((venue) => (
                             <SidebarMenuItem key={venue.id}>
                               <SidebarMenuButton asChild>
-                                <Link href={`/venues/${venue.id}/info`}>
+                                <Link href={`/venues/${venue.id}`}>
                                   <Building2 className="h-4 w-4" />
                                   <span>{venue.name}</span>
                                 </Link>

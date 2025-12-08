@@ -35,7 +35,8 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
       ...(validated.startTime && { startTime: validated.startTime }),
       ...(validated.endTime && { endTime: validated.endTime }),
       ...(validated.frequency && { frequency: validated.frequency }),
-      ...(validated.color && { color: validated.color })
+      ...(validated.color && { color: validated.color }),
+      ...(validated.floorPlanId !== undefined && { floorPlanId: validated.floorPlanId })
     });
 
     // Use daySchedules if provided, otherwise use legacy fields

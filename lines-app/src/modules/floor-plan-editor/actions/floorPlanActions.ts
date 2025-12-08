@@ -13,8 +13,14 @@ import {
   createZoneSchema,
   createTableSchema,
   createVenueAreaSchema,
-  updateFloorPlanLinesSchema
+  updateFloorPlanLinesSchema,
+  updateLineFloorPlanStaffingSchema,
+  updateLineFloorPlanMinimumOrderSchema
 } from "../schemas/floorPlanSchemas";
+import {
+  lineFloorPlanStaffingService,
+  lineFloorPlanMinimumOrderService
+} from "../services/lineFloorPlanService";
 import type { FloorPlanWithDetails, FloorPlanListItem } from "../types";
 
 // ============================================================================
@@ -187,11 +193,11 @@ export async function updateFloorPlan(input: unknown): Promise<{
   try {
     const validated = updateFloorPlanSchema.parse(input);
     const { id, ...data } = validated;
-    
+
     // Prevent unsetting isDefault from a default floor plan
     if (data.isDefault !== undefined) {
       const currentFloorPlan = await floorPlanService.getFloorPlanById(id);
-      
+
       // Prevent unsetting isDefault from a default floor plan
       if (currentFloorPlan?.isDefault && !data.isDefault) {
         return {
@@ -200,7 +206,7 @@ export async function updateFloorPlan(input: unknown): Promise<{
         };
       }
     }
-    
+
     await floorPlanService.updateFloorPlan(id, data);
 
     // Get venue ID for revalidation
@@ -678,5 +684,121 @@ export async function updateFloorPlanLines(input: unknown): Promise<{
       return { success: false, error: error.message };
     }
     return { success: false, error: "Failed to update floor plan lines" };
+  }
+}
+
+// ============================================================================
+// LINE FLOOR PLAN STAFFING ACTIONS
+// ============================================================================
+
+/**
+ * Update staffing rules for a line + floor plan combination
+ */
+export async function updateLineFloorPlanStaffing(input: unknown): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const validated = updateLineFloorPlanStaffingSchema.parse(input);
+    const { lineId, floorPlanId, targetType, targetId, staffingRules } = validated;
+
+    // Determine zoneId and tableId based on targetType
+    let zoneId: string | null = null;
+    let tableId: string | null = null;
+
+    if (targetType === "zone" && targetId) {
+      zoneId = targetId;
+    } else if (targetType === "table" && targetId) {
+      // Get table to find its zone
+      const table = await prisma.table.findUnique({
+        where: { id: targetId },
+        select: { zoneId: true }
+      });
+      if (table) {
+        tableId = targetId;
+        zoneId = table.zoneId;
+      }
+    }
+
+    await lineFloorPlanStaffingService.upsertStaffingRules(
+      lineId,
+      floorPlanId,
+      zoneId,
+      tableId,
+      staffingRules
+    );
+
+    // Get floor plan for revalidation
+    const floorPlan = await floorPlanService.getFloorPlanById(floorPlanId);
+    if (floorPlan) {
+      revalidatePath(`/venues/${floorPlan.venueId}/settings/structure/${floorPlanId}`);
+      revalidatePath(`/venues/${floorPlan.venueId}/lines`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating line floor plan staffing:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to update line floor plan staffing" };
+  }
+}
+
+// ============================================================================
+// LINE FLOOR PLAN MINIMUM ORDER ACTIONS
+// ============================================================================
+
+/**
+ * Update minimum order for a line + floor plan combination
+ */
+export async function updateLineFloorPlanMinimumOrder(input: unknown): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const validated = updateLineFloorPlanMinimumOrderSchema.parse(input);
+    const { lineId, floorPlanId, targetType, targetId, minimumPrice } = validated;
+
+    // Determine zoneId and tableId based on targetType
+    let zoneId: string | null = null;
+    let tableId: string | null = null;
+
+    if (targetType === "zone" && targetId) {
+      zoneId = targetId;
+    } else if (targetType === "table" && targetId) {
+      // Get table to find its zone
+      const table = await prisma.table.findUnique({
+        where: { id: targetId },
+        select: { zoneId: true }
+      });
+      if (table) {
+        tableId = targetId;
+        zoneId = table.zoneId;
+      }
+    }
+
+    await lineFloorPlanMinimumOrderService.upsertMinimumOrder(
+      lineId,
+      floorPlanId,
+      zoneId,
+      tableId,
+      minimumPrice
+    );
+
+    // Get floor plan for revalidation
+    const floorPlan = await floorPlanService.getFloorPlanById(floorPlanId);
+    if (floorPlan) {
+      revalidatePath(`/venues/${floorPlan.venueId}/settings/structure/${floorPlanId}`);
+      revalidatePath(`/venues/${floorPlan.venueId}/lines`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating line floor plan minimum order:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to update line floor plan minimum order" };
   }
 }

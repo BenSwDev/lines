@@ -1,20 +1,33 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/core/i18n/provider";
-import { updateMinimumOrder } from "../../actions/floorPlanActions";
+import {
+  updateMinimumOrder,
+  updateLineFloorPlanMinimumOrder,
+  getVenueLines
+} from "../../actions/floorPlanActions";
+import { lineFloorPlanMinimumOrderService } from "../../services/lineFloorPlanService";
 import type { Zone, Table, FloorPlanWithDetails } from "../../types";
 
 interface MinimumOrderEditorProps {
   selectedZone: Zone | null;
   selectedTable: Table | null;
   floorPlan: FloorPlanWithDetails;
+  venueId: string;
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
 }
 
@@ -22,6 +35,7 @@ export function MinimumOrderEditor({
   selectedZone,
   selectedTable,
   floorPlan,
+  venueId,
   onElementSelect
 }: MinimumOrderEditorProps) {
   const router = useRouter();
@@ -33,7 +47,8 @@ export function MinimumOrderEditor({
       <MinimumOrderForm
         target={selectedTable}
         targetType="table"
-        currentMinimum={selectedTable.minimumPrice ? Number(selectedTable.minimumPrice) : null}
+        floorPlan={floorPlan}
+        venueId={venueId}
         isPending={isPending}
         startTransition={startTransition}
         onBack={() => onElementSelect(null, null)}
@@ -48,9 +63,8 @@ export function MinimumOrderEditor({
       <MinimumOrderForm
         target={selectedZone}
         targetType="zone"
-        currentMinimum={
-          selectedZone.zoneMinimumPrice ? Number(selectedZone.zoneMinimumPrice) : null
-        }
+        floorPlan={floorPlan}
+        venueId={venueId}
         isPending={isPending}
         startTransition={startTransition}
         onBack={() => onElementSelect(null, null)}
@@ -67,7 +81,8 @@ export function MinimumOrderEditor({
 interface MinimumOrderFormProps {
   target: Zone | Table;
   targetType: "zone" | "table";
-  currentMinimum: number | null;
+  floorPlan: FloorPlanWithDetails;
+  venueId: string;
   isPending: boolean;
   startTransition: (callback: () => void) => void;
   onBack: () => void;
@@ -77,22 +92,113 @@ interface MinimumOrderFormProps {
 function MinimumOrderForm({
   target,
   targetType,
-  currentMinimum,
+  floorPlan,
+  venueId,
   isPending,
   startTransition,
   onBack,
   router
 }: MinimumOrderFormProps) {
   const { t } = useTranslations();
-  const [minimumPrice, setMinimumPrice] = useState<string>(currentMinimum?.toString() ?? "");
+  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
+  const [availableLines, setAvailableLines] = useState<
+    { id: string; name: string; color: string }[]
+  >([]);
+  const [isLoadingLines, setIsLoadingLines] = useState(false);
+  const [minimumPrice, setMinimumPrice] = useState<string>("");
+  const [isLoadingMinimum, setIsLoadingMinimum] = useState(false);
+
+  // Load available lines
+  useEffect(() => {
+    async function loadLines() {
+      setIsLoadingLines(true);
+      try {
+        const result = await getVenueLines(venueId);
+        if (result.success && result.data) {
+          setAvailableLines(result.data);
+        }
+      } finally {
+        setIsLoadingLines(false);
+      }
+    }
+    loadLines();
+  }, [venueId]);
+
+  // Load existing minimum order based on selected line or default
+  useEffect(() => {
+    async function loadMinimum() {
+      setIsLoadingMinimum(true);
+      try {
+        let currentMinimum: number | null = null;
+
+        if (selectedLineId) {
+          // Load line-specific minimum
+          const zoneId = targetType === "zone" ? target.id : null;
+          const tableId = targetType === "table" ? target.id : null;
+          currentMinimum = await lineFloorPlanMinimumOrderService.getMinimumOrder(
+            selectedLineId,
+            floorPlan.id,
+            zoneId,
+            tableId
+          );
+        } else {
+          // Load default minimum from target
+          if (targetType === "zone") {
+            currentMinimum =
+              "zoneMinimumPrice" in target && target.zoneMinimumPrice
+                ? Number(target.zoneMinimumPrice)
+                : null;
+          } else {
+            currentMinimum =
+              "minimumPrice" in target && target.minimumPrice ? Number(target.minimumPrice) : null;
+          }
+        }
+
+        setMinimumPrice(currentMinimum?.toString() ?? "");
+      } catch (error) {
+        console.error("Error loading minimum order:", error);
+        // Fallback to default
+        if (targetType === "zone") {
+          setMinimumPrice(
+            "zoneMinimumPrice" in target && target.zoneMinimumPrice
+              ? Number(target.zoneMinimumPrice).toString()
+              : ""
+          );
+        } else {
+          setMinimumPrice(
+            "minimumPrice" in target && target.minimumPrice
+              ? Number(target.minimumPrice).toString()
+              : ""
+          );
+        }
+      } finally {
+        setIsLoadingMinimum(false);
+      }
+    }
+    loadMinimum();
+  }, [selectedLineId, target, targetType, floorPlan.id]);
 
   const handleSave = () => {
     startTransition(async () => {
-      await updateMinimumOrder({
-        targetType,
-        targetId: target.id,
-        minimumPrice: minimumPrice ? Number(minimumPrice) : 0
-      });
+      const price = minimumPrice ? Number(minimumPrice) : 0;
+
+      if (selectedLineId) {
+        // Save line-specific minimum order
+        await updateLineFloorPlanMinimumOrder({
+          lineId: selectedLineId,
+          floorPlanId: floorPlan.id,
+          targetType,
+          targetId: target.id,
+          minimumPrice: price
+        });
+      } else {
+        // Save default minimum order
+        await updateMinimumOrder({
+          targetType,
+          targetId: target.id,
+          minimumPrice: price
+        });
+      }
       router.refresh();
     });
   };
@@ -111,56 +217,100 @@ function MinimumOrderForm({
         </Button>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="minimum-price">
-            {t("floorPlan.minimumOrderAmount", { defaultValue: "סכום מינימום הזמנה" })}
-          </Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              ₪
-            </span>
-            <Input
-              id="minimum-price"
-              type="number"
-              value={minimumPrice}
-              onChange={(e) => setMinimumPrice(e.target.value)}
-              placeholder="0"
-              className="pl-8"
+      {/* Line Selection */}
+      <div className="space-y-2">
+        <Label>{t("floorPlan.selectLine", { defaultValue: "בחר ליין (אופציונלי)" })}</Label>
+        <Select
+          value={selectedLineId || "default"}
+          onValueChange={(value) => setSelectedLineId(value === "default" ? null : value)}
+          disabled={isLoadingLines}
+        >
+          <SelectTrigger>
+            <SelectValue
+              placeholder={t("floorPlan.selectLinePlaceholder", {
+                defaultValue: "הגדרות כלליות למפה"
+              })}
             />
-          </div>
-        </div>
-
-        {/* Quick Presets */}
-        <div className="space-y-2">
-          <Label>{t("floorPlan.quickPresets", { defaultValue: "ערכים מהירים" })}</Label>
-          <div className="flex flex-wrap gap-2">
-            {[100, 200, 300, 500, 750, 1000].map((preset) => (
-              <Button
-                key={preset}
-                variant="outline"
-                size="sm"
-                onClick={() => setMinimumPrice(preset.toString())}
-                className={cn(minimumPrice === preset.toString() && "ring-2 ring-primary")}
-              >
-                ₪{preset}
-              </Button>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">
+              {t("floorPlan.generalSettings", { defaultValue: "הגדרות כלליות למפה" })}
+            </SelectItem>
+            {availableLines.map((line) => (
+              <SelectItem key={line.id} value={line.id}>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: line.color }} />
+                  {line.name}
+                </div>
+              </SelectItem>
             ))}
-          </div>
-        </div>
-
-        <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
-          <Save className="h-4 w-4" />
-          {isPending
-            ? t("floorPlan.saving", { defaultValue: "שומר..." })
-            : t("floorPlan.save", { defaultValue: "שמור" })}
-        </Button>
-
-        {/* Clear button */}
-        <Button variant="ghost" onClick={() => setMinimumPrice("")} className="w-full">
-          {t("floorPlan.clearMinimum", { defaultValue: "נקה מינימום" })}
-        </Button>
+          </SelectContent>
+        </Select>
+        {selectedLineId && (
+          <p className="text-xs text-muted-foreground">
+            {t("floorPlan.lineSpecificMinimum", {
+              defaultValue: "מינימום הזמנה ספציפי לליין זה"
+            })}
+          </p>
+        )}
       </div>
+
+      {isLoadingMinimum ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>{t("common.loading", { defaultValue: "טוען..." })}</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="minimum-price">
+              {t("floorPlan.minimumOrderAmount", { defaultValue: "סכום מינימום הזמנה" })}
+            </Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                ₪
+              </span>
+              <Input
+                id="minimum-price"
+                type="number"
+                value={minimumPrice}
+                onChange={(e) => setMinimumPrice(e.target.value)}
+                placeholder="0"
+                className="pl-8"
+              />
+            </div>
+          </div>
+
+          {/* Quick Presets */}
+          <div className="space-y-2">
+            <Label>{t("floorPlan.quickPresets", { defaultValue: "ערכים מהירים" })}</Label>
+            <div className="flex flex-wrap gap-2">
+              {[100, 200, 300, 500, 750, 1000].map((preset) => (
+                <Button
+                  key={preset}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMinimumPrice(preset.toString())}
+                  className={cn(minimumPrice === preset.toString() && "ring-2 ring-primary")}
+                >
+                  ₪{preset}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
+            <Save className="h-4 w-4" />
+            {isPending
+              ? t("floorPlan.saving", { defaultValue: "שומר..." })
+              : t("floorPlan.save", { defaultValue: "שמור" })}
+          </Button>
+
+          {/* Clear button */}
+          <Button variant="ghost" onClick={() => setMinimumPrice("")} className="w-full">
+            {t("floorPlan.clearMinimum", { defaultValue: "נקה מינימום" })}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
