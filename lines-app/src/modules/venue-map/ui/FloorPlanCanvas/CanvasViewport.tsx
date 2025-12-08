@@ -20,6 +20,8 @@ interface CanvasViewportProps {
   backgroundImage?: string;
   backgroundImageOpacity?: number;
   className?: string;
+  onScreenToCanvas?: (fn: (x: number, y: number) => { x: number; y: number }) => void;
+  elements?: Array<{ x: number; y: number; width: number; height: number }>;
 }
 
 export function CanvasViewport({
@@ -33,7 +35,9 @@ export function CanvasViewport({
   showGrid = true,
   backgroundImage,
   backgroundImageOpacity = 0.5,
-  className = ""
+  className = "",
+  onScreenToCanvas,
+  elements
 }: CanvasViewportProps) {
   const device = useDevice();
   const canvasSize = useCanvasSize();
@@ -53,23 +57,30 @@ export function CanvasViewport({
     onPanChange?.(panOffset);
   }, [panOffset, onPanChange]);
 
-  // Convert screen coordinates to canvas coordinates (exposed for future use)
-  // const screenToCanvas = useCallback(
-  //   (screenX: number, screenY: number): { x: number; y: number } => {
-  //     if (!containerRef.current) return { x: 0, y: 0 };
-  //     const containerRect = containerRef.current.getBoundingClientRect();
-  //     const containerX = screenX - containerRect.left;
-  //     const containerY = screenY - containerRect.top;
-  //     const canvasCenterX = containerRect.width / 2;
-  //     const canvasCenterY = containerRect.height / 2;
-  //     const relativeX = (containerX - canvasCenterX - panOffset.x) / zoom;
-  //     const relativeY = (containerY - canvasCenterY - panOffset.y) / zoom;
-  //     const canvasX = relativeX + canvasSize.width / 2;
-  //     const canvasY = relativeY + canvasSize.height / 2;
-  //     return { x: canvasX, y: canvasY };
-  //   },
-  //   [zoom, panOffset, canvasSize]
-  // );
+  // Convert screen coordinates to canvas coordinates
+  const screenToCanvas = useCallback(
+    (screenX: number, screenY: number): { x: number; y: number } => {
+      if (!containerRef.current) return { x: 0, y: 0 };
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const containerX = screenX - containerRect.left;
+      const containerY = screenY - containerRect.top;
+      const canvasCenterX = containerRect.width / 2;
+      const canvasCenterY = containerRect.height / 2;
+      const relativeX = (containerX - canvasCenterX - panOffset.x) / zoom;
+      const relativeY = (containerY - canvasCenterY - panOffset.y) / zoom;
+      const canvasX = relativeX + canvasSize.width / 2;
+      const canvasY = relativeY + canvasSize.height / 2;
+      return { x: canvasX, y: canvasY };
+    },
+    [zoom, panOffset, canvasSize]
+  );
+
+  // Expose screenToCanvas for parent components
+  useEffect(() => {
+    if (onScreenToCanvas) {
+      onScreenToCanvas(screenToCanvas);
+    }
+  }, [screenToCanvas, onScreenToCanvas]);
 
   // Zoom functions
   const handleZoomIn = useCallback(() => {
@@ -85,11 +96,53 @@ export function CanvasViewport({
     setPanOffset({ x: 0, y: 0 });
   }, []);
 
-  // Zoom to fit (will be implemented with elements later)
-  // const handleZoomToFit = useCallback(() => {
-  //   setZoom(1);
-  //   setPanOffset({ x: 0, y: 0 });
-  // }, []);
+  // Zoom to fit elements
+  const handleZoomToFit = useCallback(
+    (elements?: Array<{ x: number; y: number; width: number; height: number }>) => {
+      if (!elements || elements.length === 0) {
+        setZoom(1);
+        setPanOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      if (!containerRef.current) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const padding = 50; // Padding around elements
+
+      // Calculate bounds of all elements
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      elements.forEach((el) => {
+        minX = Math.min(minX, el.x);
+        minY = Math.min(minY, el.y);
+        maxX = Math.max(maxX, el.x + el.width);
+        maxY = Math.max(maxY, el.y + el.height);
+      });
+
+      const elementsWidth = maxX - minX + padding * 2;
+      const elementsHeight = maxY - minY + padding * 2;
+
+      // Calculate zoom to fit
+      const zoomX = (containerRect.width - padding * 2) / elementsWidth;
+      const zoomY = (containerRect.height - padding * 2) / elementsHeight;
+      const newZoom = Math.min(zoomX, zoomY, maxZoom);
+
+      // Center the elements
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+
+      setZoom(newZoom);
+      setPanOffset({
+        x: (containerRect.width / 2 - centerX * newZoom),
+        y: (containerRect.height / 2 - centerY * newZoom)
+      });
+    },
+    [maxZoom]
+  );
 
   // Pan functions
   const handlePanStart = useCallback(
@@ -145,16 +198,46 @@ export function CanvasViewport({
     [minZoom, maxZoom]
   );
 
-  // Touch pinch zoom (will be implemented with gesture handlers)
-  // const handlePinchZoom = useCallback(
-  //   (scale: number) => {
-  //     setZoom((prev) => {
-  //       const newZoom = prev * scale;
-  //       return Math.max(minZoom, Math.min(newZoom, maxZoom));
-  //     });
-  //   },
-  //   [minZoom, maxZoom]
-  // );
+  // Touch pinch zoom handler
+  const handlePinchZoom = useCallback(
+    (scale: number, centerX: number, centerY: number) => {
+      if (!containerRef.current) return;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const containerCenterX = containerRect.width / 2;
+      const containerCenterY = containerRect.height / 2;
+
+      // Calculate new zoom
+      const newZoom = Math.max(minZoom, Math.min(zoom * scale, maxZoom));
+      const zoomDelta = newZoom / zoom;
+
+      // Adjust pan to zoom towards the pinch center
+      const offsetX = centerX - containerCenterX;
+      const offsetY = centerY - containerCenterY;
+
+      setZoom(newZoom);
+      setPanOffset({
+        x: panOffset.x + offsetX * (1 - zoomDelta),
+        y: panOffset.y + offsetY * (1 - zoomDelta)
+      });
+    },
+    [zoom, panOffset, minZoom, maxZoom]
+  );
+
+  // Expose handlers for external use (via ref)
+  const viewportRef = useRef<{
+    handlePinchZoom: typeof handlePinchZoom;
+    handleZoomToFit: typeof handleZoomToFit;
+    screenToCanvas: typeof screenToCanvas;
+  } | null>(null);
+
+  useEffect(() => {
+    viewportRef.current = {
+      handlePinchZoom,
+      handleZoomToFit,
+      screenToCanvas
+    };
+  }, [handlePinchZoom, handleZoomToFit, screenToCanvas]);
 
   // Global mouse/touch handlers
   useEffect(() => {
@@ -278,14 +361,26 @@ export function CanvasViewport({
           </svg>
         </button>
         {!device.isMobile && (
-          <button
-            onClick={handleZoomReset}
-            className="rounded-lg bg-background/90 backdrop-blur-sm border px-3 py-2 text-xs shadow-lg hover:bg-background transition-colors"
-            aria-label="Reset zoom"
-            type="button"
-          >
-            Reset
-          </button>
+          <>
+            <button
+              onClick={handleZoomReset}
+              className="rounded-lg bg-background/90 backdrop-blur-sm border px-3 py-2 text-xs shadow-lg hover:bg-background transition-colors"
+              aria-label="Reset zoom"
+              type="button"
+            >
+              Reset
+            </button>
+            {elements && elements.length > 0 && (
+              <button
+                onClick={() => handleZoomToFit(elements)}
+                className="rounded-lg bg-background/90 backdrop-blur-sm border px-3 py-2 text-xs shadow-lg hover:bg-background transition-colors"
+                aria-label="Zoom to fit"
+                type="button"
+              >
+                Fit
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>
