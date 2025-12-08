@@ -29,7 +29,7 @@ export class LineRepository {
     });
   }
 
-  async update(id: string, data: Prisma.LineUpdateInput): Promise<Line> {
+  async update(id: string, data: Prisma.LineUpdateInput | Prisma.LineUncheckedUpdateInput): Promise<Line> {
     return prisma.line.update({
       where: { id },
       data

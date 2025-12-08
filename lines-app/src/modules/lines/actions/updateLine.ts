@@ -41,8 +41,14 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
     if (validated.color !== undefined) updateData.color = validated.color;
     if (validated.floorPlanId !== undefined) updateData.floorPlanId = validated.floorPlanId;
 
+    // Filter out any undefined values that might have been set
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([, value]) => value !== undefined)
+    ) as Prisma.LineUncheckedUpdateInput;
+
     // Update the Line - only send defined fields
-    const updatedLine = await lineRepository.update(lineId, updateData as Prisma.LineUpdateInput);
+    // Use UncheckedUpdateInput to directly set floorPlanId field
+    const updatedLine = await lineRepository.update(lineId, cleanUpdateData);
 
     // Use daySchedules if provided, otherwise use legacy fields
     const daySchedules =
