@@ -31,10 +31,11 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
 
     // Build update data object, filtering out undefined values and non-DB fields
     // Note: We need to use UncheckedUpdateInput to directly set floorPlanId field
-    // Only include fields that exist in the Line model
+    // Only include fields that exist in the Line model schema
     const updateData: Prisma.LineUncheckedUpdateInput = {};
 
-    // Only add fields that exist in the Line model schema
+    // Explicitly add only fields that exist in the Prisma Line model
+    // DO NOT include: daySchedules, selectedDates, manualDates (these are not DB fields)
     if (validated.name !== undefined) updateData.name = validated.name;
     if (validated.days !== undefined) updateData.days = validated.days;
     if (validated.startTime !== undefined) updateData.startTime = validated.startTime;
@@ -45,25 +46,9 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
       updateData.floorPlanId = validated.floorPlanId;
     }
 
-    // Filter out any undefined values and non-DB fields (like daySchedules, selectedDates, manualDates)
-    const allowedFields = [
-      "name",
-      "days",
-      "startTime",
-      "endTime",
-      "frequency",
-      "color",
-      "floorPlanId"
-    ];
-    const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(
-        ([key, value]) => allowedFields.includes(key) && value !== undefined
-      )
-    ) as Prisma.LineUncheckedUpdateInput;
-
     // Update the Line - only send defined fields
-    // Use UncheckedUpdateInput to directly set floorPlanId field
-    const updatedLine = await lineRepository.update(lineId, cleanUpdateData);
+    // The repository will filter out any non-DB fields automatically
+    const updatedLine = await lineRepository.update(lineId, updateData);
 
     // Use daySchedules if provided, otherwise use legacy fields
     const daySchedules =

@@ -33,8 +33,25 @@ export class LineRepository {
     id: string,
     data: Prisma.LineUpdateInput | Prisma.LineUncheckedUpdateInput
   ): Promise<Line> {
-    // Filter out all undefined values recursively to prevent Prisma errors
-    const cleanData = this.removeUndefinedValues(data) as
+    // Filter out all undefined values and non-DB fields recursively to prevent Prisma errors
+    // Only allow fields that exist in the Line model schema
+    const allowedFields = new Set([
+      "name",
+      "days",
+      "startTime",
+      "endTime",
+      "frequency",
+      "color",
+      "floorPlanId",
+      "venueId",
+      "venue", // For relation updates
+      "floorPlan", // For relation updates
+      "occurrences", // For relation updates
+      "createdAt",
+      "updatedAt"
+    ]);
+
+    const cleanData = this.removeUndefinedValuesAndFilterFields(data, allowedFields) as
       | Prisma.LineUpdateInput
       | Prisma.LineUncheckedUpdateInput;
 
@@ -62,6 +79,41 @@ export class LineRepository {
       for (const [key, value] of Object.entries(obj)) {
         if (value !== undefined) {
           cleaned[key] = this.removeUndefinedValues(value);
+        }
+      }
+      return cleaned;
+    }
+
+    return obj;
+  }
+
+  /**
+   * Recursively remove undefined values and filter out non-allowed fields
+   * This prevents Prisma from trying to update non-existent columns
+   */
+  private removeUndefinedValuesAndFilterFields(
+    obj: unknown,
+    allowedFields: Set<string>
+  ): unknown {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.removeUndefinedValuesAndFilterFields(item, allowedFields));
+    }
+
+    if (typeof obj === "object") {
+      const cleaned: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        // Only include allowed fields and non-undefined values
+        if (allowedFields.has(key) && value !== undefined) {
+          // For nested objects (like relations), recursively clean them
+          if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+            cleaned[key] = this.removeUndefinedValuesAndFilterFields(value, allowedFields);
+          } else {
+            cleaned[key] = this.removeUndefinedValues(value);
+          }
         }
       }
       return cleaned;
