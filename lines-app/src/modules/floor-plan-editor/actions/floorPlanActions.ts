@@ -188,7 +188,7 @@ export async function updateFloorPlan(input: unknown): Promise<{
     const validated = updateFloorPlanSchema.parse(input);
     const { id, ...data } = validated;
     
-    // Prevent changing isDefault if the floor plan is already default
+    // Prevent unsetting isDefault from a default floor plan
     if (data.isDefault !== undefined) {
       const currentFloorPlan = await floorPlanService.getFloorPlanById(id);
       
@@ -198,17 +198,6 @@ export async function updateFloorPlan(input: unknown): Promise<{
           success: false,
           error: "Cannot unset default status from the default floor plan"
         };
-      }
-      
-      // Prevent setting another floor plan as default if one already exists
-      if (data.isDefault === true && !currentFloorPlan?.isDefault) {
-        const existingDefault = await floorPlanService.getDefaultFloorPlan(currentFloorPlan!.venueId);
-        if (existingDefault) {
-          return {
-            success: false,
-            error: "Cannot set another floor plan as default. A default floor plan already exists."
-          };
-        }
       }
     }
     

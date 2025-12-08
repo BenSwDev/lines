@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { deleteFloorPlan, duplicateFloorPlan } from "../actions/floorPlanActions";
+import { deleteFloorPlan, duplicateFloorPlan, updateFloorPlan } from "../actions/floorPlanActions";
 import { ManageFloorPlanLinesDialog } from "./ManageFloorPlanLinesDialog";
 import type { FloorPlanListItem } from "../types";
 
@@ -79,6 +79,23 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
   const handleManageLines = (floorPlan: FloorPlanListItem) => {
     setFloorPlanForLines(floorPlan);
     setManageLinesDialogOpen(true);
+  };
+
+  const handleSetAsDefault = async (floorPlan: FloorPlanListItem) => {
+    try {
+      const result = await updateFloorPlan({
+        id: floorPlan.id,
+        isDefault: true
+      });
+      if (result.success) {
+        router.refresh();
+      } else {
+        // Show error toast if needed
+        console.error(result.error);
+      }
+    } catch (error) {
+      console.error("Error setting as default:", error);
+    }
   };
 
   return (
@@ -170,6 +187,17 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
                         <Link2 className="h-4 w-4 mr-2" />
                         {t("floorPlan.manageLines", { defaultValue: "נהל ליינים" })}
                       </DropdownMenuItem>
+                      {!floorPlan.isDefault && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetAsDefault(floorPlan);
+                          }}
+                        >
+                          <Star className="h-4 w-4 mr-2" />
+                          {t("floorPlan.setAsDefault")}
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive"

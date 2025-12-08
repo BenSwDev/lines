@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, FileText, Users, DollarSign, Settings } from "lucide-react";
+import { ArrowLeft, Eye, FileText, Users, DollarSign, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
   const [selectedElementType, setSelectedElementType] = useState<"zone" | "table" | "area" | null>(
     null
   );
+  const [isSaving, setIsSaving] = useState(false);
 
   // Check if floor plan is locked - only allow editing in view mode if locked
   const isLocked = floorPlan.isLocked;
@@ -43,6 +44,18 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
 
   const handleBack = () => {
     router.push(`/venues/${venueId}/settings/structure`);
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Refresh to save all current state
+      router.refresh();
+      // Small delay to show saving state
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleElementSelect = useCallback(
@@ -152,10 +165,18 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
               🔒 {t("floorPlan.locked", { defaultValue: "נעול" })}
             </span>
           )}
-          <Button variant="outline" size="sm" onClick={handleBack}>
-            <Settings className="h-4 w-4 mr-2" />
-            {t("floorPlan.settings", { defaultValue: "הגדרות" })}
-          </Button>
+          {canEdit && (
+            <Button 
+              variant="default" 
+              size="sm" 
+              onClick={handleSave}
+              disabled={isSaving}
+              className="gap-2"
+            >
+              <Save className="h-4 w-4" />
+              {isSaving ? t("floorPlan.saving") : t("floorPlan.save")}
+            </Button>
+          )}
         </div>
       </div>
 

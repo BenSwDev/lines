@@ -342,21 +342,13 @@ export const floorPlanService = {
       throw new Error("Cannot unset default status from the default floor plan");
     }
 
-    // Prevent setting another floor plan as default if one already exists
+    // If setting as default, unset other defaults (allow changing default)
     if (updateData.isDefault === true) {
       if (currentFloorPlan) {
-        // Check if there's already a default floor plan
-        const existingDefault = await prisma.floorPlan.findFirst({
-          where: { 
-            venueId: currentFloorPlan.venueId, 
-            isDefault: true,
-            NOT: { id } // Exclude current floor plan
-          }
+        await prisma.floorPlan.updateMany({
+          where: { venueId: currentFloorPlan.venueId, isDefault: true, NOT: { id } },
+          data: { isDefault: false }
         });
-        
-        if (existingDefault) {
-          throw new Error("Cannot set another floor plan as default. A default floor plan already exists.");
-        }
       }
     }
 

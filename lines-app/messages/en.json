@@ -217,6 +217,7 @@
     "duplicating": "Duplicating...",
     "duplicate": "Duplicate",
     "manageLines": "Manage Lines",
+    "setAsDefault": "Set as Default",
     "deleteConfirmTitle": "Delete Floor Plan?",
     "deleteConfirmDescription": "This action cannot be undone. All zones and tables in this floor plan will be permanently deleted.",
     "cancel": "Cancel",
