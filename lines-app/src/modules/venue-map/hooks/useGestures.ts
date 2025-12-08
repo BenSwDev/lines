@@ -4,6 +4,7 @@
  */
 
 import { useRef, useCallback } from "react";
+import * as React from "react";
 import { useDevice } from "./useDevice";
 
 export interface GestureHandlers {
@@ -173,21 +174,21 @@ export function useGestures(handlers: GestureHandlers) {
     handlers.onPinchEnd?.();
   }, [handlers]);
 
-  // Mouse event handlers
+  // Mouse event handlers - React events
   const handleMouseDown = useCallback(
-    (e: MouseEvent) => {
+    (e: React.MouseEvent) => {
       if (device.hasMouse) {
-        handleLongPressStart(e);
-        handlePanStart(e);
+        handleLongPressStart(e.nativeEvent);
+        handlePanStart(e.nativeEvent);
       }
     },
     [device.hasMouse, handleLongPressStart, handlePanStart]
   );
 
   const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+    (e: React.MouseEvent) => {
       if (device.hasMouse && panStartRef.current) {
-        handlePan(e);
+        handlePan(e.nativeEvent);
       }
     },
     [device.hasMouse, handlePan]
@@ -201,23 +202,23 @@ export function useGestures(handlers: GestureHandlers) {
   }, [device.hasMouse, handleLongPressEnd, handlePanEnd]);
 
   const handleClick = useCallback(
-    (e: MouseEvent) => {
+    (e: React.MouseEvent) => {
       if (device.hasMouse) {
-        handleTap(e);
+        handleTap(e.nativeEvent);
       }
     },
     [device.hasMouse, handleTap]
   );
 
-  // Touch event handlers
+  // Touch event handlers - React events
   const handleTouchStart = useCallback(
-    (e: TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (device.hasTouch) {
         if (e.touches.length === 1) {
-          handleLongPressStart(e);
-          handlePanStart(e);
+          handleLongPressStart(e.nativeEvent);
+          handlePanStart(e.nativeEvent);
         } else if (e.touches.length === 2) {
-          handlePinchStart(e);
+          handlePinchStart(e.nativeEvent);
         }
       }
     },
@@ -225,12 +226,12 @@ export function useGestures(handlers: GestureHandlers) {
   );
 
   const handleTouchMove = useCallback(
-    (e: TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (device.hasTouch) {
         if (e.touches.length === 1 && panStartRef.current) {
-          handlePan(e);
+          handlePan(e.nativeEvent);
         } else if (e.touches.length === 2) {
-          handlePinch(e);
+          handlePinch(e.nativeEvent);
         }
       }
     },
@@ -238,7 +239,7 @@ export function useGestures(handlers: GestureHandlers) {
   );
 
   const handleTouchEnd = useCallback(
-    (e: TouchEvent) => {
+    (e: React.TouchEvent) => {
       if (device.hasTouch) {
         handleLongPressEnd();
         if (e.touches.length === 0) {
