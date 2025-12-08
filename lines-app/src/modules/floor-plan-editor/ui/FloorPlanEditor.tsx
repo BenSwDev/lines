@@ -2,8 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, FileText, Users, DollarSign, Save } from "lucide-react";
+import { ArrowLeft, Eye, FileText, Users, DollarSign, Save, Edit2, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/core/i18n/provider";
@@ -18,7 +19,8 @@ import {
   createVenueArea,
   deleteZone,
   deleteTable,
-  deleteVenueArea
+  deleteVenueArea,
+  updateFloorPlan
 } from "../actions/floorPlanActions";
 import type { EditorMode, FloorPlanWithDetails, Zone, Table } from "../types";
 
@@ -37,6 +39,9 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
     null
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [floorPlanName, setFloorPlanName] = useState(floorPlan.name);
+  const [isSavingName, setIsSavingName] = useState(false);
 
   // Check if floor plan is locked - only allow editing in view mode if locked
   const isLocked = floorPlan.isLocked;
@@ -55,6 +60,52 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
       await new Promise((resolve) => setTimeout(resolve, 500));
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleStartEditName = () => {
+    if (!canEdit) return;
+    setIsEditingName(true);
+    setFloorPlanName(floorPlan.name);
+  };
+
+  const handleCancelEditName = () => {
+    setIsEditingName(false);
+    setFloorPlanName(floorPlan.name);
+  };
+
+  const handleSaveName = async () => {
+    if (!floorPlanName.trim()) {
+      setFloorPlanName(floorPlan.name);
+      setIsEditingName(false);
+      return;
+    }
+
+    if (floorPlanName === floorPlan.name) {
+      setIsEditingName(false);
+      return;
+    }
+
+    setIsSavingName(true);
+    try {
+      const result = await updateFloorPlan({
+        id: floorPlan.id,
+        name: floorPlanName.trim()
+      });
+      if (result.success) {
+        setIsEditingName(false);
+        router.refresh();
+      } else {
+        // Revert on error
+        setFloorPlanName(floorPlan.name);
+        setIsEditingName(false);
+      }
+    } catch (error) {
+      console.error("Error updating floor plan name:", error);
+      setFloorPlanName(floorPlan.name);
+      setIsEditingName(false);
+    } finally {
+      setIsSavingName(false);
     }
   };
 
@@ -152,8 +203,57 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
           <Button variant="ghost" size="icon" onClick={handleBack}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-xl font-semibold">{floorPlan.name}</h1>
+          <div className="flex-1">
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={floorPlanName}
+                  onChange={(e) => setFloorPlanName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSaveName();
+                    } else if (e.key === "Escape") {
+                      handleCancelEditName();
+                    }
+                  }}
+                  disabled={isSavingName}
+                  className="text-xl font-semibold h-9"
+                  autoFocus
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleSaveName}
+                  disabled={isSavingName || !floorPlanName.trim()}
+                  className="h-8 w-8"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCancelEditName}
+                  disabled={isSavingName}
+                  className="h-8 w-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 group">
+                <h1 className="text-xl font-semibold">{floorPlan.name}</h1>
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleStartEditName}
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            )}
             {floorPlan.description && (
               <p className="text-sm text-muted-foreground">{floorPlan.description}</p>
             )}

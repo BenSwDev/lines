@@ -279,7 +279,8 @@
     "selectedTable": "שולחן נבחר",
     "selectedArea": "איזור מיוחד נבחר",
     "resetView": "איפוס תצוגה",
-    "zoom": "זום"
+    "zoom": "זום",
+    "namePlaceholder": "הכנס שם מפה..."
   },
   "tickets": {
     "title": "הגדרות כרטיסים",

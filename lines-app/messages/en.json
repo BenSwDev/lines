@@ -282,7 +282,8 @@
     "zoom": "Zoom",
     "lockedViewOnly": "The floor plan is locked - view only. To edit, unlock it in the floor plan settings.",
     "eventHallTemplateDescription": "Optimal structure for an event hall",
-    "restaurantTemplateDescription": "Optimal structure for a restaurant"
+    "restaurantTemplateDescription": "Optimal structure for a restaurant",
+    "namePlaceholder": "Enter floor plan name..."
   },
   "tickets": {
     "title": "Ticket Settings",
