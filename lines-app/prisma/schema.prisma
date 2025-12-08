@@ -161,6 +161,8 @@ model Zone {
   height        Decimal? @db.Decimal(10, 2)
   shape         String?  @default("rectangle") // rectangle, circle, polygon
   polygonPoints Json?    // For custom polygon shapes
+  // Pricing
+  zoneMinimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לאיזור
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -187,6 +189,9 @@ model Table {
   rotation  Decimal? @default(0) @db.Decimal(5, 2) // Rotation in degrees
   shape     String?  @default("rectangle") // rectangle, circle, oval, square
   tableType String?  @default("table") // table, bar, counter
+  // Pricing and numbering
+  tableNumber  Int?     // מספר שולחן
+  minimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לשולחן
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

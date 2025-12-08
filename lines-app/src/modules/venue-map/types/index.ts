@@ -42,6 +42,7 @@ export interface FloorPlanElement {
   showStools?: boolean;
   minimumPrice?: number | null;
   pricePerSeat?: number | null;
+  tableNumber?: number | null; // מספר שולחן
   // Zone specific
   description?: string | null;
   zoneType?:

@@ -45,7 +45,9 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           rotation: table.rotation,
           shape: table.shape as ElementShape,
           zoneId: table.zoneId,
-          color: table.color
+          color: table.color,
+          tableNumber: table.tableNumber || null,
+          minimumPrice: table.minimumPrice || null
         }));
 
         // Convert zones to FloorPlanElements
@@ -61,7 +63,8 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
           shape: zone.shape as ElementShape,
           color: zone.color,
           description: zone.description,
-          polygonPoints: zone.polygonPoints
+          polygonPoints: zone.polygonPoints,
+          zoneMinimumPrice: zone.zoneMinimumPrice || null
         }));
 
         // Convert venue areas to FloorPlanElements

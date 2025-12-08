@@ -27,6 +27,7 @@ import { useTranslations } from "@/core/i18n/provider";
 import type { FloorPlanElement } from "../../types";
 import { cn } from "@/lib/utils";
 import { useElementHierarchy } from "../../hooks/useElementHierarchy";
+import { AddElementButton } from "../AddElement";
 
 interface HierarchicalSidebarProps {
   elements: FloorPlanElement[];
@@ -251,37 +252,13 @@ export function HierarchicalSidebar({
 
   return (
     <div className="flex flex-col h-full bg-card border-r">
-      {/* Add Buttons */}
-      <div className="p-4 border-b space-y-2">
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            size="sm"
-            variant="default"
-            className="flex-col gap-1 h-auto py-3"
-            onClick={onAddTable}
-          >
-            <Table className="h-5 w-5" />
-            <span className="text-xs">{t("floorPlan.table") || "שולחן"}</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-col gap-1 h-auto py-3"
-            onClick={onAddBar}
-          >
-            <ChefHat className="h-5 w-5" />
-            <span className="text-xs">{t("floorPlan.bar") || "בר"}</span>
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-col gap-1 h-auto py-3"
-            onClick={onAddZone}
-          >
-            <MapPin className="h-5 w-5" />
-            <span className="text-xs">{t("floorPlan.zone") || "אזור"}</span>
-          </Button>
-        </div>
+      {/* Add Element Button */}
+      <div className="p-4 border-b">
+        <AddElementButton
+          onAddTable={onAddTable}
+          onAddBar={onAddBar}
+          onAddZone={onAddZone}
+        />
 
         {/* Filter Toggle */}
         <Button

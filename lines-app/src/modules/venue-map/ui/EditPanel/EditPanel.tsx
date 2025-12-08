@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Save, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save, X, Copy } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import type { FloorPlanElement } from "../../types";
 
@@ -24,6 +24,7 @@ interface EditPanelProps {
   onNavigatePrevious?: () => void;
   canNavigateNext?: boolean;
   canNavigatePrevious?: boolean;
+  onDuplicate?: (element: FloorPlanElement) => void;
 }
 
 export function EditPanel({
@@ -34,7 +35,8 @@ export function EditPanel({
   onNavigateNext,
   onNavigatePrevious,
   canNavigateNext = false,
-  canNavigatePrevious = false
+  canNavigatePrevious = false,
+  onDuplicate
 }: EditPanelProps) {
   const { t } = useTranslations();
   const [name, setName] = useState("");
@@ -217,6 +219,20 @@ export function EditPanel({
           <Save className="h-4 w-4" />
           {t("common.save") || "שמור"}
         </Button>
+        {onDuplicate && element.type === "specialArea" && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (element) {
+                onDuplicate(element);
+              }
+            }}
+            className="w-full gap-2"
+          >
+            <Copy className="h-4 w-4" />
+            {t("common.duplicate") || "שכפל"}
+          </Button>
+        )}
         <Button variant="outline" onClick={onCancel} className="w-full">
           {t("common.cancel") || "ביטול"}
         </Button>

@@ -19,6 +19,8 @@ export type TableItem = {
   zoneId?: string;
   color?: string;
   polygonPoints?: { x: number; y: number }[];
+  tableNumber?: number | null;
+  minimumPrice?: number | null;
 };
 
 // ZoneItem type for floor plan
@@ -33,6 +35,7 @@ export type ZoneItem = {
   height: number;
   shape: "rectangle" | "circle" | "triangle" | "square" | "polygon";
   polygonPoints?: { x: number; y: number }[];
+  zoneMinimumPrice?: number | null;
 };
 
 // VenueAreaItem type for floor plan
@@ -128,7 +131,8 @@ export async function loadVenueFloorPlan(venueId: string, userId?: string) {
       shape: (zone.shape as ZoneItem["shape"]) || "rectangle",
       polygonPoints: zone.polygonPoints
         ? (zone.polygonPoints as { x: number; y: number }[])
-        : undefined
+        : undefined,
+      zoneMinimumPrice: zone.zoneMinimumPrice ? Number(zone.zoneMinimumPrice) : null
     }));
 
     const venueAreaItems: VenueAreaItem[] = venueAreas.map((area) => ({
@@ -228,7 +232,8 @@ export async function saveVenueFloorPlan(
             shape: zone.shape,
             polygonPoints: zone.polygonPoints
               ? (zone.polygonPoints as Prisma.InputJsonValue)
-              : Prisma.JsonNull
+              : Prisma.JsonNull,
+            zoneMinimumPrice: zone.zoneMinimumPrice
           }
         });
       } else {
@@ -246,7 +251,8 @@ export async function saveVenueFloorPlan(
             shape: zone.shape,
             polygonPoints: zone.polygonPoints
               ? (zone.polygonPoints as Prisma.InputJsonValue)
-              : Prisma.JsonNull
+              : Prisma.JsonNull,
+            zoneMinimumPrice: zone.zoneMinimumPrice
           }
         });
       }
@@ -388,7 +394,9 @@ export async function saveVenueFloorPlan(
             width: table.width,
             height: table.height,
             rotation: table.rotation,
-            shape: table.shape
+            shape: table.shape,
+            tableNumber: table.tableNumber,
+            minimumPrice: table.minimumPrice
           }
         });
       }
@@ -460,7 +468,9 @@ export async function saveVenueTables(venueId: string, tables: TableItem[]) {
             width: table.width,
             height: table.height,
             rotation: table.rotation,
-            shape: table.shape
+            shape: table.shape,
+            tableNumber: table.tableNumber,
+            minimumPrice: table.minimumPrice
           }
         });
       } else {
@@ -498,7 +508,9 @@ export async function saveVenueTables(venueId: string, tables: TableItem[]) {
             width: table.width,
             height: table.height,
             rotation: table.rotation,
-            shape: table.shape
+            shape: table.shape,
+            tableNumber: table.tableNumber,
+            minimumPrice: table.minimumPrice
           }
         });
       }

@@ -75,7 +75,7 @@ export function FloorPlanEditor({
   const screenToCanvasRef = useRef<((x: number, y: number) => { x: number; y: number }) | null>(
     null
   );
-  const historyManagerRef = useRef(new HistoryManager<FloorPlanElement>(50));
+  const historyManagerRef = useRef(new HistoryManager<FloorPlanElement[]>(50));
   const autoSaveManagerRef = useRef<AutoSaveManager<FloorPlanElement[]> | null>(null);
 
   // Hooks
@@ -233,6 +233,31 @@ export function FloorPlanEditor({
     [elements, updateElementsWithHistory, selection]
   );
 
+  // Handle duplicate element (mainly for special areas)
+  const handleDuplicateElement = useCallback(
+    (element: FloorPlanElement) => {
+      const offset = GRID_SIZE * 2; // Offset by 2 grid cells
+      const duplicated: FloorPlanElement = {
+        ...element,
+        id: `${element.type}-${Date.now()}`,
+        name: `${element.name} (עותק)`,
+        x: element.x + offset,
+        y: element.y + offset
+      };
+
+      const newElements = [...elements, duplicated];
+      const linkedElements = autoLinkElementsToZones(newElements);
+      updateElementsWithHistory(linkedElements);
+      selection.selectElement(duplicated.id);
+      handleElementClick(duplicated);
+      toast({
+        title: t("success.elementDuplicated") || "אלמנט שוכפל",
+        description: t("success.elementDuplicatedDescription") || "האלמנט שוכפל בהצלחה."
+      });
+    },
+    [elements, updateElementsWithHistory, selection, handleElementClick, t, toast]
+  );
+
   // Handle add table
   const handleAddTable = useCallback(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -287,7 +312,7 @@ export function FloorPlanEditor({
       width: snappedSize * 2,
       height: snappedSize / 2,
       rotation: 0,
-      shape: "rectangle",
+      shape: "rectangle", // בר תמיד מלבן
       color: "#A0522D",
       seats: 0,
       tableType: "bar",
@@ -350,7 +375,9 @@ export function FloorPlanEditor({
           rotation: e.rotation,
           shape: e.shape,
           zoneId: e.zoneId,
-          color: e.color
+          color: e.color || "#000000",
+          tableNumber: e.tableNumber || null,
+          minimumPrice: e.minimumPrice || null
         }));
 
       const zones = elements
@@ -365,7 +392,8 @@ export function FloorPlanEditor({
           shape: e.shape,
           color: e.color || "#3B82F6",
           description: e.description,
-          polygonPoints: e.polygonPoints
+          polygonPoints: e.polygonPoints,
+          zoneMinimumPrice: e.zoneMinimumPrice || null
         }));
 
       const result = await saveVenueFloorPlan(venueId, tables, zones, [], userId);
@@ -433,33 +461,55 @@ export function FloorPlanEditor({
     }
   }, [getCurrentElementIndex, allElementsForNavigation, handleElementClick]);
 
-  // Handle mouse move - drag elements
+  // Handle mouse move - drag elements (with requestAnimationFrame to prevent flickering)
+  const dragElementsRef = useRef<FloorPlanElement[]>(elements);
+  const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    dragElementsRef.current = elements;
+  }, [elements]);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!dragAndDrop.isDragging || !screenToCanvasRef.current) return;
 
-      const canvasPos = screenToCanvasRef.current(e.clientX, e.clientY);
-      const selectedIds = selection.selectedElementId
-        ? new Set([selection.selectedElementId])
-        : new Set<string>();
+      // Cancel previous animation frame
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
 
-      const updatedElements = dragAndDrop.handleDrag(
-        canvasPos.x,
-        canvasPos.y,
-        selectedIds,
-        elements
-      );
+      // Use requestAnimationFrame to batch updates and prevent flickering
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const canvasPos = screenToCanvasRef.current!(e.clientX, e.clientY);
+        const selectedIds = selection.selectedElementId
+          ? new Set([selection.selectedElementId])
+          : new Set<string>();
 
-      // Auto-link to zones and update
-      const linkedElements = autoLinkElementsToZones(updatedElements);
-      setElements(linkedElements);
+        const updatedElements = dragAndDrop.handleDrag(
+          canvasPos.x,
+          canvasPos.y,
+          selectedIds,
+          dragElementsRef.current
+        );
+
+        // Auto-link to zones and update
+        const linkedElements = autoLinkElementsToZones(updatedElements);
+        dragElementsRef.current = linkedElements;
+        setElements(linkedElements);
+      });
     };
 
     const handleMouseUp = () => {
+      // Cancel any pending animation frame
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+
       if (dragAndDrop.isDragging) {
         dragAndDrop.endDrag();
         // Save to history after drag ends
-        historyManagerRef.current.push(elements);
+        historyManagerRef.current.push(dragElementsRef.current);
       }
     };
 
@@ -471,8 +521,11 @@ export function FloorPlanEditor({
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
-  }, [dragAndDrop, selection, elements]);
+  }, [dragAndDrop.isDragging, selection.selectedElementId, dragAndDrop]);
 
   return (
     <div className="flex h-full">
@@ -596,6 +649,7 @@ export function FloorPlanEditor({
             onNavigatePrevious={handleNavigatePrevious}
             canNavigateNext={getCurrentElementIndex() < allElementsForNavigation.length - 1}
             canNavigatePrevious={getCurrentElementIndex() > 0}
+            onDuplicate={handleDuplicateElement}
           />
         </div>
       )}

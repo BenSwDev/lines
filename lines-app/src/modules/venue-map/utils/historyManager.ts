@@ -4,7 +4,7 @@
  */
 
 export interface HistoryState<T> {
-  elements: T[];
+  state: T;
   timestamp: number;
 }
 
@@ -20,7 +20,7 @@ export class HistoryManager<T> {
   /**
    * Add a new state to history
    */
-  push(state: T[]): void {
+  push(state: T): void {
     // Remove any states after current index (when undoing and then making new changes)
     if (this.currentIndex < this.history.length - 1) {
       this.history = this.history.slice(0, this.currentIndex + 1);
@@ -28,7 +28,7 @@ export class HistoryManager<T> {
 
     // Add new state
     this.history.push({
-      elements: JSON.parse(JSON.stringify(state)), // Deep clone
+      state: JSON.parse(JSON.stringify(state)), // Deep clone
       timestamp: Date.now()
     });
 
@@ -43,10 +43,10 @@ export class HistoryManager<T> {
   /**
    * Undo - go back one step
    */
-  undo(): T[] | null {
+  undo(): T | null {
     if (this.canUndo()) {
       this.currentIndex--;
-      return JSON.parse(JSON.stringify(this.history[this.currentIndex].elements)); // Deep clone
+      return JSON.parse(JSON.stringify(this.history[this.currentIndex].state)); // Deep clone
     }
     return null;
   }
@@ -54,10 +54,10 @@ export class HistoryManager<T> {
   /**
    * Redo - go forward one step
    */
-  redo(): T[] | null {
+  redo(): T | null {
     if (this.canRedo()) {
       this.currentIndex++;
-      return JSON.parse(JSON.stringify(this.history[this.currentIndex].elements)); // Deep clone
+      return JSON.parse(JSON.stringify(this.history[this.currentIndex].state)); // Deep clone
     }
     return null;
   }
@@ -79,9 +79,9 @@ export class HistoryManager<T> {
   /**
    * Get current state
    */
-  getCurrent(): T[] | null {
+  getCurrent(): T | null {
     if (this.currentIndex >= 0 && this.currentIndex < this.history.length) {
-      return JSON.parse(JSON.stringify(this.history[this.currentIndex].elements)); // Deep clone
+      return JSON.parse(JSON.stringify(this.history[this.currentIndex].state)); // Deep clone
     }
     return null;
   }

@@ -295,7 +295,7 @@ export function FloorPlanEditorV2({
   const rotateAnimationFrameRef = useRef<number | null>(null);
 
   // History management (Undo/Redo)
-  const historyManagerRef = useRef(new HistoryManager<FloorPlanElement>(50));
+  const historyManagerRef = useRef(new HistoryManager<FloorPlanElement[]>(50));
 
   // Clipboard management (Copy/Paste)
   const clipboardManagerRef = useRef(new ClipboardManager<FloorPlanElement>());
@@ -415,7 +415,7 @@ export function FloorPlanEditorV2({
       2000 // 2 second delay
     );
 
-    // Initialize history with initial state
+    // Initialize history with initial state (HistoryManager now accepts T directly, not T[])
     historyManagerRef.current.push(initialElements);
 
     return () => {
