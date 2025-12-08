@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Save, ChevronDown, ChevronRight } from "lucide-react";
+import { Save, ChevronDown, ChevronRight, Grid3x3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "@/core/i18n/provider";
-import { updateZoneContent, updateTableContent } from "../../actions/floorPlanActions";
+import { updateZoneContent, updateTableContent, autoGenerateTables } from "../../actions/floorPlanActions";
 import type { Zone, Table, FloorPlanWithDetails } from "../../types";
 
 interface ContentEditorProps {
@@ -237,6 +237,18 @@ function ZoneContentEditor({
         </Button>
       </div>
 
+      {/* Auto-generate Tables Button - Only for seating zones */}
+      {zone.zoneType === "seating" && tables.length === 0 && (
+        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <p className="text-sm text-blue-900 dark:text-blue-100 mb-3">
+            {t("floorPlan.autoGenerateTablesDescription", {
+              defaultValue: "צור שולחנות אוטומטית שימלאו את האיזור"
+            })}
+          </p>
+          <AutoGenerateTablesButton zoneId={zone.id} router={router} />
+        </div>
+      )}
+
       {/* Tables in Zone */}
       {tables.length > 0 && (
         <div className="space-y-2">
@@ -437,6 +449,49 @@ function ElementListView({ floorPlan, onElementSelect }: ElementListViewProps) {
         ))}
       </div>
     </div>
+  );
+}
+
+// Auto-generate Tables Button Component
+interface AutoGenerateTablesButtonProps {
+  zoneId: string;
+  router: ReturnType<typeof useRouter>;
+}
+
+function AutoGenerateTablesButton({ zoneId, router }: AutoGenerateTablesButtonProps) {
+  const { t } = useTranslations();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleAutoGenerate = () => {
+    setIsGenerating(true);
+    startTransition(async () => {
+      const result = await autoGenerateTables({
+        zoneId,
+        tableWidth: 60,
+        tableHeight: 60,
+        spacing: 10,
+        defaultSeats: 4
+      });
+      if (result.success) {
+        router.refresh();
+      }
+      setIsGenerating(false);
+    });
+  };
+
+  return (
+    <Button
+      onClick={handleAutoGenerate}
+      disabled={isGenerating || isPending}
+      className="w-full gap-2"
+      variant="outline"
+    >
+      <Grid3x3 className="h-4 w-4" />
+      {isGenerating || isPending
+        ? t("floorPlan.generating", { defaultValue: "יוצר שולחנות..." })
+        : t("floorPlan.autoGenerateTables", { defaultValue: "צור שולחנות אוטומטית" })}
+    </Button>
   );
 }
 

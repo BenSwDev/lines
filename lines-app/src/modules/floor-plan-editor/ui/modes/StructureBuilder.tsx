@@ -47,20 +47,6 @@ export function StructureBuilder({
       icon: "🍸",
       color: "#10B981",
       zoneType: "bar" as const
-    },
-    {
-      id: "kitchen",
-      label: t("floorPlan.kitchen", { defaultValue: "מטבח" }),
-      icon: "👨‍🍳",
-      color: "#EF4444",
-      zoneType: "kitchen" as const
-    },
-    {
-      id: "vip",
-      label: t("floorPlan.vipArea", { defaultValue: "איזור VIP" }),
-      icon: "⭐",
-      color: "#F59E0B",
-      zoneType: "seating" as const
     }
   ];
 
@@ -76,6 +62,12 @@ export function StructureBuilder({
       label: t("floorPlan.restroom", { defaultValue: "שירותים" }),
       icon: "🚻",
       color: "#8B7280"
+    },
+    {
+      id: "kitchen",
+      label: t("floorPlan.kitchen", { defaultValue: "מטבח" }),
+      icon: "👨‍🍳",
+      color: "#EF4444"
     },
     {
       id: "stage",
@@ -176,7 +168,6 @@ export function StructureBuilder({
                     name: zoneType.label,
                     color: zoneType.color,
                     zoneType: zoneType.zoneType,
-                    isKitchen: zoneType.id === "kitchen",
                     positionX: 100,
                     positionY: 100,
                     width: 200,

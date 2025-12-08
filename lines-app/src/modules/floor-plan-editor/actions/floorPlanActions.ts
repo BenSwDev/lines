@@ -364,6 +364,48 @@ export async function createZone(input: unknown): Promise<{
 }> {
   try {
     const validated = createZoneSchema.parse(input);
+    
+    // Check for collisions with existing zones
+    const existingZones = await prisma.zone.findMany({
+      where: { floorPlanId: validated.floorPlanId! },
+      select: {
+        id: true,
+        positionX: true,
+        positionY: true,
+        width: true,
+        height: true
+      }
+    });
+
+    const newZoneRect = {
+      x: validated.positionX ?? 0,
+      y: validated.positionY ?? 0,
+      width: validated.width ?? 200,
+      height: validated.height ?? 150
+    };
+
+    for (const existing of existingZones) {
+      const existingRect = {
+        x: Number(existing.positionX ?? 0),
+        y: Number(existing.positionY ?? 0),
+        width: Number(existing.width ?? 200),
+        height: Number(existing.height ?? 150)
+      };
+
+      // Check if rectangles overlap or touch
+      if (
+        newZoneRect.x < existingRect.x + existingRect.width &&
+        newZoneRect.x + newZoneRect.width > existingRect.x &&
+        newZoneRect.y < existingRect.y + existingRect.height &&
+        newZoneRect.y + newZoneRect.height > existingRect.y
+      ) {
+        return {
+          success: false,
+          error: "איזור זה נוגע באיזור קיים. יש למקם את האיזור במקום אחר."
+        };
+      }
+    }
+
     const zone = await floorPlanService.createZone({
       floorPlanId: validated.floorPlanId!,
       venueId: validated.venueId!,
@@ -412,6 +454,48 @@ export async function createTable(input: unknown): Promise<{
 }> {
   try {
     const validated = createTableSchema.parse(input);
+    
+    // Check for collisions with existing tables in the same zone
+    const existingTables = await prisma.table.findMany({
+      where: { zoneId: validated.zoneId! },
+      select: {
+        id: true,
+        positionX: true,
+        positionY: true,
+        width: true,
+        height: true
+      }
+    });
+
+    const newTableRect = {
+      x: validated.positionX ?? 0,
+      y: validated.positionY ?? 0,
+      width: validated.width ?? 60,
+      height: validated.height ?? 60
+    };
+
+    for (const existing of existingTables) {
+      const existingRect = {
+        x: Number(existing.positionX ?? 0),
+        y: Number(existing.positionY ?? 0),
+        width: Number(existing.width ?? 60),
+        height: Number(existing.height ?? 60)
+      };
+
+      // Check if rectangles overlap or touch
+      if (
+        newTableRect.x < existingRect.x + existingRect.width &&
+        newTableRect.x + newTableRect.width > existingRect.x &&
+        newTableRect.y < existingRect.y + existingRect.height &&
+        newTableRect.y + newTableRect.height > existingRect.y
+      ) {
+        return {
+          success: false,
+          error: "שולחן זה נוגע בשולחן קיים. יש למקם את השולחן במקום אחר."
+        };
+      }
+    }
+
     const table = await floorPlanService.createTable({
       zoneId: validated.zoneId!,
       name: validated.name,
@@ -443,6 +527,96 @@ export async function createTable(input: unknown): Promise<{
       return { success: false, error: error.message };
     }
     return { success: false, error: "Failed to create table" };
+  }
+}
+
+/**
+ * Auto-generate tables in a zone
+ */
+export async function autoGenerateTables(input: {
+  zoneId: string;
+  tableWidth?: number;
+  tableHeight?: number;
+  spacing?: number;
+  defaultSeats?: number;
+}): Promise<{
+  success: boolean;
+  data?: { count: number };
+  error?: string;
+}> {
+  try {
+    // Get zone with dimensions
+    const zone = await prisma.zone.findUnique({
+      where: { id: input.zoneId },
+      select: {
+        id: true,
+        positionX: true,
+        positionY: true,
+        width: true,
+        height: true,
+        floorPlan: {
+          select: { venueId: true, id: true }
+        }
+      }
+    });
+
+    if (!zone) {
+      return { success: false, error: "Zone not found" };
+    }
+
+    const zoneWidth = Number(zone.width ?? 200);
+    const zoneHeight = Number(zone.height ?? 150);
+    const tableWidth = input.tableWidth ?? 60;
+    const tableHeight = input.tableHeight ?? 60;
+    const spacing = input.spacing ?? 10;
+    const defaultSeats = input.defaultSeats ?? 4;
+
+    // Calculate layout
+    const cols = Math.floor((zoneWidth - spacing) / (tableWidth + spacing));
+    const rows = Math.floor((zoneHeight - spacing) / (tableHeight + spacing));
+    const count = cols * rows;
+
+    if (count === 0) {
+      return {
+        success: false,
+        error: "האיזור קטן מדי ליצירת שולחנות. יש להגדיל את האיזור."
+      };
+    }
+
+    // Create tables
+    const tables = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const x = spacing + col * (tableWidth + spacing);
+        const y = spacing + row * (tableHeight + spacing);
+        tables.push({
+          zoneId: input.zoneId,
+          name: `שולחן ${row * cols + col + 1}`,
+          seats: defaultSeats,
+          positionX: x,
+          positionY: y,
+          width: tableWidth,
+          height: tableHeight
+        });
+      }
+    }
+
+    // Create all tables
+    await prisma.table.createMany({
+      data: tables
+    });
+
+    if (zone.floorPlan) {
+      revalidatePath(`/venues/${zone.floorPlan.venueId}/settings/structure/${zone.floorPlan.id}`);
+    }
+
+    return { success: true, data: { count } };
+  } catch (error) {
+    console.error("Error auto-generating tables:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to auto-generate tables" };
   }
 }
 
@@ -622,6 +796,117 @@ export async function updateElementPosition(input: {
       Object.entries(updates).filter(([, value]) => value !== undefined)
     );
 
+    // Check for collisions when updating position
+    if (cleanUpdates.positionX !== undefined || cleanUpdates.positionY !== undefined || cleanUpdates.width !== undefined || cleanUpdates.height !== undefined) {
+      if (type === "zone") {
+        // Get current zone and all other zones
+        const currentZone = await prisma.zone.findUnique({
+          where: { id },
+          select: { positionX: true, positionY: true, width: true, height: true, floorPlanId: true }
+        });
+
+        if (currentZone) {
+          const newRect = {
+            x: cleanUpdates.positionX ?? Number(currentZone.positionX ?? 0),
+            y: cleanUpdates.positionY ?? Number(currentZone.positionY ?? 0),
+            width: cleanUpdates.width ?? Number(currentZone.width ?? 200),
+            height: cleanUpdates.height ?? Number(currentZone.height ?? 150)
+          };
+
+          const otherZones = await prisma.zone.findMany({
+            where: {
+              floorPlanId: currentZone.floorPlanId,
+              id: { not: id }
+            },
+            select: {
+              id: true,
+              positionX: true,
+              positionY: true,
+              width: true,
+              height: true
+            }
+          });
+
+          for (const other of otherZones) {
+            const otherRect = {
+              x: Number(other.positionX ?? 0),
+              y: Number(other.positionY ?? 0),
+              width: Number(other.width ?? 200),
+              height: Number(other.height ?? 150)
+            };
+
+            if (
+              newRect.x < otherRect.x + otherRect.width &&
+              newRect.x + newRect.width > otherRect.x &&
+              newRect.y < otherRect.y + otherRect.height &&
+              newRect.y + newRect.height > otherRect.y
+            ) {
+              return {
+                success: false,
+                error: "איזור זה נוגע באיזור קיים. יש למקם את האיזור במקום אחר."
+              };
+            }
+          }
+        }
+      } else if (type === "table") {
+        // Get current table and all other tables in the same zone
+        const currentTable = await prisma.table.findUnique({
+          where: { id },
+          select: {
+            positionX: true,
+            positionY: true,
+            width: true,
+            height: true,
+            zoneId: true
+          }
+        });
+
+        if (currentTable) {
+          const newRect = {
+            x: cleanUpdates.positionX ?? Number(currentTable.positionX ?? 0),
+            y: cleanUpdates.positionY ?? Number(currentTable.positionY ?? 0),
+            width: cleanUpdates.width ?? Number(currentTable.width ?? 60),
+            height: cleanUpdates.height ?? Number(currentTable.height ?? 60)
+          };
+
+          const otherTables = await prisma.table.findMany({
+            where: {
+              zoneId: currentTable.zoneId,
+              id: { not: id }
+            },
+            select: {
+              id: true,
+              positionX: true,
+              positionY: true,
+              width: true,
+              height: true
+            }
+          });
+
+          for (const other of otherTables) {
+            const otherRect = {
+              x: Number(other.positionX ?? 0),
+              y: Number(other.positionY ?? 0),
+              width: Number(other.width ?? 60),
+              height: Number(other.height ?? 60)
+            };
+
+            if (
+              newRect.x < otherRect.x + otherRect.width &&
+              newRect.x + newRect.width > otherRect.x &&
+              newRect.y < otherRect.y + otherRect.height &&
+              newRect.y + newRect.height > otherRect.y
+            ) {
+              return {
+                success: false,
+                error: "שולחן זה נוגע בשולחן קיים. יש למקם את השולחן במקום אחר."
+              };
+            }
+          }
+        }
+      }
+    }
+
     if (type === "zone") {
       await prisma.zone.update({
         where: { id },
@@ -633,13 +918,12 @@ export async function updateElementPosition(input: {
         }
       });
     } else if (type === "table") {
+      // Tables cannot be resized - only position and rotation
       await prisma.table.update({
         where: { id },
         data: {
           ...(cleanUpdates.positionX !== undefined && { positionX: cleanUpdates.positionX }),
           ...(cleanUpdates.positionY !== undefined && { positionY: cleanUpdates.positionY }),
-          ...(cleanUpdates.width !== undefined && { width: cleanUpdates.width }),
-          ...(cleanUpdates.height !== undefined && { height: cleanUpdates.height }),
           ...(cleanUpdates.rotation !== undefined && { rotation: cleanUpdates.rotation })
         }
       });

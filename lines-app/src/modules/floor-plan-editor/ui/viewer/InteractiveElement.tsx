@@ -60,7 +60,7 @@ export function InteractiveElement({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (!canEdit || !isSelected) return;
+      if (!canEdit) return;
 
       const rect = elementRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -70,16 +70,20 @@ export function InteractiveElement({
       const elementX = rect.left;
       const elementY = rect.top;
 
-      // Check if clicking on resize handle (bottom-right corner)
+      // Check if clicking on resize handle (bottom-right corner) - only for zones and areas, not tables
       const handleSize = 12;
       const isOnResizeHandle =
+        type !== "table" &&
+        isSelected &&
         startX >= elementX + rect.width - handleSize &&
         startX <= elementX + rect.width &&
         startY >= elementY + rect.height - handleSize &&
         startY <= elementY + rect.height;
 
-      // Check if clicking on rotate handle (top-center)
+      // Check if clicking on rotate handle (top-center) - only for tables
       const isOnRotateHandle =
+        type === "table" &&
+        isSelected &&
         startX >= elementX + rect.width / 2 - handleSize / 2 &&
         startX <= elementX + rect.width / 2 + handleSize / 2 &&
         startY >= elementY - 20 &&
@@ -104,7 +108,9 @@ export function InteractiveElement({
           centerY
         };
       } else {
+        // Start dragging immediately - no need to be selected first
         setIsDragging(true);
+        onSelect(); // Select element when starting to drag
         dragStartRef.current = {
           x: startX - currentPos.x,
           y: startY - currentPos.y
@@ -114,7 +120,7 @@ export function InteractiveElement({
       e.preventDefault();
       e.stopPropagation();
     },
-    [canEdit, isSelected, currentPos, currentSize, currentRotation]
+    [canEdit, isSelected, currentPos, currentSize, currentRotation, type, onSelect]
   );
 
   const handleMouseMove = useCallback(
@@ -122,6 +128,7 @@ export function InteractiveElement({
       if (!canEdit) return;
 
       if (isDragging) {
+        // Immediate position update for smooth dragging
         const newX = e.clientX - dragStartRef.current.x;
         const newY = e.clientY - dragStartRef.current.y;
         setCurrentPos({ x: Math.max(0, newX), y: Math.max(0, newY) });
@@ -148,16 +155,25 @@ export function InteractiveElement({
     if (!canEdit) return;
 
     if (isDragging || isResizing || isRotating) {
-      // Save changes
-      await updateElementPosition({
+      // Save changes immediately
+      const result = await updateElementPosition({
         type,
         id,
         positionX: currentPos.x,
         positionY: currentPos.y,
-        width: currentSize.width,
-        height: currentSize.height,
+        width: type !== "table" ? currentSize.width : undefined, // Tables cannot be resized
+        height: type !== "table" ? currentSize.height : undefined, // Tables cannot be resized
         rotation: type !== "zone" ? currentRotation : undefined
       });
+
+      // If update failed (e.g., collision), revert to original position
+      if (!result.success) {
+        setCurrentPos({ x, y });
+        setCurrentSize({ width, height });
+        setCurrentRotation(rotation);
+        // Optionally show error toast here
+        console.error("Failed to update position:", result.error);
+      }
     }
 
     setIsDragging(false);
@@ -172,7 +188,12 @@ export function InteractiveElement({
     id,
     currentPos,
     currentSize,
-    currentRotation
+    currentRotation,
+    x,
+    y,
+    width,
+    height,
+    rotation
   ]);
 
   useEffect(() => {
@@ -199,7 +220,13 @@ export function InteractiveElement({
   return (
     <div
       ref={elementRef}
-      className={cn("absolute transition-all", isSelected && canEdit && "cursor-move", className)}
+      className={cn(
+        "absolute",
+        isSelected && canEdit && !isDragging && "cursor-move",
+        isDragging && "cursor-grabbing",
+        !isSelected && canEdit && "cursor-pointer",
+        className
+      )}
       style={{
         left: currentPos.x,
         top: currentPos.y,
@@ -229,14 +256,16 @@ export function InteractiveElement({
             <X className="h-3 w-3" />
           </button>
 
-          {/* Resize Handle (bottom-right) */}
-          <div
-            className="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-nwse-resize z-50"
-            style={{
-              transform: `translate(50%, 50%) rotate(${-currentRotation}deg)`,
-              transformOrigin: "center center"
-            }}
-          />
+          {/* Resize Handle (bottom-right) - Only for zones and areas, not tables */}
+          {type !== "table" && (
+            <div
+              className="absolute bottom-0 right-0 w-4 h-4 bg-primary border-2 border-white rounded-full cursor-nwse-resize z-50"
+              style={{
+                transform: `translate(50%, 50%) rotate(${-currentRotation}deg)`,
+                transformOrigin: "center center"
+              }}
+            />
+          )}
 
           {/* Rotate Handle (top-center) */}
           {type !== "zone" && (
