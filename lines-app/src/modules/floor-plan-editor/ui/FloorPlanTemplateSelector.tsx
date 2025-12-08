@@ -217,7 +217,7 @@ function getTemplateData(
             width: 200,
             height: 200,
             tables: Array.from({ length: 3 }, (_, i) => ({
-              name: `VIP ${i + 1}`,
+              name: `${t("floorPlan.vipArea", { defaultValue: "איזור VIP" })} ${i + 1}`,
               seats: 6,
               positionX: 50 + (i % 2) * 80,
               positionY: 50 + Math.floor(i / 2) * 80,
@@ -341,7 +341,7 @@ function getTemplateData(
             width: 200,
             height: 300,
             tables: Array.from({ length: 6 }, (_, i) => ({
-              name: `VIP ${i + 1}`,
+              name: `${t("floorPlan.vipArea", { defaultValue: "איזור VIP" })} ${i + 1}`,
               seats: 6,
               positionX: 50 + (i % 2) * 90,
               positionY: 50 + Math.floor(i / 2) * 90,
@@ -421,7 +421,7 @@ function getTemplateData(
             width: 200,
             height: 300,
             tables: Array.from({ length: 8 }, (_, i) => ({
-              name: `VIP ${i + 1}`,
+              name: `${t("floorPlan.vipArea", { defaultValue: "איזור VIP" })} ${i + 1}`,
               seats: 10,
               positionX: 50 + (i % 2) * 100,
               positionY: 50 + Math.floor(i / 2) * 100,

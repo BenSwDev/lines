@@ -40,7 +40,12 @@ export function StructureBuilder({
       icon: "🪑",
       color: "#3B82F6"
     },
-    { id: "vip", label: "VIP", icon: "⭐", color: "#F59E0B" }
+    {
+      id: "vip",
+      label: t("floorPlan.vipArea", { defaultValue: "איזור VIP" }),
+      icon: "⭐",
+      color: "#F59E0B"
+    }
   ];
 
   const areaTypes = [
