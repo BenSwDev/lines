@@ -74,7 +74,7 @@ export async function createRole(venueId: string, input: unknown) {
     );
 
     if (result.success) {
-      revalidatePath(`/venues/${venueId}/roles`);
+      revalidatePath(`/venues/${venueId}/settings/roles`);
     }
 
     return result;
@@ -104,7 +104,7 @@ export async function updateRole(id: string, venueId: string, input: unknown) {
     );
 
     if (result.success) {
-      revalidatePath(`/venues/${venueId}/roles`);
+      revalidatePath(`/venues/${venueId}/settings/roles`);
     }
 
     return result;
@@ -132,7 +132,7 @@ export async function deleteRole(id: string, venueId: string) {
     );
 
     if (result.success) {
-      revalidatePath(`/venues/${venueId}/roles`);
+      revalidatePath(`/venues/${venueId}/settings/roles`);
     }
 
     return result;

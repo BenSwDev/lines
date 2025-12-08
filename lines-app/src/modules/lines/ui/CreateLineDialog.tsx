@@ -152,10 +152,30 @@ export function CreateLineDialog({
       setFrequency((existingLine.frequency as "weekly" | "monthly" | "oneTime") || "weekly");
       setSelectedDays(existingLine.days || []);
       setStartDateMode("custom");
+      
       // Try to get first occurrence date if exists
-      const today = new Date();
-      setCustomMonth(today.getMonth());
-      setCustomYear(today.getFullYear());
+      const loadFirstOccurrence = async () => {
+        try {
+          const { lineOccurrenceRepository } = await import("@/core/db");
+          const occurrences = await lineOccurrenceRepository.findByLineId(existingLine.id);
+          if (occurrences.length > 0) {
+            const firstDate = new Date(occurrences[0].date);
+            setCustomMonth(firstDate.getMonth());
+            setCustomYear(firstDate.getFullYear());
+          } else {
+            const today = new Date();
+            setCustomMonth(today.getMonth());
+            setCustomYear(today.getFullYear());
+          }
+        } catch (error) {
+          // Silently fallback to today's date if loading fails
+          const today = new Date();
+          setCustomMonth(today.getMonth());
+          setCustomYear(today.getFullYear());
+        }
+      };
+      
+      loadFirstOccurrence();
     } else if (!isOpen) {
       // Reset form when dialog closes
       setName("");

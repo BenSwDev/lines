@@ -148,20 +148,34 @@ export class RolesService {
     const needsManagement = requiresManagement && !hadManagement;
     const shouldRemoveManagement = !requiresManagement && hadManagement;
 
-    // Create management role if needed
-    if (needsManagement) {
-      await prisma.role.create({
-        data: {
-          venueId,
-          name: `ניהול ${input.name ?? existing.name}`,
-          description: `תפקיד ניהול עבור ${input.name ?? existing.name}`,
-          icon: "👔",
-          color: input.color ?? existing.color,
-          isManagementRole: true,
-          managedRoleId: id,
-          order: (input.order ?? existing.order ?? 0) + 1
-        }
-      });
+    // Update or create management role if needed
+    if (requiresManagement) {
+      if (hadManagement && existing.managementRole) {
+        // Update existing management role
+        await prisma.role.update({
+          where: { id: existing.managementRole.id },
+          data: {
+            name: `ניהול ${input.name ?? existing.name}`,
+            description: `תפקיד ניהול עבור ${input.name ?? existing.name}`,
+            color: input.color ?? existing.color,
+            // Keep icon as is (management roles have fixed icon)
+          }
+        });
+      } else if (needsManagement) {
+        // Create new management role
+        await prisma.role.create({
+          data: {
+            venueId,
+            name: `ניהול ${input.name ?? existing.name}`,
+            description: `תפקיד ניהול עבור ${input.name ?? existing.name}`,
+            icon: "👔",
+            color: input.color ?? existing.color,
+            isManagementRole: true,
+            managedRoleId: id,
+            order: (input.order ?? existing.order ?? 0) + 1
+          }
+        });
+      }
     }
 
     // Delete management role if no longer needed

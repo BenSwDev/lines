@@ -151,19 +151,39 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
         // Generate per day schedule
         const occurrences: Array<OccurrenceInput & { startTime?: string; endTime?: string }> = [];
 
+        // Get start date - use first occurrence date if exists, otherwise use today
+        const existingOccurrences = await lineOccurrenceRepository.findByLineId(updatedLine.id);
+        const firstOccurrenceDate = existingOccurrences.length > 0
+          ? new Date(existingOccurrences[0].date)
+          : new Date();
+        
+        // Calculate end of calendar year
+        const currentYear = firstOccurrenceDate.getFullYear();
+        const endOfYear = new Date(currentYear, 11, 31); // December 31
+        endOfYear.setHours(23, 59, 59, 999);
+        
+        // Calculate months until end of year
+        const monthsUntilEndOfYear = 12 - firstOccurrenceDate.getMonth();
+
         for (const schedule of daySchedules) {
           const suggestions = lineScheduleService.generateSuggestions(
             [schedule.day],
-            schedule.frequency as "weekly" | "monthly" | "variable" | "oneTime"
+            schedule.frequency as "weekly" | "monthly" | "variable" | "oneTime",
+            firstOccurrenceDate,
+            monthsUntilEndOfYear
           );
           for (const date of suggestions) {
-            occurrences.push({
-              date,
-              isExpected: true,
-              isActive: true,
-              startTime: schedule.startTime,
-              endTime: schedule.endTime
-            });
+            const dateObj = new Date(date);
+            // Only add if date is within the current year
+            if (dateObj <= endOfYear) {
+              occurrences.push({
+                date,
+                isExpected: true,
+                isActive: true,
+                startTime: schedule.startTime,
+                endTime: schedule.endTime
+              });
+            }
           }
         }
 
