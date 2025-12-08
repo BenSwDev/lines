@@ -8,51 +8,51 @@ import type { FeatureCard } from "../types";
 export const linesFeatures: FeatureCard[] = [
   {
     id: "create-line",
-    title: "צור ליין חדש",
-    description: "הגדר אירועים חוזרים עם לוחות זמנים גמישים - שבועי, חודשי, או מותאם אישית",
+    title: "צור ליין חדש - התחל עכשיו",
+    description: "הגדר אירועים חוזרים עם לוחות זמנים גמישים. המערכת תיצור את כל האירועים אוטומטית - שבועי, חודשי, או מותאם אישית. חסכו שעות של עבודה ידנית!",
     icon: "📅",
     gradient: "from-blue-500 to-cyan-500",
     actions: [
       {
-        label: "צור עכשיו",
-        onClick: () => {
-          // Will be handled by parent component
-        },
+        label: "צור ליין עכשיו",
+        onClick: () => {},
         variant: "default"
       }
     ],
-    badge: "חדש",
+    badge: "התחל כאן",
     highlight: true
   },
   {
     id: "color-coding",
-    title: "קידוד צבעים",
-    description: "15 צבעים ייחודיים לכל ליין - זיהוי מהיר וניהול ויזואלי",
+    title: "15 צבעים ייחודיים",
+    description: "זיהוי מהיר וניהול ויזואלי - כל ליין עם צבע משלו. ניהול קל ונוח של כל האירועים שלך",
     icon: "🎨",
     gradient: "from-purple-500 to-pink-500",
-    badge: "פופולרי"
+    badge: "ויזואלי"
   },
   {
     id: "auto-events",
-    title: "יצירת אירועים אוטומטית",
-    description: "המערכת יוצרת את כל האירועים אוטומטית לפי הליינים שלך",
+    title: "יצירה אוטומטית של אירועים",
+    description: "המערכת יוצרת את כל האירועים אוטומטית לפי הליינים שלך. לא צריך ליצור ידנית - הכל קורה בעצמו!",
     icon: "⚡",
-    gradient: "from-yellow-500 to-orange-500"
+    gradient: "from-yellow-500 to-orange-500",
+    badge: "חכם"
   },
   {
     id: "calendar-view",
-    title: "תצוגת לוח שנה",
-    description: "ראה את כל האירועים בלוח שנה אינטואיטיבי עם סינון מתקדם",
+    title: "לוח שנה מלא",
+    description: "ראה את כל האירועים בלוח שנה אינטואיטיבי עם סינון מתקדם. ניהול קל של כל האירועים במקום אחד",
     icon: "📆",
-    gradient: "from-green-500 to-emerald-500"
+    gradient: "from-green-500 to-emerald-500",
+    badge: "מקיף"
   }
 ];
 
 export const rolesFeatures: FeatureCard[] = [
   {
     id: "manage-roles",
-    title: "ניהול תפקידים",
-    description: "הגדר תפקידים ומחלקות - מטבח, בר, שירות, ניהול",
+    title: "ניהול תפקידים - ארגן את הצוות",
+    description: "הגדר תפקידים ומחלקות - מטבח, בר, שירות, ניהול. כל הליינים משתמשים באותם תפקידים - ארגון יעיל ומקצועי",
     icon: "👥",
     gradient: "from-indigo-500 to-blue-500",
     actions: [
@@ -62,29 +62,32 @@ export const rolesFeatures: FeatureCard[] = [
         variant: "default"
       }
     ],
+    badge: "ארגון",
     highlight: true
   },
   {
     id: "hierarchy",
-    title: "היררכיה ארגונית",
-    description: "ארגן את הצוות בהיררכיה - תפקידים ניהוליים ותפקידים רגילים",
+    title: "היררכיה ארגונית ויזואלית",
+    description: "ארגן את הצוות בהיררכיה - תפקידים ניהוליים ותפקידים רגילים. תצוגה ויזואלית ברורה של המבנה הארגוני",
     icon: "🏢",
-    gradient: "from-purple-500 to-indigo-500"
+    gradient: "from-purple-500 to-indigo-500",
+    badge: "מבנה"
   },
   {
     id: "departments",
-    title: "מחלקות",
-    description: "חלק את התפקידים למחלקות - ארגון יעיל ונוח",
+    title: "מחלקות מאורגנות",
+    description: "חלק את התפקידים למחלקות - ארגון יעיל ונוח. ניהול קל של כל המחלקות במקום אחד",
     icon: "📋",
-    gradient: "from-pink-500 to-rose-500"
+    gradient: "from-pink-500 to-rose-500",
+    badge: "מחלקות"
   }
 ];
 
 export const mapFeatures: FeatureCard[] = [
   {
     id: "visual-map",
-    title: "מפה ויזואלית",
-    description: "צור מפה ויזואלית של המקום עם אזורים ושולחנות",
+    title: "מפה ויזואלית אינטראקטיבית",
+    description: "צור מפה ויזואלית של המקום עם אזורים ושולחנות. ניהול קל של כל המפה - גרור, שנה, וצור בקלות",
     icon: "🗺️",
     gradient: "from-teal-500 to-cyan-500",
     actions: [
@@ -94,29 +97,32 @@ export const mapFeatures: FeatureCard[] = [
         variant: "default"
       }
     ],
+    badge: "ויזואלי",
     highlight: true
   },
   {
     id: "zones",
-    title: "אזורים",
-    description: "חלק את המקום לאזורים - חלל פנימי, חלל חיצוני, בר",
+    title: "אזורים מאורגנים",
+    description: "חלק את המקום לאזורים - חלל פנימי, חלל חיצוני, בר. ניהול קל של כל האזורים במקום אחד",
     icon: "📍",
-    gradient: "from-blue-500 to-teal-500"
+    gradient: "from-blue-500 to-teal-500",
+    badge: "ארגון"
   },
   {
     id: "tables",
-    title: "שולחנות",
-    description: "הוסף שולחנות למפה - כללי או ספציפיים לליין",
+    title: "שולחנות גמישים",
+    description: "הוסף שולחנות למפה - כללי או ספציפיים לליין. ניהול קיבולת וישיבה בצורה מקצועית",
     icon: "🪑",
-    gradient: "from-orange-500 to-red-500"
+    gradient: "from-orange-500 to-red-500",
+    badge: "ניהול"
   }
 ];
 
 export const menusFeatures: FeatureCard[] = [
   {
     id: "upload-menu",
-    title: "העלאת תפריטים",
-    description: "העלה תפריטים ומסמכים - PDF או תמונות",
+    title: "העלאת תפריטים - פשוט ומהיר",
+    description: "העלה תפריטים ומסמכים - PDF או תמונות. כל התפריטים שלך במקום אחד - נוח, מהיר, ומאורגן",
     icon: "📄",
     gradient: "from-violet-500 to-purple-500",
     actions: [
@@ -126,14 +132,16 @@ export const menusFeatures: FeatureCard[] = [
         variant: "default"
       }
     ],
+    badge: "מהיר",
     highlight: true
   },
   {
     id: "menu-management",
-    title: "ניהול תפריטים",
-    description: "נהל את כל התפריטים במקום אחד - כללי או ספציפיים לליין",
+    title: "ניהול מרכזי של תפריטים",
+    description: "נהל את כל התפריטים במקום אחד - כללי או ספציפיים לליין. גישה מהירה ונוחה לכל התפריטים",
     icon: "📚",
-    gradient: "from-rose-500 to-pink-500"
+    gradient: "from-rose-500 to-pink-500",
+    badge: "מרכזי"
   }
 ];
 

@@ -15,6 +15,7 @@ import { useTranslations } from "@/core/i18n/provider";
 import { translateError } from "@/utils/translateError";
 import type { Line } from "@prisma/client";
 import { FeatureSlider, linesFeatures } from "@/modules/feature-slider";
+import { PageHero, getPageConfig } from "@/modules/demo-system";
 
 export function LinesTab() {
   const params = useParams();
@@ -106,8 +107,15 @@ export function LinesTab() {
     );
   }
 
+  const pageConfig = getPageConfig("lines");
+
   return (
     <div className="space-y-6">
+      {/* Page Hero */}
+      {pageConfig && (
+        <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

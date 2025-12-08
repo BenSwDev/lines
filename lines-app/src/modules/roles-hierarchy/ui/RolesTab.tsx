@@ -16,6 +16,7 @@ import { EditRoleDialog } from "./EditRoleDialog";
 import { listRoles, deleteRole } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
 import { FeatureSlider, rolesFeatures } from "@/modules/feature-slider";
+import { PageHero, getPageConfig } from "@/modules/demo-system";
 import {
   Dialog,
   DialogContent,
@@ -130,9 +131,16 @@ export function RolesTab({ venueId }: RolesTabProps) {
     );
   }
 
+  const pageConfig = getPageConfig("roles");
+
   return (
     <>
       <div className="space-y-4">
+        {/* Page Hero */}
+        {pageConfig && (
+          <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

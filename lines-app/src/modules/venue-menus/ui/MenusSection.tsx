@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, FileText, Download, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FeatureSlider, menusFeatures } from "@/modules/feature-slider";
+import { PageHero, getPageConfig } from "@/modules/demo-system";
 
 type Menu = {
   id: string;
@@ -75,8 +76,15 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
+  const pageConfig = getPageConfig("menus");
+
   return (
     <div className="space-y-4">
+      {/* Page Hero */}
+      {pageConfig && (
+        <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">תפריטים</h2>

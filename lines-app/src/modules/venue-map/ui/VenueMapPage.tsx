@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
 import { findContainingZone } from "../utils/zoneContainment";
 import { FeatureSlider, mapFeatures } from "@/modules/feature-slider";
+import { PageHero, getPageConfig } from "@/modules/demo-system";
 
 type VenueMapPageProps = {
   venueId: string;
@@ -150,8 +151,15 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
     );
   }
 
+  const pageConfig = getPageConfig("map");
+
   return (
     <div className="space-y-4">
+      {/* Page Hero */}
+      {pageConfig && (
+        <PageHero hero={pageConfig.hero} cta={pageConfig.cta} className="mb-8" />
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div>

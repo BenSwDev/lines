@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles, Calendar, Palette, Zap, Play } from "lucide-react";
@@ -11,18 +10,6 @@ type HeroProps = {
 };
 
 export function Hero({ isAuthenticated }: HeroProps) {
-  const router = useRouter();
-
-  const handleStartTour = () => {
-    if (isAuthenticated) {
-      // Navigate to dashboard, then to first venue's lines page to start tour
-      router.push("/dashboard?startTour=true");
-    } else {
-      // If not authenticated, redirect to register/login
-      router.push("/auth/register?startTour=true");
-    }
-  };
-
   return (
     <section className="relative overflow-hidden">
       {/* Background gradients */}
@@ -63,10 +50,12 @@ export function Hero({ isAuthenticated }: HeroProps) {
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="gap-2" onClick={handleStartTour}>
-                  <Play className="h-4 w-4" />
-                  התחל הדרכה
-                </Button>
+                <Link href="/demo-experience">
+                  <Button size="lg" variant="outline" className="gap-2">
+                    <Play className="h-4 w-4" />
+                    צפה בהדמיה
+                  </Button>
+                </Link>
               </>
             ) : (
               <>
@@ -76,10 +65,12 @@ export function Hero({ isAuthenticated }: HeroProps) {
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Button size="lg" variant="outline" className="gap-2" onClick={handleStartTour}>
-                  <Play className="h-4 w-4" />
-                  התחל הדרכה
-                </Button>
+                <Link href="/demo-experience">
+                  <Button size="lg" variant="outline" className="gap-2">
+                    <Play className="h-4 w-4" />
+                    צפה בהדמיה
+                  </Button>
+                </Link>
               </>
             )}
           </div>
