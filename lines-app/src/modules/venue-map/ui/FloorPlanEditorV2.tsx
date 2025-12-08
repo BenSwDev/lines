@@ -246,7 +246,6 @@ export function FloorPlanEditorV2({
     tables: { visible: true, locked: false },
     specialAreas: { visible: true, locked: false }
   });
-  const [showLayersPanel, setShowLayersPanel] = useState(false);
   // Custom templates removed - using only recommended templates for simplicity
   // const [customTemplates, setCustomTemplates] = useState<...>([]);
 
@@ -1529,7 +1528,11 @@ export function FloorPlanEditorV2({
       isRotating,
       screenToCanvas,
       selectionMode,
-      longPressThreshold
+      longPressThreshold,
+      autoLinkElementsToZones,
+      updateElementsWithHistory,
+      toast,
+      t
     ]
   );
 
@@ -3865,7 +3868,7 @@ export function FloorPlanEditorV2({
         {/* Main Content - Canvas-Centric Layout with Sidebar */}
         <div className="flex flex-1 overflow-hidden">
           {/* Context-Aware Sidebar - Desktop/Tablet */}
-          {device.isDesktop || device.isTablet ? (
+          {(device.isDesktop || device.isTablet) && (
             <div
               className={`shrink-0 border-r bg-card ${
                 device.isDesktop ? "w-[280px]" : "w-[240px]"
@@ -3888,115 +3891,6 @@ export function FloorPlanEditorV2({
                 onToggleLayerLock={handleToggleLayerLock}
               />
             </div>
-          )}
-          {/* Old Layers Panel - Removed, using ContextAwareSidebar instead */}
-            <Card className="w-64 border-r shrink-0 p-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm">שכבות</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => setShowLayersPanel(false)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={layers.zones.visible}
-                        onChange={(e) =>
-                          setLayers((prev) => ({
-                            ...prev,
-                            zones: { ...prev.zones, visible: e.target.checked }
-                          }))
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">אזורים</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() =>
-                        setLayers((prev) => ({
-                          ...prev,
-                          zones: { ...prev.zones, locked: !prev.zones.locked }
-                        }))
-                      }
-                      title={layers.zones.locked ? "פתח נעילה" : "נעול"}
-                    >
-                      {layers.zones.locked ? "🔒" : "🔓"}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={layers.tables.visible}
-                        onChange={(e) =>
-                          setLayers((prev) => ({
-                            ...prev,
-                            tables: { ...prev.tables, visible: e.target.checked }
-                          }))
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">שולחנות</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() =>
-                        setLayers((prev) => ({
-                          ...prev,
-                          tables: { ...prev.tables, locked: !prev.tables.locked }
-                        }))
-                      }
-                      title={layers.tables.locked ? "פתח נעילה" : "נעול"}
-                    >
-                      {layers.tables.locked ? "🔒" : "🔓"}
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between p-2 border rounded">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={layers.specialAreas.visible}
-                        onChange={(e) =>
-                          setLayers((prev) => ({
-                            ...prev,
-                            specialAreas: { ...prev.specialAreas, visible: e.target.checked }
-                          }))
-                        }
-                        className="w-4 h-4"
-                      />
-                      <span className="text-sm">אזורים מיוחדים</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() =>
-                        setLayers((prev) => ({
-                          ...prev,
-                          specialAreas: { ...prev.specialAreas, locked: !prev.specialAreas.locked }
-                        }))
-                      }
-                      title={layers.specialAreas.locked ? "פתח נעילה" : "נעול"}
-                    >
-                      {layers.specialAreas.locked ? "🔒" : "🔓"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
           )}
           {viewMode === "interactive" ? (
             <>

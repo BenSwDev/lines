@@ -44,12 +44,7 @@ export function ListTab({
 
   const handleToggleBulkMode = () => {
     setBulkMode(!bulkMode);
-    if (bulkMode) {
-      // Clear selection when exiting bulk mode
-      selectedElementIds.forEach((id) => {
-        // Clear selection logic would go here
-      });
-    }
+    // Note: Selection clearing when exiting bulk mode would be handled by parent component
   };
 
   const handleToggleSelect = (elementId: string) => {
