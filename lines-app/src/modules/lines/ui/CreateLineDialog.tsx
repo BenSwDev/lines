@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -19,10 +19,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { List, Clock, Palette, ChevronDown, X, Settings, Copy, Check, Trash2 } from "lucide-react";
+import { List, Clock, Palette, Calendar, Trash2 } from "lucide-react";
 import { createLine } from "../actions/createLine";
 import { updateLine } from "../actions/updateLine";
 import { deleteLine } from "../actions/deleteLine";
@@ -56,17 +53,25 @@ const DAYS_OF_WEEK = [
 const FREQUENCIES = [
   { value: "weekly", label: "שבועי" },
   { value: "monthly", label: "חודשי" },
-  { value: "variable", label: "משתנה" },
   { value: "oneTime", label: "חד פעמי" }
 ];
 
-type DaySchedule = {
-  day: number;
-  startTime: string;
-  endTime: string;
-  frequency: string;
-  isOverridden?: boolean; // Track if this day has custom settings
-};
+const MONTHS = [
+  "ינואר",
+  "פברואר",
+  "מרץ",
+  "אפריל",
+  "מאי",
+  "יוני",
+  "יולי",
+  "אוגוסט",
+  "ספטמבר",
+  "אוקטובר",
+  "נובמבר",
+  "דצמבר"
+];
+
+type StartDateMode = "next" | "custom";
 
 export function CreateLineDialog({
   isOpen,
@@ -78,367 +83,234 @@ export function CreateLineDialog({
   const { t } = useTranslations();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingCollisions, setIsCheckingCollisions] = useState(false);
 
-  // Bulk settings (defaults for all days)
-  const [bulkStartTime, setBulkStartTime] = useState("18:00");
-  const [bulkEndTime, setBulkEndTime] = useState("22:00");
-  const [bulkFrequency, setBulkFrequency] = useState("weekly");
-
-  // Form state
+  // Form state - לפי סדר החשיבות
   const [name, setName] = useState("");
-  const [daySchedules, setDaySchedules] = useState<DaySchedule[]>([]);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [frequency, setFrequency] = useState<"weekly" | "monthly" | "oneTime">("weekly");
+  const [startDateMode, setStartDateMode] = useState<StartDateMode>("next");
+  const [customMonth, setCustomMonth] = useState<number>(new Date().getMonth());
+  const [customYear, setCustomYear] = useState<number>(new Date().getFullYear());
+  const [startTime, setStartTime] = useState("18:00");
+  const [endTime, setEndTime] = useState("22:00");
   const [color, setColor] = useState<string>(COLOR_PALETTE[0]);
   const [error, setError] = useState("");
-  const [collisionError, setCollisionError] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestedDates, setSuggestedDates] = useState<string[]>([]);
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
-  const [showManualDates, setShowManualDates] = useState(false);
-  const [manualDate, setManualDate] = useState("");
-  const [manualDates, setManualDates] = useState<string[]>([]);
-  const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
+
+  // Generate years (5 years ahead)
+  const availableYears = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: 6 }, (_, i) => currentYear + i);
+  }, []);
+
+  // Calculate next occurrence date based on selected days
+  const nextOccurrenceDate = useMemo(() => {
+    if (selectedDays.length === 0) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find the next occurrence of any selected day
+    for (let i = 0; i < 14; i++) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() + i);
+      const dayOfWeek = checkDate.getDay();
+
+      if (selectedDays.includes(dayOfWeek)) {
+        return checkDate;
+      }
+    }
+
+    return null;
+  }, [selectedDays]);
+
+  // Get available dates for custom selection (only dates matching selected days)
+  const availableDates = useMemo(() => {
+    if (selectedDays.length === 0) return [];
+
+    const dates: Date[] = [];
+    const start = new Date(customYear, customMonth, 1);
+    const end = new Date(customYear, customMonth + 1, 0);
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dayOfWeek = d.getDay();
+      if (selectedDays.includes(dayOfWeek)) {
+        dates.push(new Date(d));
+      }
+    }
+
+    return dates;
+  }, [selectedDays, customMonth, customYear]);
 
   // Load existing line data or reset form
   useEffect(() => {
     if (existingLine) {
       setName(existingLine.name || "");
       setColor(existingLine.color || COLOR_PALETTE[0]);
-      setBulkStartTime(existingLine.startTime || "18:00");
-      setBulkEndTime(existingLine.endTime || "22:00");
-      setBulkFrequency(existingLine.frequency || "weekly");
-
-      // Convert existing line to daySchedules format
-      const schedules: DaySchedule[] = (existingLine.days || []).map((day) => ({
-        day,
-        startTime: existingLine.startTime || "18:00",
-        endTime: existingLine.endTime || "22:00",
-        frequency: existingLine.frequency || "weekly",
-        isOverridden: false
-      }));
-      setDaySchedules(schedules);
+      setStartTime(existingLine.startTime || "18:00");
+      setEndTime(existingLine.endTime || "22:00");
+      setFrequency((existingLine.frequency as "weekly" | "monthly" | "oneTime") || "weekly");
+      setSelectedDays(existingLine.days || []);
+      setStartDateMode("custom");
+      // Try to get first occurrence date if exists
+      const today = new Date();
+      setCustomMonth(today.getMonth());
+      setCustomYear(today.getFullYear());
     } else if (!isOpen) {
-      // Reset form when dialog closes and no existing line
+      // Reset form when dialog closes
       setName("");
-      setDaySchedules([]);
+      setSelectedDays([]);
+      setFrequency("weekly");
+      setStartDateMode("next");
+      setStartTime("18:00");
+      setEndTime("22:00");
       setColor(COLOR_PALETTE[0]);
-      setBulkStartTime("18:00");
-      setBulkEndTime("22:00");
-      setBulkFrequency("weekly");
       setError("");
-      setCollisionError("");
-      setShowSuggestions(false);
-      setSuggestedDates([]);
-      setSelectedDates(new Set());
-      setShowManualDates(false);
-      setManualDate("");
-      setManualDates([]);
-      setExpandedDays(new Set());
+      const today = new Date();
+      setCustomMonth(today.getMonth());
+      setCustomYear(today.getFullYear());
     }
   }, [existingLine, isOpen]);
 
   const toggleDay = (dayValue: number) => {
-    setDaySchedules((prev) => {
-      const existing = prev.find((s) => s.day === dayValue);
-      if (existing) {
-        // Remove day
-        const newExpanded = new Set(expandedDays);
-        newExpanded.delete(dayValue);
-        setExpandedDays(newExpanded);
-        return prev.filter((s) => s.day !== dayValue);
+    setSelectedDays((prev) => {
+      if (prev.includes(dayValue)) {
+        return prev.filter((d) => d !== dayValue);
       } else {
-        // Add day with bulk defaults
-        return [
-          ...prev,
-          {
-            day: dayValue,
-            startTime: bulkStartTime,
-            endTime: bulkEndTime,
-            frequency: bulkFrequency,
-            isOverridden: false
-          }
-        ].sort((a, b) => a.day - b.day);
+        return [...prev, dayValue].sort((a, b) => a - b);
       }
     });
   };
 
-  const applyBulkToAll = () => {
-    setDaySchedules((prev) =>
-      prev.map((s) => ({
-        ...s,
-        startTime: bulkStartTime,
-        endTime: bulkEndTime,
-        frequency: bulkFrequency,
-        isOverridden: false
-      }))
-    );
-    toast({
-      title: "הוחל על כל הימים",
-      description: "ההגדרות הכלליות הוחלו על כל הימים שנבחרו"
-    });
-  };
-
-  const updateDaySchedule = (day: number, field: keyof DaySchedule, value: string | boolean) => {
-    setDaySchedules((prev) =>
-      prev.map((s) => {
-        if (s.day === day) {
-          return {
-            ...s,
-            [field]: value,
-            isOverridden: true
-          };
-        }
-        return s;
-      })
-    );
-  };
-
-  const resetDayToBulk = (day: number) => {
-    setDaySchedules((prev) =>
-      prev.map((s) =>
-        s.day === day
-          ? {
-              ...s,
-              startTime: bulkStartTime,
-              endTime: bulkEndTime,
-              frequency: bulkFrequency,
-              isOverridden: false
-            }
-          : s
-      )
-    );
-  };
-
-  const getDaySchedule = (day: number): DaySchedule | undefined => {
-    return daySchedules.find((s) => s.day === day);
-  };
-
-  const toggleDayExpansion = (day: number) => {
-    const newExpanded = new Set(expandedDays);
-    if (newExpanded.has(day)) {
-      newExpanded.delete(day);
+  const getSelectedStartDate = (): Date | null => {
+    if (startDateMode === "next") {
+      return nextOccurrenceDate;
     } else {
-      newExpanded.add(day);
-    }
-    setExpandedDays(newExpanded);
-  };
-
-  const generateSuggestions = (schedules: DaySchedule[]) => {
-    if (schedules.length === 0) return;
-
-    const suggestions: string[] = [];
-    const today = new Date();
-    const maxDate = new Date();
-    maxDate.setMonth(today.getMonth() + 3); // 3 months horizon
-
-    const current = new Date(today);
-    while (current <= maxDate) {
-      const dayOfWeek = current.getDay();
-      const schedule = schedules.find((s) => s.day === dayOfWeek);
-
-      if (schedule) {
-        // Generate based on frequency
-        let shouldInclude = false;
-
-        if (schedule.frequency === "weekly") {
-          shouldInclude = true;
-        } else if (schedule.frequency === "monthly") {
-          // First occurrence of this weekday in month
-          const firstOfMonth = new Date(current.getFullYear(), current.getMonth(), 1);
-          const firstOccurrence = new Date(firstOfMonth);
-          while (firstOccurrence.getDay() !== dayOfWeek) {
-            firstOccurrence.setDate(firstOccurrence.getDate() + 1);
-          }
-          shouldInclude = current.getDate() === firstOccurrence.getDate();
-        } else if (schedule.frequency === "oneTime") {
-          // Only if it's the next occurrence
-          shouldInclude =
-            current >= today && current <= new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-        }
-
-        if (shouldInclude) {
-          const year = current.getFullYear();
-          const month = String(current.getMonth() + 1).padStart(2, "0");
-          const day = String(current.getDate()).padStart(2, "0");
-          suggestions.push(`${year}-${month}-${day}`);
-        }
-      }
-
-      current.setDate(current.getDate() + 1);
-    }
-
-    setSuggestedDates([...new Set(suggestions)].sort());
-    setSelectedDates(new Set(suggestions));
-    setShowSuggestions(true);
-  };
-
-  const toggleDate = (date: string) => {
-    setSelectedDates((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(date)) {
-        newSet.delete(date);
-      } else {
-        newSet.add(date);
-      }
-      return newSet;
-    });
-  };
-
-  const addManualDate = () => {
-    if (!manualDate) return;
-
-    const date = new Date(manualDate);
-    const dayOfWeek = date.getDay();
-    const schedule = daySchedules.find((s) => s.day === dayOfWeek);
-
-    if (!schedule) {
-      toast({
-        title: t("errors.generic"),
-        description: "התאריך לא תואם לימים שנבחרו",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (manualDates.includes(manualDate) || selectedDates.has(manualDate)) {
-      toast({
-        title: t("errors.generic"),
-        description: "תאריך זה כבר קיים",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setManualDates([...manualDates, manualDate].sort());
-    setManualDate("");
-  };
-
-  const removeManualDate = (date: string) => {
-    setManualDates(manualDates.filter((d) => d !== date));
-  };
-
-  // Check for collisions before submitting
-  const checkCollisions = async (): Promise<boolean> => {
-    setIsCheckingCollisions(true);
-    setCollisionError("");
-
-    try {
-      // Build new ranges from selected dates and day schedules
-      const newRanges: TimeRange[] = [];
-
-      // From selected dates
-      for (const date of Array.from(selectedDates)) {
-        const dateObj = new Date(date);
-        const dayOfWeek = dateObj.getDay();
-        const schedule = daySchedules.find((s) => s.day === dayOfWeek);
-
-        if (schedule) {
-          newRanges.push({
-            date,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime
-          });
-        }
-      }
-
-      // From manual dates
-      for (const date of manualDates) {
-        const dateObj = new Date(date);
-        const dayOfWeek = dateObj.getDay();
-        const schedule = daySchedules.find((s) => s.day === dayOfWeek);
-
-        if (schedule) {
-          newRanges.push({
-            date,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime
-          });
-        }
-      }
-
-      // If no ranges to check, return true
-      if (newRanges.length === 0) {
-        return true;
-      }
-
-      // Check collisions using server action
-      const result = await checkLineCollisions(venueId, newRanges, existingLine?.id);
-
-      if (!result.success || result.hasCollision) {
-        setCollisionError(
-          result.error ||
-            `נמצאו התנגשויות עם ${result.conflictingRanges?.length || 0} אירועים קיימים. לא ניתן ליצור אירועים חופפים באותו זמן.`
-        );
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error("Error checking collisions:", error);
-      setCollisionError(error instanceof Error ? error.message : "שגיאה בבדיקת התנגשויות");
-      return false;
-    } finally {
-      setIsCheckingCollisions(false);
+      // For custom, return first available date in selected month/year
+      return availableDates.length > 0 ? availableDates[0] : null;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setCollisionError("");
 
+    // Validation
     if (!name.trim()) {
-      setError(t("lines.nameRequired"));
+      setError("שם הליין הוא שדה חובה");
       return;
     }
 
-    if (daySchedules.length === 0) {
-      setError(t("lines.daysRequired"));
+    if (selectedDays.length === 0) {
+      setError("יש לבחור לפחות יום אחד");
       return;
+    }
+
+    const startDate = getSelectedStartDate();
+    if (!startDate) {
+      setError("לא ניתן למצוא תאריך התחלה תואם לימים שנבחרו");
+      return;
+    }
+
+    // Generate occurrences based on start date and frequency
+    const occurrences: TimeRange[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (frequency === "oneTime") {
+      // Single occurrence
+      occurrences.push({
+        date: startDate.toISOString().split("T")[0],
+        startTime,
+        endTime
+      });
+    } else if (frequency === "weekly") {
+      // Generate weekly occurrences for 3 months
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + 3);
+
+      // Start from the start date and generate all occurrences
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dayOfWeek = d.getDay();
+        if (selectedDays.includes(dayOfWeek)) {
+          occurrences.push({
+            date: d.toISOString().split("T")[0],
+            startTime,
+            endTime
+          });
+        }
+      }
+    } else if (frequency === "monthly") {
+      // Generate monthly occurrences for 12 months
+      // For each selected day, find first occurrence in each month
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + 12);
+
+      for (let monthOffset = 0; monthOffset <= 12; monthOffset++) {
+        const currentMonth = new Date(startDate);
+        currentMonth.setMonth(startDate.getMonth() + monthOffset);
+        const firstOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+
+        // For each selected day, find first occurrence in this month
+        selectedDays.forEach((targetDay) => {
+          const checkDate = new Date(firstOfMonth);
+          // Find first occurrence of targetDay in this month
+          while (
+            checkDate.getDay() !== targetDay &&
+            checkDate.getMonth() === firstOfMonth.getMonth()
+          ) {
+            checkDate.setDate(checkDate.getDate() + 1);
+          }
+          // Only add if it's in the current month and >= startDate
+          if (checkDate.getMonth() === firstOfMonth.getMonth() && checkDate >= startDate) {
+            occurrences.push({
+              date: checkDate.toISOString().split("T")[0],
+              startTime,
+              endTime
+            });
+          }
+        });
+      }
     }
 
     // Check for collisions
-    const noCollisions = await checkCollisions();
-    if (!noCollisions) {
-      return;
-    }
-
     setIsSubmitting(true);
-
     try {
-      // Convert daySchedules to legacy format for now (will update schema later)
-      const days = daySchedules.map((s) => s.day);
-      // Use first schedule's times as default (will be overridden per occurrence)
-      const defaultStartTime = daySchedules[0]?.startTime || "18:00";
-      const defaultEndTime = daySchedules[0]?.endTime || "22:00";
-      const defaultFrequency = daySchedules[0]?.frequency || "weekly";
+      const collisionResult = await checkLineCollisions(venueId, occurrences, existingLine?.id);
+      if (!collisionResult.success) {
+        setError(collisionResult.error || "נמצאו התנגשויות עם אירועים קיימים");
+        setIsSubmitting(false);
+        return;
+      }
 
-      const selectedDatesArray = Array.from(selectedDates);
-      const allManualDates = manualDates.filter((date) => !selectedDates.has(date));
+      // Create daySchedules format
+      const daySchedules = selectedDays.map((day) => ({
+        day,
+        startTime,
+        endTime,
+        frequency
+      }));
 
       // Use updateLine if editing, createLine if creating
       const result = existingLine
         ? await updateLine(venueId, existingLine.id, {
             name: name.trim(),
-            days,
-            startTime: defaultStartTime,
-            endTime: defaultEndTime,
-            frequency: defaultFrequency,
+            days: selectedDays,
+            startTime,
+            endTime,
+            frequency,
             color,
-            selectedDates: selectedDatesArray.length > 0 ? selectedDatesArray : undefined,
-            manualDates: allManualDates.length > 0 ? allManualDates : undefined,
-            daySchedules: daySchedules // Pass new structure
+            daySchedules,
+            selectedDates: occurrences.map((occ) => occ.date)
           })
         : await createLine(venueId, {
             name: name.trim(),
-            days,
-            startTime: defaultStartTime,
-            endTime: defaultEndTime,
-            frequency: defaultFrequency,
+            days: selectedDays,
+            startTime,
+            endTime,
+            frequency,
             color,
-            selectedDates: selectedDatesArray.length > 0 ? selectedDatesArray : undefined,
-            manualDates: allManualDates.length > 0 ? allManualDates : undefined,
-            daySchedules: daySchedules // Pass new structure
+            daySchedules,
+            selectedDates: occurrences.map((occ) => occ.date)
           });
 
       if (result.success) {
@@ -450,13 +322,7 @@ export function CreateLineDialog({
         onSuccess();
       } else {
         const errorMsg = !result.success && "error" in result ? result.error : null;
-        setError(
-          errorMsg
-            ? translateError(errorMsg, t)
-            : existingLine
-              ? t("lines.updating")
-              : t("lines.creating")
-        );
+        setError(errorMsg ? translateError(errorMsg, t) : t("errors.unexpected"));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.unexpected"));
@@ -466,36 +332,23 @@ export function CreateLineDialog({
   };
 
   const handleClose = () => {
-    if (!isSubmitting && !isCheckingCollisions) {
+    if (!isSubmitting) {
       setName("");
-      setDaySchedules([]);
+      setSelectedDays([]);
+      setFrequency("weekly");
+      setStartDateMode("next");
+      setStartTime("18:00");
+      setEndTime("22:00");
       setColor(COLOR_PALETTE[0]);
-      setBulkStartTime("18:00");
-      setBulkEndTime("22:00");
-      setBulkFrequency("weekly");
       setError("");
-      setCollisionError("");
-      setShowSuggestions(false);
-      setSuggestedDates([]);
-      setSelectedDates(new Set());
-      setShowManualDates(false);
-      setManualDate("");
-      setManualDates([]);
-      setExpandedDays(new Set());
       onClose();
     }
   };
 
-  const selectedDays = daySchedules.map((s) => s.day);
-
   const handleDelete = async () => {
     if (!existingLine) return;
 
-    if (
-      !confirm(
-        t("lines.confirmDelete", { defaultValue: "האם אתה בטוח שברצונך למחוק את הליין הזה?" })
-      )
-    ) {
+    if (!confirm("האם אתה בטוח שברצונך למחוק את הליין הזה?")) {
       return;
     }
 
@@ -528,6 +381,16 @@ export function CreateLineDialog({
     }
   };
 
+  const formatDate = (date: Date | null): string => {
+    if (!date) return "";
+    return date.toLocaleDateString("he-IL", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  };
+
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
@@ -541,7 +404,7 @@ export function CreateLineDialog({
                 {existingLine ? "עריכת ליין" : "יצירת ליין חדש"}
               </SheetTitle>
               <SheetDescription className="text-base">
-                הגדר לוח זמנים, ימים וצבע לאירועים חוזרים
+                הגדר ליין חדש לאירועים חוזרים
               </SheetDescription>
             </div>
             {existingLine && (
@@ -560,431 +423,255 @@ export function CreateLineDialog({
         </SheetHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-6">
             {error && (
               <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
 
-            {collisionError && (
-              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
-                {collisionError}
-              </div>
-            )}
-
-            {/* Name and Color - Compact Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold">
-                  שם הליין *
-                </Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="לדוגמה: ערב ג'אז"
-                  disabled={isSubmitting}
-                  className="h-10"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-semibold">צבע</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-between gap-2 h-10"
-                      disabled={isSubmitting}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="h-5 w-5 rounded border-2 border-border shadow-sm"
-                          style={{ backgroundColor: color }}
-                        />
-                        <span className="text-sm">בחר צבע</span>
-                      </div>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-3" align="start">
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 pb-2 border-b">
-                        <Palette className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-semibold">בחר צבע</span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-2">
-                        {COLOR_PALETTE.map((paletteColor) => (
-                          <button
-                            key={paletteColor}
-                            type="button"
-                            onClick={() => setColor(paletteColor)}
-                            disabled={isSubmitting}
-                            className={cn(
-                              "h-10 w-10 rounded-lg border-2 transition-all",
-                              color === paletteColor
-                                ? "border-primary ring-2 ring-primary ring-offset-2 scale-110"
-                                : "border-border/50 hover:border-primary/50 hover:scale-105"
-                            )}
-                            style={{ backgroundColor: paletteColor }}
-                            aria-label={`בחר צבע ${paletteColor}`}
-                          >
-                            {color === paletteColor && (
-                              <Check className="h-4 w-4 text-primary-foreground mx-auto drop-shadow-lg" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
+            {/* 1. שם הליין */}
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-sm font-semibold">
+                שם הליין *
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="לדוגמה: ערב ג'אז"
+                disabled={isSubmitting}
+                className="h-10"
+              />
             </div>
 
-            {/* Bulk Settings - Professional Card */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-primary/5 to-transparent p-5 shadow-sm">
-              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-primary" />
-                    <Label className="text-base font-bold text-foreground">הגדרות כלליות</Label>
-                  </div>
-                  {selectedDays.length > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={applyBulkToAll}
-                      className="gap-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                      החל על כל הימים
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="bulkStartTime" className="text-xs text-muted-foreground">
-                      <Clock className="ml-1 inline h-3 w-3" />
-                      שעת התחלה
-                    </Label>
-                    <Input
-                      id="bulkStartTime"
-                      type="time"
-                      value={bulkStartTime}
-                      onChange={(e) => setBulkStartTime(e.target.value)}
-                      disabled={isSubmitting}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bulkEndTime" className="text-xs text-muted-foreground">
-                      <Clock className="ml-1 inline h-3 w-3" />
-                      שעת סיום
-                    </Label>
-                    <Input
-                      id="bulkEndTime"
-                      type="time"
-                      value={bulkEndTime}
-                      onChange={(e) => setBulkEndTime(e.target.value)}
-                      disabled={isSubmitting}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bulkFrequency" className="text-xs text-muted-foreground">
-                      תדירות
-                    </Label>
-                    <Select value={bulkFrequency} onValueChange={setBulkFrequency}>
-                      <SelectTrigger id="bulkFrequency" className="h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FREQUENCIES.map((freq) => (
-                          <SelectItem key={freq.value} value={freq.value}>
-                            {freq.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  הגדרות אלו יחולו על כל הימים שנבחרו. ניתן לשנות הגדרות ספציפיות לכל יום.
-                </p>
-              </div>
-            </div>
-
-            {/* Days Selector - Compact */}
+            {/* 2. בחירת ימים */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">בחר ימים *</Label>
-              <div className="grid grid-cols-7 gap-2">
+              <Label className="text-sm font-semibold">בחר ימים *</Label>
+              <div className="flex gap-2 flex-wrap">
                 {DAYS_OF_WEEK.map((day) => {
-                  const schedule = getDaySchedule(day.value);
-                  const isSelected = !!schedule;
-                  const isExpanded = expandedDays.has(day.value);
-                  const isOverridden = schedule?.isOverridden;
-
+                  const isSelected = selectedDays.includes(day.value);
                   return (
-                    <div key={day.value} className="space-y-2">
-                      <Collapsible
-                        open={isExpanded}
-                        onOpenChange={() => toggleDayExpansion(day.value)}
-                      >
-                        <div
-                          className={cn(
-                            "relative rounded-lg border-2 transition-all cursor-pointer",
-                            isSelected
-                              ? "border-primary/50 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-sm"
-                              : "border-border/50 bg-card hover:border-primary/30"
-                          )}
-                        >
-                          <div className="flex flex-col items-center p-3">
-                            <Checkbox
-                              id={`day-${day.value}`}
-                              checked={isSelected}
-                              onCheckedChange={() => toggleDay(day.value)}
-                              disabled={isSubmitting}
-                              className="mb-2"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <label
-                              htmlFor={`day-${day.value}`}
-                              className="text-xs font-semibold cursor-pointer text-center"
-                            >
-                              {day.short}
-                            </label>
-                            {isSelected && isOverridden && (
-                              <div className="mt-1 h-1 w-1 rounded-full bg-primary" />
-                            )}
-                          </div>
-                        </div>
-
-                        {isSelected && (
-                          <CollapsibleContent className="mt-2">
-                            <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-2">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-medium text-foreground">
-                                  {day.label}
-                                </span>
-                                {isOverridden && (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => resetDayToBulk(day.value)}
-                                    className="h-6 text-xs"
-                                  >
-                                    איפוס
-                                  </Button>
-                                )}
-                              </div>
-                              <div className="space-y-2">
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div className="space-y-1">
-                                    <Label className="text-xs text-muted-foreground">התחלה</Label>
-                                    <Input
-                                      type="time"
-                                      value={schedule.startTime}
-                                      onChange={(e) =>
-                                        updateDaySchedule(day.value, "startTime", e.target.value)
-                                      }
-                                      disabled={isSubmitting}
-                                      className="h-8 text-xs"
-                                    />
-                                  </div>
-                                  <div className="space-y-1">
-                                    <Label className="text-xs text-muted-foreground">סיום</Label>
-                                    <Input
-                                      type="time"
-                                      value={schedule.endTime}
-                                      onChange={(e) =>
-                                        updateDaySchedule(day.value, "endTime", e.target.value)
-                                      }
-                                      disabled={isSubmitting}
-                                      className="h-8 text-xs"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="space-y-1">
-                                  <Label className="text-xs text-muted-foreground">תדירות</Label>
-                                  <Select
-                                    value={schedule.frequency}
-                                    onValueChange={(value) =>
-                                      updateDaySchedule(day.value, "frequency", value)
-                                    }
-                                  >
-                                    <SelectTrigger className="h-8 text-xs">
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {FREQUENCIES.map((freq) => (
-                                        <SelectItem key={freq.value} value={freq.value}>
-                                          {freq.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                            </div>
-                          </CollapsibleContent>
-                        )}
-                      </Collapsible>
-                    </div>
+                    <button
+                      key={day.value}
+                      type="button"
+                      onClick={() => toggleDay(day.value)}
+                      disabled={isSubmitting}
+                      className={cn(
+                        "flex h-12 w-12 items-center justify-center rounded-lg border-2 font-semibold text-sm transition-all",
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary shadow-md"
+                          : "bg-background border-border hover:border-primary/50 hover:bg-muted/50"
+                      )}
+                    >
+                      {day.short}
+                    </button>
                   );
                 })}
               </div>
-              {selectedDays.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  לחץ על יום שנבחר כדי לשנות הגדרות ספציפיות
-                </p>
+              {selectedDays.length === 0 && (
+                <p className="text-xs text-muted-foreground">יש לבחור לפחות יום אחד</p>
               )}
             </div>
 
-            {/* Suggested Dates - Collapsible */}
-            {daySchedules.length > 0 && (
-              <Collapsible open={showSuggestions} onOpenChange={setShowSuggestions}>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-base font-semibold">תאריכים מוצעים</Label>
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => generateSuggestions(daySchedules)}
-                      >
-                        {showSuggestions ? "הסתר" : "הצג תאריכים"}
-                      </Button>
-                    </CollapsibleTrigger>
+            {/* 3. תדירות */}
+            <div className="space-y-2">
+              <Label htmlFor="frequency" className="text-sm font-semibold">
+                תדירות
+              </Label>
+              <Select
+                value={frequency}
+                onValueChange={(value) => setFrequency(value as "weekly" | "monthly" | "oneTime")}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger id="frequency" className="h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FREQUENCIES.map((freq) => (
+                    <SelectItem key={freq.value} value={freq.value}>
+                      {freq.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* 4. תאריך התחלה */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">תאריך התחלה</Label>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={startDateMode === "next" ? "default" : "outline"}
+                    onClick={() => setStartDateMode("next")}
+                    disabled={isSubmitting || selectedDays.length === 0}
+                    className="flex-1"
+                  >
+                    <Calendar className="h-4 w-4 ml-2" />
+                    הקרוב
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={startDateMode === "custom" ? "default" : "outline"}
+                    onClick={() => setStartDateMode("custom")}
+                    disabled={isSubmitting || selectedDays.length === 0}
+                    className="flex-1"
+                  >
+                    <Calendar className="h-4 w-4 ml-2" />
+                    התאמה אישית
+                  </Button>
+                </div>
+
+                {startDateMode === "next" && nextOccurrenceDate && (
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-sm font-medium">
+                      התאריך הקרוב: {formatDate(nextOccurrenceDate)}
+                    </p>
                   </div>
-                  <CollapsibleContent>
-                    <div className="space-y-2">
-                      <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                        <p className="font-medium">
-                          {selectedDates.size} תאריכים נבחרו מתוך {suggestedDates.length}
-                        </p>
+                )}
+
+                {startDateMode === "custom" && (
+                  <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs">חודש</Label>
+                        <Select
+                          value={customMonth.toString()}
+                          onValueChange={(value) => setCustomMonth(parseInt(value))}
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MONTHS.map((month, index) => (
+                              <SelectItem key={index} value={index.toString()}>
+                                {month}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border p-2">
-                        {suggestedDates.slice(0, 20).map((date) => (
-                          <div
-                            key={date}
-                            className="flex items-center gap-2 rounded px-2 py-1 hover:bg-muted"
-                          >
-                            <Checkbox
-                              checked={selectedDates.has(date)}
-                              onCheckedChange={() => toggleDate(date)}
-                            />
-                            <span className="text-sm">
-                              {new Date(date).toLocaleDateString("he-IL", {
-                                weekday: "long",
-                                day: "numeric",
-                                month: "long"
-                              })}
-                            </span>
-                          </div>
-                        ))}
-                        {suggestedDates.length > 20 && (
-                          <p className="text-xs text-muted-foreground px-2 py-1">
-                            +{suggestedDates.length - 20} תאריכים נוספים
-                          </p>
-                        )}
+                      <div className="space-y-2">
+                        <Label className="text-xs">שנה</Label>
+                        <Select
+                          value={customYear.toString()}
+                          onValueChange={(value) => setCustomYear(parseInt(value))}
+                          disabled={isSubmitting}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableYears.map((year) => (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            )}
 
-            {/* Manual Dates - Collapsible */}
-            {daySchedules.length > 0 && (
-              <Collapsible open={showManualDates} onOpenChange={setShowManualDates}>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={showManualDates}
-                      onCheckedChange={(checked) => setShowManualDates(!!checked)}
-                    />
-                    <Label>הוסף תאריכים ידנית</Label>
-                  </div>
-                  <CollapsibleContent>
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input
-                          type="date"
-                          value={manualDate}
-                          onChange={(e) => setManualDate(e.target.value)}
-                          min={(() => {
-                            const today = new Date();
-                            const year = today.getFullYear();
-                            const month = String(today.getMonth() + 1).padStart(2, "0");
-                            const day = String(today.getDate()).padStart(2, "0");
-                            return `${year}-${month}-${day}`;
-                          })()}
-                          className="flex-1"
-                        />
-                        <Button type="button" onClick={addManualDate} disabled={!manualDate}>
-                          הוסף
-                        </Button>
-                      </div>
-                      {manualDates.length > 0 && (
-                        <div className="space-y-1 rounded-lg border p-2">
-                          {manualDates.map((date) => (
+                    {availableDates.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">תאריכים זמינים</Label>
+                        <div className="max-h-32 overflow-y-auto space-y-1">
+                          {availableDates.map((date, index) => (
                             <div
-                              key={date}
-                              className="flex items-center justify-between rounded bg-muted px-2 py-1"
+                              key={index}
+                              className="text-sm p-2 rounded bg-background border border-border"
                             >
-                              <span className="text-sm">
-                                {new Date(date).toLocaleDateString("he-IL", {
-                                  weekday: "short",
-                                  day: "numeric",
-                                  month: "short"
-                                })}
-                              </span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeManualDate(date)}
-                                className="h-6 w-6 p-0"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
+                              {formatDate(date)}
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  </CollapsibleContent>
+                        <p className="text-xs text-muted-foreground">
+                          התאריך הראשון ({formatDate(availableDates[0])}) ייבחר אוטומטית
+                        </p>
+                      </div>
+                    )}
+
+                    {availableDates.length === 0 && (
+                      <p className="text-xs text-destructive">
+                        לא נמצאו תאריכים תואמים לימים שנבחרו בחודש ובשנה שנבחרו
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 5. שעות פעילות */}
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <Label className="text-sm font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                שעות פעילות
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime" className="text-xs">
+                    שעת התחלה
+                  </Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-9"
+                  />
                 </div>
-              </Collapsible>
-            )}
+                <div className="space-y-2">
+                  <Label htmlFor="endTime" className="text-xs">
+                    שעת סיום
+                  </Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-9"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 6. צבע */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold flex items-center gap-2">
+                <Palette className="h-4 w-4" />
+                צבע
+              </Label>
+              <div className="flex gap-2 flex-wrap">
+                {COLOR_PALETTE.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    disabled={isSubmitting}
+                    className={cn(
+                      "h-10 w-10 rounded-lg border-2 transition-all",
+                      color === c
+                        ? "border-foreground shadow-md scale-110"
+                        : "border-border hover:border-primary/50 hover:scale-105"
+                    )}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
-          <SheetFooter className="gap-2 sm:gap-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting || isCheckingCollisions}
-            >
-              {t("common.cancel", { defaultValue: "ביטול" })}
+          <SheetFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+              ביטול
             </Button>
-            <Button
-              type="submit"
-              disabled={
-                isSubmitting || isCheckingCollisions || !name.trim() || daySchedules.length === 0
-              }
-            >
-              {isSubmitting || isCheckingCollisions
-                ? t("lines.checking", { defaultValue: "בודק..." })
-                : existingLine
-                  ? t("common.save", { defaultValue: "עדכון" })
-                  : t("common.create", { defaultValue: "יצירה" })}
+            <Button type="submit" disabled={isSubmitting || selectedDays.length === 0}>
+              {isSubmitting ? "שומר..." : existingLine ? "שמור שינויים" : "צור ליין"}
             </Button>
           </SheetFooter>
         </form>
