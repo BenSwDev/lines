@@ -69,31 +69,59 @@ export class HierarchyService {
       };
     }
 
-    // Second pass: build manager-role relationships (managerRoleId)
+    // Second pass: build management role relationships (managedRoleId)
+    // Management roles should be parents of the roles they manage
+    roles.forEach((role) => {
+      const node = roleMap.get(role.id);
+      if (!node) return;
+
+      // If this is a management role, add the managed role as its child
+      if (role.isManagementRole && role.managedRoleId) {
+        const managedNode = roleMap.get(role.managedRoleId);
+        if (managedNode) {
+          // Check if managed node is not already a child
+          if (!node.children.some((c) => c.id === managedNode.id)) {
+            node.children.push(managedNode);
+            managedNode.depth = (node.depth || 0) + 1;
+          }
+        }
+      }
+    });
+
+    // Third pass: build manager-role relationships (managerRoleId)
     // This creates the family tree: manager -> managed roles
     roles.forEach((role) => {
       const node = roleMap.get(role.id);
       if (!node) return;
 
-      if (role.managerRoleId) {
+      // Skip if this role is already a child of a management role (from previous pass)
+      const isAlreadyChild = Array.from(roleMap.values()).some((n) =>
+        n.children.some((c) => c.id === node.id)
+      );
+
+      if (!isAlreadyChild && role.managerRoleId) {
         const managerNode = roleMap.get(role.managerRoleId);
         if (managerNode) {
           // Manager exists in the list - add as child
           managerNode.children.push(node);
           node.depth = (managerNode.depth || 0) + 1;
         }
-        // If manager doesn't exist, we'll handle it in the next pass
       }
     });
 
-    // Third pass: build parent-child relationships (parentRoleId) for roles without managers
+    // Fourth pass: build parent-child relationships (parentRoleId) for roles without managers
     // This is for legacy hierarchy support
     roles.forEach((role) => {
       const node = roleMap.get(role.id);
       if (!node) return;
 
-      // Only process if role doesn't have a manager (managerRoleId takes precedence)
-      if (!role.managerRoleId && role.parentRoleId) {
+      // Skip if this role is already a child (from previous passes)
+      const isAlreadyChild = Array.from(roleMap.values()).some((n) =>
+        n.children.some((c) => c.id === node.id)
+      );
+
+      // Only process if role doesn't have a manager and doesn't have a management role parent
+      if (!isAlreadyChild && !role.managerRoleId && role.parentRoleId) {
         const parentNode = roleMap.get(role.parentRoleId);
         if (parentNode) {
           // Check if node is not already a child of parent
@@ -105,7 +133,7 @@ export class HierarchyService {
       }
     });
 
-    // Fourth pass: collect root nodes (roles without managers and without parents)
+    // Fifth pass: collect root nodes (roles without managers and without parents)
     // These will be added under owner or as top-level nodes
     const rootRoles: HierarchyNode[] = [];
     const processedNodes = new Set<string>();
@@ -122,9 +150,7 @@ export class HierarchyService {
     roleMap.forEach((node) => {
       if (!processedNodes.has(node.id)) {
         // Check if this node is a child of someone
-        const isChild = roles.some(
-          (r) => r.id === node.id && (r.managerRoleId || r.parentRoleId)
-        );
+        const isChild = roles.some((r) => r.id === node.id && (r.managerRoleId || r.parentRoleId));
         if (!isChild) {
           rootRoles.push(node);
         }

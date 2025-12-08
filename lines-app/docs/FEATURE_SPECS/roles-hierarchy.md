@@ -64,27 +64,26 @@ A management role is automatically created when a regular role is marked as "req
 **Layout:**
 
 - Page title: "Roles & Hierarchy"
-- Three tabs: "Hierarchy", "Departments", "Roles"
+- Split view: **Sidebar** (left) with roles list + **Interactive Diagram** (center) with visual hierarchy
 
-**Tabs:**
+**Components:**
 
-1. **Hierarchy Tab**
-   - Visual tree view of departments and roles
-   - Expandable/collapsible nodes
-   - Color-coded by department/role
+1. **Roles Sidebar** (Left Panel)
+   - Scrollable list of all roles (including management roles)
+   - Each role card shows: icon, name, description, management badge
+   - Actions on hover: View, Edit, Delete
+   - "Add" button at top to create new roles
+   - Selected role is highlighted
+   - Click on role to select it in the diagram
 
-2. **Departments Tab**
-   - Grid of department cards
-   - Each card shows: name, icon, color, description, role count
-   - Actions: Create, Edit, Delete
-
-3. **Roles Tab**
-   - Grid of role cards (management roles are hidden from regular listing)
-   - Filter by parent role
-   - Each card shows: name, icon, color, parent role (if any)
-   - Actions: Create, Edit, Delete
-   - Color and icon selection via dropdowns (compact UI)
-   - Checkbox to mark role as requiring management
+2. **Interactive Hierarchy Diagram** (Center Panel)
+   - Visual pyramid/tree diagram with connecting lines between levels
+   - Nodes are color-coded by role color
+   - Management roles appear above the roles they manage
+   - Click on node to select and view details
+   - Hover effects for better interactivity
+   - SVG-based rendering for smooth scaling
+   - Automatic layout calculation based on hierarchy depth and width
 
 ---
 
@@ -143,10 +142,11 @@ See `docs/DATA_MODEL.md` for complete entity definitions.
 ```
 src/modules/roles-hierarchy/
   ui/
-    RolesHierarchyPage.tsx       - Main page component
-    DepartmentsTab.tsx            - Departments management tab
-    RolesTab.tsx                 - Roles management tab
-    HierarchyView.tsx            - Visual hierarchy tree
+    RolesHierarchyPage.tsx       - Main page component (split view: sidebar + diagram)
+    HierarchyDiagram.tsx         - Interactive SVG-based hierarchy diagram
+    RolesSidebar.tsx             - Sidebar with roles list and actions
+    RolesTab.tsx                 - Legacy roles tab (deprecated, kept for reference)
+    HierarchyView.tsx            - Legacy hierarchy view (deprecated, kept for reference)
     DepartmentCard.tsx           - Department card component
     RoleCard.tsx                 - Role card component
     CreateDepartmentDialog.tsx   - Create department dialog
@@ -159,7 +159,7 @@ src/modules/roles-hierarchy/
   services/
     departmentsService.ts        - Department business logic
     rolesService.ts              - Role business logic
-    hierarchyService.ts          - Hierarchy tree building
+    hierarchyService.ts          - Hierarchy tree building (fixed management role positioning)
   schemas/
     departmentSchemas.ts         - Zod validation for departments
     roleSchemas.ts               - Zod validation for roles
@@ -180,4 +180,20 @@ src/modules/roles-hierarchy/
 
 ---
 
-**Last Updated:** 2025-01-15
+---
+
+## Recent Updates (2025-01-XX)
+
+### UI Redesign
+
+- **Removed tabs** - Replaced with split view (sidebar + diagram)
+- **Interactive Diagram** - New SVG-based visual hierarchy with connecting lines
+- **Sidebar Integration** - Roles list moved to sidebar with inline actions
+- **Better Hierarchy Display** - Management roles now correctly appear above managed roles
+
+### Bug Fixes
+
+- **Management Role Positioning** - Fixed hierarchy service to correctly position management roles above the roles they manage
+- **Visual Hierarchy** - Management roles (e.g., "ניהול בר") now appear at correct level above regular roles (e.g., "בר")
+
+**Last Updated:** 2025-01-XX

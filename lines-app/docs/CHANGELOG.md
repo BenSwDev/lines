@@ -4,9 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed - 2025-01-XX
+
+#### Roles & Hierarchy UI Redesign
+
+- **Removed Tab-Based Navigation**: Replaced tabs with split view layout
+  - Sidebar (left): Scrollable roles list with inline actions (View, Edit, Delete, Add)
+  - Diagram (center): Interactive SVG-based hierarchy visualization
+- **New Interactive Hierarchy Diagram**:
+  - SVG-based rendering with connecting lines between levels
+  - Pyramid/tree structure similar to organizational charts
+  - Click nodes to select and view details
+  - Hover effects for better interactivity
+  - Automatic layout calculation based on hierarchy depth
+- **Enhanced Sidebar**:
+  - All roles visible in scrollable list (including management roles)
+  - Inline actions on hover (no need to open separate dialogs for viewing)
+  - Selected role highlighting
+  - Click role to select in diagram
+
+#### Hierarchy Logic Fixes
+
+- **Management Role Positioning**: Fixed `hierarchyService.buildHierarchyTree()` to correctly position management roles
+  - Management roles (e.g., "ניהול בר") now appear above the roles they manage (e.g., "בר")
+  - Fixed issue where management roles and regular roles appeared at the same level
+  - Proper handling of `managedRoleId` relationship in hierarchy building
+
 ### Added - 2025-12-08
 
 #### Floor Plan Enhancements
+
 - **Bar and Kitchen as Regular Zones**: Converted bar and kitchen from special `VenueArea` entities to regular `Zone` entities
   - Bars can now have tables, seating, and all zone features
   - Bar-specific fields: `barNumber`, `barName`, `barSeats`, `barMinimumPrice`
@@ -15,6 +42,7 @@ All notable changes to this project will be documented in this file.
   - Added `isKitchen` boolean flag
 
 #### Enhanced Staffing System
+
 - **Manager/Employee Counts**: Updated staffing rules structure
   - Old: `{ roleId: string, count: number }`
   - New: `{ roleId: string, managers: number, employees: number }`
@@ -26,6 +54,7 @@ All notable changes to this project will be documented in this file.
   - Roles with `canManage = true` can have managers assigned
 
 #### Family Tree Hierarchy
+
 - **Dynamic Hierarchy Management**:
   - Owner (Venue.userId) is displayed at root of hierarchy tree
   - Added `managerRoleId` to Role model for direct manager assignment
@@ -36,17 +65,19 @@ All notable changes to this project will be documented in this file.
   - Sidebar for role management integrated into hierarchy view
 
 #### UI Improvements
+
 - **Zone Creation**: Updated StructureBuilder to create bar/kitchen as zones
 - **Zone Editor**: Added bar-specific fields editor in ContentEditor
 - **Staffing Editor**: Enhanced with separate manager/employee counters
 - **Role Dialogs**: Added checkboxes for `requiresStaffing` and `canManage`
-- **Hierarchy View**: 
+- **Hierarchy View**:
   - Owner displayed with crown icon 👑
   - Manager badges for roles with `canManage`
   - Visual tree with connecting lines
   - Expand/collapse functionality
 
 #### Database Changes
+
 - Migration: `add_bar_kitchen_zones_and_hierarchy_fields`
   - Added `zone_type`, `is_kitchen`, `bar_number`, `bar_name`, `bar_seats`, `bar_minimum_price` to `zones` table
   - Added `manager_role_id`, `requires_staffing`, `can_manage` to `roles` table
@@ -54,6 +85,7 @@ All notable changes to this project will be documented in this file.
   - Added indexes for performance
 
 #### Translations
+
 - Added translations for:
   - `floorPlan.barSettings`, `floorPlan.barNumber`, `floorPlan.barName`, `floorPlan.barSeats`, `floorPlan.barMinimumPrice`
   - `floorPlan.kitchenNote`
@@ -62,11 +94,13 @@ All notable changes to this project will be documented in this file.
   - `hierarchy.owner`, `hierarchy.manages`, `hierarchy.treeView`
 
 ### Fixed
+
 - **Prisma Update Error**: Fixed `updateElementPosition` to filter undefined values before Prisma update
   - Prevents "column 'new' does not exist" errors
   - Properly handles optional position/size updates
 
 ### Changed
+
 - **Staffing Rules Structure**: Breaking change in staffing rules JSON format
   - Old format still supported via legacy `count` field
   - New format: `{ roleId, managers, employees }`
@@ -74,6 +108,7 @@ All notable changes to this project will be documented in this file.
 - **Hierarchy Building**: Updated to support family tree structure with owner at root
 
 ### Technical Details
+
 - Updated Prisma schema with new fields
 - Updated TypeScript types for Zone, Role, and StaffingRule
 - Updated Zod schemas for validation
