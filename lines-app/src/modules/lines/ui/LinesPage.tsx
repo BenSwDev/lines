@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { LinesSidebar } from "./LinesSidebar";
+import { LinesHeader } from "./LinesHeader";
 import { WeeklyScheduleView } from "./WeeklyScheduleView";
 import { LineDetailView } from "./LineDetailView";
 import { CreateLineDialog } from "./CreateLineDialog";
@@ -23,6 +23,8 @@ export function LinesPage() {
   const venueId = params.venueId as string;
 
   const [lines, setLines] = useState<Line[]>([]);
+  const [filteredLines, setFilteredLines] = useState<Line[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
   const [weekStartDay, setWeekStartDay] = useState<0 | 1>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +43,17 @@ export function LinesPage() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const filtered = lines.filter((line) =>
+        line.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredLines(filtered);
+    } else {
+      setFilteredLines(lines);
+    }
+  }, [searchQuery, lines]);
+
   const loadData = async () => {
     setIsLoading(true);
     try {
@@ -50,7 +63,9 @@ export function LinesPage() {
       ]);
 
       if (linesResult.success && "data" in linesResult) {
-        setLines(linesResult.data || []);
+        const loadedLines = linesResult.data || [];
+        setLines(loadedLines);
+        setFilteredLines(loadedLines);
       } else {
         const errorMsg = !linesResult.success && "error" in linesResult ? linesResult.error : null;
         toast({
@@ -86,18 +101,12 @@ export function LinesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full">
-        <div className="w-80 border-l bg-background p-4 space-y-4">
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
+      <div className="flex h-full flex-col">
+        <div className="border-b bg-background p-6">
+          <Skeleton className="h-12 w-64 mb-2" />
+          <Skeleton className="h-6 w-96" />
         </div>
         <div className="flex-1 p-6">
-          <Skeleton className="h-8 w-64 mb-4" />
           <Skeleton className="h-96 w-full" />
         </div>
       </div>
@@ -105,31 +114,33 @@ export function LinesPage() {
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {selectedLineId ? (
-          <LineDetailView
-            lineId={selectedLineId}
-            venueId={venueId}
-            onBack={() => setSelectedLineId(null)}
-          />
-        ) : (
-          <WeeklyScheduleView
-            lines={lines}
-            weekStartDay={weekStartDay}
-            onLineClick={handleLineSelect}
-          />
-        )}
-      </div>
-
-      {/* Sidebar */}
-      <LinesSidebar
+    <div className="flex h-full flex-col overflow-hidden">
+      {/* Header */}
+      <LinesHeader
         lines={lines}
-        selectedLineId={selectedLineId}
-        onLineSelect={handleLineSelect}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
         onCreateLine={handleCreateLine}
       />
+
+      {/* Main Content - Full Width */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto px-6 py-6">
+          {selectedLineId ? (
+            <LineDetailView
+              lineId={selectedLineId}
+              venueId={venueId}
+              onBack={() => handleLineSelect(null)}
+            />
+          ) : (
+            <WeeklyScheduleView
+              lines={filteredLines}
+              weekStartDay={weekStartDay}
+              onLineClick={handleLineSelect}
+            />
+          )}
+        </div>
+      </div>
 
       {/* Create/Edit Dialog */}
       <CreateLineDialog
@@ -148,4 +159,3 @@ export function LinesPage() {
     </div>
   );
 }
-

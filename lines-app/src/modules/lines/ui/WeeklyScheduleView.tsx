@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, ArrowRight } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
+import { cn } from "@/lib/utils";
 import type { Line } from "@prisma/client";
 
 type WeeklyScheduleViewProps = {
@@ -16,6 +17,17 @@ type WeeklyScheduleViewProps = {
 
 const DAYS_HEBREW = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
 const DAYS_ENGLISH = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Gradient colors for different days
+const DAY_GRADIENTS = [
+  "from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20", // Sun
+  "from-purple-50 to-purple-100/50 dark:from-purple-950/30 dark:to-purple-900/20", // Mon
+  "from-pink-50 to-pink-100/50 dark:from-pink-950/30 dark:to-pink-900/20", // Tue
+  "from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20", // Wed
+  "from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20", // Thu
+  "from-yellow-50 to-yellow-100/50 dark:from-yellow-950/30 dark:to-yellow-900/20", // Fri
+  "from-indigo-50 to-indigo-100/50 dark:from-indigo-950/30 dark:to-indigo-900/20" // Sat
+];
 
 export function WeeklyScheduleView({
   lines,
@@ -32,7 +44,8 @@ export function WeeklyScheduleView({
       days.push({
         index: dayIndex,
         hebrew: DAYS_HEBREW[dayIndex],
-        english: DAYS_ENGLISH[dayIndex]
+        english: DAYS_ENGLISH[dayIndex],
+        gradient: DAY_GRADIENTS[dayIndex]
       });
     }
     return days;
@@ -57,68 +70,110 @@ export function WeeklyScheduleView({
   }, [lines, weekDays]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 animate-in fade-in-50 duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">
-            {t("lines.weeklySchedule", { defaultValue: "מערכת שעות שבועית" })}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t("lines.weeklyScheduleDescription", {
-              defaultValue: "צפה בכל הליינים הפעילים לפי ימי השבוע"
-            })}
-          </p>
-        </div>
+      <div className="space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          {t("lines.weeklySchedule", { defaultValue: "מערכת שעות שבועית" })}
+        </h2>
+        <p className="text-muted-foreground">
+          {t("lines.weeklyScheduleDescription", {
+            defaultValue: "צפה בכל הליינים הפעילים לפי ימי השבוע"
+          })}
+        </p>
       </div>
 
-      {/* Weekly Grid */}
+      {/* Weekly Grid - Full Width */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-        {weekDays.map((day) => {
+        {weekDays.map((day, dayIdx) => {
           const dayLines = linesByDay[day.index] || [];
           return (
-            <Card key={day.index} className="flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg text-center">
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-2xl font-bold">{day.hebrew}</span>
-                    <span className="text-xs text-muted-foreground">{day.english}</span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 space-y-2">
+            <Card
+              key={day.index}
+              className={cn(
+                "flex flex-col overflow-hidden border-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
+                `bg-gradient-to-br ${day.gradient}`,
+                "border-border/50 hover:border-primary/30"
+              )}
+              style={{
+                animationDelay: `${dayIdx * 50}ms`
+              }}
+            >
+              {/* Day Header */}
+              <div className="p-4 border-b border-border/30 bg-background/40 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-3xl font-bold text-foreground">{day.hebrew}</span>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {day.english}
+                  </span>
+                  {dayLines.length > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="mt-1 text-xs font-semibold bg-primary/10 text-primary border-primary/20"
+                    >
+                      {dayLines.length}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Lines Content */}
+              <CardContent className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[600px]">
                 {dayLines.length === 0 ? (
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    {t("lines.noLinesForDay", { defaultValue: "אין ליינים" })}
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                      <Clock className="h-6 w-6 text-muted-foreground/50" />
+                    </div>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      {t("lines.noLinesForDay", { defaultValue: "אין ליינים" })}
+                    </p>
                   </div>
                 ) : (
-                  dayLines.map((line) => (
+                  dayLines.map((line, lineIdx) => (
                     <Card
                       key={line.id}
-                      className="cursor-pointer border-2 hover:border-primary/50 transition-colors group"
+                      className={cn(
+                        "group cursor-pointer border-2 overflow-hidden transition-all duration-300",
+                        "hover:border-primary/50 hover:shadow-xl hover:scale-[1.03]",
+                        "bg-gradient-to-br from-card via-card to-card/95",
+                        "border-border/50"
+                      )}
+                      style={{
+                        animationDelay: `${(dayIdx * 50) + (lineIdx * 30)}ms`
+                      }}
                       onClick={() => onLineClick(line.id)}
                     >
-                      <CardContent className="p-3 space-y-2">
+                      {/* Decorative gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:via-primary/3 group-hover:to-primary/10 transition-all duration-500 pointer-events-none" />
+
+                      <CardContent className="p-4 space-y-3 relative z-10">
                         {/* Line Color & Name */}
                         <div className="flex items-center gap-2">
                           <div
-                            className="h-3 w-3 rounded-full flex-shrink-0"
+                            className="h-4 w-4 rounded-full flex-shrink-0 shadow-md ring-2 ring-background"
                             style={{ backgroundColor: line.color }}
                           />
-                          <span className="font-semibold text-sm truncate">{line.name}</span>
+                          <span className="font-bold text-sm truncate text-foreground">
+                            {line.name}
+                          </span>
                         </div>
 
                         {/* Time */}
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>
-                            {line.startTime} - {line.endTime}
-                          </span>
+                        <div className="flex items-center gap-2 text-xs">
+                          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/10 text-primary font-medium">
+                            <Clock className="h-3 w-3" />
+                            <span>
+                              {line.startTime} - {line.endTime}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Frequency Badge */}
                         <div className="flex items-center gap-1">
-                          <Badge variant="outline" className="text-xs">
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-medium border-primary/20 bg-primary/5 text-primary"
+                          >
                             {line.frequency === "weekly"
                               ? t("lines.weekly", { defaultValue: "שבועי" })
                               : line.frequency === "monthly"
@@ -130,17 +185,17 @@ export function WeeklyScheduleView({
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="flex items-center justify-between pt-1 border-t">
+                        <div className="flex items-center justify-between pt-2 border-t border-border/30">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 text-xs"
+                            className="h-7 text-xs group-hover:text-primary transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               onLineClick(line.id);
                             }}
                           >
-                            <ArrowRight className="h-3 w-3 ml-1" />
+                            <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
                             {t("common.view", { defaultValue: "צפה" })}
                           </Button>
                         </div>
@@ -156,4 +211,3 @@ export function WeeklyScheduleView({
     </div>
   );
 }
-
