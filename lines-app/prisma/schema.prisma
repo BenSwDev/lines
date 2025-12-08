@@ -240,7 +240,7 @@ model Table {
   shape     String?  @default("rectangle") // rectangle, circle, oval, square
   tableType String?  @default("table") // table, bar, counter
   // Pricing and numbering
-  tableNumber  Int?     @map("table_number") // מספר שולחן
+  tableNumber  Int?      // מספר שולחן (uses existing tableNumber column)
   minimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לשולחן
   // Staffing
   staffingRules Json?   @map("staffing_rules") // { roleId: count }[]
