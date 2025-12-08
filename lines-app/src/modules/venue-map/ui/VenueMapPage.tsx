@@ -170,6 +170,25 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
         </div>
       </div>
 
+      {/* Feature Slider */}
+      {showFeatureSlider && !isLoading && (
+        <div className="mb-8">
+          <FeatureSlider
+            features={mapFeatures}
+            config={{
+              autoPlay: true,
+              autoPlayInterval: 4000,
+              showDots: true,
+              showArrows: true,
+              slidesToShow: 1,
+              infinite: true
+            }}
+            onClose={() => setShowFeatureSlider(false)}
+            className="mb-6"
+          />
+        </div>
+      )}
+
       <div data-tour="map-zones">
         <FloorPlanEditorV2
           venueId={venueId}
