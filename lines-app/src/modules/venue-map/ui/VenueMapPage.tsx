@@ -12,6 +12,7 @@ import { loadVenueFloorPlan } from "../actions/floorPlanActions";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
 import { findContainingZone } from "../utils/zoneContainment";
+import { FeatureSlider, mapFeatures } from "@/modules/feature-slider";
 
 type VenueMapPageProps = {
   venueId: string;
@@ -25,6 +26,7 @@ export function VenueMapPage({ venueId, venueName, userId }: VenueMapPageProps) 
   const [elements, setElements] = useState<FloorPlanElement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [venueCapacity] = useState(0);
+  const [showFeatureSlider, setShowFeatureSlider] = useState(elements.length === 0);
 
   const loadData = async () => {
     try {

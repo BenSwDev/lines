@@ -15,6 +15,7 @@ import { CreateRoleDialog } from "./CreateRoleDialog";
 import { EditRoleDialog } from "./EditRoleDialog";
 import { listRoles, deleteRole } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
+import { FeatureSlider, rolesFeatures } from "@/modules/feature-slider";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,7 @@ export function RolesTab({ venueId }: RolesTabProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<RoleWithRelations | null>(null);
   const [deletingRole, setDeletingRole] = useState<RoleWithRelations | null>(null);
+  const [showFeatureSlider, setShowFeatureSlider] = useState(roles.length === 0);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -164,6 +166,42 @@ export function RolesTab({ venueId }: RolesTabProps) {
             <span className="text-sm text-muted-foreground">
               ({filteredRoles.length} {filteredRoles.length === 1 ? "תפקיד" : "תפקידים"})
             </span>
+          </div>
+        )}
+
+        {/* Feature Slider */}
+        {showFeatureSlider && (
+          <div className="mb-8">
+            <FeatureSlider
+              features={rolesFeatures.map((f) => ({
+                ...f,
+                actions: f.actions?.map((a) => ({
+                  ...a,
+                  onClick: () => {
+                    if (a.label === "צור תפקיד") {
+                      handleCreate();
+                      setShowFeatureSlider(false);
+                    }
+                  }
+                }))
+              }))}
+              config={{
+                autoPlay: true,
+                autoPlayInterval: 4000,
+                showDots: true,
+                showArrows: true,
+                slidesToShow: 1,
+                infinite: true
+              }}
+              onAction={(featureId, actionLabel) => {
+                if (actionLabel === "צור תפקיד") {
+                  handleCreate();
+                  setShowFeatureSlider(false);
+                }
+              }}
+              onClose={() => setShowFeatureSlider(false)}
+              className="mb-6"
+            />
           </div>
         )}
 

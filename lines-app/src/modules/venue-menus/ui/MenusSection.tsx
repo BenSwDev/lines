@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, FileText, Download, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { FeatureSlider, menusFeatures } from "@/modules/feature-slider";
 
 type Menu = {
   id: string;
@@ -38,6 +39,7 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFeatureSlider, setShowFeatureSlider] = useState(menus.length === 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +87,42 @@ export function MenusSection({ menus, onRefresh }: MenusSectionProps) {
           העלה תפריט
         </Button>
       </div>
+
+      {/* Feature Slider */}
+      {showFeatureSlider && (
+        <div className="mb-8">
+          <FeatureSlider
+            features={menusFeatures.map((f) => ({
+              ...f,
+              actions: f.actions?.map((a) => ({
+                ...a,
+                onClick: () => {
+                  if (a.label === "העלה תפריט") {
+                    setIsCreateOpen(true);
+                    setShowFeatureSlider(false);
+                  }
+                }
+              }))
+            }))}
+            config={{
+              autoPlay: true,
+              autoPlayInterval: 4000,
+              showDots: true,
+              showArrows: true,
+              slidesToShow: 1,
+              infinite: true
+            }}
+            onAction={(featureId, actionLabel) => {
+              if (actionLabel === "העלה תפריט") {
+                setIsCreateOpen(true);
+                setShowFeatureSlider(false);
+              }
+            }}
+            onClose={() => setShowFeatureSlider(false)}
+            className="mb-6"
+          />
+        </div>
+      )}
 
       {menus.length === 0 ? (
         <Card className="border-dashed">
