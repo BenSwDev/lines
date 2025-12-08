@@ -373,7 +373,13 @@ export async function createZone(input: unknown): Promise<{
       positionY: validated.positionY,
       width: validated.width,
       height: validated.height,
-      description: validated.description ?? undefined
+      description: validated.description ?? undefined,
+      zoneType: validated.zoneType,
+      isKitchen: validated.isKitchen,
+      barNumber: validated.barNumber ?? undefined,
+      barName: validated.barName ?? undefined,
+      barSeats: validated.barSeats ?? undefined,
+      barMinimumPrice: validated.barMinimumPrice ?? undefined
     });
 
     // Get floor plan for revalidation

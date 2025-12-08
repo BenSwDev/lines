@@ -6,9 +6,11 @@ import { HierarchyView } from "./HierarchyView";
 
 type RolesHierarchyPageProps = {
   venueId: string;
+  ownerUserId?: string;
+  ownerName?: string;
 };
 
-export function RolesHierarchyPage({ venueId }: RolesHierarchyPageProps) {
+export function RolesHierarchyPage({ venueId, ownerUserId, ownerName }: RolesHierarchyPageProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -29,7 +31,7 @@ export function RolesHierarchyPage({ venueId }: RolesHierarchyPageProps) {
         </TabsContent>
 
         <TabsContent value="hierarchy" className="mt-6" data-tour="roles-hierarchy">
-          <HierarchyView venueId={venueId} />
+          <HierarchyView venueId={venueId} ownerUserId={ownerUserId} ownerName={ownerName} />
         </TabsContent>
       </Tabs>
     </div>

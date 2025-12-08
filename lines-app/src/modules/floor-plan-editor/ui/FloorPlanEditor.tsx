@@ -27,7 +27,7 @@ import type { EditorMode, FloorPlanWithDetails, Zone, Table } from "../types";
 interface FloorPlanEditorProps {
   venueId: string;
   floorPlan: FloorPlanWithDetails;
-  roles?: { id: string; name: string; color: string }[];
+  roles?: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
 }
 
 export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEditorProps) {

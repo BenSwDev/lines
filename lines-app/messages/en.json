@@ -289,7 +289,27 @@
     "lockedViewOnly": "The floor plan is locked - view only. To edit, unlock it in the floor plan settings.",
     "namePlaceholder": "Enter floor plan name...",
     "selectLine": "Select Line",
-    "generalSettings": "General Settings"
+    "generalSettings": "General Settings",
+    "barSettings": "Bar Settings",
+    "barNumber": "Bar Number",
+    "barName": "Bar Name",
+    "barNamePlaceholder": "Bar name",
+    "barSeats": "Number of Seats",
+    "barMinimumPrice": "Minimum Order",
+    "kitchenNote": "Kitchen - Only staffing can be configured (no minimum order)",
+    "noRolesRequireStaffing": "No roles require staffing",
+    "enableRequiresStaffing": "Enable 'Requires Staffing' in roles to see them here",
+    "lineSpecificStaffing": "Line-specific staffing",
+    "defineRolesFirst": "Define roles first in Roles & Hierarchy"
+  },
+  "staffing": {
+    "managers": "Managers",
+    "employees": "Employees"
+  },
+  "hierarchy": {
+    "owner": "Owner",
+    "manages": "Manages",
+    "treeView": "Tree View"
   },
   "tickets": {
     "title": "Ticket Settings",

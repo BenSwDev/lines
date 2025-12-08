@@ -15,7 +15,9 @@ export class RolesService {
         parentRole: true,
         childRoles: true,
         managedRole: true,
-        managementRole: true
+        managementRole: true,
+        managerRole: true,
+        managedRoles: true
       },
       orderBy: [{ order: "asc" }, { name: "asc" }]
     });
@@ -28,7 +30,9 @@ export class RolesService {
         parentRole: true,
         childRoles: true,
         managedRole: true,
-        managementRole: true
+        managementRole: true,
+        managerRole: true,
+        managedRoles: true
       }
     });
   }
@@ -50,6 +54,21 @@ export class RolesService {
       }
     }
 
+    // Validate managerRoleId if provided
+    if (input.managerRoleId) {
+      const managerRole = await prisma.role.findFirst({
+        where: {
+          id: input.managerRoleId,
+          venueId,
+          isActive: true,
+          canManage: true // Manager role must have canManage = true
+        }
+      });
+      if (!managerRole) {
+        throw new Error("Manager role must exist, belong to this venue, and have canManage enabled");
+      }
+    }
+
     // Create the role
     const role = await prisma.role.create({
       data: {
@@ -59,8 +78,11 @@ export class RolesService {
         icon: input.icon,
         color: input.color,
         parentRoleId: input.parentRoleId,
+        managerRoleId: input.managerRoleId,
         order: input.order ?? 0,
-        requiresManagement: input.requiresManagement ?? false
+        requiresManagement: input.requiresManagement ?? false,
+        requiresStaffing: input.requiresStaffing ?? false,
+        canManage: input.canManage ?? false
       }
     });
 
@@ -147,6 +169,27 @@ export class RolesService {
       });
     }
 
+    // Validate managerRoleId if provided
+    if (input.managerRoleId !== undefined) {
+      if (input.managerRoleId) {
+        const managerRole = await prisma.role.findFirst({
+          where: {
+            id: input.managerRoleId,
+            venueId,
+            isActive: true,
+            canManage: true
+          }
+        });
+        if (!managerRole) {
+          throw new Error("Manager role must exist, belong to this venue, and have canManage enabled");
+        }
+        // Prevent circular reference
+        if (input.managerRoleId === id) {
+          throw new Error("A role cannot be its own manager");
+        }
+      }
+    }
+
     // Update the role
     return prisma.role.update({
       where: { id },
@@ -156,9 +199,12 @@ export class RolesService {
         icon: input.icon,
         color: input.color,
         parentRoleId: input.parentRoleId ?? undefined,
+        managerRoleId: input.managerRoleId ?? undefined,
         order: input.order,
         isActive: input.isActive,
-        requiresManagement: input.requiresManagement ?? undefined
+        requiresManagement: input.requiresManagement ?? undefined,
+        requiresStaffing: input.requiresStaffing ?? undefined,
+        canManage: input.canManage ?? undefined
       }
     });
   }
@@ -208,7 +254,9 @@ export class RolesService {
         parentRole: true,
         childRoles: true,
         managedRole: true,
-        managementRole: true
+        managementRole: true,
+        managerRole: true,
+        managedRoles: true
       },
       orderBy: [{ order: "asc" }, { name: "asc" }]
     });
@@ -226,7 +274,29 @@ export class RolesService {
         parentRole: true,
         childRoles: true,
         managedRole: true,
-        managementRole: true
+        managementRole: true,
+        managerRole: true,
+        managedRoles: true
+      },
+      orderBy: [{ order: "asc" }, { name: "asc" }]
+    });
+  }
+
+  // Get all roles that can manage other roles (canManage = true)
+  async getManagerRoles(venueId: string): Promise<RoleWithRelations[]> {
+    return prisma.role.findMany({
+      where: {
+        venueId,
+        isActive: true,
+        canManage: true
+      },
+      include: {
+        parentRole: true,
+        childRoles: true,
+        managedRole: true,
+        managementRole: true,
+        managerRole: true,
+        managedRoles: true
       },
       orderBy: [{ order: "asc" }, { name: "asc" }]
     });

@@ -77,10 +77,18 @@ function ZoneContentEditor({
   router
 }: ZoneContentEditorProps) {
   const { t } = useTranslations();
+  const isBar = zone.zoneType === "bar";
+  const isKitchen = zone.zoneType === "kitchen" || zone.isKitchen;
+  
   const [formData, setFormData] = useState({
     name: zone.name,
     zoneNumber: zone.zoneNumber ?? "",
-    description: zone.description ?? ""
+    description: zone.description ?? "",
+    // Bar-specific fields
+    barNumber: zone.barNumber?.toString() ?? "",
+    barName: zone.barName ?? "",
+    barSeats: zone.barSeats?.toString() ?? "",
+    barMinimumPrice: zone.barMinimumPrice?.toString() ?? ""
   });
 
   const handleSave = () => {
@@ -89,7 +97,14 @@ function ZoneContentEditor({
         id: zone.id,
         name: formData.name,
         zoneNumber: formData.zoneNumber ? Number(formData.zoneNumber) : null,
-        description: formData.description || null
+        description: formData.description || null,
+        // Bar-specific fields
+        ...(isBar && {
+          barNumber: formData.barNumber ? Number(formData.barNumber) : null,
+          barName: formData.barName || null,
+          barSeats: formData.barSeats ? Number(formData.barSeats) : null,
+          barMinimumPrice: formData.barMinimumPrice ? Number(formData.barMinimumPrice) : null
+        })
       });
       router.refresh();
     });
@@ -147,6 +162,72 @@ function ZoneContentEditor({
             rows={3}
           />
         </div>
+
+        {/* Bar-specific fields */}
+        {isBar && (
+          <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-medium text-blue-900 dark:text-blue-100">
+              🍸 {t("floorPlan.barSettings", { defaultValue: "הגדרות בר" })}
+            </h4>
+            <div className="space-y-2">
+              <Label htmlFor="bar-number">
+                {t("floorPlan.barNumber", { defaultValue: "מספר בר" })}
+              </Label>
+              <Input
+                id="bar-number"
+                type="number"
+                value={formData.barNumber}
+                onChange={(e) => setFormData((prev) => ({ ...prev, barNumber: e.target.value }))}
+                placeholder="1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bar-name">
+                {t("floorPlan.barName", { defaultValue: "שם בר" })}
+              </Label>
+              <Input
+                id="bar-name"
+                value={formData.barName}
+                onChange={(e) => setFormData((prev) => ({ ...prev, barName: e.target.value }))}
+                placeholder={t("floorPlan.barNamePlaceholder", { defaultValue: "שם הבר" })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bar-seats">
+                {t("floorPlan.barSeats", { defaultValue: "כמות כיסאות" })}
+              </Label>
+              <Input
+                id="bar-seats"
+                type="number"
+                value={formData.barSeats}
+                onChange={(e) => setFormData((prev) => ({ ...prev, barSeats: e.target.value }))}
+                placeholder="10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bar-minimum-price">
+                {t("floorPlan.barMinimumPrice", { defaultValue: "מינימום הזמנה" })}
+              </Label>
+              <Input
+                id="bar-minimum-price"
+                type="number"
+                step="0.01"
+                value={formData.barMinimumPrice}
+                onChange={(e) => setFormData((prev) => ({ ...prev, barMinimumPrice: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Kitchen indicator */}
+        {isKitchen && (
+          <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+            <p className="text-sm text-orange-900 dark:text-orange-100">
+              👨‍🍳 {t("floorPlan.kitchenNote", { defaultValue: "מטבח - ניתן להגדיר סידור עבודה בלבד (ללא מינימום הזמנה)" })}
+            </p>
+          </div>
+        )}
 
         <Button onClick={handleSave} disabled={isPending} className="w-full gap-2">
           <Save className="h-4 w-4" />

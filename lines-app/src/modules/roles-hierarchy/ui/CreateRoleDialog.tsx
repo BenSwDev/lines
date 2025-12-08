@@ -23,7 +23,7 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { RoleWithRelations } from "../types";
-import { createRole, getManagementRoles } from "../actions/roleActions";
+import { createRole, getManagementRoles, getManagerRoles } from "../actions/roleActions";
 import { useToast } from "@/hooks/use-toast";
 
 const COLORS = [
@@ -68,11 +68,15 @@ export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: Create
   const [color, setColor] = useState(COLORS[0].value);
   const [icon, setIcon] = useState(ICONS[0].emoji);
   const [parentRoleId, setParentRoleId] = useState("");
+  const [managerRoleId, setManagerRoleId] = useState("");
   const [requiresManagement, setRequiresManagement] = useState(false);
+  const [requiresStaffing, setRequiresStaffing] = useState(false);
+  const [canManage, setCanManage] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [managementRoles, setManagementRoles] = useState<RoleWithRelations[]>([]);
+  const [managerRoles, setManagerRoles] = useState<RoleWithRelations[]>([]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -81,7 +85,10 @@ export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: Create
       setColor(COLORS[0].value);
       setIcon(ICONS[0].emoji);
       setParentRoleId("");
+      setManagerRoleId("");
       setRequiresManagement(false);
+      setRequiresStaffing(false);
+      setCanManage(false);
       setShowAdvanced(false);
       setError("");
     }
@@ -94,9 +101,17 @@ export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: Create
     }
   };
 
+  const loadManagerRoles = async () => {
+    const result = await getManagerRoles(venueId);
+    if (result.success && "data" in result) {
+      setManagerRoles(result.data || []);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       loadManagementRoles();
+      loadManagerRoles();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, venueId]);
@@ -119,8 +134,11 @@ export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: Create
         color,
         icon: icon || undefined,
         parentRoleId: parentRoleId || undefined,
+        managerRoleId: managerRoleId || undefined,
         order: 0,
-        requiresManagement
+        requiresManagement,
+        requiresStaffing,
+        canManage
       });
 
       if (result.success) {
@@ -247,6 +265,42 @@ export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: Create
               </p>
             )}
 
+            {/* דורש סידור עבודה */}
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <Checkbox
+                id="requiresStaffing"
+                checked={requiresStaffing}
+                onCheckedChange={(checked) => setRequiresStaffing(checked === true)}
+                disabled={isSubmitting}
+              />
+              <Label htmlFor="requiresStaffing" className="text-sm font-normal cursor-pointer">
+                תפקיד זה דורש סידור עבודה
+              </Label>
+            </div>
+            {requiresStaffing && (
+              <p className="text-xs text-muted-foreground pr-6">
+                התפקיד יופיע בעורך סידור העבודה במפות
+              </p>
+            )}
+
+            {/* יכול לנהל */}
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <Checkbox
+                id="canManage"
+                checked={canManage}
+                onCheckedChange={(checked) => setCanManage(checked === true)}
+                disabled={isSubmitting}
+              />
+              <Label htmlFor="canManage" className="text-sm font-normal cursor-pointer">
+                תפקיד זה יכול לנהל תפקידים אחרים
+              </Label>
+            </div>
+            {canManage && (
+              <p className="text-xs text-muted-foreground pr-6">
+                ניתן למנות מנהלים מתפקיד זה לתפקידים אחרים
+              </p>
+            )}
+
             {/* אפשרויות מתקדמות - קיפול */}
             {managementRoles.length > 0 && (
               <div className="space-y-2">
@@ -264,27 +318,53 @@ export function CreateRoleDialog({ isOpen, onClose, venueId, onSuccess }: Create
                 </button>
 
                 {showAdvanced && (
-                  <div className="space-y-2 pt-2 border-t">
-                    <Label htmlFor="parent">תפקיד מנהל (אופציונלי)</Label>
-                    <Select
-                      value={parentRoleId || undefined}
-                      onValueChange={(value) => setParentRoleId(value)}
-                      disabled={isSubmitting}
-                    >
-                      <SelectTrigger id="parent">
-                        <SelectValue placeholder="ללא מנהל" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {managementRoles.map((role) => (
-                          <SelectItem key={role.id} value={role.id}>
-                            {role.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      רק תפקידי ניהול יכולים להיות מנהלים. בחר תפקיד ניהול אם התפקיד הזה כפוף אליו.
-                    </p>
+                  <div className="space-y-4 pt-2 border-t">
+                    <div className="space-y-2">
+                      <Label htmlFor="parent">תפקיד הורה (אופציונלי)</Label>
+                      <Select
+                        value={parentRoleId || undefined}
+                        onValueChange={(value) => setParentRoleId(value)}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger id="parent">
+                          <SelectValue placeholder="ללא תפקיד הורה" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {managementRoles.map((parentRole) => (
+                            <SelectItem key={parentRole.id} value={parentRole.id}>
+                              {parentRole.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        רק תפקידי ניהול יכולים להיות תפקידים הורים. בחר תפקיד ניהול אם התפקיד הזה כפוף אליו.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="manager">מנהל ישיר (אופציונלי)</Label>
+                      <Select
+                        value={managerRoleId || undefined}
+                        onValueChange={(value) => setManagerRoleId(value)}
+                        disabled={isSubmitting}
+                      >
+                        <SelectTrigger id="manager">
+                          <SelectValue placeholder="ללא מנהל ישיר" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">ללא מנהל ישיר</SelectItem>
+                          {managerRoles.map((managerRole) => (
+                            <SelectItem key={managerRole.id} value={managerRole.id}>
+                              {managerRole.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        בחר תפקיד שמנהל את התפקיד הזה. רק תפקידים עם &quot;יכול לנהל&quot; יכולים להיות מנהלים.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>

@@ -288,7 +288,27 @@
     "zoom": "זום",
     "namePlaceholder": "הכנס שם מפה...",
     "selectLine": "בחר ליין (אופציונלי)",
-    "generalSettings": "הגדרות כלליות למפה"
+    "generalSettings": "הגדרות כלליות למפה",
+    "barSettings": "הגדרות בר",
+    "barNumber": "מספר בר",
+    "barName": "שם בר",
+    "barNamePlaceholder": "שם הבר",
+    "barSeats": "כמות כיסאות",
+    "barMinimumPrice": "מינימום הזמנה",
+    "kitchenNote": "מטבח - ניתן להגדיר סידור עבודה בלבד (ללא מינימום הזמנה)",
+    "noRolesRequireStaffing": "אין תפקידים שדורשים סידור עבודה",
+    "enableRequiresStaffing": "הפעל 'דורש סידור עבודה' בתפקידים כדי לראות אותם כאן",
+    "lineSpecificStaffing": "סידור עבודה ספציפי לליין זה",
+    "defineRolesFirst": "הגדר תפקידים תחילה בתפקידים והיררכיה"
+  },
+  "staffing": {
+    "managers": "מנהלים",
+    "employees": "עובדים"
+  },
+  "hierarchy": {
+    "owner": "בעלים",
+    "manages": "מנהל",
+    "treeView": "תצוגת עץ"
   },
   "tickets": {
     "title": "הגדרות כרטיסים",

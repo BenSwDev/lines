@@ -5,8 +5,11 @@ export type RoleWithRelations = Role & {
   childRoles: Role[];
   managedRole: Role | null;
   managementRole: Role | null;
+  managerRole: Role | null; // Role that manages this role
+  managedRoles: Role[]; // Roles managed by this role
   _count?: {
     childRoles?: number;
+    managedRoles?: number;
   };
 };
 
@@ -27,8 +30,11 @@ export type CreateRoleInput = {
   icon?: string;
   color: string;
   parentRoleId?: string;
+  managerRoleId?: string; // Role that manages this role
   order?: number;
   requiresManagement?: boolean;
+  requiresStaffing?: boolean; // Does this role need staffing assignment?
+  canManage?: boolean; // Can this role have managers?
 };
 
 export type UpdateRoleInput = {
@@ -37,7 +43,10 @@ export type UpdateRoleInput = {
   icon?: string | null;
   color?: string;
   parentRoleId?: string | null;
+  managerRoleId?: string | null; // Role that manages this role
   order?: number;
   isActive?: boolean;
   requiresManagement?: boolean;
+  requiresStaffing?: boolean; // Does this role need staffing assignment?
+  canManage?: boolean; // Can this role have managers?
 };

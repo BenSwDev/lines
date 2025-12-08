@@ -79,14 +79,28 @@ export const createZoneSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   shape: z.string().optional(),
-  zoneNumber: z.number().optional().nullable()
+  zoneNumber: z.number().optional().nullable(),
+  zoneType: z.enum(["seating", "bar", "kitchen"]).optional().default("seating"),
+  isKitchen: z.boolean().optional().default(false),
+  // Bar-specific fields
+  barNumber: z.number().optional().nullable(),
+  barName: z.string().optional().nullable(),
+  barSeats: z.number().optional().nullable(),
+  barMinimumPrice: z.number().optional().nullable()
 });
 
 export const updateZoneContentSchema = z.object({
   id: z.string(),
   name: z.string().min(1).optional(),
   zoneNumber: z.number().optional().nullable(),
-  description: z.string().optional().nullable()
+  description: z.string().optional().nullable(),
+  zoneType: z.enum(["seating", "bar", "kitchen"]).optional(),
+  isKitchen: z.boolean().optional(),
+  // Bar-specific fields
+  barNumber: z.number().optional().nullable(),
+  barName: z.string().optional().nullable(),
+  barSeats: z.number().optional().nullable(),
+  barMinimumPrice: z.number().optional().nullable()
 });
 
 export const updateZonePositionSchema = z.object({
@@ -186,9 +200,12 @@ export const updateStaffingSchema = z.object({
   staffingRules: z.array(
     z.object({
       roleId: z.string(),
-      count: z.number().min(0),
+      managers: z.number().min(0).default(0), // Number of managers (0-X)
+      employees: z.number().min(0).default(0), // Number of regular employees (0-X)
       roleName: z.string().optional(),
-      roleColor: z.string().optional()
+      roleColor: z.string().optional(),
+      // Legacy support
+      count: z.number().min(0).optional() // Deprecated: use employees instead
     })
   )
 });
@@ -224,9 +241,12 @@ export const updateLineFloorPlanStaffingSchema = z.object({
   staffingRules: z.array(
     z.object({
       roleId: z.string(),
-      count: z.number().min(0),
+      managers: z.number().min(0).default(0), // Number of managers (0-X)
+      employees: z.number().min(0).default(0), // Number of regular employees (0-X)
       roleName: z.string().optional(),
-      roleColor: z.string().optional()
+      roleColor: z.string().optional(),
+      // Legacy support
+      count: z.number().min(0).optional() // Deprecated: use employees instead
     })
   )
 });

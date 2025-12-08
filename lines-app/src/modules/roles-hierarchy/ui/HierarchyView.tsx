@@ -9,11 +9,13 @@ import type { HierarchyNode } from "../types";
 
 type HierarchyViewProps = {
   venueId: string;
+  ownerUserId?: string;
+  ownerName?: string;
 };
 
 type ExpandedNodes = Set<string>;
 
-export function HierarchyView({ venueId }: HierarchyViewProps) {
+export function HierarchyView({ venueId, ownerUserId, ownerName }: HierarchyViewProps) {
   const [hierarchy, setHierarchy] = useState<HierarchyNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expanded, setExpanded] = useState<ExpandedNodes>(new Set());
@@ -36,7 +38,11 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
       const managementRoles = managementResult.data || [];
       // Combine both types of roles for hierarchy display
       const allRoles = [...roles, ...managementRoles];
-      const tree = hierarchyService.buildHierarchyTree(allRoles);
+      const tree = hierarchyService.buildHierarchyTree(
+        allRoles,
+        ownerUserId,
+        ownerName || "בעלים"
+      );
       setHierarchy(tree);
       // Expand all by default
       const allIds = new Set<string>();
@@ -135,16 +141,32 @@ export function HierarchyView({ venueId }: HierarchyViewProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <div className="font-semibold text-base">{node.name}</div>
-              {node.data.isManagementRole && (
+              {node.id.startsWith("owner-") && (
+                <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded">
+                  בעלים
+                </span>
+              )}
+              {node.data?.isManagementRole && (
                 <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
                   ניהול
+                </span>
+              )}
+              {node.data?.canManage && !node.id.startsWith("owner-") && (
+                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                  מנהל
                 </span>
               )}
             </div>
             {hasChildren && (
               <div className="text-xs text-muted-foreground mt-0.5">
                 {node.children.length}{" "}
-                {node.children.length === 1 ? "תפקיד כפוף" : "תפקידים כפופים"}
+                {node.id.startsWith("owner-")
+                  ? node.children.length === 1
+                    ? "תפקיד ישיר"
+                    : "תפקידים ישירים"
+                  : node.children.length === 1
+                    ? "תפקיד כפוף"
+                    : "תפקידים כפופים"}
               </div>
             )}
           </div>

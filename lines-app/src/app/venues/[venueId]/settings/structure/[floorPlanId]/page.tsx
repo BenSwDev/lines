@@ -35,7 +35,9 @@ export default async function FloorPlanEditorPage({
       ? rolesResult.data?.map((r) => ({
           id: r.id,
           name: r.name,
-          color: r.color
+          color: r.color,
+          canManage: r.canManage ?? false,
+          requiresStaffing: r.requiresStaffing ?? false
         })) || []
       : [];
 

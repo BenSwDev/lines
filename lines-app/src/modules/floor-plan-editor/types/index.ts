@@ -41,6 +41,13 @@ export interface Zone {
   shape?: string | null;
   polygonPoints?: unknown;
   zoneNumber?: number | null;
+  zoneType?: string | null; // seating, bar, kitchen
+  isKitchen?: boolean | null;
+  // Bar-specific fields
+  barNumber?: number | null;
+  barName?: string | null;
+  barSeats?: number | null;
+  barMinimumPrice?: number | null;
   staffingRules?: StaffingRule[] | null;
   zoneMinimumPrice?: number | null;
   createdAt: Date;
@@ -92,9 +99,12 @@ export interface VenueArea {
 
 export interface StaffingRule {
   roleId: string;
-  count: number;
+  managers: number; // Number of managers (0-X)
+  employees: number; // Number of regular employees (0-X)
   roleName?: string;
   roleColor?: string;
+  // Legacy support - if only count is provided, treat as employees
+  count?: number; // Deprecated: use employees instead
 }
 
 // ============================================================================

@@ -193,8 +193,15 @@ model Zone {
   polygonPoints    Json? // For custom polygon shapes
   // Content settings
   zoneNumber       Int?     @map("zone_number")
+  zoneType         String?  @default("seating") @map("zone_type") // seating, bar, kitchen
+  isKitchen        Boolean  @default(false) @map("is_kitchen")
+  // Bar-specific fields
+  barNumber        Int?     @map("bar_number")
+  barName          String?  @map("bar_name")
+  barSeats         Int?     @map("bar_seats")
+  barMinimumPrice  Decimal? @db.Decimal(10, 2) @map("bar_minimum_price") // מינימום הזמנה לבר
   // Staffing
-  staffingRules    Json?    @map("staffing_rules") // { roleId: count }[]
+  staffingRules    Json?    @map("staffing_rules") // { roleId: string, managers: number, employees: number }[]
   // Pricing
   zoneMinimumPrice Decimal? @db.Decimal(10, 2) // מינימום הזמנה לאיזור
   createdAt        DateTime @default(now())
@@ -531,12 +538,15 @@ model Role {
   description        String?
   icon               String?
   color              String
-  parentRoleId       String?
+  parentRoleId       String?  @map("parent_role_id")
+  managerRoleId      String?  @map("manager_role_id") // Role that manages this role (for family tree hierarchy)
   order              Int      @default(0)
-  isActive           Boolean  @default(true)
-  requiresManagement Boolean  @default(false)
-  isManagementRole   Boolean  @default(false)
-  managedRoleId      String?  @unique
+  isActive           Boolean  @default(true) @map("is_active")
+  requiresManagement Boolean  @default(false) @map("requires_management")
+  isManagementRole   Boolean  @default(false) @map("is_management_role")
+  managedRoleId      String?  @unique @map("managed_role_id")
+  requiresStaffing   Boolean  @default(false) @map("requires_staffing") // Does this role need staffing assignment?
+  canManage          Boolean  @default(false) @map("can_manage") // Can this role have managers?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -546,9 +556,12 @@ model Role {
   childRoles     Role[] @relation("RoleHierarchy")
   managedRole    Role?  @relation("RoleManagement", fields: [managedRoleId], references: [id], onDelete: Cascade)
   managementRole Role?  @relation("RoleManagement")
+  managerRole    Role?  @relation("RoleManager", fields: [managerRoleId], references: [id], onDelete: SetNull) // Manager of this role
+  managedRoles   Role[] @relation("RoleManager") // Roles managed by this role
 
   @@index([venueId])
   @@index([parentRoleId])
+  @@index([managerRoleId])
   @@index([managedRoleId])
   @@map("roles")
 }

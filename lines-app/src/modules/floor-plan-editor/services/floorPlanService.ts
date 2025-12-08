@@ -398,11 +398,21 @@ export const floorPlanService = {
   },
 
   /**
-   * Update zone content (name, number, description)
+   * Update zone content (name, number, description, bar/kitchen fields)
    */
   async updateZoneContent(
     id: string,
-    data: { name?: string; zoneNumber?: number | null; description?: string | null }
+    data: {
+      name?: string;
+      zoneNumber?: number | null;
+      description?: string | null;
+      zoneType?: string;
+      isKitchen?: boolean;
+      barNumber?: number | null;
+      barName?: string | null;
+      barSeats?: number | null;
+      barMinimumPrice?: number | null;
+    }
   ) {
     return prisma.zone.update({
       where: { id },
@@ -480,6 +490,12 @@ export const floorPlanService = {
     width?: number;
     height?: number;
     description?: string;
+    zoneType?: string;
+    isKitchen?: boolean;
+    barNumber?: number | null;
+    barName?: string | null;
+    barSeats?: number | null;
+    barMinimumPrice?: number | null;
   }) {
     return prisma.zone.create({
       data: {
@@ -491,7 +507,13 @@ export const floorPlanService = {
         positionY: input.positionY,
         width: input.width,
         height: input.height,
-        description: input.description
+        description: input.description,
+        zoneType: input.zoneType ?? "seating",
+        isKitchen: input.isKitchen ?? false,
+        barNumber: input.barNumber,
+        barName: input.barName,
+        barSeats: input.barSeats,
+        barMinimumPrice: input.barMinimumPrice
       }
     });
   },

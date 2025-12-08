@@ -25,7 +25,7 @@ interface StaffingEditorProps {
   selectedZone: Zone | null;
   selectedTable: Table | null;
   floorPlan: FloorPlanWithDetails;
-  roles: { id: string; name: string; color: string }[];
+  roles: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
   venueId: string;
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
 }
@@ -85,7 +85,7 @@ export function StaffingEditor({
 interface StaffingFormProps {
   target: Zone | Table;
   targetType: "zone" | "table";
-  roles: { id: string; name: string; color: string }[];
+  roles: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
   floorPlan: FloorPlanWithDetails;
   venueId: string;
   isPending: boolean;
@@ -129,7 +129,7 @@ function StaffingForm({
   }, [venueId]);
 
   // Load existing staffing rules based on selected line or default
-  const [staffingCounts, setStaffingCounts] = useState<Record<string, number>>({});
+  const [staffingCounts, setStaffingCounts] = useState<Record<string, { managers: number; employees: number }>>({});
   const [isLoadingStaffing, setIsLoadingStaffing] = useState(false);
 
   useEffect(() => {
@@ -154,21 +154,29 @@ function StaffingForm({
           existingRules = (target.staffingRules as StaffingRule[] | null) ?? [];
         }
 
-        // Initialize state with role counts
-        const counts: Record<string, number> = {};
+        // Initialize state with role counts (support legacy count field)
+        const counts: Record<string, { managers: number; employees: number }> = {};
         for (const role of roles) {
           const existing = existingRules.find((r) => r.roleId === role.id);
-          counts[role.id] = existing?.count ?? 0;
+          // Support both new format (managers/employees) and legacy (count)
+          counts[role.id] = {
+            managers: existing?.managers ?? 0,
+            employees: existing?.employees ?? existing?.count ?? 0
+          };
         }
         setStaffingCounts(counts);
       } catch (error) {
         console.error("Error loading staffing:", error);
         // Fallback to default
         const existingRules = (target.staffingRules as StaffingRule[] | null) ?? [];
-        const counts: Record<string, number> = {};
+        const counts: Record<string, { managers: number; employees: number }> = {};
         for (const role of roles) {
           const existing = existingRules.find((r) => r.roleId === role.id);
-          counts[role.id] = existing?.count ?? 0;
+          // Support both new format (managers/employees) and legacy (count)
+          counts[role.id] = {
+            managers: existing?.managers ?? 0,
+            employees: existing?.employees ?? existing?.count ?? 0
+          };
         }
         setStaffingCounts(counts);
       } finally {
@@ -178,29 +186,38 @@ function StaffingForm({
     loadStaffing();
   }, [selectedLineId, target, targetType, floorPlan.id, roles]);
 
-  const handleIncrement = (roleId: string) => {
+  const handleIncrement = (roleId: string, type: "managers" | "employees") => {
     setStaffingCounts((prev) => ({
       ...prev,
-      [roleId]: (prev[roleId] ?? 0) + 1
+      [roleId]: {
+        managers: prev[roleId]?.managers ?? 0,
+        employees: prev[roleId]?.employees ?? 0,
+        [type]: (prev[roleId]?.[type] ?? 0) + 1
+      }
     }));
   };
 
-  const handleDecrement = (roleId: string) => {
+  const handleDecrement = (roleId: string, type: "managers" | "employees") => {
     setStaffingCounts((prev) => ({
       ...prev,
-      [roleId]: Math.max(0, (prev[roleId] ?? 0) - 1)
+      [roleId]: {
+        managers: prev[roleId]?.managers ?? 0,
+        employees: prev[roleId]?.employees ?? 0,
+        [type]: Math.max(0, (prev[roleId]?.[type] ?? 0) - 1)
+      }
     }));
   };
 
   const handleSave = () => {
     startTransition(async () => {
       const staffingRules: StaffingRule[] = Object.entries(staffingCounts)
-        .filter(([, count]) => count > 0)
-        .map(([roleId, count]) => {
+        .filter(([, counts]) => (counts.managers ?? 0) + (counts.employees ?? 0) > 0)
+        .map(([roleId, counts]) => {
           const role = roles.find((r) => r.id === roleId);
           return {
             roleId,
-            count,
+            managers: counts.managers ?? 0,
+            employees: counts.employees ?? 0,
             roleName: role?.name,
             roleColor: role?.color
           };
@@ -227,7 +244,10 @@ function StaffingForm({
     });
   };
 
-  const totalStaff = Object.values(staffingCounts).reduce((acc, c) => acc + c, 0);
+  const totalStaff = Object.values(staffingCounts).reduce(
+    (acc, c) => acc + (c.managers ?? 0) + (c.employees ?? 0),
+    0
+  );
 
   return (
     <div className="p-4 space-y-6">
@@ -285,13 +305,13 @@ function StaffingForm({
         <div className="text-center py-8 text-muted-foreground">
           <p>{t("common.loading", { defaultValue: "טוען..." })}</p>
         </div>
-      ) : roles.length === 0 ? (
+      ) : roles.filter((r) => r.requiresStaffing !== false).length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>{t("floorPlan.noRolesDefined", { defaultValue: "לא הוגדרו תפקידים עדיין" })}</p>
+          <p>{t("floorPlan.noRolesRequireStaffing", { defaultValue: "אין תפקידים שדורשים סידור עבודה" })}</p>
           <p className="text-sm">
-            {t("floorPlan.defineRolesFirst", {
-              defaultValue: "הגדר תפקידים תחילה בתפקידים והיררכיה"
+            {t("floorPlan.enableRequiresStaffing", {
+              defaultValue: "הפעל 'דורש סידור עבודה' בתפקידים כדי לראות אותם כאן"
             })}
           </p>
         </div>
@@ -299,37 +319,81 @@ function StaffingForm({
         <>
           <div className="space-y-3">
             <Label>{t("floorPlan.rolesNeeded", { defaultValue: "תפקידים נדרשים" })}</Label>
-            {roles.map((role) => (
-              <div
-                key={role.id}
-                className="flex items-center justify-between p-3 rounded-lg border"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color }} />
-                  <span className="font-medium">{role.name}</span>
+            {roles.filter((r) => r.requiresStaffing !== false).map((role) => {
+              const counts = staffingCounts[role.id] ?? { managers: 0, employees: 0 };
+              const roleCanManage = role.canManage ?? false; // Check if role can have managers
+              const total = (counts.managers ?? 0) + (counts.employees ?? 0);
+              
+              return (
+                <div key={role.id} className="p-3 rounded-lg border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color }} />
+                      <span className="font-medium">{role.name}</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {total > 0 ? `${total} 👤` : ""}
+                    </span>
+                  </div>
+                  
+                  {/* Managers (only if role can manage) */}
+                  {roleCanManage && (
+                    <div className="flex items-center justify-between pl-4 border-r-2 border-primary/20">
+                      <span className="text-sm text-muted-foreground">
+                        {t("staffing.managers", { defaultValue: "מנהלים" })}:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleDecrement(role.id, "managers")}
+                          disabled={counts.managers === 0}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="w-6 text-center font-bold text-sm">{counts.managers ?? 0}</span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => handleIncrement(role.id, "managers")}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Employees */}
+                  <div className="flex items-center justify-between pl-4">
+                    <span className="text-sm text-muted-foreground">
+                      {t("staffing.employees", { defaultValue: "עובדים" })}:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleDecrement(role.id, "employees")}
+                        disabled={counts.employees === 0}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-6 text-center font-bold text-sm">{counts.employees ?? 0}</span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleIncrement(role.id, "employees")}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleDecrement(role.id)}
-                    disabled={staffingCounts[role.id] === 0}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <span className="w-8 text-center font-bold">{staffingCounts[role.id]}</span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleIncrement(role.id)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="p-3 bg-muted rounded-lg">
@@ -362,7 +426,7 @@ function StaffingForm({
 // Staffing Summary View
 interface StaffingSummaryViewProps {
   floorPlan: FloorPlanWithDetails;
-  roles: { id: string; name: string; color: string }[];
+  roles: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
 }
 
@@ -376,13 +440,17 @@ function StaffingSummaryView({ floorPlan, roles, onElementSelect }: StaffingSumm
     for (const zone of floorPlan.zones) {
       const zoneRules = (zone.staffingRules as StaffingRule[] | null) ?? [];
       for (const rule of zoneRules) {
-        totals[rule.roleId] = (totals[rule.roleId] ?? 0) + rule.count;
+        // Support both new format (managers + employees) and legacy (count)
+        const total = (rule.managers ?? 0) + (rule.employees ?? rule.count ?? 0);
+        totals[rule.roleId] = (totals[rule.roleId] ?? 0) + total;
       }
 
       for (const table of zone.tables) {
         const tableRules = (table.staffingRules as StaffingRule[] | null) ?? [];
         for (const rule of tableRules) {
-          totals[rule.roleId] = (totals[rule.roleId] ?? 0) + rule.count;
+          // Support both new format (managers + employees) and legacy (count)
+          const total = (rule.managers ?? 0) + (rule.employees ?? rule.count ?? 0);
+          totals[rule.roleId] = (totals[rule.roleId] ?? 0) + total;
         }
       }
     }
@@ -439,7 +507,10 @@ function StaffingSummaryView({ floorPlan, roles, onElementSelect }: StaffingSumm
         <h4 className="font-medium">{t("floorPlan.byZone", { defaultValue: "לפי איזור" })}</h4>
         {floorPlan.zones.map((zone) => {
           const zoneRules = (zone.staffingRules as StaffingRule[] | null) ?? [];
-          const zoneTotal = zoneRules.reduce((acc, r) => acc + r.count, 0);
+          const zoneTotal = zoneRules.reduce(
+            (acc, r) => acc + (r.managers ?? 0) + (r.employees ?? r.count ?? 0),
+            0
+          );
 
           return (
             <button

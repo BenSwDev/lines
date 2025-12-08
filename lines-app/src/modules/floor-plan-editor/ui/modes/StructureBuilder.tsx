@@ -38,18 +38,33 @@ export function StructureBuilder({
       id: "seating",
       label: t("floorPlan.seatingZone", { defaultValue: "איזור שולחנות" }),
       icon: "🪑",
-      color: "#3B82F6"
+      color: "#3B82F6",
+      zoneType: "seating" as const
+    },
+    {
+      id: "bar",
+      label: t("floorPlan.bar", { defaultValue: "בר" }),
+      icon: "🍸",
+      color: "#10B981",
+      zoneType: "bar" as const
+    },
+    {
+      id: "kitchen",
+      label: t("floorPlan.kitchen", { defaultValue: "מטבח" }),
+      icon: "👨‍🍳",
+      color: "#EF4444",
+      zoneType: "kitchen" as const
     },
     {
       id: "vip",
       label: t("floorPlan.vipArea", { defaultValue: "איזור VIP" }),
       icon: "⭐",
-      color: "#F59E0B"
+      color: "#F59E0B",
+      zoneType: "seating" as const
     }
   ];
 
   const areaTypes = [
-    { id: "bar", label: t("floorPlan.bar", { defaultValue: "בר" }), icon: "🍸", color: "#10B981" },
     {
       id: "entrance",
       label: t("floorPlan.entrance", { defaultValue: "כניסה" }),
@@ -61,12 +76,6 @@ export function StructureBuilder({
       label: t("floorPlan.restroom", { defaultValue: "שירותים" }),
       icon: "🚻",
       color: "#8B7280"
-    },
-    {
-      id: "kitchen",
-      label: t("floorPlan.kitchen", { defaultValue: "מטבח" }),
-      icon: "👨‍🍳",
-      color: "#EF4444"
     },
     {
       id: "stage",
@@ -92,12 +101,13 @@ export function StructureBuilder({
     if (!addingType || !newName.trim()) return;
 
     if (addingType === "zone") {
-      const zoneType = zoneTypes[0];
+      const zoneType = zoneTypes[0]; // Default to seating
       await onElementAdd("zone", {
         floorPlanId: floorPlan.id,
         venueId,
         name: newName.trim(),
         color: zoneType.color,
+        zoneType: zoneType.zoneType,
         positionX: 100,
         positionY: 100,
         width: 200,
@@ -152,15 +162,62 @@ export function StructureBuilder({
       {/* Add Zone Form */}
       {addingType === "zone" && (
         <div className="space-y-2 p-3 bg-muted rounded-lg">
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            {zoneTypes.map((zoneType) => (
+              <Button
+                key={zoneType.id}
+                variant="outline"
+                size="sm"
+                className="gap-1"
+                onClick={async () => {
+                  await onElementAdd("zone", {
+                    floorPlanId: floorPlan.id,
+                    venueId,
+                    name: zoneType.label,
+                    color: zoneType.color,
+                    zoneType: zoneType.zoneType,
+                    isKitchen: zoneType.id === "kitchen",
+                    positionX: 100,
+                    positionY: 100,
+                    width: 200,
+                    height: 150
+                  });
+                  setAddingType(null);
+                }}
+              >
+                <span>{zoneType.icon}</span>
+                <span className="text-xs">{zoneType.label}</span>
+              </Button>
+            ))}
+          </div>
           <Input
-            placeholder={t("floorPlan.zoneNamePlaceholder", { defaultValue: "שם האיזור" })}
+            placeholder={t("floorPlan.zoneNamePlaceholder", { defaultValue: "שם האיזור (אופציונלי)" })}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            autoFocus
           />
           <div className="flex gap-2">
-            <Button size="sm" className="flex-1" onClick={handleAdd}>
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={async () => {
+                if (!newName.trim()) return;
+                const zoneType = zoneTypes[0]; // Default to seating
+                await onElementAdd("zone", {
+                  floorPlanId: floorPlan.id,
+                  venueId,
+                  name: newName.trim(),
+                  color: zoneType.color,
+                  zoneType: zoneType.zoneType,
+                  positionX: 100,
+                  positionY: 100,
+                  width: 200,
+                  height: 150
+                });
+                setNewName("");
+                setAddingType(null);
+              }}
+            >
               {t("common.save", { defaultValue: "שמור" })}
             </Button>
             <Button
