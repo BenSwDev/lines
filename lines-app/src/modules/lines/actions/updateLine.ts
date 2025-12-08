@@ -153,15 +153,14 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
 
         // Get start date - use first occurrence date if exists, otherwise use today
         const existingOccurrences = await lineOccurrenceRepository.findByLineId(updatedLine.id);
-        const firstOccurrenceDate = existingOccurrences.length > 0
-          ? new Date(existingOccurrences[0].date)
-          : new Date();
-        
+        const firstOccurrenceDate =
+          existingOccurrences.length > 0 ? new Date(existingOccurrences[0].date) : new Date();
+
         // Calculate end of calendar year
         const currentYear = firstOccurrenceDate.getFullYear();
         const endOfYear = new Date(currentYear, 11, 31); // December 31
         endOfYear.setHours(23, 59, 59, 999);
-        
+
         // Calculate months until end of year
         const monthsUntilEndOfYear = 12 - firstOccurrenceDate.getMonth();
 

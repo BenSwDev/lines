@@ -67,8 +67,9 @@ export function LinesPage() {
       if (venueDetailsResult.success && venueDetailsResult.data) {
         setWeekStartDay((venueDetailsResult.data.weekStartDay as 0 | 1) ?? 0);
       }
-    } catch (error) {
-      console.error("Error loading data:", error);
+    } catch {
+      // Error already handled by toast in the if/else blocks above
+      // No need to log here as it's a client component
     } finally {
       setIsLoading(false);
     }

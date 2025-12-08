@@ -3,6 +3,7 @@
 import { lineOccurrenceRepository } from "@/core/db";
 import { getCurrentUser } from "@/core/auth/session";
 import { checkMultipleCollisions, type TimeRange } from "@/core/validation";
+import { logger } from "@/core/logger";
 
 export async function checkLineCollisions(
   venueId: string,
@@ -47,7 +48,7 @@ export async function checkLineCollisions(
       conflictingRanges: []
     };
   } catch (error) {
-    console.error("Error checking collisions:", error);
+    logger.error("Error checking collisions", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "שגיאה בבדיקת התנגשויות"

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/core/integrations/prisma";
 import { floorPlanService } from "../services/floorPlanService";
+import { logger } from "@/core/logger";
 import {
   createFloorPlanSchema,
   updateFloorPlanSchema,
@@ -39,7 +40,7 @@ export async function getFloorPlans(venueId: string): Promise<{
     const floorPlans = await floorPlanService.getFloorPlansByVenue(venueId);
     return { success: true, data: floorPlans };
   } catch (error) {
-    console.error("Error getting floor plans:", error);
+    logger.error("Error getting floor plans", error);
     return { success: false, error: "Failed to get floor plans" };
   }
 }
@@ -59,7 +60,7 @@ export async function getFloorPlan(id: string): Promise<{
     }
     return { success: true, data: floorPlan };
   } catch (error) {
-    console.error("Error getting floor plan:", error);
+    logger.error("Error getting floor plan", error);
     return { success: false, error: "Failed to get floor plan" };
   }
 }
@@ -76,7 +77,7 @@ export async function getDefaultFloorPlan(venueId: string): Promise<{
     const floorPlan = await floorPlanService.getDefaultFloorPlan(venueId);
     return { success: true, data: floorPlan };
   } catch (error) {
-    console.error("Error getting default floor plan:", error);
+    logger.error("Error getting default floor plan", error);
     return { success: false, error: "Failed to get default floor plan" };
   }
 }
@@ -93,7 +94,7 @@ export async function getVenueLines(venueId: string): Promise<{
     const lines = await floorPlanService.getVenueLines(venueId);
     return { success: true, data: lines };
   } catch (error) {
-    console.error("Error getting venue lines:", error);
+    logger.error("Error getting venue lines", error);
     return { success: false, error: "Failed to get venue lines" };
   }
 }
@@ -119,7 +120,7 @@ export async function getFloorPlanStats(id: string): Promise<{
     }
     return { success: true, data: stats };
   } catch (error) {
-    console.error("Error getting floor plan stats:", error);
+    logger.error("Error getting floor plan stats", error);
     return { success: false, error: "Failed to get floor plan stats" };
   }
 }
@@ -144,7 +145,7 @@ export async function createFloorPlan(input: unknown): Promise<{
 
     return { success: true, data: { id: floorPlan.id } };
   } catch (error) {
-    console.error("Error creating floor plan:", error);
+    logger.error("Error creating floor plan", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -171,7 +172,7 @@ export async function duplicateFloorPlan(
 
     return { success: true, data: { id: floorPlan.id } };
   } catch (error) {
-    console.error("Error duplicating floor plan:", error);
+    logger.error("Error duplicating floor plan", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -217,7 +218,7 @@ export async function updateFloorPlan(input: unknown): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating floor plan:", error);
+    logger.error("Error updating floor plan", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -238,7 +239,7 @@ export async function updateZoneContent(input: unknown): Promise<{
     await floorPlanService.updateZoneContent(id, data);
     return { success: true };
   } catch (error) {
-    console.error("Error updating zone content:", error);
+    logger.error("Error updating zone content", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -259,7 +260,7 @@ export async function updateTableContent(input: unknown): Promise<{
     await floorPlanService.updateTableContent(id, data);
     return { success: true };
   } catch (error) {
-    console.error("Error updating table content:", error);
+    logger.error("Error updating table content", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -286,7 +287,7 @@ export async function updateStaffing(input: unknown): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating staffing:", error);
+    logger.error("Error updating staffing", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -313,7 +314,7 @@ export async function updateMinimumOrder(input: unknown): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating minimum order:", error);
+    logger.error("Error updating minimum order", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -342,7 +343,7 @@ export async function deleteFloorPlan(
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting floor plan:", error);
+    logger.error("Error deleting floor plan", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -436,7 +437,7 @@ export async function createZone(input: unknown): Promise<{
 
     return { success: true, data: { id: zone.id } };
   } catch (error) {
-    console.error("Error creating zone:", error);
+    logger.error("Error creating zone", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -522,7 +523,7 @@ export async function createTable(input: unknown): Promise<{
 
     return { success: true, data: { id: table.id } };
   } catch (error) {
-    console.error("Error creating table:", error);
+    logger.error("Error creating table", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -612,7 +613,7 @@ export async function autoGenerateTables(input: {
 
     return { success: true, data: { count } };
   } catch (error) {
-    console.error("Error auto-generating tables:", error);
+    logger.error("Error auto-generating tables", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -657,7 +658,7 @@ export async function createVenueArea(input: unknown): Promise<{
 
     return { success: true, data: { id: area.id } };
   } catch (error) {
-    console.error("Error creating venue area:", error);
+    logger.error("Error creating venue area", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -691,7 +692,7 @@ export async function deleteZone(zoneId: string): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting zone:", error);
+    logger.error("Error deleting zone", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -731,7 +732,7 @@ export async function deleteTable(tableId: string): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting table:", error);
+    logger.error("Error deleting table", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -765,7 +766,7 @@ export async function deleteVenueArea(areaId: string): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting venue area:", error);
+    logger.error("Error deleting venue area", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -947,7 +948,7 @@ export async function updateElementPosition(input: {
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating element position:", error);
+    logger.error("Error updating element position", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -979,7 +980,7 @@ export async function updateFloorPlanLines(input: unknown): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating floor plan lines:", error);
+    logger.error("Error updating floor plan lines", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -1037,7 +1038,7 @@ export async function updateLineFloorPlanStaffing(input: unknown): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating line floor plan staffing:", error);
+    logger.error("Error updating line floor plan staffing", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }
@@ -1095,7 +1096,7 @@ export async function updateLineFloorPlanMinimumOrder(input: unknown): Promise<{
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating line floor plan minimum order:", error);
+    logger.error("Error updating line floor plan minimum order", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }

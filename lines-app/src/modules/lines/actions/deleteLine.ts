@@ -4,6 +4,7 @@ import { lineRepository } from "@/core/db";
 import { prisma } from "@/core/integrations/prisma/client";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/core/auth/session";
+import { logger } from "@/core/logger";
 
 export async function deleteLine(venueId: string, lineId: string) {
   try {
@@ -31,7 +32,7 @@ export async function deleteLine(venueId: string, lineId: string) {
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting line:", error);
+    logger.error("Error deleting line", error);
     if (error instanceof Error) {
       return { success: false, error: error.message };
     }

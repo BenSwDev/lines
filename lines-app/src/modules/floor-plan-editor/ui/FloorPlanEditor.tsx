@@ -183,7 +183,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
             defaultValue: `${type === "zone" ? "איזור" : type === "table" ? "שולחן" : "אזור"} נוצר בהצלחה`
           })
         });
-          router.refresh();
+        router.refresh();
       } else {
         toast({
           title: t("errors.generic", { defaultValue: "שגיאה" }),
@@ -223,7 +223,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
             defaultValue: `${type === "zone" ? "איזור" : type === "table" ? "שולחן" : "אזור"} נמחק בהצלחה`
           })
         });
-      router.refresh();
+        router.refresh();
       } else {
         toast({
           title: t("errors.generic", { defaultValue: "שגיאה" }),

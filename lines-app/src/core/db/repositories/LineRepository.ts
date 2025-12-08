@@ -91,10 +91,7 @@ export class LineRepository {
    * Recursively remove undefined values and filter out non-allowed fields
    * This prevents Prisma from trying to update non-existent columns
    */
-  private removeUndefinedValuesAndFilterFields(
-    obj: unknown,
-    allowedFields: Set<string>
-  ): unknown {
+  private removeUndefinedValuesAndFilterFields(obj: unknown, allowedFields: Set<string>): unknown {
     if (obj === null || obj === undefined) {
       return obj;
     }

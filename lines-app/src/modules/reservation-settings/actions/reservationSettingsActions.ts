@@ -5,6 +5,7 @@ import type { ReservationSettingsWithRelations, ReservationSettingsInput } from 
 import { getCurrentUser } from "@/core/auth/session";
 import { prisma } from "@/core/integrations/prisma/client";
 import { lineRepository } from "@/core/db/repositories/LineRepository";
+import { logger } from "@/core/logger";
 
 /**
  * Get reservation settings for a venue
@@ -36,7 +37,7 @@ export async function getReservationSettings(
     const settings = await reservationSettingsService.getOrCreate(venueId);
     return { success: true, data: settings };
   } catch (error) {
-    console.error("Error getting reservation settings:", error);
+    logger.error("Error getting reservation settings", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to get reservation settings"
@@ -75,7 +76,7 @@ export async function updateReservationSettings(
     const settings = await reservationSettingsService.update(venueId, input);
     return { success: true, data: settings };
   } catch (error) {
-    console.error("Error updating reservation settings:", error);
+    logger.error("Error updating reservation settings", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update reservation settings"
@@ -116,7 +117,7 @@ export async function getVenueLines(
       data: lines.map((line) => ({ id: line.id, name: line.name }))
     };
   } catch (error) {
-    console.error("Error getting venue lines:", error);
+    logger.error("Error getting venue lines", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to get venue lines"

@@ -157,7 +157,7 @@ export class RolesService {
           data: {
             name: `ניהול ${input.name ?? existing.name}`,
             description: `תפקיד ניהול עבור ${input.name ?? existing.name}`,
-            color: input.color ?? existing.color,
+            color: input.color ?? existing.color
             // Keep icon as is (management roles have fixed icon)
           }
         });

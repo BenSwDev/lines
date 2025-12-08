@@ -52,7 +52,7 @@ export async function getLineReservationSettings(lineId: string) {
     const settings = await lineReservationSettingsService.getOrCreate(lineId);
     return { success: true, data: settings };
   } catch (error) {
-    console.error("Error getting line reservation settings:", error);
+    console.error("Error getting line reservation settings", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to get line reservation settings"
@@ -113,7 +113,7 @@ export async function updateLineReservationSettings(
 
     return { success: true, data: settings };
   } catch (error) {
-    console.error("Error updating line reservation settings:", error);
+    console.error("Error updating line reservation settings", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update line reservation settings"
