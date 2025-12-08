@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/core/i18n/provider";
+import { useToast } from "@/hooks/use-toast";
 import {
   updateMinimumOrder,
   updateLineFloorPlanMinimumOrder,
@@ -100,6 +101,7 @@ function MinimumOrderForm({
   router
 }: MinimumOrderFormProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
   const [availableLines, setAvailableLines] = useState<
     { id: string; name: string; color: string }[]
@@ -182,24 +184,48 @@ function MinimumOrderForm({
     startTransition(async () => {
       const price = minimumPrice ? Number(minimumPrice) : 0;
 
-      if (selectedLineId) {
-        // Save line-specific minimum order
-        await updateLineFloorPlanMinimumOrder({
-          lineId: selectedLineId,
-          floorPlanId: floorPlan.id,
-          targetType,
-          targetId: target.id,
-          minimumPrice: price
-        });
-      } else {
-        // Save default minimum order
-        await updateMinimumOrder({
-          targetType,
-          targetId: target.id,
-          minimumPrice: price
+      try {
+        let result;
+        if (selectedLineId) {
+          // Save line-specific minimum order
+          result = await updateLineFloorPlanMinimumOrder({
+            lineId: selectedLineId,
+            floorPlanId: floorPlan.id,
+            targetType,
+            targetId: target.id,
+            minimumPrice: price
+          });
+        } else {
+          // Save default minimum order
+          result = await updateMinimumOrder({
+            targetType,
+            targetId: target.id,
+            minimumPrice: price
+          });
+        }
+
+        if (result?.success) {
+          toast({
+            title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+            description: t("floorPlan.minimumOrderUpdated", {
+              defaultValue: "מינימום הזמנה עודכן בהצלחה"
+            })
+          });
+          router.refresh();
+        } else {
+          toast({
+            title: t("errors.generic", { defaultValue: "שגיאה" }),
+            description: result?.error || t("errors.savingData", { defaultValue: "שגיאה בשמירה" }),
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: error instanceof Error ? error.message : t("errors.unexpected"),
+          variant: "destructive"
         });
       }
-      router.refresh();
     });
   };
 

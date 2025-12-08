@@ -13,6 +13,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { useTranslations } from "@/core/i18n/provider";
+import { useToast } from "@/hooks/use-toast";
 import {
   updateStaffing,
   updateLineFloorPlanStaffing,
@@ -25,7 +26,13 @@ interface StaffingEditorProps {
   selectedZone: Zone | null;
   selectedTable: Table | null;
   floorPlan: FloorPlanWithDetails;
-  roles: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
+  roles: {
+    id: string;
+    name: string;
+    color: string;
+    canManage?: boolean;
+    requiresStaffing?: boolean;
+  }[];
   venueId: string;
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
 }
@@ -85,7 +92,13 @@ export function StaffingEditor({
 interface StaffingFormProps {
   target: Zone | Table;
   targetType: "zone" | "table";
-  roles: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
+  roles: {
+    id: string;
+    name: string;
+    color: string;
+    canManage?: boolean;
+    requiresStaffing?: boolean;
+  }[];
   floorPlan: FloorPlanWithDetails;
   venueId: string;
   isPending: boolean;
@@ -106,6 +119,7 @@ function StaffingForm({
   router
 }: StaffingFormProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
   const [availableLines, setAvailableLines] = useState<
     { id: string; name: string; color: string }[]
@@ -129,7 +143,9 @@ function StaffingForm({
   }, [venueId]);
 
   // Load existing staffing rules based on selected line or default
-  const [staffingCounts, setStaffingCounts] = useState<Record<string, { managers: number; employees: number }>>({});
+  const [staffingCounts, setStaffingCounts] = useState<
+    Record<string, { managers: number; employees: number }>
+  >({});
   const [isLoadingStaffing, setIsLoadingStaffing] = useState(false);
 
   useEffect(() => {
@@ -223,24 +239,48 @@ function StaffingForm({
           };
         });
 
-      if (selectedLineId) {
-        // Save line-specific staffing
-        await updateLineFloorPlanStaffing({
-          lineId: selectedLineId,
-          floorPlanId: floorPlan.id,
-          targetType,
-          targetId: target.id,
-          staffingRules
-        });
-      } else {
-        // Save default staffing
-        await updateStaffing({
-          targetType,
-          targetId: target.id,
-          staffingRules
+      try {
+        let result;
+        if (selectedLineId) {
+          // Save line-specific staffing
+          result = await updateLineFloorPlanStaffing({
+            lineId: selectedLineId,
+            floorPlanId: floorPlan.id,
+            targetType,
+            targetId: target.id,
+            staffingRules
+          });
+        } else {
+          // Save default staffing
+          result = await updateStaffing({
+            targetType,
+            targetId: target.id,
+            staffingRules
+          });
+        }
+
+        if (result?.success) {
+          toast({
+            title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+            description: t("floorPlan.staffingUpdated", {
+              defaultValue: "סידור העבודה עודכן בהצלחה"
+            })
+          });
+          router.refresh();
+        } else {
+          toast({
+            title: t("errors.generic", { defaultValue: "שגיאה" }),
+            description: result?.error || t("errors.savingData", { defaultValue: "שגיאה בשמירה" }),
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: error instanceof Error ? error.message : t("errors.unexpected"),
+          variant: "destructive"
         });
       }
-      router.refresh();
     });
   };
 
@@ -308,7 +348,11 @@ function StaffingForm({
       ) : roles.filter((r) => r.requiresStaffing !== false).length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>{t("floorPlan.noRolesRequireStaffing", { defaultValue: "אין תפקידים שדורשים סידור עבודה" })}</p>
+          <p>
+            {t("floorPlan.noRolesRequireStaffing", {
+              defaultValue: "אין תפקידים שדורשים סידור עבודה"
+            })}
+          </p>
           <p className="text-sm">
             {t("floorPlan.enableRequiresStaffing", {
               defaultValue: "הפעל 'דורש סידור עבודה' בתפקידים כדי לראות אותם כאן"
@@ -319,81 +363,90 @@ function StaffingForm({
         <>
           <div className="space-y-3">
             <Label>{t("floorPlan.rolesNeeded", { defaultValue: "תפקידים נדרשים" })}</Label>
-            {roles.filter((r) => r.requiresStaffing !== false).map((role) => {
-              const counts = staffingCounts[role.id] ?? { managers: 0, employees: 0 };
-              const roleCanManage = role.canManage ?? false; // Check if role can have managers
-              const total = (counts.managers ?? 0) + (counts.employees ?? 0);
-              
-              return (
-                <div key={role.id} className="p-3 rounded-lg border space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color }} />
-                      <span className="font-medium">{role.name}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {total > 0 ? `${total} 👤` : ""}
-                    </span>
-                  </div>
-                  
-                  {/* Managers (only if role can manage) */}
-                  {roleCanManage && (
-                    <div className="flex items-center justify-between pl-4 border-r-2 border-primary/20">
+            {roles
+              .filter((r) => r.requiresStaffing !== false)
+              .map((role) => {
+                const counts = staffingCounts[role.id] ?? { managers: 0, employees: 0 };
+                const roleCanManage = role.canManage ?? false; // Check if role can have managers
+                const total = (counts.managers ?? 0) + (counts.employees ?? 0);
+
+                return (
+                  <div key={role.id} className="p-3 rounded-lg border space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: role.color }}
+                        />
+                        <span className="font-medium">{role.name}</span>
+                      </div>
                       <span className="text-sm text-muted-foreground">
-                        {t("staffing.managers", { defaultValue: "מנהלים" })}:
+                        {total > 0 ? `${total} 👤` : ""}
+                      </span>
+                    </div>
+
+                    {/* Managers (only if role can manage) */}
+                    {roleCanManage && (
+                      <div className="flex items-center justify-between pl-4 border-r-2 border-primary/20">
+                        <span className="text-sm text-muted-foreground">
+                          {t("staffing.managers", { defaultValue: "מנהלים" })}:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleDecrement(role.id, "managers")}
+                            disabled={counts.managers === 0}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <span className="w-6 text-center font-bold text-sm">
+                            {counts.managers ?? 0}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleIncrement(role.id, "managers")}
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Employees */}
+                    <div className="flex items-center justify-between pl-4">
+                      <span className="text-sm text-muted-foreground">
+                        {t("staffing.employees", { defaultValue: "עובדים" })}:
                       </span>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => handleDecrement(role.id, "managers")}
-                          disabled={counts.managers === 0}
+                          onClick={() => handleDecrement(role.id, "employees")}
+                          disabled={counts.employees === 0}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-6 text-center font-bold text-sm">{counts.managers ?? 0}</span>
+                        <span className="w-6 text-center font-bold text-sm">
+                          {counts.employees ?? 0}
+                        </span>
                         <Button
                           variant="outline"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => handleIncrement(role.id, "managers")}
+                          onClick={() => handleIncrement(role.id, "employees")}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Employees */}
-                  <div className="flex items-center justify-between pl-4">
-                    <span className="text-sm text-muted-foreground">
-                      {t("staffing.employees", { defaultValue: "עובדים" })}:
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleDecrement(role.id, "employees")}
-                        disabled={counts.employees === 0}
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <span className="w-6 text-center font-bold text-sm">{counts.employees ?? 0}</span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleIncrement(role.id, "employees")}
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
-                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
           <div className="p-3 bg-muted rounded-lg">
@@ -426,7 +479,13 @@ function StaffingForm({
 // Staffing Summary View
 interface StaffingSummaryViewProps {
   floorPlan: FloorPlanWithDetails;
-  roles: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
+  roles: {
+    id: string;
+    name: string;
+    color: string;
+    canManage?: boolean;
+    requiresStaffing?: boolean;
+  }[];
   onElementSelect: (id: string | null, type: "zone" | "table" | "area" | null) => void;
 }
 

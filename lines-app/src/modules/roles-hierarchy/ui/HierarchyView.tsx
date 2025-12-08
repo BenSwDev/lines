@@ -38,11 +38,7 @@ export function HierarchyView({ venueId, ownerUserId, ownerName }: HierarchyView
       const managementRoles = managementResult.data || [];
       // Combine both types of roles for hierarchy display
       const allRoles = [...roles, ...managementRoles];
-      const tree = hierarchyService.buildHierarchyTree(
-        allRoles,
-        ownerUserId,
-        ownerName || "בעלים"
-      );
+      const tree = hierarchyService.buildHierarchyTree(allRoles, ownerUserId, ownerName || "בעלים");
       setHierarchy(tree);
       // Expand all by default
       const allIds = new Set<string>();

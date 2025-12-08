@@ -78,4 +78,3 @@ export function calculateTableLayout(
 
   return { count, positions };
 }
-

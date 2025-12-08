@@ -67,315 +67,299 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
 
   return (
     <SidebarProvider defaultOpen side={sidebarSide}>
-          <div className="flex min-h-screen w-full">
-            {/* Sidebar */}
-            <Sidebar>
-              <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
-                    <span className="text-sm font-bold text-white">L</span>
-                  </div>
-                  <div>
-                    <h1 className="text-lg font-bold">Lines</h1>
-                    <p className="text-xs text-muted-foreground">ניהול אירועים</p>
-                  </div>
-                </div>
-              </SidebarHeader>
+      <div className="flex min-h-screen w-full">
+        {/* Sidebar */}
+        <Sidebar>
+          <SidebarHeader className="border-b border-sidebar-border px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600">
+                <span className="text-sm font-bold text-white">L</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">Lines</h1>
+                <p className="text-xs text-muted-foreground">ניהול אירועים</p>
+              </div>
+            </div>
+          </SidebarHeader>
 
-              <SidebarContent>
-                {/* Venue Switcher */}
-                {currentVenue ? (
-                  <>
-                    <SidebarGroup>
-                      <SidebarGroupLabel>{t("workspace.currentVenue")}</SidebarGroupLabel>
-                      <SidebarGroupContent>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="w-full justify-between">
-                              <span className="flex items-center gap-2">
-                                <Building2 className="h-4 w-4" />
-                                {currentVenue.name}
-                              </span>
-                              <ChevronDown className="h-4 w-4 opacity-50" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent className="w-56">
-                            <DropdownMenuLabel>{t("workspace.switchVenue")}</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {venues.map((venue) => (
-                              <DropdownMenuItem
-                                key={venue.id}
-                                onClick={() => router.push(`/venues/${venue.id}/info`)}
-                                disabled={venue.id === currentVenue.id}
-                              >
-                                <Building2 className="ml-2 h-4 w-4" />
-                                {venue.name}
-                                {venue.id === currentVenue.id && (
-                                  <Badge variant="outline" className="mr-auto">
-                                    {t("common.current")}
-                                  </Badge>
-                                )}
-                              </DropdownMenuItem>
-                            ))}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => router.push("/dashboard")}>
-                              <Plus className="ml-2 h-4 w-4" />
-                              {t("workspace.allVenues")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </SidebarGroupContent>
-                    </SidebarGroup>
+          <SidebarContent>
+            {/* Venue Switcher */}
+            {currentVenue ? (
+              <>
+                <SidebarGroup>
+                  <SidebarGroupLabel>{t("workspace.currentVenue")}</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full justify-between">
+                          <span className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            {currentVenue.name}
+                          </span>
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuLabel>{t("workspace.switchVenue")}</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {venues.map((venue) => (
+                          <DropdownMenuItem
+                            key={venue.id}
+                            onClick={() => router.push(`/venues/${venue.id}/info`)}
+                            disabled={venue.id === currentVenue.id}
+                          >
+                            <Building2 className="ml-2 h-4 w-4" />
+                            {venue.name}
+                            {venue.id === currentVenue.id && (
+                              <Badge variant="outline" className="mr-auto">
+                                {t("common.current")}
+                              </Badge>
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => router.push("/dashboard")}>
+                          <Plus className="ml-2 h-4 w-4" />
+                          {t("workspace.allVenues")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
 
-                    {/* Venue Navigation */}
-                    <SidebarGroup>
-                      <SidebarGroupLabel>
-                        {t("workspace.navigation", { defaultValue: "ניווט" })}
-                      </SidebarGroupLabel>
-                      <SidebarGroupContent>
-                        <SidebarMenu>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={
-                                pathname === `/venues/${currentVenue.id}` ||
-                                pathname === `/venues/${currentVenue.id}/`
-                              }
-                            >
-                              <Link href={`/venues/${currentVenue.id}`}>
-                                <Home className="h-4 w-4" />
-                                <span>
-                                  {t("workspace.dashboard", { defaultValue: "סקירה כללית" })}
-                                </span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname?.includes("/calendar")}>
-                              <Link href={`/venues/${currentVenue.id}/calendar`}>
-                                <Calendar className="h-4 w-4" />
-                                <span>{t("workspace.calendar", { defaultValue: "לוח שנה" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={
-                                pathname?.includes("/lines") && !pathname?.includes("/settings")
-                              }
-                            >
-                              <Link href={`/venues/${currentVenue.id}/lines`}>
-                                <List className="h-4 w-4" />
-                                <span>{t("workspace.lines", { defaultValue: "ליינים" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        </SidebarMenu>
-                      </SidebarGroupContent>
-                    </SidebarGroup>
+                {/* Venue Navigation */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>
+                    {t("workspace.navigation", { defaultValue: "ניווט" })}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={
+                            pathname === `/venues/${currentVenue.id}` ||
+                            pathname === `/venues/${currentVenue.id}/`
+                          }
+                        >
+                          <Link href={`/venues/${currentVenue.id}`}>
+                            <Home className="h-4 w-4" />
+                            <span>{t("workspace.dashboard", { defaultValue: "סקירה כללית" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/calendar")}>
+                          <Link href={`/venues/${currentVenue.id}/calendar`}>
+                            <Calendar className="h-4 w-4" />
+                            <span>{t("workspace.calendar", { defaultValue: "לוח שנה" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={
+                            pathname?.includes("/lines") && !pathname?.includes("/settings")
+                          }
+                        >
+                          <Link href={`/venues/${currentVenue.id}/lines`}>
+                            <List className="h-4 w-4" />
+                            <span>{t("workspace.lines", { defaultValue: "ליינים" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
 
-                    {/* Venue Settings */}
-                    <SidebarGroup>
-                      <SidebarGroupLabel>
-                        {t("workspace.settings", { defaultValue: "הגדרות מקום" })}
-                      </SidebarGroupLabel>
-                      <SidebarGroupContent>
-                        <SidebarMenu>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/info")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/info`}>
-                                <Info className="h-4 w-4" />
-                                <span>{t("workspace.info", { defaultValue: "מידע כללי" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/structure")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/structure`}>
-                                <Layers className="h-4 w-4" />
-                                <span>
-                                  {t("workspace.structure", { defaultValue: "מבנה (מפות)" })}
-                                </span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/menus")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/menus`}>
-                                <FileText className="h-4 w-4" />
-                                <span>{t("workspace.menus", { defaultValue: "תפריטים" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/roles")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/roles`}>
-                                <Users className="h-4 w-4" />
-                                <span>
-                                  {t("workspace.roles", { defaultValue: "תפקידים והיררכיה" })}
-                                </span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/reservations")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/reservations`}>
-                                <BookOpen className="h-4 w-4" />
-                                <span>
-                                  {t("workspace.reservations", { defaultValue: "הגדרות הזמנות" })}
-                                </span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/tickets")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/tickets`}>
-                                <Ticket className="h-4 w-4" />
-                                <span>{t("workspace.tickets", { defaultValue: "כרטיסים" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/inventory")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
-                                <Package className="h-4 w-4" />
-                                <span>{t("workspace.inventory", { defaultValue: "מלאי" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/settings/team")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/settings/team`}>
-                                <Users className="h-4 w-4" />
-                                <span>{t("workspace.team", { defaultValue: "צוות" })}</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        </SidebarMenu>
-                      </SidebarGroupContent>
-                    </SidebarGroup>
-                  </>
-                ) : (
-                  <SidebarGroup>
-                    <SidebarGroupLabel>{t("workspace.myVenues")}</SidebarGroupLabel>
-                    <SidebarGroupContent>
-                      <SidebarMenu>
-                        {venues.length === 0 ? (
-                          <div className="p-4 text-center text-sm text-muted-foreground">
-                            {t("workspace.noVenuesYet")}
-                          </div>
-                        ) : (
-                          venues.map((venue) => (
-                            <SidebarMenuItem key={venue.id}>
-                              <SidebarMenuButton asChild>
-                                <Link href={`/venues/${venue.id}`}>
-                                  <Building2 className="h-4 w-4" />
-                                  <span>{venue.name}</span>
-                                </Link>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          ))
-                        )}
-                        <SidebarMenuItem>
-                          <SidebarMenuButton className="text-primary" asChild>
-                            <Link href="/dashboard">
-                              <Plus className="h-4 w-4" />
-                              <span>{t("workspace.createNewVenue")}</span>
+                {/* Venue Settings */}
+                <SidebarGroup>
+                  <SidebarGroupLabel>
+                    {t("workspace.settings", { defaultValue: "הגדרות מקום" })}
+                  </SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/info")}>
+                          <Link href={`/venues/${currentVenue.id}/settings/info`}>
+                            <Info className="h-4 w-4" />
+                            <span>{t("workspace.info", { defaultValue: "מידע כללי" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname?.includes("/settings/structure")}
+                        >
+                          <Link href={`/venues/${currentVenue.id}/settings/structure`}>
+                            <Layers className="h-4 w-4" />
+                            <span>{t("workspace.structure", { defaultValue: "מבנה (מפות)" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/menus")}>
+                          <Link href={`/venues/${currentVenue.id}/settings/menus`}>
+                            <FileText className="h-4 w-4" />
+                            <span>{t("workspace.menus", { defaultValue: "תפריטים" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/roles")}>
+                          <Link href={`/venues/${currentVenue.id}/settings/roles`}>
+                            <Users className="h-4 w-4" />
+                            <span>
+                              {t("workspace.roles", { defaultValue: "תפקידים והיררכיה" })}
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname?.includes("/settings/reservations")}
+                        >
+                          <Link href={`/venues/${currentVenue.id}/settings/reservations`}>
+                            <BookOpen className="h-4 w-4" />
+                            <span>
+                              {t("workspace.reservations", { defaultValue: "הגדרות הזמנות" })}
+                            </span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname?.includes("/settings/tickets")}
+                        >
+                          <Link href={`/venues/${currentVenue.id}/settings/tickets`}>
+                            <Ticket className="h-4 w-4" />
+                            <span>{t("workspace.tickets", { defaultValue: "כרטיסים" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname?.includes("/settings/inventory")}
+                        >
+                          <Link href={`/venues/${currentVenue.id}/settings/inventory`}>
+                            <Package className="h-4 w-4" />
+                            <span>{t("workspace.inventory", { defaultValue: "מלאי" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname?.includes("/settings/team")}>
+                          <Link href={`/venues/${currentVenue.id}/settings/team`}>
+                            <Users className="h-4 w-4" />
+                            <span>{t("workspace.team", { defaultValue: "צוות" })}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
+            ) : (
+              <SidebarGroup>
+                <SidebarGroupLabel>{t("workspace.myVenues")}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {venues.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        {t("workspace.noVenuesYet")}
+                      </div>
+                    ) : (
+                      venues.map((venue) => (
+                        <SidebarMenuItem key={venue.id}>
+                          <SidebarMenuButton asChild>
+                            <Link href={`/venues/${venue.id}`}>
+                              <Building2 className="h-4 w-4" />
+                              <span>{venue.name}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                      </SidebarMenu>
-                    </SidebarGroupContent>
-                  </SidebarGroup>
-                )}
-              </SidebarContent>
-
-              <SidebarFooter className="border-t border-sidebar-border p-4">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start gap-2 px-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          {(user.name || user.email).charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col items-start text-right">
-                        <span className="text-sm font-medium">{user.name || "משתמש"}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
-                      </div>
-                      <ChevronDown className="mr-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 rtl:text-right">
-                    <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push("/profile")}>
-                      <User className="ml-2 h-4 w-4" />
-                      {t("profile.title")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => router.push("/account")}>
-                      <Settings className="ml-2 h-4 w-4" />
-                      {t("account.title")}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/api/auth/signout">
-                        <LogOut className="ml-2 h-4 w-4" />
-                        {t("common.logout")}
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarFooter>
-            </Sidebar>
-
-            {/* Main Content */}
-            <main className="flex-1">
-              <div className="border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <SidebarTrigger />
-                    {currentVenue && (
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-5 w-5 text-muted-foreground" />
-                        <h2 className="text-lg font-semibold">{currentVenue.name}</h2>
-                      </div>
+                      ))
                     )}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton className="text-primary" asChild>
+                        <Link href="/dashboard">
+                          <Plus className="h-4 w-4" />
+                          <span>{t("workspace.createNewVenue")}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </SidebarContent>
+
+          <SidebarFooter className="border-t border-sidebar-border p-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start gap-2 px-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>
+                      {(user.name || user.email).charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-start text-right">
+                    <span className="text-sm font-medium">{user.name || "משתמש"}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
                   </div>
+                  <ChevronDown className="mr-auto h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rtl:text-right">
+                <DropdownMenuLabel>{t("common.myAccount")}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/profile")}>
+                  <User className="ml-2 h-4 w-4" />
+                  {t("profile.title")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/account")}>
+                  <Settings className="ml-2 h-4 w-4" />
+                  {t("account.title")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/api/auth/signout">
+                    <LogOut className="ml-2 h-4 w-4" />
+                    {t("common.logout")}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarFooter>
+        </Sidebar>
+
+        {/* Main Content */}
+        <main className="flex-1">
+          <div className="border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                {currentVenue && (
                   <div className="flex items-center gap-2">
-                    <ThemeToggle />
-                    <LanguageSwitcher />
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold">{currentVenue.name}</h2>
                   </div>
-                </div>
+                )}
               </div>
-              <div className="p-6">{children}</div>
-            </main>
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <LanguageSwitcher />
+              </div>
+            </div>
           </div>
-      </SidebarProvider>
+          <div className="p-6">{children}</div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }

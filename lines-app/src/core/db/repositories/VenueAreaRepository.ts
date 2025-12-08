@@ -24,7 +24,7 @@ export class VenueAreaRepository {
   async update(id: string, data: Prisma.VenueAreaUpdateInput): Promise<VenueArea> {
     // Filter out all undefined values recursively to prevent Prisma errors
     const cleanData = this.removeUndefinedValues(data) as Prisma.VenueAreaUpdateInput;
-    
+
     return prisma.venueArea.update({
       where: { id },
       data: cleanData

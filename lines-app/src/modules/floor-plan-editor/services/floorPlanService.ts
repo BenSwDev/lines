@@ -423,7 +423,7 @@ export const floorPlanService = {
     const cleanData = Object.fromEntries(
       Object.entries(data).filter(([, value]) => value !== undefined)
     );
-    
+
     return prisma.zone.update({
       where: { id },
       data: cleanData
@@ -441,7 +441,7 @@ export const floorPlanService = {
     const cleanData = Object.fromEntries(
       Object.entries(data).filter(([, value]) => value !== undefined)
     );
-    
+
     return prisma.table.update({
       where: { id },
       data: cleanData

@@ -28,11 +28,7 @@ const DAY_GRADIENTS = [
   "from-indigo-50 to-indigo-100/50 dark:from-indigo-950/30 dark:to-indigo-900/20" // Sat
 ];
 
-export function WeeklyScheduleView({
-  lines,
-  weekStartDay,
-  onLineClick
-}: WeeklyScheduleViewProps) {
+export function WeeklyScheduleView({ lines, weekStartDay, onLineClick }: WeeklyScheduleViewProps) {
   const { t } = useTranslations();
 
   // Get week days in correct order based on weekStartDay
@@ -138,7 +134,7 @@ export function WeeklyScheduleView({
                         "border-border/50"
                       )}
                       style={{
-                        animationDelay: `${(dayIdx * 50) + (lineIdx * 30)}ms`
+                        animationDelay: `${dayIdx * 50 + lineIdx * 30}ms`
                       }}
                       onClick={() => onLineClick(line.id)}
                     >

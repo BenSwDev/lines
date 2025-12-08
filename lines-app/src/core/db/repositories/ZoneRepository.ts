@@ -30,7 +30,7 @@ export class ZoneRepository {
   async update(id: string, data: Prisma.ZoneUpdateInput): Promise<Zone> {
     // Filter out all undefined values recursively to prevent Prisma errors
     const cleanData = this.removeUndefinedValues(data) as Prisma.ZoneUpdateInput;
-    
+
     return prisma.zone.update({
       where: { id },
       data: cleanData

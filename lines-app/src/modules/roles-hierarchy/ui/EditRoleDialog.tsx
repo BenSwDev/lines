@@ -343,10 +343,11 @@ export function EditRoleDialog({ isOpen, onClose, venueId, role, onSuccess }: Ed
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        רק תפקידי ניהול יכולים להיות תפקידים הורים. בחר תפקיד ניהול אם התפקיד הזה כפוף אליו.
+                        רק תפקידי ניהול יכולים להיות תפקידים הורים. בחר תפקיד ניהול אם התפקיד הזה
+                        כפוף אליו.
                       </p>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="manager">מנהל ישיר (אופציונלי)</Label>
                       <Select
@@ -367,7 +368,8 @@ export function EditRoleDialog({ isOpen, onClose, venueId, role, onSuccess }: Ed
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        בחר תפקיד שמנהל את התפקיד הזה. רק תפקידים עם &quot;יכול לנהל&quot; יכולים להיות מנהלים.
+                        בחר תפקיד שמנהל את התפקיד הזה. רק תפקידים עם &quot;יכול לנהל&quot; יכולים
+                        להיות מנהלים.
                       </p>
                     </div>
                   </div>

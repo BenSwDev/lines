@@ -17,7 +17,7 @@ export class VenueDetailsRepository {
   async update(venueId: string, data: Prisma.VenueDetailsUpdateInput): Promise<VenueDetails> {
     // Filter out all undefined values recursively to prevent Prisma errors
     const cleanData = this.removeUndefinedValues(data) as Prisma.VenueDetailsUpdateInput;
-    
+
     return prisma.venueDetails.update({
       where: { venueId },
       data: cleanData
@@ -34,7 +34,7 @@ export class VenueDetailsRepository {
       venue: { connect: { id: venueId } }
     }) as Prisma.VenueDetailsCreateInput;
     const cleanUpdateData = this.removeUndefinedValues(data) as Prisma.VenueDetailsUpdateInput;
-    
+
     return prisma.venueDetails.upsert({
       where: { venueId },
       create: cleanCreateData,

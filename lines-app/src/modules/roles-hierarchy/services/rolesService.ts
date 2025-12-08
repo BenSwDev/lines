@@ -65,7 +65,9 @@ export class RolesService {
         }
       });
       if (!managerRole) {
-        throw new Error("Manager role must exist, belong to this venue, and have canManage enabled");
+        throw new Error(
+          "Manager role must exist, belong to this venue, and have canManage enabled"
+        );
       }
     }
 
@@ -181,7 +183,9 @@ export class RolesService {
           }
         });
         if (!managerRole) {
-          throw new Error("Manager role must exist, belong to this venue, and have canManage enabled");
+          throw new Error(
+            "Manager role must exist, belong to this venue, and have canManage enabled"
+          );
         }
         // Prevent circular reference
         if (input.managerRoleId === id) {

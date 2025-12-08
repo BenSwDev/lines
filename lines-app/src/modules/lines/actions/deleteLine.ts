@@ -38,4 +38,3 @@ export async function deleteLine(venueId: string, lineId: string) {
     return { success: false, error: "Failed to delete line" };
   }
 }
-

@@ -364,7 +364,7 @@ export async function createZone(input: unknown): Promise<{
 }> {
   try {
     const validated = createZoneSchema.parse(input);
-    
+
     // Check for collisions with existing zones
     const existingZones = await prisma.zone.findMany({
       where: { floorPlanId: validated.floorPlanId! },
@@ -454,7 +454,7 @@ export async function createTable(input: unknown): Promise<{
 }> {
   try {
     const validated = createTableSchema.parse(input);
-    
+
     // Check for collisions with existing tables in the same zone
     const existingTables = await prisma.table.findMany({
       where: { zoneId: validated.zoneId! },
@@ -797,7 +797,12 @@ export async function updateElementPosition(input: {
     );
 
     // Check for collisions when updating position
-    if (cleanUpdates.positionX !== undefined || cleanUpdates.positionY !== undefined || cleanUpdates.width !== undefined || cleanUpdates.height !== undefined) {
+    if (
+      cleanUpdates.positionX !== undefined ||
+      cleanUpdates.positionY !== undefined ||
+      cleanUpdates.width !== undefined ||
+      cleanUpdates.height !== undefined
+    ) {
       if (type === "zone") {
         // Get current zone and all other zones
         const currentZone = await prisma.zone.findUnique({

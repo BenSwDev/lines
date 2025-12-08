@@ -8,7 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations } from "@/core/i18n/provider";
-import { updateZoneContent, updateTableContent, autoGenerateTables } from "../../actions/floorPlanActions";
+import { useToast } from "@/hooks/use-toast";
+import {
+  updateZoneContent,
+  updateTableContent,
+  autoGenerateTables
+} from "../../actions/floorPlanActions";
 import type { Zone, Table, FloorPlanWithDetails } from "../../types";
 
 interface ContentEditorProps {
@@ -77,9 +82,10 @@ function ZoneContentEditor({
   router
 }: ZoneContentEditorProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const isBar = zone.zoneType === "bar";
   const isKitchen = zone.zoneType === "kitchen" || zone.isKitchen;
-  
+
   const [formData, setFormData] = useState({
     name: zone.name,
     zoneNumber: zone.zoneNumber ?? "",
@@ -91,22 +97,42 @@ function ZoneContentEditor({
     barMinimumPrice: zone.barMinimumPrice?.toString() ?? ""
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     startTransition(async () => {
-      await updateZoneContent({
-        id: zone.id,
-        name: formData.name,
-        zoneNumber: formData.zoneNumber ? Number(formData.zoneNumber) : null,
-        description: formData.description || null,
-        // Bar-specific fields
-        ...(isBar && {
-          barNumber: formData.barNumber ? Number(formData.barNumber) : null,
-          barName: formData.barName || null,
-          barSeats: formData.barSeats ? Number(formData.barSeats) : null,
-          barMinimumPrice: formData.barMinimumPrice ? Number(formData.barMinimumPrice) : null
-        })
-      });
-      router.refresh();
+      try {
+        const result = await updateZoneContent({
+          id: zone.id,
+          name: formData.name,
+          zoneNumber: formData.zoneNumber ? Number(formData.zoneNumber) : null,
+          description: formData.description || null,
+          // Bar-specific fields
+          ...(isBar && {
+            barNumber: formData.barNumber ? Number(formData.barNumber) : null,
+            barName: formData.barName || null,
+            barSeats: formData.barSeats ? Number(formData.barSeats) : null,
+            barMinimumPrice: formData.barMinimumPrice ? Number(formData.barMinimumPrice) : null
+          })
+        });
+        if (result.success) {
+          toast({
+            title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+            description: t("floorPlan.zoneUpdated", { defaultValue: "האיזור עודכן בהצלחה" })
+          });
+          router.refresh();
+        } else {
+          toast({
+            title: t("errors.generic", { defaultValue: "שגיאה" }),
+            description: result.error || t("errors.savingData", { defaultValue: "שגיאה בשמירה" }),
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: error instanceof Error ? error.message : t("errors.unexpected"),
+          variant: "destructive"
+        });
+      }
     });
   };
 
@@ -182,9 +208,7 @@ function ZoneContentEditor({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bar-name">
-                {t("floorPlan.barName", { defaultValue: "שם בר" })}
-              </Label>
+              <Label htmlFor="bar-name">{t("floorPlan.barName", { defaultValue: "שם בר" })}</Label>
               <Input
                 id="bar-name"
                 value={formData.barName}
@@ -213,7 +237,9 @@ function ZoneContentEditor({
                 type="number"
                 step="0.01"
                 value={formData.barMinimumPrice}
-                onChange={(e) => setFormData((prev) => ({ ...prev, barMinimumPrice: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, barMinimumPrice: e.target.value }))
+                }
                 placeholder="0.00"
               />
             </div>
@@ -224,7 +250,10 @@ function ZoneContentEditor({
         {isKitchen && (
           <div className="p-4 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
             <p className="text-sm text-orange-900 dark:text-orange-100">
-              👨‍🍳 {t("floorPlan.kitchenNote", { defaultValue: "מטבח - ניתן להגדיר סידור עבודה בלבד (ללא מינימום הזמנה)" })}
+              👨‍🍳{" "}
+              {t("floorPlan.kitchenNote", {
+                defaultValue: "מטבח - ניתן להגדיר סידור עבודה בלבד (ללא מינימום הזמנה)"
+              })}
             </p>
           </div>
         )}
@@ -292,21 +321,42 @@ function TableContentEditor({
   router
 }: TableContentEditorProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: table.name,
     tableNumber: table.tableNumber ?? "",
     seats: table.seats ?? ""
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     startTransition(async () => {
-      await updateTableContent({
-        id: table.id,
-        name: formData.name,
-        tableNumber: formData.tableNumber ? Number(formData.tableNumber) : null,
-        seats: formData.seats ? Number(formData.seats) : null
-      });
-      router.refresh();
+      try {
+        const result = await updateTableContent({
+          id: table.id,
+          name: formData.name,
+          tableNumber: formData.tableNumber ? Number(formData.tableNumber) : null,
+          seats: formData.seats ? Number(formData.seats) : null
+        });
+        if (result.success) {
+          toast({
+            title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+            description: t("floorPlan.tableUpdated", { defaultValue: "השולחן עודכן בהצלחה" })
+          });
+          router.refresh();
+        } else {
+          toast({
+            title: t("errors.generic", { defaultValue: "שגיאה" }),
+            description: result.error || t("errors.savingData", { defaultValue: "שגיאה בשמירה" }),
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: error instanceof Error ? error.message : t("errors.unexpected"),
+          variant: "destructive"
+        });
+      }
     });
   };
 
@@ -460,23 +510,43 @@ interface AutoGenerateTablesButtonProps {
 
 function AutoGenerateTablesButton({ zoneId, router }: AutoGenerateTablesButtonProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleAutoGenerate = () => {
     setIsGenerating(true);
     startTransition(async () => {
-      const result = await autoGenerateTables({
-        zoneId,
-        tableWidth: 60,
-        tableHeight: 60,
-        spacing: 10,
-        defaultSeats: 4
-      });
-      if (result.success) {
-        router.refresh();
+      try {
+        const result = await autoGenerateTables({
+          zoneId,
+          tableWidth: 60,
+          tableHeight: 60,
+          spacing: 10,
+          defaultSeats: 4
+        });
+        if (result.success) {
+          toast({
+            title: t("success.created", { defaultValue: "נוצר בהצלחה" }),
+            description: t("floorPlan.tablesGenerated", { defaultValue: "שולחנות נוצרו בהצלחה" })
+          });
+          router.refresh();
+        } else {
+          toast({
+            title: t("errors.generic", { defaultValue: "שגיאה" }),
+            description: result.error || t("errors.creating", { defaultValue: "שגיאה ביצירה" }),
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: error instanceof Error ? error.message : t("errors.unexpected"),
+          variant: "destructive"
+        });
+      } finally {
+        setIsGenerating(false);
       }
-      setIsGenerating(false);
     });
   };
 

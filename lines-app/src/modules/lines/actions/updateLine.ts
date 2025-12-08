@@ -32,7 +32,7 @@ export async function updateLine(venueId: string, lineId: string, input: unknown
     // Build update data object, filtering out undefined values
     // Note: We need to use UncheckedUpdateInput to directly set floorPlanId field
     const updateData: Prisma.LineUncheckedUpdateInput = {};
-    
+
     if (validated.name !== undefined) updateData.name = validated.name;
     if (validated.days !== undefined) updateData.days = validated.days;
     if (validated.startTime !== undefined) updateData.startTime = validated.startTime;

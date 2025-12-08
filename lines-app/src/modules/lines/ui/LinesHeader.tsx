@@ -45,7 +45,8 @@ export function LinesHeader({
                   </Badge>
                   {lines.length > 0 && (
                     <span className="text-xs text-muted-foreground">
-                      {t("lines.totalLines", { count: lines.length.toString() }) || `סה"כ ${lines.length}`}
+                      {t("lines.totalLines", { count: lines.length.toString() }) ||
+                        `סה"כ ${lines.length}`}
                     </span>
                   )}
                 </div>
@@ -81,4 +82,3 @@ export function LinesHeader({
     </div>
   );
 }
-

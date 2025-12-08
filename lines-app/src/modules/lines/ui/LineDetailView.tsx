@@ -314,7 +314,8 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
                 <div className="space-y-3">
                   <div className="flex items-center gap-4 text-sm">
                     <Badge variant="secondary" className="font-medium">
-                      {selectedFloorPlan._count.zones} {t("lines.zones", { defaultValue: "איזורים" })}
+                      {selectedFloorPlan._count.zones}{" "}
+                      {t("lines.zones", { defaultValue: "איזורים" })}
                     </Badge>
                     <Badge variant="secondary" className="font-medium">
                       {selectedFloorPlan._count.venueAreas}{" "}

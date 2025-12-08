@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "@/core/i18n/provider";
+import { useToast } from "@/hooks/use-toast";
 import { FloorPlanViewer } from "./viewer/FloorPlanViewer";
 import { ContentEditor } from "./modes/ContentEditor";
 import { StaffingEditor } from "./modes/StaffingEditor";
@@ -27,11 +28,18 @@ import type { EditorMode, FloorPlanWithDetails, Zone, Table } from "../types";
 interface FloorPlanEditorProps {
   venueId: string;
   floorPlan: FloorPlanWithDetails;
-  roles?: { id: string; name: string; color: string; canManage?: boolean; requiresStaffing?: boolean }[];
+  roles?: {
+    id: string;
+    name: string;
+    color: string;
+    canManage?: boolean;
+    requiresStaffing?: boolean;
+  }[];
 }
 
 export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEditorProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<EditorMode>("view");
@@ -102,15 +110,27 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
         name: floorPlanName.trim()
       });
       if (result.success) {
+        toast({
+          title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+          description: t("floorPlan.nameUpdated", { defaultValue: "שם המפה עודכן בהצלחה" })
+        });
         setIsEditingName(false);
         router.refresh();
       } else {
-        // Revert on error
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: result.error || t("errors.savingData", { defaultValue: "שגיאה בשמירה" }),
+          variant: "destructive"
+        });
         setFloorPlanName(floorPlan.name);
         setIsEditingName(false);
       }
     } catch (error) {
-      console.error("Error updating floor plan name:", error);
+      toast({
+        title: t("errors.generic", { defaultValue: "שגיאה" }),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
+        variant: "destructive"
+      });
       setFloorPlanName(floorPlan.name);
       setIsEditingName(false);
     } finally {
@@ -145,25 +165,38 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
     data: unknown
   ): Promise<void> => {
     try {
+      let result;
       if (type === "zone") {
-        const result = await createZone(data);
-        if (result.success && result.data) {
-          router.refresh();
-        }
+        result = await createZone(data);
       } else if (type === "table") {
-        // Need zoneId for table - should be passed in data
-        const result = await createTable(data);
-        if (result.success && result.data) {
-          router.refresh();
-        }
+        result = await createTable(data);
       } else if (type === "area") {
-        const result = await createVenueArea(data);
-        if (result.success && result.data) {
-          router.refresh();
-        }
+        result = await createVenueArea(data);
+      } else {
+        return;
+      }
+
+      if (result?.success) {
+        toast({
+          title: t("success.created", { defaultValue: "נוצר בהצלחה" }),
+          description: t(`floorPlan.${type}Created`, {
+            defaultValue: `${type === "zone" ? "איזור" : type === "table" ? "שולחן" : "אזור"} נוצר בהצלחה`
+          })
+        });
+        router.refresh();
+      } else {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: result?.error || t("errors.creating", { defaultValue: "שגיאה ביצירה" }),
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error("Error adding element:", error);
+      toast({
+        title: t("errors.generic", { defaultValue: "שגיאה" }),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
+        variant: "destructive"
+      });
     }
   };
 
@@ -172,16 +205,38 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
     type: "zone" | "table" | "area"
   ): Promise<void> => {
     try {
+      let result;
       if (type === "zone") {
-        await deleteZone(id);
+        result = await deleteZone(id);
       } else if (type === "table") {
-        await deleteTable(id);
+        result = await deleteTable(id);
       } else if (type === "area") {
-        await deleteVenueArea(id);
+        result = await deleteVenueArea(id);
+      } else {
+        return;
       }
-      router.refresh();
+
+      if (result?.success) {
+        toast({
+          title: t("success.deleted", { defaultValue: "נמחק בהצלחה" }),
+          description: t(`floorPlan.${type}Deleted`, {
+            defaultValue: `${type === "zone" ? "איזור" : type === "table" ? "שולחן" : "אזור"} נמחק בהצלחה`
+          })
+        });
+        router.refresh();
+      } else {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: result?.error || t("errors.deleting", { defaultValue: "שגיאה במחיקה" }),
+          variant: "destructive"
+        });
+      }
     } catch (error) {
-      console.error("Error deleting element:", error);
+      toast({
+        title: t("errors.generic", { defaultValue: "שגיאה" }),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
+        variant: "destructive"
+      });
     }
   };
 

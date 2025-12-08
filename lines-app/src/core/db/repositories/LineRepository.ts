@@ -29,10 +29,15 @@ export class LineRepository {
     });
   }
 
-  async update(id: string, data: Prisma.LineUpdateInput | Prisma.LineUncheckedUpdateInput): Promise<Line> {
+  async update(
+    id: string,
+    data: Prisma.LineUpdateInput | Prisma.LineUncheckedUpdateInput
+  ): Promise<Line> {
     // Filter out all undefined values recursively to prevent Prisma errors
-    const cleanData = this.removeUndefinedValues(data) as Prisma.LineUpdateInput | Prisma.LineUncheckedUpdateInput;
-    
+    const cleanData = this.removeUndefinedValues(data) as
+      | Prisma.LineUpdateInput
+      | Prisma.LineUncheckedUpdateInput;
+
     return prisma.line.update({
       where: { id },
       data: cleanData

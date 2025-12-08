@@ -33,9 +33,7 @@ export function LinesSidebar({
       {/* Header */}
       <div className="p-4 border-b space-y-3">
         <div>
-          <h3 className="font-semibold text-lg">
-            {t("lines.title", { defaultValue: "ליינים" })}
-          </h3>
+          <h3 className="font-semibold text-lg">{t("lines.title", { defaultValue: "ליינים" })}</h3>
           <p className="text-xs text-muted-foreground">
             {lines.length} {lines.length === 1 ? "ליין" : "ליינים"}
           </p>
@@ -105,4 +103,3 @@ export function LinesSidebar({
     </div>
   );
 }
-

@@ -24,7 +24,7 @@ export class TableRepository {
   async update(id: string, data: Prisma.TableUpdateInput): Promise<Table> {
     // Filter out all undefined values recursively to prevent Prisma errors
     const cleanData = this.removeUndefinedValues(data) as Prisma.TableUpdateInput;
-    
+
     return prisma.table.update({
       where: { id },
       data: cleanData

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/core/i18n/provider";
+import { useToast } from "@/hooks/use-toast";
 import { Plus, Copy, Trash2, Star, MoreVertical, Map, Layers, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ interface FloorPlanListProps {
 
 export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanListProps) {
   const { t } = useTranslations();
+  const { toast } = useToast();
   const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedFloorPlan, setSelectedFloorPlan] = useState<FloorPlanListItem | null>(null);
@@ -50,8 +52,24 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
     try {
       const result = await deleteFloorPlan(selectedFloorPlan.id, venueId);
       if (result.success) {
+        toast({
+          title: t("success.deleted", { defaultValue: "נמחק בהצלחה" }),
+          description: t("floorPlan.floorPlanDeleted", { defaultValue: "המפה נמחקה בהצלחה" })
+        });
         router.refresh();
+      } else {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: result.error || t("errors.deleting", { defaultValue: "שגיאה במחיקה" }),
+          variant: "destructive"
+        });
       }
+    } catch (error) {
+      toast({
+        title: t("errors.generic", { defaultValue: "שגיאה" }),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
+        variant: "destructive"
+      });
     } finally {
       setIsDeleting(false);
       setDeleteDialogOpen(false);
@@ -65,8 +83,24 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
       const newName = `${floorPlan.name} (${t("floorPlan.copy", { defaultValue: "העתק" })})`;
       const result = await duplicateFloorPlan(floorPlan.id, newName, venueId);
       if (result.success) {
+        toast({
+          title: t("success.created", { defaultValue: "נוצר בהצלחה" }),
+          description: t("floorPlan.floorPlanDuplicated", { defaultValue: "המפה הועתקה בהצלחה" })
+        });
         router.refresh();
+      } else {
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: result.error || t("errors.creating", { defaultValue: "שגיאה ביצירה" }),
+          variant: "destructive"
+        });
       }
+    } catch (error) {
+      toast({
+        title: t("errors.generic", { defaultValue: "שגיאה" }),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
+        variant: "destructive"
+      });
     } finally {
       setIsDuplicating(null);
     }
@@ -88,13 +122,24 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
         isDefault: true
       });
       if (result.success) {
+        toast({
+          title: t("success.detailsUpdated", { defaultValue: "עודכן בהצלחה" }),
+          description: t("floorPlan.setAsDefault", { defaultValue: "המפה הוגדרה כברירת מחדל" })
+        });
         router.refresh();
       } else {
-        // Show error toast if needed
-        console.error(result.error);
+        toast({
+          title: t("errors.generic", { defaultValue: "שגיאה" }),
+          description: result.error || t("errors.savingData", { defaultValue: "שגיאה בשמירה" }),
+          variant: "destructive"
+        });
       }
     } catch (error) {
-      console.error("Error setting as default:", error);
+      toast({
+        title: t("errors.generic", { defaultValue: "שגיאה" }),
+        description: error instanceof Error ? error.message : t("errors.unexpected"),
+        variant: "destructive"
+      });
     }
   };
 

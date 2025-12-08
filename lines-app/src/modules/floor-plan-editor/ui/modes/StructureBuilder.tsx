@@ -182,7 +182,9 @@ export function StructureBuilder({
             ))}
           </div>
           <Input
-            placeholder={t("floorPlan.zoneNamePlaceholder", { defaultValue: "שם האיזור (אופציונלי)" })}
+            placeholder={t("floorPlan.zoneNamePlaceholder", {
+              defaultValue: "שם האיזור (אופציונלי)"
+            })}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
