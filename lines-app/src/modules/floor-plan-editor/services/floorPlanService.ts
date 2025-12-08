@@ -574,27 +574,6 @@ export const floorPlanService = {
     });
   },
 
-  // --------------------------------------------------------------------------
-  // STATISTICS
-  // --------------------------------------------------------------------------
-
-  /**
-   * Get all lines for a venue (for floor plan assignment)
-   */
-  async getVenueLines(venueId: string): Promise<{ id: string; name: string; color: string }[]> {
-    const lines = await prisma.line.findMany({
-      where: { venueId },
-      select: {
-        id: true,
-        name: true,
-        color: true
-      },
-      orderBy: { name: "asc" }
-    });
-
-    return lines;
-  },
-
   /**
    * Update floor plan lines (one-to-one: each line can only be linked to one floor plan)
    * When linking a line to a floor plan, it will be automatically unlinked from any other floor plan

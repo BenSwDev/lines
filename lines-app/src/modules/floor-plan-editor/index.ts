@@ -7,7 +7,6 @@ export * from "./types";
 
 // Schemas (only export schema objects, not type aliases that conflict with types)
 export {
-  staffingRuleSchema,
   createTableSchema,
   createZoneSchema,
   createVenueAreaSchema,
@@ -17,10 +16,7 @@ export {
   updateTableContentSchema,
   updateStaffingSchema,
   updateMinimumOrderSchema,
-  venueShapeSchema,
-  venueSizeSchema,
-  wizardZoneSchema,
-  wizardStateSchema
+  updateFloorPlanLinesSchema
 } from "./schemas/floorPlanSchemas";
 
 // Actions

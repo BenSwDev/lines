@@ -353,7 +353,7 @@ export async function createZone(input: unknown): Promise<{
       positionY: validated.positionY,
       width: validated.width,
       height: validated.height,
-      description: validated.description
+      description: validated.description ?? undefined
     });
 
     // Get floor plan for revalidation
@@ -389,13 +389,11 @@ export async function createTable(input: unknown): Promise<{
     const table = await floorPlanService.createTable({
       zoneId: validated.zoneId!,
       name: validated.name,
-      seats: validated.seats,
+      seats: validated.seats ?? undefined,
       positionX: validated.positionX,
       positionY: validated.positionY,
       width: validated.width,
-      height: validated.height,
-      shape: validated.shape,
-      tableType: validated.tableType
+      height: validated.height
     });
 
     // Get zone for revalidation
