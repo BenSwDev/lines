@@ -101,7 +101,7 @@ import { SuccessAnimation } from "./UX/SuccessAnimation";
 import { HelpPanel } from "./UX/HelpPanel";
 import { ContextAwareSidebar } from "./Sidebar/ContextAwareSidebar";
 import { useDevice } from "../hooks/useDevice";
-import { arrangeInGrid } from "../utils/smartAutoArrangement";
+// import { arrangeInGrid } from "../utils/smartAutoArrangement"; // Reserved for future use
 // import { ResponsiveDialog } from "./Dialogs/ResponsiveDialog"; // Reserved for future use
 import {
   alignElements,

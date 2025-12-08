@@ -13,7 +13,7 @@ import { Trash2, Save, X, Palette } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import type { FloorPlanElement } from "../FloorPlanEditorV2";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface PropertiesPanelProps {
   selectedElement: FloorPlanElement | null;

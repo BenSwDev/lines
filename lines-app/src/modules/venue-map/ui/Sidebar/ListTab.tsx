@@ -52,18 +52,18 @@ export function ListTab({
     }
   };
 
-  const handleToggleSelect = (id: string) => {
+  const handleToggleSelect = (elementId: string) => {
     if (bulkMode) {
       // Toggle selection in bulk mode
       const newSelection = new Set(selectedElementIds);
-      if (newSelection.has(id)) {
-        newSelection.delete(id);
+      if (newSelection.has(elementId)) {
+        newSelection.delete(elementId);
       } else {
-        newSelection.add(id);
+        newSelection.add(elementId);
       }
       // Update selection - would need callback
     } else {
-      onSelectElement(id);
+      onSelectElement(elementId);
     }
   };
 
