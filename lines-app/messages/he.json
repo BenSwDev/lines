@@ -150,7 +150,11 @@
     "mainBar": "בר ראשי",
     "danceFloor": "רחבת ריקודים",
     "mainHall": "אולם ראשי",
-    "tableNumber": "שולחן"
+    "tableNumber": "שולחן",
+    "manageLines": "נהל ליינים",
+    "manageLinesDescription": "בחר ליינים לשיוך למפה זו. כל ליין יכול להיות מקושר למפה אחת בלבד.",
+    "noLinesAvailable": "אין ליינים זמינים",
+    "lineLinkingNote": "שימו לב: אם ליין כבר מקושר למפה אחרת, הוא יוסר מהמפה הקודמת ויקושר למפה זו."
   },
   "tickets": {
     "title": "הגדרות כרטיסים",

@@ -579,6 +579,86 @@ export const floorPlanService = {
   // --------------------------------------------------------------------------
 
   /**
+   * Get all lines for a venue (for floor plan assignment)
+   */
+  async getVenueLines(venueId: string): Promise<{ id: string; name: string; color: string }[]> {
+    const lines = await prisma.line.findMany({
+      where: { venueId },
+      select: {
+        id: true,
+        name: true,
+        color: true
+      },
+      orderBy: { name: "asc" }
+    });
+
+    return lines;
+  },
+
+  /**
+   * Update floor plan lines (one-to-one: each line can only be linked to one floor plan)
+   * When linking a line to a floor plan, it will be automatically unlinked from any other floor plan
+   */
+  async updateFloorPlanLines(floorPlanId: string, lineIds: string[]): Promise<void> {
+    // First, verify the floor plan exists and get venue ID
+    const floorPlan = await prisma.floorPlan.findUnique({
+      where: { id: floorPlanId },
+      select: { venueId: true }
+    });
+
+    if (!floorPlan) {
+      throw new Error("Floor plan not found");
+    }
+
+    // For each line to be linked, first unlink it from any other floor plan
+    // This ensures one-to-one relationship (each line can only be linked to one floor plan)
+    for (const lineId of lineIds) {
+      // Remove this line from all other floor plans
+      await prisma.floorPlanLine.deleteMany({
+        where: {
+          lineId,
+          floorPlanId: { not: floorPlanId }
+        }
+      });
+    }
+
+    // Get current lines linked to this floor plan
+    const currentLinks = await prisma.floorPlanLine.findMany({
+      where: { floorPlanId },
+      select: { lineId: true }
+    });
+
+    const currentLineIds = new Set(currentLinks.map((link) => link.lineId));
+    const newLineIds = new Set(lineIds);
+
+    // Lines to add
+    const toAdd = lineIds.filter((id) => !currentLineIds.has(id));
+    // Lines to remove
+    const toRemove = Array.from(currentLineIds).filter((id) => !newLineIds.has(id));
+
+    // Remove lines that are no longer linked
+    if (toRemove.length > 0) {
+      await prisma.floorPlanLine.deleteMany({
+        where: {
+          floorPlanId,
+          lineId: { in: toRemove }
+        }
+      });
+    }
+
+    // Add new line links
+    if (toAdd.length > 0) {
+      await prisma.floorPlanLine.createMany({
+        data: toAdd.map((lineId) => ({
+          floorPlanId,
+          lineId
+        })),
+        skipDuplicates: true
+      });
+    }
+  },
+
+  /**
    * Get floor plan statistics
    */
   async getFloorPlanStats(id: string) {

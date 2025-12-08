@@ -12,7 +12,8 @@ import {
   updateMinimumOrderSchema,
   createZoneSchema,
   createTableSchema,
-  createVenueAreaSchema
+  createVenueAreaSchema,
+  updateFloorPlanLinesSchema
 } from "../schemas/floorPlanSchemas";
 import type { FloorPlanWithDetails, FloorPlanListItem } from "../types";
 
@@ -633,5 +634,37 @@ export async function updateElementPosition(input: {
       return { success: false, error: error.message };
     }
     return { success: false, error: "Failed to update element position" };
+  }
+}
+
+// ============================================================================
+// LINE LINKING ACTIONS
+// ============================================================================
+
+/**
+ * Update floor plan lines
+ * Each line can only be linked to one floor plan at a time
+ */
+export async function updateFloorPlanLines(input: unknown): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const validated = updateFloorPlanLinesSchema.parse(input);
+    await floorPlanService.updateFloorPlanLines(validated.floorPlanId, validated.lineIds);
+
+    // Get venue ID for revalidation
+    const floorPlan = await floorPlanService.getFloorPlanById(validated.floorPlanId);
+    if (floorPlan) {
+      revalidatePath(`/venues/${floorPlan.venueId}/settings/structure`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating floor plan lines:", error);
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "Failed to update floor plan lines" };
   }
 }

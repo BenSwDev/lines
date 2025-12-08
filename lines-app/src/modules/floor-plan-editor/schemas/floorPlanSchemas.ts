@@ -4,155 +4,210 @@ import { z } from "zod";
 // FLOOR PLAN SCHEMAS
 // ============================================================================
 
-export const staffingRuleSchema = z.object({
-  roleId: z.string(),
-  count: z.number().int().min(0),
-  roleName: z.string().optional(),
-  roleColor: z.string().optional()
-});
-
-export const createTableSchema = z.object({
-  zoneId: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
-  seats: z.number().int().min(1).optional(),
-  positionX: z.number().optional(),
-  positionY: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  shape: z.string().optional(),
-  tableType: z.string().optional(),
-  tableNumber: z.number().int().optional()
-});
-
-export const createZoneSchema = z.object({
-  floorPlanId: z.string().optional(),
-  venueId: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
-  color: z.string().min(1, "Color is required"),
-  description: z.string().optional(),
-  positionX: z.number().optional(),
-  positionY: z.number().optional(),
-  width: z.number().optional(),
-  height: z.number().optional(),
-  shape: z.string().optional(),
-  zoneNumber: z.number().int().optional(),
-  tables: z.array(createTableSchema).optional()
-});
-
-export const createVenueAreaSchema = z.object({
-  floorPlanId: z.string().optional(),
-  venueId: z.string().optional(),
-  areaType: z.string().min(1, "Area type is required"),
-  name: z.string().min(1, "Name is required"),
-  positionX: z.number(),
-  positionY: z.number(),
-  width: z.number(),
-  height: z.number(),
-  rotation: z.number().optional(),
-  shape: z.string().optional(),
-  icon: z.string().optional(),
-  color: z.string().optional()
-});
-
 export const createFloorPlanSchema = z.object({
-  venueId: z.string().min(1, "Venue ID is required"),
-  name: z.string().min(1, "Name is required"),
+  venueId: z.string(),
+  name: z.string().min(1),
   description: z.string().optional(),
-  isDefault: z.boolean().optional(),
-  zones: z.array(createZoneSchema).optional(),
-  venueAreas: z.array(createVenueAreaSchema).optional(),
+  isDefault: z.boolean().optional().default(false),
+  zones: z
+    .array(
+      z.object({
+        name: z.string(),
+        color: z.string(),
+        description: z.string().optional(),
+        positionX: z.number().optional(),
+        positionY: z.number().optional(),
+        width: z.number().optional(),
+        height: z.number().optional(),
+        shape: z.string().optional(),
+        zoneNumber: z.number().optional(),
+        tables: z
+          .array(
+            z.object({
+              name: z.string(),
+              seats: z.number().optional(),
+              positionX: z.number().optional(),
+              positionY: z.number().optional(),
+              width: z.number().optional(),
+              height: z.number().optional(),
+              tableNumber: z.number().optional()
+            })
+          )
+          .optional()
+      })
+    )
+    .optional(),
+  venueAreas: z
+    .array(
+      z.object({
+        areaType: z.string(),
+        name: z.string(),
+        positionX: z.number(),
+        positionY: z.number(),
+        width: z.number(),
+        height: z.number(),
+        shape: z.string().optional(),
+        icon: z.string().optional(),
+        color: z.string().optional(),
+        rotation: z.number().optional()
+      })
+    )
+    .optional(),
   lineIds: z.array(z.string()).optional()
 });
 
 export const updateFloorPlanSchema = z.object({
-  id: z.string().min(1, "Floor plan ID is required"),
-  name: z.string().min(1, "Name is required").optional(),
+  id: z.string(),
+  name: z.string().min(1).optional(),
   description: z.string().optional().nullable(),
   isDefault: z.boolean().optional(),
-  isLocked: z.boolean().optional(),
-  lineIds: z.array(z.string()).optional()
+  isLocked: z.boolean().optional()
 });
 
 // ============================================================================
-// CONTENT UPDATE SCHEMAS
+// ZONE SCHEMAS
 // ============================================================================
 
+export const createZoneSchema = z.object({
+  floorPlanId: z.string(),
+  venueId: z.string(),
+  name: z.string().min(1),
+  color: z.string(),
+  description: z.string().optional().nullable(),
+  positionX: z.number().optional(),
+  positionY: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  shape: z.string().optional(),
+  zoneNumber: z.number().optional().nullable()
+});
+
 export const updateZoneContentSchema = z.object({
-  id: z.string().min(1, "Zone ID is required"),
+  id: z.string(),
   name: z.string().min(1).optional(),
-  zoneNumber: z.number().int().optional().nullable(),
+  zoneNumber: z.number().optional().nullable(),
   description: z.string().optional().nullable()
 });
 
-export const updateTableContentSchema = z.object({
-  id: z.string().min(1, "Table ID is required"),
-  name: z.string().min(1).optional(),
-  tableNumber: z.number().int().optional().nullable(),
-  seats: z.number().int().min(1).optional().nullable()
+export const updateZonePositionSchema = z.object({
+  id: z.string(),
+  positionX: z.number(),
+  positionY: z.number()
+});
+
+export const updateZoneSizeSchema = z.object({
+  id: z.string(),
+  width: z.number(),
+  height: z.number()
 });
 
 // ============================================================================
-// STAFFING UPDATE SCHEMAS
+// TABLE SCHEMAS
+// ============================================================================
+
+export const createTableSchema = z.object({
+  zoneId: z.string(),
+  name: z.string().min(1),
+  seats: z.number().optional().nullable(),
+  positionX: z.number().optional(),
+  positionY: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
+  tableNumber: z.number().optional().nullable()
+});
+
+export const updateTableContentSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1).optional(),
+  tableNumber: z.number().optional().nullable(),
+  seats: z.number().optional().nullable()
+});
+
+export const updateTablePositionSchema = z.object({
+  id: z.string(),
+  positionX: z.number(),
+  positionY: z.number()
+});
+
+export const updateTableSizeSchema = z.object({
+  id: z.string(),
+  width: z.number(),
+  height: z.number()
+});
+
+export const updateTableRotationSchema = z.object({
+  id: z.string(),
+  rotation: z.number()
+});
+
+// ============================================================================
+// VENUE AREA SCHEMAS
+// ============================================================================
+
+export const createVenueAreaSchema = z.object({
+  floorPlanId: z.string(),
+  venueId: z.string(),
+  areaType: z.string(),
+  name: z.string().min(1),
+  positionX: z.number(),
+  positionY: z.number(),
+  width: z.number(),
+  height: z.number(),
+  shape: z.string().optional(),
+  icon: z.string().optional(),
+  color: z.string().optional(),
+  rotation: z.number().optional()
+});
+
+export const updateVenueAreaPositionSchema = z.object({
+  id: z.string(),
+  positionX: z.number(),
+  positionY: z.number()
+});
+
+export const updateVenueAreaSizeSchema = z.object({
+  id: z.string(),
+  width: z.number(),
+  height: z.number()
+});
+
+export const updateVenueAreaRotationSchema = z.object({
+  id: z.string(),
+  rotation: z.number()
+});
+
+// ============================================================================
+// STAFFING SCHEMAS
 // ============================================================================
 
 export const updateStaffingSchema = z.object({
   targetType: z.enum(["zone", "table"]),
-  targetId: z.string().min(1, "Target ID is required"),
-  staffingRules: z.array(staffingRuleSchema)
+  targetId: z.string(),
+  staffingRules: z.array(
+    z.object({
+      roleId: z.string(),
+      count: z.number().min(0),
+      roleName: z.string().optional(),
+      roleColor: z.string().optional()
+    })
+  )
 });
 
 // ============================================================================
-// MINIMUM ORDER UPDATE SCHEMAS
+// MINIMUM ORDER SCHEMAS
 // ============================================================================
 
 export const updateMinimumOrderSchema = z.object({
   targetType: z.enum(["zone", "table"]),
-  targetId: z.string().min(1, "Target ID is required"),
-  minimumPrice: z.number().min(0, "Minimum price must be positive")
+  targetId: z.string(),
+  minimumPrice: z.number().min(0)
 });
 
 // ============================================================================
-// WIZARD SCHEMAS
+// LINE LINKING SCHEMAS
 // ============================================================================
 
-export const venueShapeSchema = z.enum(["rectangle", "square", "l-shape", "custom"]);
-export const venueSizeSchema = z.enum(["small", "medium", "large"]);
-
-export const wizardZoneSchema = z.object({
-  id: z.string(),
-  type: z.enum(["seating", "bar", "restroom", "entrance", "vip", "stage", "kitchen", "dj-booth"]),
-  name: z.string().min(1),
-  color: z.string().min(1),
-  tableCount: z.number().int().min(0),
-  seatsPerTable: z.number().int().min(1),
-  autoFill: z.boolean(),
-  position: z.object({
-    x: z.number(),
-    y: z.number()
-  }),
-  size: z.object({
-    width: z.number(),
-    height: z.number()
-  })
+export const updateFloorPlanLinesSchema = z.object({
+  floorPlanId: z.string(),
+  lineIds: z.array(z.string())
 });
-
-export const wizardStateSchema = z.object({
-  venueShape: venueShapeSchema,
-  venueSize: venueSizeSchema,
-  zones: z.array(wizardZoneSchema),
-  floorPlanName: z.string().min(1, "Floor plan name is required"),
-  selectedLineIds: z.array(z.string())
-});
-
-// ============================================================================
-// TYPE EXPORTS
-// ============================================================================
-
-export type CreateFloorPlanInput = z.infer<typeof createFloorPlanSchema>;
-export type UpdateFloorPlanInput = z.infer<typeof updateFloorPlanSchema>;
-export type UpdateZoneContentInput = z.infer<typeof updateZoneContentSchema>;
-export type UpdateTableContentInput = z.infer<typeof updateTableContentSchema>;
-export type UpdateStaffingInput = z.infer<typeof updateStaffingSchema>;
-export type UpdateMinimumOrderInput = z.infer<typeof updateMinimumOrderSchema>;
-export type WizardStateInput = z.infer<typeof wizardStateSchema>;
-export type WizardZoneInput = z.infer<typeof wizardZoneSchema>;

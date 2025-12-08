@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "@/core/i18n/provider";
-import { Plus, Copy, Trash2, Star, MoreVertical, Map, Layers } from "lucide-react";
+import { Plus, Copy, Trash2, Star, MoreVertical, Map, Layers, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -24,6 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { deleteFloorPlan, duplicateFloorPlan } from "../actions/floorPlanActions";
+import { ManageFloorPlanLinesDialog } from "./ManageFloorPlanLinesDialog";
 import type { FloorPlanListItem } from "../types";
 
 interface FloorPlanListProps {
@@ -39,6 +40,8 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
   const [selectedFloorPlan, setSelectedFloorPlan] = useState<FloorPlanListItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+  const [manageLinesDialogOpen, setManageLinesDialogOpen] = useState(false);
+  const [floorPlanForLines, setFloorPlanForLines] = useState<FloorPlanListItem | null>(null);
 
   const handleDelete = async () => {
     if (!selectedFloorPlan) return;
@@ -71,6 +74,11 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
 
   const handleEdit = (floorPlanId: string) => {
     router.push(`/venues/${venueId}/settings/structure/${floorPlanId}`);
+  };
+
+  const handleManageLines = (floorPlan: FloorPlanListItem) => {
+    setFloorPlanForLines(floorPlan);
+    setManageLinesDialogOpen(true);
   };
 
   return (
@@ -153,6 +161,15 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
                           ? t("floorPlan.duplicating")
                           : t("floorPlan.duplicate")}
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleManageLines(floorPlan);
+                        }}
+                      >
+                        <Link2 className="h-4 w-4 mr-2" />
+                        {t("floorPlan.manageLines", { defaultValue: "נהל ליינים" })}
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive"
@@ -223,6 +240,22 @@ export function FloorPlanList({ venueId, floorPlans, onCreateNew }: FloorPlanLis
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Manage Lines Dialog */}
+      {floorPlanForLines && (
+        <ManageFloorPlanLinesDialog
+          isOpen={manageLinesDialogOpen}
+          onClose={() => {
+            setManageLinesDialogOpen(false);
+            setFloorPlanForLines(null);
+          }}
+          floorPlan={floorPlanForLines}
+          venueId={venueId}
+          onSuccess={() => {
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

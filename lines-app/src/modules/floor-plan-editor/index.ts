@@ -31,6 +31,7 @@ export { floorPlanService } from "./services/floorPlanService";
 
 // UI Components
 export { FloorPlanList } from "./ui/FloorPlanList";
+export { ManageFloorPlanLinesDialog } from "./ui/ManageFloorPlanLinesDialog";
 export { FloorPlanEditor } from "./ui/FloorPlanEditor";
 export { FloorPlanWizard } from "./ui/wizard/FloorPlanWizard";
 export { FloorPlanViewer } from "./ui/viewer/FloorPlanViewer";

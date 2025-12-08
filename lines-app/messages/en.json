@@ -118,7 +118,11 @@
     "mainBar": "Main Bar",
     "danceFloor": "Dance Floor",
     "mainHall": "Main Hall",
-    "tableNumber": "Table"
+    "tableNumber": "Table",
+    "manageLines": "Manage Lines",
+    "manageLinesDescription": "Select lines to link to this floor plan. Each line can only be linked to one floor plan.",
+    "noLinesAvailable": "No lines available",
+    "lineLinkingNote": "Note: If a line is already linked to another floor plan, it will be removed from the previous floor plan and linked to this one."
   },
   "tickets": {
     "title": "Ticket Settings",
