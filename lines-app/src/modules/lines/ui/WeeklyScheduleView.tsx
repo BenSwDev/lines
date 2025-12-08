@@ -2,9 +2,8 @@
 
 import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, ArrowRight } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { cn } from "@/lib/utils";
 import type { Line } from "@prisma/client";

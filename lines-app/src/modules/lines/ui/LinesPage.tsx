@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { LinesHeader } from "./LinesHeader";
 import { WeeklyScheduleView } from "./WeeklyScheduleView";
-import { LineDetailView } from "./LineDetailView";
 import { CreateLineDialog } from "./CreateLineDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listLines } from "../actions/listLines";
@@ -16,8 +15,6 @@ import type { Line } from "@prisma/client";
 
 export function LinesPage() {
   const params = useParams();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useTranslations();
   const venueId = params.venueId as string;
@@ -25,7 +22,6 @@ export function LinesPage() {
   const [lines, setLines] = useState<Line[]>([]);
   const [filteredLines, setFilteredLines] = useState<Line[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLineId, setSelectedLineId] = useState<string | null>(null);
   const [weekStartDay, setWeekStartDay] = useState<0 | 1>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -35,13 +31,6 @@ export function LinesPage() {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId]);
-
-  useEffect(() => {
-    const lineIdFromUrl = searchParams.get("lineId");
-    if (lineIdFromUrl) {
-      setSelectedLineId(lineIdFromUrl);
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -87,11 +76,9 @@ export function LinesPage() {
 
   const handleLineSelect = (lineId: string | null) => {
     if (lineId) {
-      setSelectedLineId(lineId);
       setEditingLine(lines.find((l) => l.id === lineId) || null);
       setIsCreateOpen(true);
     } else {
-      setSelectedLineId(null);
       setEditingLine(null);
       setIsCreateOpen(false);
     }
@@ -143,13 +130,11 @@ export function LinesPage() {
         onClose={() => {
           setIsCreateOpen(false);
           setEditingLine(null);
-          setSelectedLineId(null);
         }}
         venueId={venueId}
         onSuccess={() => {
           loadData();
           setEditingLine(null);
-          setSelectedLineId(null);
           setIsCreateOpen(false);
         }}
         existingLine={editingLine}
