@@ -1,35 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
-import { FloorPlanList, FloorPlanWizard } from "@/modules/floor-plan-editor";
-import { getFloorPlans, getVenueLines } from "@/modules/floor-plan-editor/actions/floorPlanActions";
+import { useParams, useRouter } from "next/navigation";
+import { FloorPlanList } from "@/modules/floor-plan-editor";
+import { getFloorPlans, createFloorPlan } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import type { FloorPlanListItem } from "@/modules/floor-plan-editor/types";
+import { useTranslations } from "@/core/i18n/provider";
 
 export default function StructurePage() {
   const params = useParams();
+  const router = useRouter();
+  const { t } = useTranslations();
   const venueId = params.venueId as string;
 
   const [floorPlans, setFloorPlans] = useState<FloorPlanListItem[]>([]);
-  const [lines, setLines] = useState<{ id: string; name: string; color: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
       try {
-        const [floorPlansResult, linesResult] = await Promise.all([
-          getFloorPlans(venueId),
-          getVenueLines(venueId)
-        ]);
-
+        const floorPlansResult = await getFloorPlans(venueId);
         if (floorPlansResult.success && floorPlansResult.data) {
           setFloorPlans(floorPlansResult.data);
-        }
-
-        if (linesResult.success && linesResult.data) {
-          setLines(linesResult.data);
         }
       } finally {
         setIsLoading(false);
@@ -39,12 +32,21 @@ export default function StructurePage() {
     loadData();
   }, [venueId]);
 
-  const handleWizardComplete = async () => {
-    setShowWizard(false);
-    // Reload floor plans
-    const result = await getFloorPlans(venueId);
-    if (result.success && result.data) {
-      setFloorPlans(result.data);
+  const handleCreateNew = async () => {
+    try {
+      // Create empty floor plan and navigate directly to editor
+      const result = await createFloorPlan({
+        venueId,
+        name: t("newFloorPlan", { defaultValue: "מפה חדשה" }),
+        isDefault: false
+      });
+
+      if (result.success && result.data) {
+        // Navigate directly to editor
+        router.push(`/venues/${venueId}/settings/structure/${result.data.id}`);
+      }
+    } catch (error) {
+      console.error("Error creating floor plan:", error);
     }
   };
 
@@ -58,25 +60,12 @@ export default function StructurePage() {
     );
   }
 
-  if (showWizard) {
-    return (
-      <div className="container py-8">
-        <FloorPlanWizard
-          venueId={venueId}
-          lines={lines}
-          onCancel={() => setShowWizard(false)}
-          onComplete={handleWizardComplete}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="container py-8">
       <FloorPlanList
         venueId={venueId}
         floorPlans={floorPlans}
-        onCreateNew={() => setShowWizard(true)}
+        onCreateNew={handleCreateNew}
       />
     </div>
   );

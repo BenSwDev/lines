@@ -27,6 +27,10 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
   );
   const [isSaving] = useState(false);
 
+  // Check if floor plan is locked - only allow editing in view mode if locked
+  const isLocked = floorPlan.isLocked;
+  const canEdit = !isLocked;
+
   const handleBack = () => {
     router.push(`/venues/${venueId}/settings/structure`);
   };
@@ -54,7 +58,7 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
   };
 
   const tabs = [
-    { id: "view", label: "צפייה", icon: Eye },
+    { id: "view", label: "מבנה מקום כללי", icon: Eye },
     { id: "content", label: "תכולה", icon: FileText },
     { id: "staffing", label: "סידור עבודה", icon: Users },
     { id: "minimum-order", label: "מינימום", icon: DollarSign }
@@ -85,28 +89,49 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
         </div>
       </div>
 
+      {/* Locked Warning */}
+      {isLocked && (
+        <div className="px-6 py-3 bg-amber-50 dark:bg-amber-950 border-b border-amber-200 dark:border-amber-800">
+          <div className="flex items-center gap-2 text-amber-700 dark:text-amber-300 text-sm">
+            <span>🔒</span>
+            <span>המפה נעולה - ניתן לצפות בלבד. כדי לערוך, יש לבטל את הנעילה בהגדרות המפה.</span>
+          </div>
+        </div>
+      )}
+
       {/* Mode Tabs */}
       <Tabs
         value={mode}
-        onValueChange={(v) => setMode(v as EditorMode)}
+        onValueChange={(v) => {
+          // If locked, only allow view mode
+          if (isLocked && v !== "view") {
+            return;
+          }
+          setMode(v as EditorMode);
+        }}
         className="flex-1 flex flex-col"
       >
         <div className="border-b px-6">
           <TabsList className="h-12 bg-transparent gap-4">
-            {tabs.map((tab) => (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className={cn(
-                  "data-[state=active]:bg-transparent data-[state=active]:shadow-none",
-                  "data-[state=active]:border-b-2 data-[state=active]:border-primary",
-                  "rounded-none px-4 gap-2"
-                )}
-              >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </TabsTrigger>
-            ))}
+            {tabs.map((tab) => {
+              const isDisabled = isLocked && tab.id !== "view";
+              return (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  disabled={isDisabled}
+                  className={cn(
+                    "data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                    "data-[state=active]:border-b-2 data-[state=active]:border-primary",
+                    "rounded-none px-4 gap-2",
+                    isDisabled && "opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  <tab.icon className="h-4 w-4" />
+                  {tab.label}
+                </TabsTrigger>
+              );
+            })}
           </TabsList>
         </div>
 
@@ -159,29 +184,47 @@ export function FloorPlanEditor({ venueId, floorPlan, roles = [] }: FloorPlanEdi
               />
             </TabsContent>
             <TabsContent value="content" className="m-0">
-              <ContentEditor
-                selectedZone={getSelectedZone()}
-                selectedTable={getSelectedTable()}
-                floorPlan={floorPlan}
-                onElementSelect={handleElementSelect}
-              />
+              {canEdit ? (
+                <ContentEditor
+                  selectedZone={getSelectedZone()}
+                  selectedTable={getSelectedTable()}
+                  floorPlan={floorPlan}
+                  onElementSelect={handleElementSelect}
+                />
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>המפה נעולה - לא ניתן לערוך</p>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="staffing" className="m-0">
-              <StaffingEditor
-                selectedZone={getSelectedZone()}
-                selectedTable={getSelectedTable()}
-                floorPlan={floorPlan}
-                roles={roles}
-                onElementSelect={handleElementSelect}
-              />
+              {canEdit ? (
+                <StaffingEditor
+                  selectedZone={getSelectedZone()}
+                  selectedTable={getSelectedTable()}
+                  floorPlan={floorPlan}
+                  roles={roles}
+                  onElementSelect={handleElementSelect}
+                />
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>המפה נעולה - לא ניתן לערוך</p>
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="minimum-order" className="m-0">
-              <MinimumOrderEditor
-                selectedZone={getSelectedZone()}
-                selectedTable={getSelectedTable()}
-                floorPlan={floorPlan}
-                onElementSelect={handleElementSelect}
-              />
+              {canEdit ? (
+                <MinimumOrderEditor
+                  selectedZone={getSelectedZone()}
+                  selectedTable={getSelectedTable()}
+                  floorPlan={floorPlan}
+                  onElementSelect={handleElementSelect}
+                />
+              ) : (
+                <div className="p-8 text-center text-muted-foreground">
+                  <p>המפה נעולה - לא ניתן לערוך</p>
+                </div>
+              )}
             </TabsContent>
           </div>
         </div>
