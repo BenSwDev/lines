@@ -25,7 +25,7 @@ export function WorkspaceLayout({ venue, children }: WorkspaceLayoutProps) {
     {
       id: "reservations",
       label: "הזמנות",
-      href: `/venues/${venue.id}/reservations`
+      href: `/venues/${venue.id}/settings/reservations`
     },
     {
       id: "lines",

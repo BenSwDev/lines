@@ -203,17 +203,6 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                             </SidebarMenuButton>
                           </SidebarMenuItem>
                           <SidebarMenuItem>
-                            <SidebarMenuButton
-                              asChild
-                              isActive={pathname?.includes("/reservations")}
-                            >
-                              <Link href={`/venues/${currentVenue.id}/reservations`}>
-                                <BookOpen className="h-4 w-4" />
-                                <span>הזמנות</span>
-                              </Link>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                          <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={pathname?.includes("/lines")}>
                               <Link href={`/venues/${currentVenue.id}/lines`}>
                                 <List className="h-4 w-4" />
@@ -256,6 +245,17 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                               <Link href={`/venues/${currentVenue.id}/settings/structure`}>
                                 <Layers className="h-4 w-4" />
                                 <span>מבנה (מפות)</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                          <SidebarMenuItem>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={pathname?.includes("/settings/reservations")}
+                            >
+                              <Link href={`/venues/${currentVenue.id}/settings/reservations`}>
+                                <BookOpen className="h-4 w-4" />
+                                <span>הגדרות הזמנות</span>
                               </Link>
                             </SidebarMenuButton>
                           </SidebarMenuItem>

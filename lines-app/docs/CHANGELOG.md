@@ -4,6 +4,54 @@
 
 Use this file to track changes by date and version. Every meaningful change must be recorded, as required by `information/DOCUMENTATION_MAINTENANCE_RULES.md`.
 
+## [2.1.0] – 2025-01-XX (Venue Settings Transformation)
+
+### 🔄 Changed
+
+#### Navigation Restructure
+
+- **Reservations Settings Moved**
+  - Moved `/venues/[venueId]/reservations/` → `/venues/[venueId]/settings/reservations/`
+  - Updated navigation in `DashboardLayout` to show reservations under Settings section
+  - Updated `WorkspaceLayout` navigation links
+
+- **Menus Location**
+  - Confirmed menus remain at `/venues/[venueId]/menus/` (outside Settings)
+  - Removed duplicate `/venues/[venueId]/settings/menus/` route
+
+#### Floor Plan Editor Routes
+
+- **New Route Structure**
+  - Added `/venues/[venueId]/settings/structure/[floorPlanId]/` route
+  - Floor plan editor now accessible via dedicated route
+  - Editor supports multiple modes: View, Content, Staffing, Minimum Order
+
+### ✅ Verified
+
+- **Database Schema**
+  - `Zone.venueId` and `VenueArea.venueId` remain valid (zones/areas can exist outside floor plans)
+  - `Zone.floorPlanId` and `VenueArea.floorPlanId` are optional (supports both scenarios)
+
+- **Module Status**
+  - Tickets module: Placeholder/skeleton only ✅
+  - Inventory module: Placeholder/skeleton only ✅
+  - Team Management module: Placeholder/skeleton only ✅
+  - Menus module: Active, located outside Settings ✅
+
+### 📝 Technical Details
+
+- **Files Changed**
+  - `src/app/venues/[venueId]/settings/reservations/page.tsx` - New route
+  - `src/app/venues/[venueId]/settings/structure/[floorPlanId]/page.tsx` - New route
+  - `src/components/dashboard/DashboardLayout.tsx` - Navigation updated
+  - `src/modules/workspace-shell/ui/WorkspaceLayout.tsx` - Navigation updated
+
+- **Files Removed**
+  - `src/app/venues/[venueId]/reservations/page.tsx` - Moved to settings
+  - `src/app/venues/[venueId]/settings/menus/page.tsx` - Duplicate removed
+
+---
+
 ## [1.8.0] – 2025-01-15 (Guided Tour System)
 
 ### ✨ Features
