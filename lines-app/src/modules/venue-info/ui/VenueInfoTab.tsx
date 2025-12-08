@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Phone, Mail, MapPin, Building2, Loader2, Save } from "lucide-react";
+import { Phone, Mail, MapPin, Building2, Loader2, Save, Calendar } from "lucide-react";
 import { getVenueDetails } from "../actions/getVenueDetails";
 import { updateVenueDetails } from "../actions/updateVenueDetails";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +33,7 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [currency, setCurrency] = useState<"ILS" | "USD" | "GBP" | "EUR">("ILS");
+  const [weekStartDay, setWeekStartDay] = useState<0 | 1>(0); // 0 = Sunday, 1 = Monday
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -50,6 +51,7 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
       setEmail(result.data.email || "");
       setAddress(result.data.address || "");
       setCurrency((result.data.currency as "ILS" | "USD" | "GBP" | "EUR") || "ILS");
+      setWeekStartDay((result.data.weekStartDay as 0 | 1) ?? 0);
     }
 
     setIsLoading(false);
@@ -68,7 +70,8 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
         phone: sanitizedPhone,
         email: sanitizedEmail,
         address: sanitizedAddress,
-        currency: currency
+        currency: currency,
+        weekStartDay: weekStartDay
       });
 
       if (result.success) {
@@ -210,6 +213,36 @@ export function VenueInfoTab({ venue }: VenueInfoTabProps) {
                     <SelectItem value="EUR">€ יורו (EUR)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Week Start Day */}
+              <div className="space-y-2">
+                <Label htmlFor="weekStartDay" className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4" />
+                  {t("venueInfo.weekStartDay", { defaultValue: "יום ראשון של השבוע" })}
+                </Label>
+                <Select
+                  value={weekStartDay.toString()}
+                  onValueChange={(value) => setWeekStartDay(value === "1" ? 1 : 0)}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">
+                      {t("venueInfo.sunday", { defaultValue: "ראשון" })}
+                    </SelectItem>
+                    <SelectItem value="1">
+                      {t("venueInfo.monday", { defaultValue: "שני" })}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {t("venueInfo.weekStartDayDescription", {
+                    defaultValue: "יום זה יופיע ראשון במערכת השעות השבועית"
+                  })}
+                </p>
               </div>
 
               {/* Address - Full Width */}

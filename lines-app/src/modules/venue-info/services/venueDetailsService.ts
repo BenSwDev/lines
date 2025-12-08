@@ -7,13 +7,20 @@ export class VenueDetailsService {
 
   async updateVenueDetails(
     venueId: string,
-    data: { phone?: string; email?: string; address?: string; currency?: string }
+    data: {
+      phone?: string;
+      email?: string;
+      address?: string;
+      currency?: string;
+      weekStartDay?: number;
+    }
   ) {
     return venueDetailsRepository.upsert(venueId, {
       phone: data.phone || null,
       email: data.email || null,
       address: data.address || null,
-      currency: data.currency || "ILS"
+      currency: data.currency || "ILS",
+      weekStartDay: data.weekStartDay !== undefined ? data.weekStartDay : 0
     });
   }
 }

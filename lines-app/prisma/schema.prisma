@@ -110,12 +110,13 @@ model Venue {
 }
 
 model VenueDetails {
-  id       String  @id @default(cuid())
-  venueId  String  @unique
-  phone    String?
-  email    String?
-  address  String?
-  currency String? @default("ILS") // ILS, USD, GBP, EUR
+  id          String  @id @default(cuid())
+  venueId     String  @unique
+  phone       String?
+  email       String?
+  address     String?
+  currency    String? @default("ILS") // ILS, USD, GBP, EUR
+  weekStartDay Int?   @default(0) @map("week_start_day") // 0 = Sunday, 1 = Monday
 
   // Relationships
   venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)

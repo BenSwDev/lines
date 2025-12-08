@@ -1,6 +1,6 @@
 import React from "react";
-import { LinesTab } from "@/modules/lines";
+import { LinesPage } from "@/modules/lines/ui/LinesPage";
 
-export default async function LinesPage() {
-  return <LinesTab />;
+export default async function LinesPageRoute() {
+  return <LinesPage />;
 }
