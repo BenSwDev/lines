@@ -167,7 +167,7 @@ export function CreateLineDialog({
             setCustomMonth(today.getMonth());
             setCustomYear(today.getFullYear());
           }
-        } catch (error) {
+        } catch {
           // Silently fallback to today's date if loading fails
           const today = new Date();
           setCustomMonth(today.getMonth());
