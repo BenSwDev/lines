@@ -22,10 +22,39 @@ export class TableRepository {
   }
 
   async update(id: string, data: Prisma.TableUpdateInput): Promise<Table> {
+    // Filter out all undefined values recursively to prevent Prisma errors
+    const cleanData = this.removeUndefinedValues(data) as Prisma.TableUpdateInput;
+    
     return prisma.table.update({
       where: { id },
-      data
+      data: cleanData
     });
+  }
+
+  /**
+   * Recursively remove undefined values from an object
+   * This prevents Prisma from trying to update non-existent columns
+   */
+  private removeUndefinedValues(obj: unknown): unknown {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.removeUndefinedValues(item));
+    }
+
+    if (typeof obj === "object") {
+      const cleaned: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+          cleaned[key] = this.removeUndefinedValues(value);
+        }
+      }
+      return cleaned;
+    }
+
+    return obj;
   }
 
   async delete(id: string): Promise<Table> {

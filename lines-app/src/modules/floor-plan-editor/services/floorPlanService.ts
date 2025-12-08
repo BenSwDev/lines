@@ -414,9 +414,14 @@ export const floorPlanService = {
       barMinimumPrice?: number | null;
     }
   ) {
+    // Filter out undefined values to prevent Prisma errors
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined)
+    );
+    
     return prisma.zone.update({
       where: { id },
-      data
+      data: cleanData
     });
   },
 
@@ -427,9 +432,14 @@ export const floorPlanService = {
     id: string,
     data: { name?: string; tableNumber?: number | null; seats?: number | null }
   ) {
+    // Filter out undefined values to prevent Prisma errors
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined)
+    );
+    
     return prisma.table.update({
       where: { id },
-      data
+      data: cleanData
     });
   },
 
