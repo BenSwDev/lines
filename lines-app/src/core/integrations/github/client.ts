@@ -159,7 +159,8 @@ async function getWorkflowId(workflowFile: string): Promise<number | null> {
     // List all workflows
     const response = await githubRequest("/actions/workflows");
     if (!response.ok) {
-      console.error(`Failed to list workflows: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`Failed to list workflows: ${response.status} - ${errorText}`);
       return null;
     }
 
@@ -171,18 +172,36 @@ async function getWorkflowId(workflowFile: string): Promise<number | null> {
       }>;
     };
 
-    // Find workflow by filename (match end of path)
-    const workflow = data.workflows.find((w) => 
-      w.path.endsWith(workflowFile) || w.path.endsWith(`/${workflowFile}`)
-    );
+    console.log("Available workflows:", data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path })));
+
+    // Try multiple matching strategies:
+    // 1. Exact filename match at end of path
+    // 2. With .github/workflows/ prefix
+    // 3. With lines-app/.github/workflows/ prefix
+    // 4. Match by name field
+    const workflow = data.workflows.find((w) => {
+      const path = w.path.toLowerCase();
+      const filename = workflowFile.toLowerCase();
+      
+      return (
+        path.endsWith(filename) ||
+        path.endsWith(`/${filename}`) ||
+        path.endsWith(`/.github/workflows/${filename}`) ||
+        path.endsWith(`/lines-app/.github/workflows/${filename}`) ||
+        path.includes(`workflows/${filename}`) ||
+        w.name.toLowerCase().includes("run tests on demand") ||
+        w.name.toLowerCase().includes("test")
+      );
+    });
 
     if (!workflow) {
-      console.error(`Workflow ${workflowFile} not found. Available workflows:`, 
+      console.error(`Workflow "${workflowFile}" not found. Available workflows:`, 
         data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path }))
       );
       return null;
     }
 
+    console.log(`Found workflow: ${workflow.name} (ID: ${workflow.id}, Path: ${workflow.path})`);
     return workflow.id;
   } catch (error) {
     console.error("Error getting workflow ID:", error);
