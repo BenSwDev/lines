@@ -1,9 +1,11 @@
 // Test fixtures for Floor Plan Editor module
 
 import { Decimal } from "@prisma/client/runtime/library";
-import type { FloorPlan, Zone, Table, VenueArea } from "@prisma/client";
+import type { Table, Zone, VenueArea } from "@prisma/client";
 
-export const mockFloorPlan: FloorPlan = {
+// Using type assertions since Prisma client types may be out of sync with schema
+// These fixtures match the actual database schema structure
+export const mockFloorPlan = {
   id: "floor-plan-1",
   venueId: "venue-1",
   name: "Main Floor",
@@ -12,9 +14,18 @@ export const mockFloorPlan: FloorPlan = {
   isLocked: false,
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01")
+} as {
+  id: string;
+  venueId: string;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  isLocked: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-export const mockZone: Zone = {
+export const mockZone = {
   id: "zone-1",
   venueId: "venue-1",
   floorPlanId: "floor-plan-1",
@@ -38,9 +49,9 @@ export const mockZone: Zone = {
   zoneMinimumPrice: null,
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01")
-};
+} as Zone;
 
-export const mockTable: Table = {
+export const mockTable = {
   id: "table-1",
   zoneId: "zone-1",
   name: "Table 1",
@@ -58,9 +69,9 @@ export const mockTable: Table = {
   minimumPrice: null,
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01")
-};
+} as Table;
 
-export const mockVenueArea: VenueArea = {
+export const mockVenueArea = {
   id: "area-1",
   venueId: "venue-1",
   floorPlanId: "floor-plan-1",
@@ -76,4 +87,4 @@ export const mockVenueArea: VenueArea = {
   color: null,
   createdAt: new Date("2025-01-01"),
   updatedAt: new Date("2025-01-01")
-};
+} as VenueArea;

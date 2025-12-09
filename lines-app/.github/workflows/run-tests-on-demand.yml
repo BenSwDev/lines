@@ -31,6 +31,7 @@ jobs:
         working-directory: ./lines-app
 
     steps:
+      # Note: Linter may show false positives for GitHub Actions - these are valid versions
       - name: Checkout code
         uses: actions/checkout@v4
 
