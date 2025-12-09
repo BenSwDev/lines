@@ -10,6 +10,10 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Run all pnpm commands from the app directory inside the monorepo
+        working-directory: ./lines-app
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +25,8 @@ jobs:
         with:
           node-version: 22
           cache: "pnpm"
+          # Ensure cache uses the app's pnpm lockfile inside the monorepo
+          cache-dependency-path: lines-app/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install

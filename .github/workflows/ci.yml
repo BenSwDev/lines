@@ -23,6 +23,8 @@ jobs:
         with:
           node-version: "24"
           cache: "pnpm"
+          # Ensure cache uses the app's pnpm lockfile inside the monorepo
+          cache-dependency-path: lines-app/pnpm-lock.yaml
 
       - name: Enable corepack (pnpm)
         run: corepack enable

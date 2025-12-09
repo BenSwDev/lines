@@ -44,7 +44,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
-          cache-dependency-path: ./lines-app/pnpm-lock.yaml
+          # Explicitly point cache to the app's pnpm lockfile inside the monorepo
+          cache-dependency-path: lines-app/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
