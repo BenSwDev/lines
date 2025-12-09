@@ -10,7 +10,6 @@ coverage
 .env.test.local
 .env.production
 .env.production.local
-pnpm-lock.yaml
 
 
 
