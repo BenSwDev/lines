@@ -27,7 +27,7 @@ export function LinesHeader({
 
   return (
     <div className="sticky top-0 z-10 w-full border-b bg-gradient-to-b from-background via-background to-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="container mx-auto px-6 py-4">
+      <div className="w-full px-6 py-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           {/* Left: Title and Stats */}
           <div className="flex items-center gap-4">

@@ -114,13 +114,11 @@ export function LinesPage() {
 
       {/* Main Content - Full Width - Always show schedule, Sheet overlays it */}
       <div className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-6 py-6">
-          <WeeklyScheduleView
-            lines={filteredLines}
-            weekStartDay={weekStartDay}
-            onLineClick={handleLineSelect}
-          />
-        </div>
+        <WeeklyScheduleView
+          lines={filteredLines}
+          weekStartDay={weekStartDay}
+          onLineClick={handleLineSelect}
+        />
       </div>
 
       {/* Create/Edit Sheet - Opens from side, overlays schedule */}
