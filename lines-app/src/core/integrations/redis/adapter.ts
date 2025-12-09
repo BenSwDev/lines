@@ -138,7 +138,7 @@ class IORedisAdapter implements RedisAdapter {
         options?.count || 100
       );
       // ioredis returns [string, string[]] but we need [number, string[]]
-      const nextCursor = parseInt(result[0], 10);
+      const nextCursor = parseInt(result[0] as string, 10);
       return [nextCursor, result[1]];
     } catch {
       return [0, []];
@@ -185,7 +185,7 @@ function createRedisAdapter(): RedisAdapter {
     }
   }
 
-  // Check for standard Redis connection
+  // Check for standard Redis connection (REDIS_URL)
   if (process.env.REDIS_URL) {
     try {
       return new IORedisAdapter(process.env.REDIS_URL);
@@ -205,8 +205,10 @@ const globalForRedis = globalThis as unknown as {
 /**
  * Singleton Redis adapter instance
  * Automatically selects the appropriate adapter based on environment variables
+ * Priority: KV_URL/KV_REST_API_URL > REDIS_URL > Mock
  */
-export const redisAdapter: RedisAdapter = globalForRedis.redisAdapter ?? createRedisAdapter();
+export const redisAdapter: RedisAdapter =
+  globalForRedis.redisAdapter ?? createRedisAdapter();
 
 if (process.env.NODE_ENV !== "production") {
   globalForRedis.redisAdapter = redisAdapter;
