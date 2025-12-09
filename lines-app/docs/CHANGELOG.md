@@ -36,6 +36,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed - 2025-01-XX
 
+#### CI Test Orchestration
+
+- **Unified JSON Test Reporting** – Updated `.github/workflows/run-tests-on-demand.yml` so all test layers emit clean machine-readable results:
+  - Unit & integration tests now use Vitest's `--outputFile` JSON reporter instead of redirecting mixed stdout to files.
+  - Playwright E2E tests now write JSON directly to `playwright-report/results.json` via `json=playwright-report/results.json`.
+  - The existing Node parser and webhook integration now receive accurate totals and per-test metadata for unit, integration, and E2E runs.
+
 #### Roles & Hierarchy UI Redesign
 
 - **Removed Tab-Based Navigation**: Replaced tabs with split view layout

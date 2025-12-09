@@ -14,7 +14,7 @@
 - **`.github/workflows/run-tests-on-demand.yml`**: manual `workflow_dispatch` to trigger unit, integration, e2e, or all tests.
   - Job `run-tests` runs from `./lines-app`.
   - Uses `actions/setup-node@v4` with pnpm cache bound to `lines-app/pnpm-lock.yaml` so the setup step does not fail when the repo root has no lockfile.
-  - Installs dependencies, generates Prisma client, optionally installs Playwright browsers, runs the selected test suites, parses JSON results, and posts them to an external webhook.
+  - Installs dependencies, generates Prisma client, optionally installs Playwright browsers, runs the selected test suites (unit, integration, E2E), writes JSON results to `test-results-*.json` / `playwright-report/results.json`, parses them with a Node script, and posts a unified summary to an external webhook.
 
 - **`.github/workflows/playwright.yml`**: Playwright e2e regression suite on push/PR to `main` / `develop`.
   - Runs all `pnpm` commands from `./lines-app` using `defaults.run.working-directory`.

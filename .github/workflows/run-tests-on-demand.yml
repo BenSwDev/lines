@@ -64,16 +64,16 @@ jobs:
         id: run_unit_tests
         continue-on-error: true
         run: |
-          # Run tests with JSON reporter (outputs to stdout)
-          pnpm test:unit --reporter=json --reporter=verbose > test-results-unit.json 2>&1 || TEST_EXIT_CODE=$?
-          
-          # Check if JSON file was created (vitest json reporter writes to file when outputFile is set)
-          # If not, try to parse from stdout or create empty
+          # Run unit tests with verbose + JSON reporters
+          # JSON reporter writes directly to a file so we get clean machine-readable results
+          pnpm test:unit --reporter=verbose --reporter=json --outputFile=test-results-unit.json || TEST_EXIT_CODE=$?
+
+          # Ensure JSON file exists and is valid
           if [ ! -f test-results-unit.json ] || ! jq empty test-results-unit.json 2>/dev/null; then
             echo '{"testResults":[]}' > test-results-unit.json
           fi
           
-          # Show test output for debugging
+          # Show first lines of JSON for debugging
           cat test-results-unit.json | head -50 || true
           exit ${TEST_EXIT_CODE:-0}
         env:
@@ -84,15 +84,16 @@ jobs:
         id: run_integration_tests
         continue-on-error: true
         run: |
-          # Run tests with JSON reporter (outputs to stdout)
-          pnpm test:integration --reporter=json --reporter=verbose > test-results-integration.json 2>&1 || TEST_EXIT_CODE=$?
-          
-          # Check if JSON file was created
+          # Run integration tests with verbose + JSON reporters
+          # JSON reporter writes directly to a file so we get clean machine-readable results
+          pnpm test:integration --reporter=verbose --reporter=json --outputFile=test-results-integration.json || TEST_EXIT_CODE=$?
+
+          # Ensure JSON file exists and is valid
           if [ ! -f test-results-integration.json ] || ! jq empty test-results-integration.json 2>/dev/null; then
             echo '{"testResults":[]}' > test-results-integration.json
           fi
           
-          # Show test output for debugging
+          # Show first lines of JSON for debugging
           cat test-results-integration.json | head -50 || true
           exit ${TEST_EXIT_CODE:-0}
         env:
@@ -103,13 +104,14 @@ jobs:
         id: run_e2e_tests
         continue-on-error: true
         run: |
-          # Run Playwright tests - JSON reporter creates playwright-report/results.json
-          pnpm test:e2e:production --reporter=json --reporter=list 2>&1 || TEST_EXIT_CODE=$?
-          
-          # Ensure playwright-report directory exists
+          # Run Playwright tests against production with list + JSON reporters
+          # JSON reporter writes directly to playwright-report/results.json
+          pnpm exec playwright test --config=playwright.config.production.ts --reporter=list,json=playwright-report/results.json || TEST_EXIT_CODE=$?
+
+          # Ensure playwright-report directory exists (Playwright should create it, but be safe)
           mkdir -p playwright-report
           
-          # Check if results.json exists and is valid JSON
+          # Ensure results.json exists and is valid JSON
           if [ ! -f playwright-report/results.json ] || ! jq empty playwright-report/results.json 2>/dev/null; then
             echo '{"suites":[]}' > playwright-report/results.json
           fi
