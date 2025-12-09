@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAdmin } from "@/core/auth/session";
+import { isGitHubConfigured } from "@/core/integrations/github";
 import { triggerWorkflow } from "../services/githubActionsService";
 import {
   saveTestRun,
@@ -18,6 +19,14 @@ export async function startTestRun(
 ): Promise<{ success: boolean; runId?: string; error?: string }> {
   try {
     await requireAdmin();
+
+    // Early validation - check GitHub configuration
+    if (!isGitHubConfigured()) {
+      return {
+        success: false,
+        error: "GitHub integration is not configured. Please set GITHUB_TOKEN and GITHUB_REPO environment variables in Vercel."
+      };
+    }
 
     const runId = randomUUID();
     const startedAt = new Date();
