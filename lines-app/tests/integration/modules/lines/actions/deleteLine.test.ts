@@ -3,7 +3,7 @@ import { deleteLine } from "@/modules/lines/actions/deleteLine";
 import { getCurrentUser } from "@/core/auth/session";
 import { lineRepository, lineOccurrenceRepository } from "@/core/db";
 import { revalidatePath } from "next/cache";
-import { mockLine } from "@/../../fixtures/lines";
+import { mockLine } from "../../../../fixtures/lines";
 
 vi.mock("@/core/auth/session");
 vi.mock("@/core/db");

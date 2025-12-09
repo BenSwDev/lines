@@ -10,7 +10,7 @@ const dayScheduleSchema = z.object({
 });
 
 export const createLineSchema = z.object({
-  name: z.string().min(1, "validation.lineNameRequired"),
+  name: z.string().min(1, "validation.lineNameRequired").max(255, "validation.lineNameTooLong"),
   days: z.array(weekdaySchema).min(1, "validation.daysRequired"),
   startTime: timeSchema, // Legacy - kept for backward compatibility
   endTime: timeSchema, // Legacy - kept for backward compatibility

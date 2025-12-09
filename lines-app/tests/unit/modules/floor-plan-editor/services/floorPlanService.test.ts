@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { floorPlanService } from "@/modules/floor-plan-editor/services/floorPlanService";
 import { prisma } from "@/core/integrations/prisma/client";
-import { mockFloorPlan, mockZone, mockTable } from "@/../../../fixtures/floorPlans";
+import { mockFloorPlan, mockZone, mockTable } from "../../../../fixtures/floorPlans";
 
 vi.mock("@/core/integrations/prisma/client", () => ({
   prisma: {
@@ -11,10 +11,12 @@ vi.mock("@/core/integrations/prisma/client", () => ({
       findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       delete: vi.fn()
     },
     line: {
-      findMany: vi.fn()
+      findMany: vi.fn(),
+      updateMany: vi.fn()
     },
     zone: {
       findMany: vi.fn()
@@ -302,9 +304,8 @@ describe("FloorPlanService", () => {
     it("should delete floor plan", async () => {
       vi.mocked(prisma.floorPlan.delete).mockResolvedValue(mockFloorPlan as any);
 
-      const result = await floorPlanService.deleteFloorPlan(floorPlanId);
+      await floorPlanService.deleteFloorPlan(floorPlanId);
 
-      expect(result).toEqual(mockFloorPlan);
       expect(prisma.floorPlan.delete).toHaveBeenCalledWith({
         where: { id: floorPlanId }
       });
@@ -348,10 +349,13 @@ describe("FloorPlanService", () => {
       const result = await floorPlanService.getVenueLines(venueId);
 
       expect(result).toHaveLength(2);
-      expect(prisma.line.findMany).toHaveBeenCalledWith({
-        where: { venueId },
-        select: { id: true, name: true, color: true }
-      });
+      expect(prisma.line.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { venueId },
+          select: { id: true, name: true, color: true },
+          orderBy: { name: "asc" }
+        })
+      );
     });
   });
 

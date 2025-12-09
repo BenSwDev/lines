@@ -5,7 +5,12 @@ import {
 } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import { floorPlanService } from "@/modules/floor-plan-editor/services/floorPlanService";
 
-vi.mock("@/modules/floor-plan-editor/services/floorPlanService");
+vi.mock("@/modules/floor-plan-editor/services/floorPlanService", () => ({
+  floorPlanService: {
+    updateMinimumOrder: vi.fn(),
+    updateLineFloorPlanMinimumOrder: vi.fn()
+  }
+}));
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn()
 }));

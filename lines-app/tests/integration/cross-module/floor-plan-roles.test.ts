@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createRole } from "@/modules/roles-hierarchy/actions/roleActions";
 import { updateStaffing } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import { rolesService } from "@/modules/roles-hierarchy/services/rolesService";
-import { mockRole } from "@/../../fixtures/roles";
+import { mockRole } from "../../../fixtures/roles";
 
 vi.mock("@/modules/roles-hierarchy/actions/roleActions");
 vi.mock("@/modules/floor-plan-editor/actions/floorPlanActions");

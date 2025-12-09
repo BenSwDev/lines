@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { lineOccurrencesSyncService } from "@/modules/lines/services/lineOccurrencesSyncService";
 import { lineOccurrenceRepository } from "@/core/db";
-import { mockLine, mockOccurrence } from "@/../../../fixtures/lines";
+import { mockLine, mockOccurrence } from "../../../../fixtures/lines";
 import type { OccurrenceInput } from "@/modules/lines/services/lineOccurrencesSyncService";
 
 vi.mock("@/core/db", () => ({

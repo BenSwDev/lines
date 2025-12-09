@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { hierarchyService } from "@/modules/roles-hierarchy/services/hierarchyService";
 import type { RoleWithRelations } from "@/modules/roles-hierarchy/types";
-import { mockRole, mockManagementRole, mockManagerRole } from "@/../../../fixtures/roles";
+import { mockRole, mockManagementRole, mockManagerRole } from "../../../../fixtures/roles";
 
 describe("HierarchyService", () => {
   describe("buildHierarchyTree()", () => {

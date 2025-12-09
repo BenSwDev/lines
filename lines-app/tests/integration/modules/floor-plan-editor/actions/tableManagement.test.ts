@@ -5,7 +5,7 @@ import {
   autoGenerateTables
 } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import { floorPlanService } from "@/modules/floor-plan-editor/services/floorPlanService";
-import { mockTable, mockZone } from "@/../../fixtures/floorPlans";
+import { mockTable, mockZone } from "../../../../fixtures/floorPlans";
 
 vi.mock("@/modules/floor-plan-editor/services/floorPlanService");
 vi.mock("next/cache", () => ({

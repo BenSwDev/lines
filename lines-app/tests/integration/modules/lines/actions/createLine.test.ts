@@ -6,7 +6,7 @@ import { lineScheduleService } from "@/modules/lines/services/lineScheduleServic
 import { lineOccurrencesSyncService } from "@/modules/lines/services/lineOccurrencesSyncService";
 import { checkMultipleCollisions } from "@/core/validation";
 import { revalidatePath } from "next/cache";
-import { mockLine, mockOccurrence } from "@/../../fixtures/lines";
+import { mockLine, mockOccurrence } from "../../../../fixtures/lines";
 
 vi.mock("@/core/auth/session");
 vi.mock("@/core/db");

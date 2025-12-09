@@ -4,8 +4,8 @@ import {
   lineFloorPlanStaffingService,
   lineFloorPlanMinimumOrderService
 } from "@/modules/floor-plan-editor/services/lineFloorPlanService";
-import { mockLine, mockOccurrence } from "@/../../fixtures/lines";
-import { mockFloorPlan } from "@/../../fixtures/floorPlans";
+import { mockLine, mockOccurrence } from "../../../fixtures/lines";
+import { mockFloorPlan } from "../../../fixtures/floorPlans";
 
 vi.mock("@/modules/floor-plan-editor/actions/floorPlanActions");
 vi.mock("@/modules/floor-plan-editor/services/lineFloorPlanService");

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { listLines } from "@/modules/lines/actions/listLines";
 import { getCurrentUser } from "@/core/auth/session";
 import { lineRepository } from "@/core/db";
-import { mockLine, mockOccurrence } from "@/../../fixtures/lines";
+import { mockLine, mockOccurrence } from "../../../../fixtures/lines";
 
 vi.mock("@/core/auth/session");
 vi.mock("@/core/db");

@@ -3,7 +3,7 @@ import { checkLineCollisions } from "@/modules/lines/actions/checkCollisions";
 import { getCurrentUser } from "@/core/auth/session";
 import { lineOccurrenceRepository } from "@/core/db";
 import { checkMultipleCollisions } from "@/core/validation";
-import { mockOccurrence } from "@/../../fixtures/lines";
+import { mockOccurrence } from "../../../../fixtures/lines";
 
 vi.mock("@/core/auth/session");
 vi.mock("@/core/db");

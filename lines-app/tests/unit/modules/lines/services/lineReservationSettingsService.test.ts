@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { lineReservationSettingsService } from "@/modules/lines/services/lineReservationSettingsService";
 import { lineReservationSettingsRepository } from "@/core/db/repositories/LineReservationSettingsRepository";
 import { prisma } from "@/core/integrations/prisma/client";
-import { mockLine } from "@/../../../fixtures/lines";
+import { mockLine } from "../../../../fixtures/lines";
 
 vi.mock("@/core/db/repositories/LineReservationSettingsRepository", () => ({
   lineReservationSettingsRepository: {
@@ -131,18 +131,22 @@ describe("LineReservationSettingsService", () => {
 
       vi.mocked(prisma.line.findUnique).mockResolvedValue(mockLine);
       vi.mocked(prisma.$transaction).mockImplementation(async (callback) => {
-        return await callback({
+        const tx = {
           lineReservationSettings: {
-            findUnique: vi.fn().mockResolvedValue(null),
+            findUnique: vi
+              .fn()
+              .mockResolvedValueOnce(null)
+              .mockResolvedValue(mockSettings),
             create: vi.fn().mockResolvedValue(mockSettings),
-            update: vi.fn(),
-            findUnique: vi.fn().mockResolvedValue(mockSettings)
+            update: vi.fn()
           },
           lineReservationDaySchedule: {
             deleteMany: vi.fn(),
             createMany: vi.fn()
           }
-        } as any);
+        } as any;
+
+        return await callback(tx);
       });
 
       const result = await lineReservationSettingsService.update(lineId, input);

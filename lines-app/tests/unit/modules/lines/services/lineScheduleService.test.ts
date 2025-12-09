@@ -10,7 +10,7 @@ describe("LineScheduleService", () => {
   describe("generateSuggestions()", () => {
     it("should generate weekly suggestions correctly", () => {
       const days = [1, 3, 5]; // Monday, Wednesday, Friday
-      const anchorDate = new Date("2025-01-06"); // Monday (day 1)
+      const anchorDate = new Date("2025-01-06T12:00:00"); // Monday (day 1) - midday to avoid timezone issues
       const horizonMonths = 1;
 
       const result = lineScheduleService.generateSuggestions(
@@ -50,7 +50,7 @@ describe("LineScheduleService", () => {
 
     it("should generate oneTime suggestions correctly", () => {
       const days = [1]; // Monday
-      const anchorDate = new Date("2025-01-06"); // Monday (day 1)
+      const anchorDate = new Date("2025-01-06T12:00:00"); // Monday (day 1) - midday to avoid timezone issues
 
       const result = lineScheduleService.generateSuggestions(days, "oneTime", anchorDate);
 
@@ -103,7 +103,7 @@ describe("LineScheduleService", () => {
   describe("generateWeekly()", () => {
     it("should generate all occurrences for selected days", () => {
       const days = [1, 3]; // Monday, Wednesday
-      const start = new Date("2025-01-06"); // Monday
+      const start = new Date("2025-01-06T12:00:00"); // Monday - midday to avoid timezone issues
       const horizonMonths = 1; // ~4 weeks
 
       // Test via public method
@@ -121,7 +121,7 @@ describe("LineScheduleService", () => {
 
     it("should handle multiple days correctly", () => {
       const days = [0, 6]; // Sunday, Saturday
-      const start = new Date("2025-01-05"); // Sunday
+      const start = new Date("2025-01-05T12:00:00"); // Sunday - midday to avoid timezone issues
       const horizonMonths = 0.25; // ~1 week
 
       const result = lineScheduleService.generateSuggestions(days, "weekly", start, horizonMonths);
@@ -136,15 +136,16 @@ describe("LineScheduleService", () => {
 
     it("should respect start and end dates", () => {
       const days = [1]; // Monday
-      const start = new Date("2025-01-13"); // Monday
+      const start = new Date("2025-01-13T12:00:00"); // Monday - midday to avoid timezone issues
       const horizonMonths = 0.25; // ~1 week
 
       const result = lineScheduleService.generateSuggestions(days, "weekly", start, horizonMonths);
 
-      // All dates should be >= start
+      // All dates should be >= start (comparing by date only)
+      const startDateOnly = new Date(toISODate(start) + "T00:00:00");
       result.forEach((dateStr) => {
         const date = new Date(dateStr + "T00:00:00");
-        expect(date >= start).toBe(true);
+        expect(date >= startDateOnly).toBe(true);
       });
     });
   });
@@ -152,7 +153,7 @@ describe("LineScheduleService", () => {
   describe("generateMonthly()", () => {
     it("should generate all monthly occurrences", () => {
       const days = [0]; // Sunday
-      const start = new Date("2025-01-05"); // First Sunday in January
+      const start = new Date("2025-01-05T12:00:00"); // First Sunday in January - midday to avoid timezone issues
       const horizonMonths = 3;
 
       const result = lineScheduleService.generateSuggestions(days, "monthly", start, horizonMonths);
@@ -162,7 +163,7 @@ describe("LineScheduleService", () => {
 
     it("should handle month boundaries correctly", () => {
       const days = [1]; // Monday
-      const start = new Date("2025-01-27"); // Late January
+      const start = new Date("2025-01-27T12:00:00"); // Late January - midday to avoid timezone issues
       const horizonMonths = 2;
 
       const result = lineScheduleService.generateSuggestions(days, "monthly", start, horizonMonths);
@@ -173,7 +174,7 @@ describe("LineScheduleService", () => {
 
     it("should skip dates before start date", () => {
       const days = [0]; // Sunday
-      const start = new Date("2025-01-12"); // Second Sunday
+      const start = new Date("2025-01-12T12:00:00"); // Second Sunday - midday to avoid timezone issues
       const horizonMonths = 1;
 
       const result = lineScheduleService.generateSuggestions(days, "monthly", start, horizonMonths);
@@ -189,7 +190,7 @@ describe("LineScheduleService", () => {
   describe("generateOneTime()", () => {
     it("should find next occurrence for each day", () => {
       const days = [1, 3, 5]; // Monday, Wednesday, Friday
-      const start = new Date("2025-01-06"); // Monday (day 1)
+      const start = new Date("2025-01-06T12:00:00"); // Monday (day 1) - midday to avoid timezone issues
 
       const result = lineScheduleService.generateSuggestions(days, "oneTime", start);
 
@@ -205,7 +206,7 @@ describe("LineScheduleService", () => {
 
     it("should return sorted dates", () => {
       const days = [5, 1, 3]; // Friday, Monday, Wednesday (unordered)
-      const start = new Date("2025-01-06"); // Monday
+      const start = new Date("2025-01-06T12:00:00"); // Monday - midday to avoid timezone issues
 
       const result = lineScheduleService.generateSuggestions(days, "oneTime", start);
 

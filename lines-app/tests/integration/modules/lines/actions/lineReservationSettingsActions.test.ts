@@ -6,7 +6,7 @@ import {
 import { getCurrentUser } from "@/core/auth/session";
 import { lineReservationSettingsService } from "@/modules/lines/services/lineReservationSettingsService";
 import { prisma } from "@/core/integrations/prisma/client";
-import { mockLine } from "@/../../fixtures/lines";
+import { mockLine } from "../../../../fixtures/lines";
 
 vi.mock("@/core/auth/session");
 vi.mock("@/modules/lines/services/lineReservationSettingsService");

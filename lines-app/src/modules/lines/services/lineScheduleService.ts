@@ -17,7 +17,15 @@ export class LineScheduleService {
       return [];
     }
 
-    const endDate = addMonths(anchorDate, horizonMonths);
+    let endDate: Date;
+    if (frequency === "monthly") {
+      // For monthly schedules, horizon is interpreted in calendar months
+      endDate = addMonths(anchorDate, horizonMonths);
+    } else {
+      // For weekly/oneTime, allow fractional "months" by converting to days (~30 days per month)
+      const daysHorizon = Math.max(1, Math.round(horizonMonths * 30));
+      endDate = addDays(anchorDate, daysHorizon);
+    }
     const suggestions: string[] = [];
 
     switch (frequency) {

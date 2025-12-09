@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { rolesService } from "@/modules/roles-hierarchy/services/rolesService";
 import { hierarchyService } from "@/modules/roles-hierarchy/services/hierarchyService";
-import { mockRole, mockManagementRole } from "@/../../fixtures/roles";
+import { mockRole, mockManagementRole } from "../../../../fixtures/roles";
 
 vi.mock("@/modules/roles-hierarchy/services/rolesService");
 vi.mock("@/modules/roles-hierarchy/services/hierarchyService");

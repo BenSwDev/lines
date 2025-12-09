@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { rolesService } from "@/modules/roles-hierarchy/services/rolesService";
 import { prisma } from "@/core/integrations/prisma/client";
-import { mockRole, mockManagementRole } from "@/../../../fixtures/roles";
+import { mockRole, mockManagementRole } from "../../../../fixtures/roles";
 
 vi.mock("@/core/integrations/prisma/client", () => ({
   prisma: {
@@ -205,7 +205,7 @@ describe("RolesService", () => {
     });
 
     it("should update management role name when role name changes", async () => {
-      const existing = { ...mockRole, managementRole: mockManagementRole };
+      const existing = { ...mockRole, requiresManagement: true, managementRole: mockManagementRole };
       const input = {
         name: "Updated Barista"
       };

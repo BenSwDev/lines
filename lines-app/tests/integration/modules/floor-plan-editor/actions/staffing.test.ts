@@ -5,7 +5,12 @@ import {
 } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import { floorPlanService } from "@/modules/floor-plan-editor/services/floorPlanService";
 
-vi.mock("@/modules/floor-plan-editor/services/floorPlanService");
+vi.mock("@/modules/floor-plan-editor/services/floorPlanService", () => ({
+  floorPlanService: {
+    updateStaffing: vi.fn(),
+    updateLineFloorPlanStaffing: vi.fn()
+  }
+}));
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn()
 }));
