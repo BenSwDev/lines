@@ -22,9 +22,22 @@ export async function startTestRun(
 
     // Early validation - check GitHub configuration
     if (!isGitHubConfigured()) {
+      // Log detailed info for debugging
+      const hasToken = !!process.env.GITHUB_TOKEN;
+      const hasRepo = !!process.env.GITHUB_REPO;
+      const repoValue = process.env.GITHUB_REPO || "undefined";
+      
+      console.error("GitHub integration validation failed in startTestRun:", {
+        hasToken,
+        hasRepo,
+        repoLength: repoValue.length,
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV
+      });
+      
       return {
         success: false,
-        error: "GitHub integration is not configured. Please set GITHUB_TOKEN and GITHUB_REPO environment variables in Vercel."
+        error: `GitHub integration is not configured. Missing: ${!hasToken ? "GITHUB_TOKEN" : ""}${!hasToken && !hasRepo ? " and " : ""}${!hasRepo ? "GITHUB_REPO" : ""}. Please set them in Vercel (Settings > Environment Variables > Production).`
       };
     }
 

@@ -60,18 +60,25 @@ function getGitHubRepo(): GitHubRepo | null {
  * Check if GitHub is configured
  */
 export function isGitHubConfigured(): boolean {
-  const token = process.env.GITHUB_TOKEN?.trim().replace(/\r\n|\r|\n/g, "");
-  const repo = process.env.GITHUB_REPO?.trim().replace(/\r\n|\r|\n/g, "");
+  const rawToken = process.env.GITHUB_TOKEN;
+  const rawRepo = process.env.GITHUB_REPO;
+  
+  const token = rawToken?.trim().replace(/^["']|["']$/g, "").replace(/\r\n|\r|\n/g, "").trim();
+  const repo = rawRepo?.trim().replace(/^["']|["']$/g, "").replace(/\r\n|\r|\n/g, "").trim();
   
   const isConfigured = !!(token && repo);
   
-  // Log in development to help debug
-  if (process.env.NODE_ENV === "development") {
+  // Log to help debug (always log in production if not configured)
+  if (!isConfigured || process.env.NODE_ENV === "development") {
     console.log("GitHub configuration check:", {
       hasToken: !!token,
       hasRepo: !!repo,
-      repoValue: repo || "undefined",
-      isConfigured
+      tokenLength: token?.length || 0,
+      repoValue: repo || rawRepo || "undefined",
+      rawRepoLength: rawRepo?.length || 0,
+      isConfigured,
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV
     });
   }
   
