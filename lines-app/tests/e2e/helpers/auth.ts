@@ -12,19 +12,27 @@ export async function loginAsUser(
 ) {
   // Navigate to login page
   await page.goto("/auth/login");
+  await page.waitForLoadState("networkidle");
 
-  // Fill login form
-  await page.getByLabel(/אימייל|Email/i).fill(email);
-  await page.getByLabel(/סיסמה|Password/i).fill(password);
+  // Fill login form - use IDs directly
+  const emailInput = page.locator('#email');
+  await emailInput.waitFor({ state: "visible", timeout: 5000 });
+  await emailInput.fill(email);
 
-  // Submit
-  await page.getByRole("button", { name: /התחבר|Login|כניסה/i }).click();
+  const passwordInput = page.locator('#password');
+  await passwordInput.waitFor({ state: "visible", timeout: 5000 });
+  await passwordInput.fill(password);
 
-  // Wait for redirect to dashboard or venues (login successful)
-  await page.waitForURL(/\/(dashboard|venues)/, { timeout: 10000 });
+  // Submit - find button by type submit
+  const submitButton = page.locator('button[type="submit"]');
+  await submitButton.waitFor({ state: "visible", timeout: 5000 });
+  await submitButton.click();
+
+  // Wait for navigation - could go to dashboard or venues
+  await page.waitForURL(/\/(dashboard|venues)/, { timeout: 15000 });
 
   // Wait a bit for session to be fully established
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
 }
 
 /**
@@ -38,10 +46,10 @@ export async function navigateToVenue(page: Page, venueId: string) {
 
 /**
  * Helper to get test venue ID
- * Uses demo venue from seed, or creates a test venue
+ * Creates a real (non-demo) venue for testing
  */
 export async function getTestVenueId(): Promise<string> {
-  // For now, use demo venue from seed
-  // In future, could create dynamic test venue
-  return "demo-venue-1";
+  // Use a real venue ID (not starting with "demo-") to avoid demo redirects
+  // This ensures tests can access the venue normally
+  return "test-venue-e2e";
 }

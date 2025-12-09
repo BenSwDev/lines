@@ -29,7 +29,14 @@ export default async function ProfileRoute() {
   const venuesList = venues.success && "data" in venues ? venues.data || [] : [];
 
   return (
-    <DashboardLayout user={user} venues={venuesList}>
+    <DashboardLayout
+      user={{
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }}
+      venues={venuesList}
+    >
       <ProfilePage user={user} />
     </DashboardLayout>
   );

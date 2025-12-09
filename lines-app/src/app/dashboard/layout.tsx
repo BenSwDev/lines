@@ -17,7 +17,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
     <DashboardLayout
       user={{
         name: session.user.name || null,
-        email: session.user.email!
+        email: session.user.email!,
+        role: (session.user as { role?: string }).role
       }}
       venues={venues}
     >

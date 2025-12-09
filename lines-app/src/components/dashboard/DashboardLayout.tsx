@@ -40,13 +40,15 @@ import {
   Package,
   Home,
   Info,
-  FileText
+  FileText,
+  Shield
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslations } from "@/core/i18n/provider";
+import { ImpersonationBanner } from "@/modules/admin/ui/ImpersonationBanner";
 import type { Venue } from "@prisma/client";
 
 type DashboardLayoutProps = {
@@ -54,6 +56,7 @@ type DashboardLayoutProps = {
   user: {
     name: string | null;
     email: string;
+    role?: string;
   };
   venues: Venue[];
   currentVenue?: Venue | null;
@@ -353,6 +356,15 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                   {t("account.title")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                {user.role === "admin" && (
+                  <>
+                    <DropdownMenuItem onClick={() => router.push("/admin")}>
+                      <Shield className="ml-2 h-4 w-4" />
+                      ניהול מערכת
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem asChild>
                   <Link href="/api/auth/signout">
                     <LogOut className="ml-2 h-4 w-4" />
@@ -383,7 +395,10 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
               </div>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden">{children}</div>
+          <div className="flex-1 overflow-hidden">
+            <ImpersonationBanner />
+            {children}
+          </div>
         </main>
       </div>
     </SidebarProvider>

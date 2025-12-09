@@ -1,0 +1,96 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - generic [ref=e10]: L
+        - generic [ref=e11]:
+          - heading "Lines" [level=1] [ref=e12]
+          - paragraph [ref=e13]: ניהול אירועים
+      - generic [ref=e15]:
+        - generic [ref=e16]: המקומות שלי
+        - list [ref=e18]:
+          - listitem [ref=e19]:
+            - link "Test Venue E2E" [ref=e20] [cursor=pointer]:
+              - /url: /venues/test-venue-e2e
+              - img [ref=e21]
+              - generic [ref=e25]: Test Venue E2E
+          - listitem [ref=e26]:
+            - link "דמו - מקום לדוגמה" [ref=e27] [cursor=pointer]:
+              - /url: /venues/demo-venue-1
+              - img [ref=e28]
+              - generic [ref=e32]: דמו - מקום לדוגמה
+          - listitem [ref=e33]:
+            - link "צור מקום חדש" [ref=e34] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e35]
+              - generic [ref=e36]: צור מקום חדש
+      - button "D Demo User demo@lines.app" [ref=e38] [cursor=pointer]:
+        - generic [ref=e40]: D
+        - generic [ref=e41]:
+          - generic [ref=e42]: Demo User
+          - generic [ref=e43]: demo@lines.app
+        - img
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - button "Toggle Sidebar" [ref=e48] [cursor=pointer]:
+          - img
+          - generic [ref=e49]: Toggle Sidebar
+        - generic [ref=e50]:
+          - button "Toggle theme" [ref=e51] [cursor=pointer]:
+            - img
+            - img
+            - generic [ref=e52]: Toggle theme
+          - button "Switch to English" [ref=e53] [cursor=pointer]: EN
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - heading "המקומות שלי" [level=1] [ref=e58]
+            - paragraph [ref=e59]: נהל את כל המקומות העסקיים שלך במקום אחד
+          - button "צור מקום חדש" [ref=e60] [cursor=pointer]:
+            - img
+            - text: צור מקום חדש
+        - generic [ref=e63]:
+          - generic [ref=e64]: "2"
+          - generic [ref=e65]: מקומות
+        - generic [ref=e66]:
+          - generic [ref=e68]:
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - img [ref=e78]
+                - generic [ref=e82]:
+                  - heading "Test Venue E2E" [level=3] [ref=e83]
+                  - paragraph [ref=e84]:
+                    - img [ref=e85]
+                    - generic [ref=e87]: נוצר 8 בדצמבר 2025
+              - button "פתח תפריט" [ref=e88] [cursor=pointer]:
+                - img
+                - generic [ref=e89]: פתח תפריט
+            - generic [ref=e94]: פעיל
+            - button "כניסה לניהול" [ref=e96] [cursor=pointer]:
+              - generic [ref=e97]: כניסה לניהול
+              - img
+          - generic [ref=e99]:
+            - generic [ref=e104]:
+              - generic [ref=e105]:
+                - img [ref=e109]
+                - generic [ref=e113]:
+                  - heading "דמו - מקום לדוגמה" [level=3] [ref=e114]
+                  - paragraph [ref=e115]:
+                    - img [ref=e116]
+                    - generic [ref=e118]: נוצר 8 בדצמבר 2025
+              - button "פתח תפריט" [ref=e119] [cursor=pointer]:
+                - img
+                - generic [ref=e120]: פתח תפריט
+            - generic [ref=e125]: פעיל
+            - button "כניסה לניהול" [ref=e127] [cursor=pointer]:
+              - generic [ref=e128]: כניסה לניהול
+              - img
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e134] [cursor=pointer]:
+    - img [ref=e135]
+  - alert [ref=e138]
+```

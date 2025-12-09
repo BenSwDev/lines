@@ -6,25 +6,11 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Starting database seed...");
 
-  // Create admin user
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@lines.app" },
-    update: {
-      password: adminPassword, // Update password if user exists
-      name: "Admin User",
-      emailVerified: new Date()
-    },
-    create: {
-      email: "admin@lines.app",
-      name: "Admin User",
-      password: adminPassword,
-      role: "admin",
-      emailVerified: new Date()
-    }
+  // Delete admin user if exists (no longer needed)
+  await prisma.user.deleteMany({
+    where: { email: "admin@lines.app" }
   });
-
-  console.log("✅ Created admin user:", admin.email);
+  console.log("✅ Removed admin user (if existed)");
 
   // Create demo user
   const userPassword = await bcrypt.hash("demo123", 10);
@@ -75,7 +61,6 @@ async function main() {
 
   console.log("\n🎉 Seed completed successfully!");
   console.log("\n📝 Demo Credentials:");
-  console.log("   Admin: admin@lines.app / admin123");
   console.log("   User:  demo@lines.app / demo123");
 }
 

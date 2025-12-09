@@ -29,7 +29,14 @@ export default async function AccountRoute() {
   const venuesList = venuesResult.success && "data" in venuesResult ? venuesResult.data || [] : [];
 
   return (
-    <DashboardLayout user={user} venues={venuesList}>
+    <DashboardLayout
+      user={{
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }}
+      venues={venuesList}
+    >
       <AccountPage user={user} />
     </DashboardLayout>
   );

@@ -20,6 +20,7 @@ export default auth((req) => {
     "/demo-experience",
     "/auth/login",
     "/auth/register",
+    "/auth/reset-password",
     "/api/auth"
   ];
 
@@ -28,7 +29,11 @@ export default auth((req) => {
   // Protected routes that require authentication
   const protectedRoutes = ["/dashboard", "/venues", "/api/venues"];
 
+  // Admin routes that require admin role
+  const adminRoutes = ["/admin"];
+
   const isProtectedRoute = protectedRoutes.some((route) => nextUrl.pathname.startsWith(route));
+  const isAdminRoute = adminRoutes.some((route) => nextUrl.pathname.startsWith(route));
 
   // CRITICAL: Block demo users from accessing protected routes
   if (isInDemoMode && isProtectedRoute) {
@@ -56,10 +61,18 @@ export default auth((req) => {
   }
 
   // If not logged in and trying to access protected route, redirect to login
-  if (!isLoggedIn && isProtectedRoute && !isInDemoMode) {
+  if (!isLoggedIn && (isProtectedRoute || isAdminRoute) && !isInDemoMode) {
     const loginUrl = new URL("/auth/login", nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Check admin access for admin routes
+  if (isLoggedIn && isAdminRoute && !isInDemoMode) {
+    const userRole = req.auth?.user?.role;
+    if (userRole !== "admin") {
+      return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
+    }
   }
 
   // If logged in and trying to access login/register, redirect to dashboard

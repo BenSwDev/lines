@@ -133,15 +133,26 @@ function LoginPageContent() {
                 {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
 
-              <p className="text-center text-sm text-muted-foreground">
-                אין לך חשבון?{" "}
-                <Link
-                  href="/auth/register"
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  הרשם כאן
-                </Link>
-              </p>
+              <div className="space-y-2">
+                <p className="text-center text-sm text-muted-foreground">
+                  אין לך חשבון?{" "}
+                  <Link
+                    href="/auth/register"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    הרשם כאן
+                  </Link>
+                </p>
+                <p className="text-center text-sm text-muted-foreground">
+                  שכחת את הסיסמה?{" "}
+                  <Link
+                    href="/auth/reset-password"
+                    className="font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    איפוס סיסמה
+                  </Link>
+                </p>
+              </div>
             </CardFooter>
           </form>
         </Card>
