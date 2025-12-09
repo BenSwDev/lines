@@ -21,13 +21,35 @@ export async function requireAuth() {
 }
 
 export async function requireAdmin() {
-  const user = await requireAuth();
-
-  if ((user as { role?: string }).role !== "admin") {
-    redirect("/");
+  const session = await getSession();
+  
+  if (!session?.user) {
+    redirect("/auth/login");
   }
 
-  return user;
+  // Fetch user from DB to ensure we have the latest role
+  const { prisma } = await import("@/core/integrations/prisma/client");
+  const dbUser = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+    select: { role: true, id: true, email: true, name: true }
+  });
+
+  if (!dbUser) {
+    redirect("/auth/login");
+  }
+
+  const userRole = dbUser.role;
+  
+  if (userRole !== "admin") {
+    redirect("/dashboard");
+  }
+
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    name: dbUser.name,
+    role: userRole
+  };
 }
 
 export function isAdmin(user: { role?: string }): boolean {
