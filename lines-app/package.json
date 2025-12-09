@@ -17,6 +17,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
+    "test:production": "vitest --config vitest.config.production.ts",
+    "test:e2e:production": "playwright test --config playwright.config.production.ts",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "postinstall": "dotenv -e .env.local -- prisma generate || prisma generate",

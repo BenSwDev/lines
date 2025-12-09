@@ -10,8 +10,14 @@ export async function loginAsUser(
   email: string = "demo@lines.app",
   password: string = "demo123"
 ) {
+  // Get base URL from environment or use default
+  const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 
+                  process.env.NEXT_PUBLIC_APP_URL || 
+                  process.env.TEST_BASE_URL || 
+                  "http://localhost:3000";
+  
   // Navigate to login page
-  await page.goto("/auth/login");
+  await page.goto(`${baseURL}/auth/login`);
   await page.waitForLoadState("networkidle");
 
   // Fill login form - use IDs directly
@@ -40,7 +46,11 @@ export async function loginAsUser(
  * Assumes user is already authenticated
  */
 export async function navigateToVenue(page: Page, venueId: string) {
-  await page.goto(`/venues/${venueId}`);
+  const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 
+                  process.env.NEXT_PUBLIC_APP_URL || 
+                  process.env.TEST_BASE_URL || 
+                  "http://localhost:3000";
+  await page.goto(`${baseURL}/venues/${venueId}`);
   await page.waitForLoadState("networkidle");
 }
 

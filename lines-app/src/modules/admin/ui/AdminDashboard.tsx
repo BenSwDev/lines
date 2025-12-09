@@ -8,12 +8,14 @@ import {
   Users,
   Building2,
   Shield,
-  TrendingUp
+  TrendingUp,
+  TestTube
 } from "lucide-react";
 import { getUserStats } from "../actions/adminActions";
 import { UsersManagement } from "./UsersManagement";
 import { VenuesManagement } from "./VenuesManagement";
 import { ImpersonationBanner } from "./ImpersonationBanner";
+import { TestingDashboard } from "@/modules/admin-testing/ui/TestingDashboard";
 
 export function AdminDashboard() {
   const [stats, setStats] = useState<{
@@ -119,7 +121,7 @@ export function AdminDashboard() {
 
       {/* Management Tabs */}
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className="grid w-full grid-cols-3 max-w-2xl">
           <TabsTrigger value="users" className="gap-2">
             <Users className="h-4 w-4" />
             ניהול משתמשים
@@ -127,6 +129,10 @@ export function AdminDashboard() {
           <TabsTrigger value="venues" className="gap-2">
             <Building2 className="h-4 w-4" />
             ניהול מקומות
+          </TabsTrigger>
+          <TabsTrigger value="testing" className="gap-2">
+            <TestTube className="h-4 w-4" />
+            הרצת טסטים
           </TabsTrigger>
         </TabsList>
 
@@ -136,6 +142,10 @@ export function AdminDashboard() {
 
         <TabsContent value="venues" className="mt-6">
           <VenuesManagement />
+        </TabsContent>
+
+        <TabsContent value="testing" className="mt-6">
+          <TestingDashboard />
         </TabsContent>
       </Tabs>
     </div>
