@@ -50,7 +50,6 @@ export const authConfig: NextAuthConfig = {
   ],
   pages: {
     signIn: "/auth/login",
-    signOut: "/auth/logout",
     error: "/auth/error"
   },
   callbacks: {

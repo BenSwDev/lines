@@ -18,9 +18,15 @@ type SessionUser = {
 };
 
 export function ImpersonationBanner() {
-  const { data: session, update: updateSession } = useSession();
+  const sessionResult = useSession();
   const router = useRouter();
 
+  // Handle case where session might not be loaded yet
+  if (!sessionResult || !sessionResult.data) {
+    return null;
+  }
+
+  const { data: session, update: updateSession } = sessionResult;
   const user = session?.user as SessionUser | undefined;
   const isImpersonating = Boolean(user?.isImpersonating);
 

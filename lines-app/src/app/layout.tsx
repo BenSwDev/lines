@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { I18nProvider } from "@/core/i18n/provider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
+import { SessionProviderWrapper } from "@/components/providers/SessionProviderWrapper";
 import "./globals.css";
 
 export const metadata = {
@@ -13,12 +14,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="he" dir="rtl" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
-        <ThemeProvider defaultTheme="dark" storageKey="lines-theme">
-          <I18nProvider>
-            {children}
-            <Toaster />
-          </I18nProvider>
-        </ThemeProvider>
+        <SessionProviderWrapper>
+          <ThemeProvider defaultTheme="dark" storageKey="lines-theme">
+            <I18nProvider>
+              {children}
+              <Toaster />
+            </I18nProvider>
+          </ThemeProvider>
+        </SessionProviderWrapper>
       </body>
     </html>
   );
