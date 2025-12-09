@@ -153,6 +153,7 @@ async function githubRequest(
  */
 /**
  * Get workflow ID by filename
+ * This function searches for a workflow by matching its filename in the path
  */
 async function getWorkflowId(workflowFile: string): Promise<number | null> {
   try {
@@ -165,6 +166,7 @@ async function getWorkflowId(workflowFile: string): Promise<number | null> {
     }
 
     const data = (await response.json()) as {
+      total_count: number;
       workflows: Array<{
         id: number;
         name: string;
@@ -172,48 +174,64 @@ async function getWorkflowId(workflowFile: string): Promise<number | null> {
       }>;
     };
 
-    console.log("Available workflows:", data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path })));
+    console.log(`[getWorkflowId] Searching for workflow: "${workflowFile}"`);
+    console.log(`[getWorkflowId] Total workflows available: ${data.total_count}`);
+    console.log(`[getWorkflowId] Available workflows:`, 
+      data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path }))
+    );
 
+    // Normalize the filename for comparison (remove any directory separators)
+    const normalizedFilename = workflowFile.toLowerCase().replace(/^.*\//, "").trim();
+    
     // Try multiple matching strategies (in order of specificity):
-    // 1. Exact filename match at end of path (most specific)
-    // 2. Path includes workflows/filename
-    // 3. Exact match with .github/workflows/ prefix
-    // 4. Exact match with lines-app/.github/workflows/ prefix
-    // We don't match by name alone as it's not reliable enough
+    // 1. Path contains the exact filename (most reliable)
+    // 2. Path ends with the filename
+    // 3. Path includes workflows/ + filename
     const workflow = data.workflows.find((w) => {
       const path = w.path.toLowerCase();
-      const filename = workflowFile.toLowerCase();
       
-      // Most specific: exact filename at end of path
-      if (path.endsWith(filename) || path.endsWith(`/${filename}`)) {
-        return true;
-      }
-      
-      // Match within workflows directory
-      if (path.includes(`workflows/${filename}`)) {
-        return true;
-      }
-      
-      // Explicit path matches
-      if (path.endsWith(`/.github/workflows/${filename}`) ||
-          path.endsWith(`/lines-app/.github/workflows/${filename}`)) {
-        return true;
+      // Strategy 1: Path contains the exact filename anywhere
+      // This handles: .github/workflows/run-tests-on-demand.yml
+      //              lines-app/.github/workflows/run-tests-on-demand.yml
+      //              or any other structure
+      if (path.includes(normalizedFilename)) {
+        // But make sure it's actually the filename, not just part of another name
+        // Check if it appears as a complete filename (ends with .yml or has separator before it)
+        const filenameIndex = path.indexOf(normalizedFilename);
+        if (filenameIndex >= 0) {
+          // Check if it's followed by .yml or end of string
+          const afterMatch = path.substring(filenameIndex + normalizedFilename.length);
+          if (afterMatch === "" || afterMatch.startsWith(".yml")) {
+            // Check if it's preceded by separator or start of string
+            const beforeMatch = filenameIndex > 0 ? path[filenameIndex - 1] : "";
+            if (filenameIndex === 0 || beforeMatch === "/" || beforeMatch === "\\") {
+              return true;
+            }
+          }
+        }
       }
       
       return false;
     });
 
     if (!workflow) {
-      console.error(`Workflow "${workflowFile}" not found. Available workflows:`, 
+      console.error(`[getWorkflowId] Workflow "${workflowFile}" not found!`);
+      console.error(`[getWorkflowId] Searched for filename: "${normalizedFilename}"`);
+      console.error(`[getWorkflowId] Available workflows:`, 
         data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path }))
       );
       return null;
     }
 
-    console.log(`Found workflow: ${workflow.name} (ID: ${workflow.id}, Path: ${workflow.path})`);
+    console.log(`[getWorkflowId] ✓ Found workflow: ${workflow.name}`);
+    console.log(`[getWorkflowId]   ID: ${workflow.id}`);
+    console.log(`[getWorkflowId]   Path: ${workflow.path}`);
     return workflow.id;
   } catch (error) {
-    console.error("Error getting workflow ID:", error);
+    console.error("[getWorkflowId] Error getting workflow ID:", error);
+    if (error instanceof Error) {
+      console.error("[getWorkflowId] Error stack:", error.stack);
+    }
     return null;
   }
 }
