@@ -282,9 +282,7 @@ export function CalendarTab() {
           currentDate={currentDate}
           events={calendarEvents}
           onEventClick={(event) =>
-            router.push(
-              `/venues/${venueId}/events/${event.lineId}/${event.id}?back=calendar&view=${view}&date=${currentDate}`
-            )
+            router.push(`/venues/${venueId}/lines/${event.lineId}`)
           }
           compressed={compressed}
         />

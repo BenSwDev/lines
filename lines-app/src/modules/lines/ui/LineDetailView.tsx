@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -20,7 +19,6 @@ import {
   Edit,
   Map,
   Settings,
-  ArrowRight,
   Clock,
   Sparkles
 } from "lucide-react";
@@ -29,7 +27,6 @@ import { getLine } from "../actions/getLine";
 import { getFloorPlans } from "@/modules/floor-plan-editor/actions/floorPlanActions";
 import { updateLine } from "../actions/updateLine";
 import { LineReservationSettings } from "./LineReservationSettings";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { translateError } from "@/utils/translateError";
 import type { Line, LineOccurrence } from "@prisma/client";
@@ -46,7 +43,6 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
   const { t } = useTranslations();
   const { toast } = useToast();
   const [line, setLine] = useState<Line | null>(null);
-  const [occurrences, setOccurrences] = useState<LineOccurrence[]>([]);
   const [floorPlans, setFloorPlans] = useState<FloorPlanListItem[]>([]);
   const [selectedFloorPlanId, setSelectedFloorPlanId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,11 +65,6 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
         const lineData = lineResult.data as Line & { occurrences?: LineOccurrence[] };
         setLine(lineData);
         setSelectedFloorPlanId(lineData.floorPlanId || null);
-
-        // Occurrences are included in line data from lineRepository.findById
-        if (lineData.occurrences) {
-          setOccurrences(lineData.occurrences);
-        }
       }
 
       if (floorPlansResult.success && floorPlansResult.data) {
@@ -189,18 +180,12 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+        <TabsList className="grid w-full grid-cols-2 bg-muted/50">
           <TabsTrigger
             value="overview"
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-primary-foreground transition-all"
           >
             {t("lines.overview", { defaultValue: "סקירה" })}
-          </TabsTrigger>
-          <TabsTrigger
-            value="events"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-primary-foreground transition-all"
-          >
-            {t("lines.events", { defaultValue: "אירועים" })}
           </TabsTrigger>
           <TabsTrigger
             value="settings"
@@ -213,7 +198,7 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6 mt-6">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader className="pb-2 relative z-10">
@@ -235,20 +220,6 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
               </CardContent>
             </Card>
 
-            <Card className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CardHeader className="pb-2 relative z-10">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  אירועים
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <p className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  {occurrences.length}
-                </p>
-              </CardContent>
-            </Card>
 
             <Card className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -346,63 +317,6 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
           </Card>
         </TabsContent>
 
-        {/* Events Tab */}
-        <TabsContent value="events" className="space-y-4 mt-6">
-          {occurrences.length === 0 ? (
-            <Card className="border-2 border-dashed">
-              <CardContent className="py-12">
-                <EmptyState
-                  icon={Calendar}
-                  title="אין אירועים עדיין"
-                  description="האירועים יופיעו כאן לאחר יצירתם"
-                />
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-3">
-              {occurrences.map((occurrence, idx) => (
-                <Card
-                  key={occurrence.id}
-                  className={cn(
-                    "cursor-pointer overflow-hidden border-2 transition-all duration-300",
-                    "hover:border-primary/50 hover:shadow-xl hover:scale-[1.02]",
-                    "bg-gradient-to-br from-card via-card to-card/95",
-                    "group"
-                  )}
-                  style={{
-                    animationDelay: `${idx * 50}ms`
-                  }}
-                  onClick={() =>
-                    router.push(`/venues/${venueId}/events/${line.id}/${occurrence.id}`)
-                  }
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/0 via-primary/0 to-primary/0 group-hover:from-primary/5 group-hover:via-primary/3 group-hover:to-primary/10 transition-all duration-500 pointer-events-none" />
-                  <CardContent className="flex items-center justify-between p-5 relative z-10">
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="h-14 w-14 rounded-xl shadow-lg ring-2 ring-background transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: line.color }}
-                      />
-                      <div>
-                        <span className="font-bold text-lg block mb-1">
-                          {occurrence.title || occurrence.date}
-                        </span>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span>{occurrence.date}</span>
-                          <span>•</span>
-                          <span>
-                            {occurrence.startTime} - {occurrence.endTime}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6 mt-6">

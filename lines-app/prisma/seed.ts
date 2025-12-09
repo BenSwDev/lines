@@ -10,7 +10,11 @@ async function main() {
   const adminPassword = await bcrypt.hash("admin123", 10);
   const admin = await prisma.user.upsert({
     where: { email: "admin@lines.app" },
-    update: {},
+    update: {
+      password: adminPassword, // Update password if user exists
+      name: "Admin User",
+      emailVerified: new Date()
+    },
     create: {
       email: "admin@lines.app",
       name: "Admin User",
@@ -26,7 +30,11 @@ async function main() {
   const userPassword = await bcrypt.hash("demo123", 10);
   const user = await prisma.user.upsert({
     where: { email: "demo@lines.app" },
-    update: {},
+    update: {
+      password: userPassword, // Update password if user exists
+      name: "Demo User",
+      emailVerified: new Date()
+    },
     create: {
       email: "demo@lines.app",
       name: "Demo User",

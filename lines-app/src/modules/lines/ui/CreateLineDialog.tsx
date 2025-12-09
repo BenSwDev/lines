@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { List, Clock, Palette, Calendar, Trash2 } from "lucide-react";
+import { List, Clock, Palette, Trash2 } from "lucide-react";
 import { createLine } from "../actions/createLine";
 import { updateLine } from "../actions/updateLine";
 import { deleteLine } from "../actions/deleteLine";
@@ -58,23 +58,6 @@ const FREQUENCIES = [
   { value: "oneTime", label: "חד פעמי" }
 ];
 
-const MONTHS = [
-  "ינואר",
-  "פברואר",
-  "מרץ",
-  "אפריל",
-  "מאי",
-  "יוני",
-  "יולי",
-  "אוגוסט",
-  "ספטמבר",
-  "אוקטובר",
-  "נובמבר",
-  "דצמבר"
-];
-
-type StartDateMode = "next" | "custom";
-
 export function CreateLineDialog({
   isOpen,
   onClose,
@@ -86,20 +69,16 @@ export function CreateLineDialog({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form state - לפי סדר החשיבות
+  // Form state - simplified
   const [name, setName] = useState("");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [frequency, setFrequency] = useState<"weekly" | "monthly" | "variable" | "oneTime">(
     "weekly"
   );
-  const [startDateMode, setStartDateMode] = useState<StartDateMode>("next");
-  const [customMonth, setCustomMonth] = useState<number>(new Date().getMonth());
-  const [customYear, setCustomYear] = useState<number>(new Date().getFullYear());
   const [startTime, setStartTime] = useState("18:00");
   const [endTime, setEndTime] = useState("22:00");
   const [color, setColor] = useState<string>(COLOR_PALETTE[0]);
   const [error, setError] = useState("");
-
 
   // Calculate next occurrence date based on selected days
   const nextOccurrenceDate = useMemo(() => {
@@ -122,87 +101,6 @@ export function CreateLineDialog({
     return null;
   }, [selectedDays]);
 
-  // Get available dates for custom selection (only dates matching selected days)
-  const availableDates = useMemo(() => {
-    if (selectedDays.length === 0) return [];
-
-    const dates: Date[] = [];
-    const start = new Date(customYear, customMonth, 1);
-    const end = new Date(customYear, customMonth + 1, 0);
-
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const dayOfWeek = d.getDay();
-      if (selectedDays.includes(dayOfWeek)) {
-        dates.push(new Date(d));
-      }
-    }
-
-    return dates;
-  }, [selectedDays, customMonth, customYear]);
-
-  // Get available months (only months with dates matching selected days in selected year)
-  const availableMonths = useMemo(() => {
-    if (selectedDays.length === 0) return [];
-
-    const months: number[] = [];
-
-    // Check all months in the selected year
-    for (let month = 0; month < 12; month++) {
-      const start = new Date(customYear, month, 1);
-      const end = new Date(customYear, month + 1, 0);
-      let hasMatchingDate = false;
-
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const dayOfWeek = d.getDay();
-        if (selectedDays.includes(dayOfWeek)) {
-          hasMatchingDate = true;
-          break;
-        }
-      }
-
-      if (hasMatchingDate) {
-        months.push(month);
-      }
-    }
-
-    return months.sort((a, b) => a - b);
-  }, [selectedDays, customYear]);
-
-  // Get available years (only years with dates matching selected days)
-  const availableYearsWithDates = useMemo(() => {
-    if (selectedDays.length === 0) return [];
-
-    const years: number[] = [];
-    const currentYear = new Date().getFullYear();
-
-    // Check all years from current to 5 years ahead
-    for (let year = currentYear; year <= currentYear + 5; year++) {
-      let hasMatchingDate = false;
-
-      // Check all months in this year
-      for (let month = 0; month < 12; month++) {
-        const start = new Date(year, month, 1);
-        const end = new Date(year, month + 1, 0);
-
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-          const dayOfWeek = d.getDay();
-          if (selectedDays.includes(dayOfWeek)) {
-            hasMatchingDate = true;
-            break;
-          }
-        }
-
-        if (hasMatchingDate) break;
-      }
-
-      if (hasMatchingDate) {
-        years.push(year);
-      }
-    }
-
-    return years;
-  }, [selectedDays]);
-
   // Load existing line data or reset form
   useEffect(() => {
     if (existingLine) {
@@ -214,44 +112,15 @@ export function CreateLineDialog({
         (existingLine.frequency as "weekly" | "monthly" | "variable" | "oneTime") || "weekly"
       );
       setSelectedDays(existingLine.days || []);
-      setStartDateMode("custom");
-
-      // Try to get first occurrence date if exists
-      const loadFirstOccurrence = async () => {
-        try {
-          const { lineOccurrenceRepository } = await import("@/core/db");
-          const occurrences = await lineOccurrenceRepository.findByLineId(existingLine.id);
-          if (occurrences.length > 0) {
-            const firstDate = new Date(occurrences[0].date);
-            setCustomMonth(firstDate.getMonth());
-            setCustomYear(firstDate.getFullYear());
-          } else {
-            const today = new Date();
-            setCustomMonth(today.getMonth());
-            setCustomYear(today.getFullYear());
-          }
-        } catch {
-          // Silently fallback to today's date if loading fails
-          const today = new Date();
-          setCustomMonth(today.getMonth());
-          setCustomYear(today.getFullYear());
-        }
-      };
-
-      loadFirstOccurrence();
     } else if (!isOpen) {
       // Reset form when dialog closes
       setName("");
       setSelectedDays([]);
       setFrequency("weekly");
-      setStartDateMode("next");
       setStartTime("18:00");
       setEndTime("22:00");
       setColor(COLOR_PALETTE[0]);
       setError("");
-      const today = new Date();
-      setCustomMonth(today.getMonth());
-      setCustomYear(today.getFullYear());
     }
   }, [existingLine, isOpen]);
 
@@ -263,15 +132,6 @@ export function CreateLineDialog({
         return [...prev, dayValue].sort((a, b) => a - b);
       }
     });
-  };
-
-  const getSelectedStartDate = (): Date | null => {
-    if (startDateMode === "next") {
-      return nextOccurrenceDate;
-    } else {
-      // For custom, return first available date in selected month/year
-      return availableDates.length > 0 ? availableDates[0] : null;
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -289,12 +149,11 @@ export function CreateLineDialog({
       return;
     }
 
-    // For variable frequency, skip occurrence generation and date validation
-    // User will add occurrences manually
+    // For variable frequency, skip occurrence generation
     const occurrences: TimeRange[] = [];
 
     if (frequency !== "variable") {
-      const startDate = getSelectedStartDate();
+      const startDate = nextOccurrenceDate;
       if (!startDate) {
         setError("לא ניתן למצוא תאריך התחלה תואם לימים שנבחרו");
         return;
@@ -334,7 +193,6 @@ export function CreateLineDialog({
         }
       } else if (frequency === "weekly") {
         // Generate weekly occurrences until end of calendar year
-        // Start from the start date and generate all occurrences
         for (let d = new Date(startDate); d <= endOfYear; d.setDate(d.getDate() + 1)) {
           const dayOfWeek = d.getDay();
           if (selectedDays.includes(dayOfWeek)) {
@@ -347,7 +205,6 @@ export function CreateLineDialog({
         }
       } else if (frequency === "monthly") {
         // Generate monthly occurrences until end of calendar year
-        // For each selected day, find first occurrence in each month
         const startYear = startDate.getFullYear();
         const startMonth = startDate.getMonth();
 
@@ -413,7 +270,6 @@ export function CreateLineDialog({
       }));
 
       // Use updateLine if editing, createLine if creating
-      // For variable frequency, don't send selectedDates (occurrences are managed manually)
       const lineData = {
         name: name.trim(),
         days: selectedDays,
@@ -455,7 +311,6 @@ export function CreateLineDialog({
       setName("");
       setSelectedDays([]);
       setFrequency("weekly");
-      setStartDateMode("next");
       setStartTime("18:00");
       setEndTime("22:00");
       setColor(COLOR_PALETTE[0]);
@@ -500,31 +355,23 @@ export function CreateLineDialog({
     }
   };
 
-  const formatDate = (date: Date | null): string => {
-    if (!date) return "";
-    return date.toLocaleDateString("he-IL", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
-  };
-
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-              <List className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div className="flex-1">
-              <SheetTitle className="text-2xl font-bold">
-                {existingLine ? "עריכת ליין" : "יצירת ליין חדש"}
-              </SheetTitle>
-              <SheetDescription className="text-base">
-                הגדר ליין חדש לאירועים חוזרים
-              </SheetDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-md">
+                <List className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <SheetTitle className="text-xl font-bold">
+                  {existingLine ? "עריכת ליין" : "ליין חדש"}
+                </SheetTitle>
+                <SheetDescription className="text-sm">
+                  {existingLine ? "ערוך את פרטי הליין" : "צור ליין חדש"}
+                </SheetDescription>
+              </div>
             </div>
             {existingLine && (
               <Button
@@ -533,7 +380,7 @@ export function CreateLineDialog({
                 size="icon"
                 onClick={handleDelete}
                 disabled={isSubmitting}
-                className="flex-shrink-0"
+                className="h-9 w-9"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -560,13 +407,14 @@ export function CreateLineDialog({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="לדוגמה: ערב ג'אז"
                 disabled={isSubmitting}
-                className="h-10"
+                className="h-11"
+                autoFocus
               />
             </div>
 
             {/* 2. בחירת ימים */}
             <div className="space-y-3">
-              <Label className="text-sm font-semibold">בחר ימים *</Label>
+              <Label className="text-sm font-semibold">ימים בשבוע *</Label>
               <div className="flex gap-2 flex-wrap">
                 {DAYS_OF_WEEK.map((day) => {
                   const isSelected = selectedDays.includes(day.value);
@@ -577,7 +425,7 @@ export function CreateLineDialog({
                       onClick={() => toggleDay(day.value)}
                       disabled={isSubmitting}
                       className={cn(
-                        "flex h-12 w-12 items-center justify-center rounded-lg border-2 font-semibold text-sm transition-all",
+                        "flex h-11 w-11 items-center justify-center rounded-lg border-2 font-semibold text-sm transition-all",
                         isSelected
                           ? "bg-primary text-primary-foreground border-primary shadow-md"
                           : "bg-background border-border hover:border-primary/50 hover:bg-muted/50"
@@ -593,7 +441,43 @@ export function CreateLineDialog({
               )}
             </div>
 
-            {/* 3. תדירות */}
+            {/* 3. שעות פעילות */}
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <Label className="text-sm font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                שעות פעילות
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime" className="text-xs">
+                    התחלה
+                  </Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-10"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="endTime" className="text-xs">
+                    סיום
+                  </Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    disabled={isSubmitting}
+                    className="h-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. תדירות */}
             <div className="space-y-2">
               <Label htmlFor="frequency" className="text-sm font-semibold">
                 תדירות
@@ -605,7 +489,7 @@ export function CreateLineDialog({
                 }
                 disabled={isSubmitting}
               >
-                <SelectTrigger id="frequency" className="h-10">
+                <SelectTrigger id="frequency" className="h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -618,190 +502,8 @@ export function CreateLineDialog({
               </Select>
             </div>
 
-            {/* 4. תאריך התחלה - רק אם frequency לא variable */}
-            {frequency !== "variable" && (
-              <div className="space-y-3">
-                <Label className="text-sm font-semibold">תאריך התחלה</Label>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant={startDateMode === "next" ? "default" : "outline"}
-                      onClick={() => setStartDateMode("next")}
-                      disabled={isSubmitting || selectedDays.length === 0}
-                      className="flex-1"
-                    >
-                      <Calendar className="h-4 w-4 ml-2" />
-                      הקרוב
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={startDateMode === "custom" ? "default" : "outline"}
-                      onClick={() => setStartDateMode("custom")}
-                      disabled={isSubmitting || selectedDays.length === 0}
-                      className="flex-1"
-                    >
-                      <Calendar className="h-4 w-4 ml-2" />
-                      התאמה אישית
-                    </Button>
-                  </div>
-
-                  {startDateMode === "next" && nextOccurrenceDate && (
-                    <div className="rounded-lg border bg-muted/30 p-3">
-                      <p className="text-sm font-medium">
-                        התאריך הקרוב: {formatDate(nextOccurrenceDate)}
-                      </p>
-                    </div>
-                  )}
-
-                  {startDateMode === "custom" && (
-                    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                          <Label className="text-xs">שנה</Label>
-                          <Select
-                            value={customYear.toString()}
-                            onValueChange={(value) => {
-                              const newYear = parseInt(value);
-                              setCustomYear(newYear);
-                              // Calculate available months for new year
-                              const months: number[] = [];
-                              for (let month = 0; month < 12; month++) {
-                                const start = new Date(newYear, month, 1);
-                                const end = new Date(newYear, month + 1, 0);
-                                let hasMatchingDate = false;
-                                for (
-                                  let d = new Date(start);
-                                  d <= end;
-                                  d.setDate(d.getDate() + 1)
-                                ) {
-                                  const dayOfWeek = d.getDay();
-                                  if (selectedDays.includes(dayOfWeek)) {
-                                    hasMatchingDate = true;
-                                    break;
-                                  }
-                                }
-                                if (hasMatchingDate) {
-                                  months.push(month);
-                                }
-                              }
-                              // Reset month to first available month in new year, or keep current if available
-                              if (months.length > 0) {
-                                const newMonth = months.includes(customMonth)
-                                  ? customMonth
-                                  : months[0];
-                                setCustomMonth(newMonth);
-                              }
-                            }}
-                            disabled={isSubmitting}
-                          >
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableYearsWithDates.map((year) => (
-                                <SelectItem key={year} value={year.toString()}>
-                                  {year}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs">חודש</Label>
-                          <Select
-                            value={customMonth.toString()}
-                            onValueChange={(value) => setCustomMonth(parseInt(value))}
-                            disabled={isSubmitting || availableMonths.length === 0}
-                          >
-                            <SelectTrigger className="h-9">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableMonths.length > 0 ? (
-                                availableMonths.map((monthIndex) => (
-                                  <SelectItem key={monthIndex} value={monthIndex.toString()}>
-                                    {MONTHS[monthIndex]}
-                                  </SelectItem>
-                                ))
-                              ) : (
-                                <SelectItem value={customMonth.toString()} disabled>
-                                  {MONTHS[customMonth]} (אין תאריכים)
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {availableDates.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-xs">תאריכים זמינים</Label>
-                          <div className="max-h-32 overflow-y-auto space-y-1">
-                            {availableDates.map((date, index) => (
-                              <div
-                                key={index}
-                                className="text-sm p-2 rounded bg-background border border-border"
-                              >
-                                {formatDate(date)}
-                              </div>
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            התאריך הראשון ({formatDate(availableDates[0])}) ייבחר אוטומטית
-                          </p>
-                        </div>
-                      )}
-
-                      {availableDates.length === 0 && (
-                        <p className="text-xs text-destructive">
-                          לא נמצאו תאריכים תואמים לימים שנבחרו בחודש ובשנה שנבחרו
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* 5. שעות פעילות */}
-            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                שעות פעילות
-              </Label>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="startTime" className="text-xs">
-                    שעת התחלה
-                  </Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-9"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="endTime" className="text-xs">
-                    שעת סיום
-                  </Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-9"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 6. צבע */}
-            <div className="space-y-2">
+            {/* 5. צבע */}
+            <div className="space-y-3">
               <Label className="text-sm font-semibold flex items-center gap-2">
                 <Palette className="h-4 w-4" />
                 צבע
@@ -816,7 +518,7 @@ export function CreateLineDialog({
                     className={cn(
                       "h-10 w-10 rounded-lg border-2 transition-all",
                       color === c
-                        ? "border-foreground shadow-md scale-110"
+                        ? "border-foreground shadow-md scale-110 ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50 hover:scale-105"
                     )}
                     style={{ backgroundColor: c }}
@@ -831,7 +533,7 @@ export function CreateLineDialog({
               ביטול
             </Button>
             <Button type="submit" disabled={isSubmitting || selectedDays.length === 0}>
-              {isSubmitting ? "שומר..." : existingLine ? "שמור שינויים" : "צור ליין"}
+              {isSubmitting ? "שומר..." : existingLine ? "שמור" : "צור ליין"}
             </Button>
           </SheetFooter>
         </form>

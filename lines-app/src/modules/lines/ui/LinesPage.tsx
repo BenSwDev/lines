@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LinesHeader } from "./LinesHeader";
 import { WeeklyScheduleView } from "./WeeklyScheduleView";
 import { CreateLineDialog } from "./CreateLineDialog";
@@ -15,6 +15,7 @@ import type { Line } from "@prisma/client";
 
 export function LinesPage() {
   const params = useParams();
+  const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslations();
   const venueId = params.venueId as string;
@@ -77,11 +78,8 @@ export function LinesPage() {
 
   const handleLineSelect = (lineId: string | null) => {
     if (lineId) {
-      setEditingLine(lines.find((l) => l.id === lineId) || null);
-      setIsCreateOpen(true);
-    } else {
-      setEditingLine(null);
-      setIsCreateOpen(false);
+      // Navigate to line detail page
+      router.push(`/venues/${venueId}/lines/${lineId}`);
     }
   };
 

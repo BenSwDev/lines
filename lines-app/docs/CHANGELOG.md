@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added - 2025-01-15
+
+#### Comprehensive Test Plan
+
+- **תוכנית בדיקות מקיפה** - יצירת תוכנית בדיקות מלאה ל-3 מודולים מרכזיים:
+  - **`docs/COMPREHENSIVE_TEST_PLAN.md`** - תוכנית בדיקות מלאה עם 450+ מקרי בדיקה:
+    - 180+ בדיקות יחידה (Unit Tests) - כל ה-services, schemas, utils
+    - 150+ בדיקות אינטגרציה (Integration Tests) - כל ה-server actions ו-database operations
+    - 120+ בדיקות קצה לקצה (E2E Tests) - כל ה-user flows ו-UI interactions
+  - **`docs/TEST_MATRIX.md`** - מטריצת בדיקות מעודכנת עם סטטיסטיקות:
+    - Lines Module: 88 בדיקות (45 unit, 35 integration, 8 e2e)
+    - Floor Plan Editor Module: 85 בדיקות (35 unit, 40 integration, 10 e2e)
+    - Roles & Hierarchy Module: 51 בדיקות (30 unit, 15 integration, 6 e2e)
+    - Cross-Module Integration: 3 בדיקות
+  - **כיסוי מלא** - כל הפונקציות, actions, services, UI components מכוסים
+  - **מוכן ליישום** - מבנה קבצים, תבניות, והנחיות מימוש מלאות
+  - **מוכן להרחבה** - מבנה גמיש וניתן להרחבה לעתיד
+
+### Fixed
+
+- **קריטי: תיקון בעיית עריכת ליין** - תוקן באג שגרם לשגיאת "NEW" בעדכון ליין:
+  - הוספת תמיכה מלאה ב-frequency "variable" בעריכת ליין
+  - תיקון טעינת frequency בעריכה - כעת תומך בכל הערכים כולל "variable"
+  - תיקון לוגיקת יצירת occurrences - עבור "variable" לא נוצרים occurrences אוטומטית
+  - שיפור בחירת חודש/שנה - הצגת רק חודשים ושנים עם תאריכים אפשריים בהתאם לימים שנבחרו
+  - הסרת דרישת תאריך התחלה עבור frequency "variable"
+- תיקון שגיאות logger ב-lineReservationSettingsActions
+
+## [Unreleased]
+
 ### Changed - 2025-01-XX
 
 #### Roles & Hierarchy UI Redesign

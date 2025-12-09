@@ -13,7 +13,10 @@
     "test": "vitest",
     "test:unit": "vitest --config vitest.config.unit.ts",
     "test:integration": "vitest --config vitest.config.integration.ts",
-    "test:e2e": "vitest --config vitest.config.e2e.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
     "postinstall": "dotenv -e .env.local -- prisma generate || prisma generate",
@@ -22,6 +25,7 @@
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
+    "db:test-user": "dotenv -e .env.local -- tsx scripts/create-test-user.ts",
     "db:test": "tsx scripts/test-db-connection.ts",
     "db:studio": "prisma studio"
   },
@@ -62,6 +66,10 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
@@ -71,9 +79,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.1.0",
+    "playwright": "^1.57.0",
     "postcss": "^8.5.6",
     "prettier": "^3.3.0",
     "prisma": "^6.1.0",
@@ -83,6 +93,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.21.0",
     "typescript": "^5.6.0",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.1.0"
   },
   "engines": {

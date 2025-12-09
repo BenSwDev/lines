@@ -18,7 +18,6 @@ import type { Line } from "@prisma/client";
 type LineCardProps = {
   line: Line & { occurrences?: { id: string }[] };
   onEdit: () => void;
-  onViewEvents: () => void;
   onViewLine: () => void;
   "data-tour"?: string;
 };
@@ -34,7 +33,6 @@ const FREQUENCY_HEBREW = {
 export const LineCard = memo(function LineCard({
   line,
   onEdit,
-  onViewEvents,
   onViewLine,
   "data-tour": dataTour
 }: LineCardProps) {
@@ -182,14 +180,6 @@ export const LineCard = memo(function LineCard({
           onClick={onViewLine}
         >
           {t("lines.linePage")}
-        </Button>
-        <Button
-          variant="outline"
-          className="border-2 hover:bg-primary/10 hover:border-primary/50 transition-all duration-200"
-          onClick={onViewEvents}
-          disabled={eventCount === 0}
-        >
-          {t("lines.viewEvents")}
         </Button>
       </CardFooter>
     </Card>
