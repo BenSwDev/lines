@@ -151,6 +151,45 @@ async function githubRequest(
  * @param ref - Branch/ref to run on (default: "main")
  * @returns Workflow run ID and status
  */
+/**
+ * Get workflow ID by filename
+ */
+async function getWorkflowId(workflowFile: string): Promise<number | null> {
+  try {
+    // List all workflows
+    const response = await githubRequest("/actions/workflows");
+    if (!response.ok) {
+      console.error(`Failed to list workflows: ${response.status}`);
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      workflows: Array<{
+        id: number;
+        name: string;
+        path: string;
+      }>;
+    };
+
+    // Find workflow by filename (match end of path)
+    const workflow = data.workflows.find((w) => 
+      w.path.endsWith(workflowFile) || w.path.endsWith(`/${workflowFile}`)
+    );
+
+    if (!workflow) {
+      console.error(`Workflow ${workflowFile} not found. Available workflows:`, 
+        data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path }))
+      );
+      return null;
+    }
+
+    return workflow.id;
+  } catch (error) {
+    console.error("Error getting workflow ID:", error);
+    return null;
+  }
+}
+
 export async function triggerWorkflow(
   workflowFile: string,
   inputs: Record<string, string>,
@@ -190,8 +229,17 @@ export async function triggerWorkflow(
       };
     }
 
-    // Trigger the workflow via GitHub API
-    const response = await githubRequest(`/actions/workflows/${workflowFile}/dispatches`, {
+    // Get workflow ID first
+    const workflowId = await getWorkflowId(workflowFile);
+    if (!workflowId) {
+      return {
+        success: false,
+        error: `Workflow "${workflowFile}" not found. Please ensure the workflow file exists in .github/workflows/ directory.`
+      };
+    }
+
+    // Trigger the workflow via GitHub API using workflow ID
+    const response = await githubRequest(`/actions/workflows/${workflowId}/dispatches`, {
       method: "POST",
       body: JSON.stringify({
         ref,
@@ -210,9 +258,9 @@ export async function triggerWorkflow(
     // Wait a moment for the workflow run to be created, then fetch its ID
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Get the latest workflow run for this workflow
+    // Get the latest workflow run for this workflow using workflow ID
     const runsResponse = await githubRequest(
-      `/actions/workflows/${workflowFile}/runs?per_page=1`
+      `/actions/workflows/${workflowId}/runs?per_page=1`
     );
     if (!runsResponse.ok) {
       return {
