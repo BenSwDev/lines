@@ -1,8 +1,9 @@
 import { auth } from "./src/core/auth/auth";
 import { NextResponse } from "next/server";
 import { isDemoMode, isDemoUserId, isDemoVenueId } from "./src/core/auth/demo";
+import { prisma } from "./src/core/integrations/prisma/client";
 
-export default auth((req) => {
+export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
   const userId = req.auth?.user?.id;
@@ -69,8 +70,18 @@ export default auth((req) => {
 
   // Check admin access for admin routes
   if (isLoggedIn && isAdminRoute && !isInDemoMode) {
-    const userRole = req.auth?.user?.role;
-    if (userRole !== "admin") {
+    // Fetch user from DB to ensure we have the latest role
+    const userEmail = req.auth?.user?.email;
+    if (userEmail) {
+      const dbUser = await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: { role: true }
+      });
+      const userRole = dbUser?.role || (req.auth?.user as { role?: string })?.role;
+      if (userRole !== "admin") {
+        return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
+      }
+    } else {
       return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
     }
   }
