@@ -174,24 +174,33 @@ async function getWorkflowId(workflowFile: string): Promise<number | null> {
 
     console.log("Available workflows:", data.workflows.map(w => ({ id: w.id, name: w.name, path: w.path })));
 
-    // Try multiple matching strategies:
-    // 1. Exact filename match at end of path
-    // 2. With .github/workflows/ prefix
-    // 3. With lines-app/.github/workflows/ prefix
-    // 4. Match by name field
+    // Try multiple matching strategies (in order of specificity):
+    // 1. Exact filename match at end of path (most specific)
+    // 2. Path includes workflows/filename
+    // 3. Exact match with .github/workflows/ prefix
+    // 4. Exact match with lines-app/.github/workflows/ prefix
+    // We don't match by name alone as it's not reliable enough
     const workflow = data.workflows.find((w) => {
       const path = w.path.toLowerCase();
       const filename = workflowFile.toLowerCase();
       
-      return (
-        path.endsWith(filename) ||
-        path.endsWith(`/${filename}`) ||
-        path.endsWith(`/.github/workflows/${filename}`) ||
-        path.endsWith(`/lines-app/.github/workflows/${filename}`) ||
-        path.includes(`workflows/${filename}`) ||
-        w.name.toLowerCase().includes("run tests on demand") ||
-        w.name.toLowerCase().includes("test")
-      );
+      // Most specific: exact filename at end of path
+      if (path.endsWith(filename) || path.endsWith(`/${filename}`)) {
+        return true;
+      }
+      
+      // Match within workflows directory
+      if (path.includes(`workflows/${filename}`)) {
+        return true;
+      }
+      
+      // Explicit path matches
+      if (path.endsWith(`/.github/workflows/${filename}`) ||
+          path.endsWith(`/lines-app/.github/workflows/${filename}`)) {
+        return true;
+      }
+      
+      return false;
     });
 
     if (!workflow) {
