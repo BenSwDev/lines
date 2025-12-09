@@ -6,4 +6,3 @@ import type { ReactNode } from "react";
 export function SessionProviderWrapper({ children }: { children: ReactNode }) {
   return <SessionProvider>{children}</SessionProvider>;
 }
-

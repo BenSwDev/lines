@@ -48,11 +48,12 @@
 - `events` - Event detail & status
 - `calendar` - Calendar views
 - `workspace-shell` - Shared workspace layout
+- `admin-testing` - Admin test execution via GitHub Actions + Redis
 
 ### 3. Core Infrastructure (`src/core`)
 
 - **db/** - Database repositories (vendor-agnostic interfaces)
-- **integrations/** - External providers (Prisma client)
+- **integrations/** - External providers (Prisma client, Redis/Vercel KV)
 - **validation/** - Shared Zod helpers
 - **http/** - API response utilities
 - **config/** - Environment variables, constants
@@ -109,6 +110,20 @@ See `docs/DATA_MODEL.md` for full entity definitions.
 5. **Documentation-Driven:** All changes reflected in docs immediately
 
 ---
+
+## External Integrations
+
+### Redis (Vercel KV)
+
+- **Purpose:** Storage for test run results
+- **Usage:** Admin testing module stores test results with 30-day TTL
+- **Location:** `src/core/integrations/redis/`
+
+### GitHub Actions
+
+- **Purpose:** Execute tests on-demand from admin interface
+- **Workflow:** `.github/workflows/run-tests-on-demand.yml`
+- **Integration:** `src/modules/admin-testing/services/githubActionsService.ts`
 
 ## Future Enhancements
 

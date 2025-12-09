@@ -25,6 +25,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 ### Lines Module - 95+ Tests ✅
 
 **Files:**
+
 1. ✅ `create-line-comprehensive.spec.ts` - 40+ tests
    - All frequency types (weekly, monthly, variable, oneTime)
    - All validation errors (name, days, times, formats)
@@ -75,6 +76,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 ### Floor Plan Editor Module - 50+ Tests ✅
 
 **Files:**
+
 1. ✅ `comprehensive-floor-plan.spec.ts` - 30+ tests
    - Floor plan CRUD (create, edit, delete, duplicate default)
    - Zone management (create, edit, delete, collision)
@@ -100,6 +102,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 ### Roles & Hierarchy Module - 35+ Tests ✅
 
 **Files:**
+
 1. ✅ `comprehensive-roles.spec.ts` - 25+ tests
    - Role CRUD (create, edit, delete)
    - Hierarchy management (parent-child, circular prevention)
@@ -117,6 +120,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 ## 🔍 Edge Cases Covered
 
 ### Lines Module
+
 - ✅ All 4 frequency types
 - ✅ All validation errors
 - ✅ All collision scenarios (6+ variations)
@@ -128,6 +132,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 - ✅ UI edge cases (rapid clicks, unsaved changes, dialogs)
 
 ### Floor Plan Editor
+
 - ✅ Zone/Table collisions
 - ✅ Boundary constraints (canvas, zone limits)
 - ✅ Drag & drop edge cases
@@ -136,6 +141,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 - ✅ Locked floor plans
 
 ### Roles & Hierarchy
+
 - ✅ Circular reference prevention
 - ✅ Parent-child validation
 - ✅ Management role lifecycle
@@ -150,6 +156,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 ## ✅ Test Philosophy Compliance
 
 ### What We DO:
+
 - ✅ Write tests that simulate real user behavior
 - ✅ Test actual functionality as users would use it
 - ✅ **If test fails → FIX THE PLATFORM, not the test**
@@ -157,6 +164,7 @@ See `tests/e2e/TEST_PHILOSOPHY.md` for detailed guidelines.
 - ✅ Test edge cases that might reveal bugs
 
 ### What We DON'T Do:
+
 - ❌ Modify tests to skip failing assertions
 - ❌ Add conditional logic to make tests pass
 - ❌ Ignore failures because "it's expected"
@@ -215,4 +223,3 @@ pnpm test:e2e:debug
 - [x] Comprehensive coverage documentation
 
 **Status:** ✅ **100% COMPLETE** - Ready to find bugs!
-

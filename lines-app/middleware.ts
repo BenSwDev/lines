@@ -75,15 +75,15 @@ export default auth(async (req) => {
     if (!userEmail) {
       return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
     }
-    
+
     try {
       const dbUser = await prisma.user.findUnique({
         where: { email: userEmail },
         select: { role: true }
       });
-      
+
       const userRole = dbUser?.role || (req.auth?.user as { role?: string })?.role;
-      
+
       // Debug: log the role check
       console.log("[Middleware] Admin check:", {
         email: userEmail,
@@ -92,7 +92,7 @@ export default auth(async (req) => {
         finalRole: userRole,
         isAdmin: userRole === "admin"
       });
-      
+
       if (userRole !== "admin") {
         return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
       }

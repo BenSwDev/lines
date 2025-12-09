@@ -1,0 +1,308 @@
+name: Run Tests On Demand
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: "Type of tests to run"
+        required: true
+        type: choice
+        options:
+          - unit
+          - integration
+          - e2e
+          - all
+      run_id:
+        description: "Unique test run ID"
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: "22.x"
+  PNPM_VERSION: "10.19.0"
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        working-directory: ./lines-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          cache-dependency-path: lines-app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+        env:
+          POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+
+      - name: Install Playwright browsers
+        if: inputs.test_type == 'e2e' || inputs.test_type == 'all'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Unit Tests
+        if: inputs.test_type == 'unit' || inputs.test_type == 'all'
+        id: run_unit_tests
+        continue-on-error: true
+        run: |
+          pnpm test:unit --config vitest.config.production.ts --reporter=json --outputFile=test-results-unit.json || true
+        env:
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
+          TEST_BASE_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
+
+      - name: Run Integration Tests
+        if: inputs.test_type == 'integration' || inputs.test_type == 'all'
+        id: run_integration_tests
+        continue-on-error: true
+        run: |
+          pnpm test:integration --config vitest.config.production.ts --reporter=json --outputFile=test-results-integration.json || true
+        env:
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
+          TEST_BASE_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
+
+      - name: Run E2E Tests
+        if: inputs.test_type == 'e2e' || inputs.test_type == 'all'
+        id: run_e2e_tests
+        continue-on-error: true
+        run: |
+          pnpm test:e2e:production --reporter=json || true
+        env:
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
+
+      - name: Parse Test Results
+        id: parse_results
+        continue-on-error: true
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          const testType = process.env.TEST_TYPE;
+          let allResults = [];
+          let total = 0;
+          let passed = 0;
+          let failed = 0;
+          let skipped = 0;
+          let totalDuration = 0;
+
+          // Parse unit tests
+          if (testType === 'unit' || testType === 'all') {
+            try {
+              const unitFile = path.join(process.cwd(), 'test-results-unit.json');
+              if (fs.existsSync(unitFile)) {
+                const unitData = JSON.parse(fs.readFileSync(unitFile, 'utf8'));
+                if (unitData.testResults) {
+                  unitData.testResults.forEach(file => {
+                    file.assertionResults?.forEach(test => {
+                      allResults.push({
+                        testFile: file.name,
+                        testName: test.fullName || test.title,
+                        status: test.status === 'passed' ? 'passed' : test.status === 'failed' ? 'failed' : 'skipped',
+                        duration: test.duration,
+                        error: test.failureMessages && test.failureMessages.length > 0 ? {
+                          message: test.failureMessages[0],
+                          stack: test.failureMessages.join('\n')
+                        } : undefined
+                      });
+                      total++;
+                      if (test.status === 'passed') passed++;
+                      else if (test.status === 'failed') failed++;
+                      else skipped++;
+                      if (test.duration) totalDuration += test.duration;
+                    });
+                  });
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing unit tests:', e);
+            }
+          }
+
+          // Parse integration tests
+          if (testType === 'integration' || testType === 'all') {
+            try {
+              const intFile = path.join(process.cwd(), 'test-results-integration.json');
+              if (fs.existsSync(intFile)) {
+                const intData = JSON.parse(fs.readFileSync(intFile, 'utf8'));
+                if (intData.testResults) {
+                  intData.testResults.forEach(file => {
+                    file.assertionResults?.forEach(test => {
+                      allResults.push({
+                        testFile: file.name,
+                        testName: test.fullName || test.title,
+                        status: test.status === 'passed' ? 'passed' : test.status === 'failed' ? 'failed' : 'skipped',
+                        duration: test.duration,
+                        error: test.failureMessages && test.failureMessages.length > 0 ? {
+                          message: test.failureMessages[0],
+                          stack: test.failureMessages.join('\n')
+                        } : undefined
+                      });
+                      total++;
+                      if (test.status === 'passed') passed++;
+                      else if (test.status === 'failed') failed++;
+                      else skipped++;
+                      if (test.duration) totalDuration += test.duration;
+                    });
+                  });
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing integration tests:', e);
+            }
+          }
+
+          // Parse E2E tests (Playwright JSON format)
+          if (testType === 'e2e' || testType === 'all') {
+            try {
+              const e2eFile = path.join(process.cwd(), 'playwright-report', 'results.json');
+              if (fs.existsSync(e2eFile)) {
+                const e2eData = JSON.parse(fs.readFileSync(e2eFile, 'utf8'));
+                if (e2eData.suites) {
+                  e2eData.suites.forEach(suite => {
+                    suite.specs?.forEach(spec => {
+                      spec.tests?.forEach(test => {
+                        const results = test.results || [];
+                        const lastResult = results[results.length - 1];
+                        allResults.push({
+                          testFile: spec.file || 'unknown',
+                          testName: spec.title || test.title,
+                          status: lastResult?.status === 'passed' ? 'passed' : lastResult?.status === 'failed' ? 'failed' : 'skipped',
+                          duration: lastResult?.duration,
+                          error: lastResult?.error ? {
+                            message: lastResult.error.message,
+                            stack: lastResult.error.stack
+                          } : undefined
+                        });
+                        total++;
+                        if (lastResult?.status === 'passed') passed++;
+                        else if (lastResult?.status === 'failed') failed++;
+                        else skipped++;
+                        if (lastResult?.duration) totalDuration += lastResult.duration;
+                      });
+                    });
+                  });
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing E2E tests:', e);
+            }
+          }
+
+          const results = {
+            total,
+            passed,
+            failed,
+            skipped,
+            duration: Math.round(totalDuration),
+            results: allResults
+          };
+
+          fs.writeFileSync('parsed-test-results.json', JSON.stringify(results, null, 2));
+          console.log('Parsed test results:', JSON.stringify(results));
+
+          // Set GitHub outputs
+          console.log(`::set-output name=total::${total}`);
+          console.log(`::set-output name=passed::${passed}`);
+          console.log(`::set-output name=failed::${failed}`);
+          console.log(`::set-output name=skipped::${skipped}`);
+          console.log(`::set-output name=duration::${Math.round(totalDuration)}`);
+          EOF
+        env:
+          TEST_TYPE: ${{ inputs.test_type }}
+
+      - name: Read Parsed Results
+        id: results
+        if: always()
+        run: |
+          if [ -f parsed-test-results.json ]; then
+            RESULTS=$(cat parsed-test-results.json)
+            echo "results<<EOF" >> $GITHUB_OUTPUT
+            echo "$RESULTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "results={}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Results to Webhook
+        if: always()
+        run: |
+          RUN_ID="${{ inputs.run_id }}"
+          WEBHOOK_URL="${{ secrets.WEBHOOK_URL }}"
+          WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET }}"
+
+          if [ -z "$WEBHOOK_URL" ] || [ -z "$WEBHOOK_SECRET" ]; then
+            echo "Warning: WEBHOOK_URL or WEBHOOK_SECRET not set, skipping webhook call"
+            exit 0
+          fi
+
+          TEST_TYPE="${{ inputs.test_type }}"
+          STATUS="${{ job.status }}"
+
+          # Determine final status
+          if [ "$STATUS" == "success" ]; then
+            FINAL_STATUS="completed"
+          elif [ "$STATUS" == "failure" ] || [ "$STATUS" == "cancelled" ]; then
+            FINAL_STATUS="failed"
+          else
+            FINAL_STATUS="completed"
+          fi
+
+          # Create test suite result
+          STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+          COMPLETED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
+
+          RESULTS_JSON='{}'
+          if [ -f parsed-test-results.json ]; then
+            RESULTS_JSON=$(cat parsed-test-results.json)
+          fi
+
+          TOTAL=$(echo "$RESULTS_JSON" | jq -r '.total // 0')
+          PASSED=$(echo "$RESULTS_JSON" | jq -r '.passed // 0')
+          FAILED=$(echo "$RESULTS_JSON" | jq -r '.failed // 0')
+          SKIPPED=$(echo "$RESULTS_JSON" | jq -r '.skipped // 0')
+          DURATION=$(echo "$RESULTS_JSON" | jq -r '.duration // 0')
+          TEST_RESULTS=$(echo "$RESULTS_JSON" | jq -r '.results // []')
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "runId": "${RUN_ID}",
+            "testResults": {
+              "runId": "${RUN_ID}",
+              "testType": "${TEST_TYPE}",
+              "status": "${FINAL_STATUS}",
+              "startedAt": "${STARTED_AT}",
+              "completedAt": "${COMPLETED_AT}",
+              "total": ${TOTAL},
+              "passed": ${PASSED},
+              "failed": ${FAILED},
+              "skipped": ${SKIPPED},
+              "duration": ${DURATION},
+              "results": ${TEST_RESULTS},
+              "markdown": ""
+            }
+          }
+          EOF
+          )
+
+          curl -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $WEBHOOK_SECRET" \
+            -d "$PAYLOAD" || echo "Warning: Webhook call failed"

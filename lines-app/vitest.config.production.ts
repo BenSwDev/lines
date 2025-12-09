@@ -8,7 +8,11 @@ export default defineConfig({
     name: "production",
     globals: true,
     environment: "node",
-    include: ["tests/unit/**/*.test.ts", "tests/unit/**/*.test.tsx", "tests/integration/**/*.test.ts"],
+    include: [
+      "tests/unit/**/*.test.ts",
+      "tests/unit/**/*.test.tsx",
+      "tests/integration/**/*.test.ts"
+    ],
     exclude: ["node_modules", ".next", "dist"],
     setupFiles: ["./tests/setup.ts"],
     testTimeout: 30000,
@@ -25,9 +29,10 @@ export default defineConfig({
       ]
     },
     env: {
-      TEST_BASE_URL: process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000"
+      TEST_BASE_URL:
+        process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000"
     }
   },
   resolve: {
@@ -36,4 +41,3 @@ export default defineConfig({
     }
   }
 });
-

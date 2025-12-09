@@ -46,7 +46,7 @@ export async function updateUserRole(input: unknown) {
 
   try {
     const validated = updateUserRoleSchema.parse(input);
-    
+
     // Prevent admin from changing their own role
     if (validated.userId === admin.id) {
       return { success: false, error: "Cannot change your own role" };
@@ -145,4 +145,3 @@ export async function getUserStats() {
     return { success: false, error: "Failed to fetch stats" };
   }
 }
-

@@ -22,7 +22,7 @@ export async function requireAuth() {
 
 export async function requireAdmin() {
   const session = await getSession();
-  
+
   if (!session?.user) {
     redirect("/auth/login");
   }
@@ -39,7 +39,7 @@ export async function requireAdmin() {
   }
 
   const userRole = dbUser.role;
-  
+
   if (userRole !== "admin") {
     redirect("/dashboard");
   }

@@ -13,15 +13,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import {
-  ArrowLeft,
-  Calendar,
-  Edit,
-  Map,
-  Settings,
-  Clock,
-  Sparkles
-} from "lucide-react";
+import { ArrowLeft, Calendar, Edit, Map, Settings, Clock, Sparkles } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import { getLine } from "../actions/getLine";
 import { getFloorPlans } from "@/modules/floor-plan-editor/actions/floorPlanActions";
@@ -220,7 +212,6 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
               </CardContent>
             </Card>
 
-
             <Card className="overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <CardHeader className="pb-2 relative z-10">
@@ -316,7 +307,6 @@ export function LineDetailView({ lineId, venueId, onBack }: LineDetailViewProps)
             </CardContent>
           </Card>
         </TabsContent>
-
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6 mt-6">

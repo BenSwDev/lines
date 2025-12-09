@@ -81,5 +81,5 @@ export default defineConfig({
       // Ensure Next.js sees the environment variables
       NODE_ENV: "development"
     }
-  },
+  }
 });

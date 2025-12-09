@@ -12,15 +12,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import {
-  Edit,
-  ArrowLeft,
-  ArrowRight,
-  Map,
-  Users,
-  DollarSign,
-  Settings
-} from "lucide-react";
+import { Edit, ArrowLeft, ArrowRight, Map, Users, DollarSign, Settings } from "lucide-react";
 import { useTranslations } from "@/core/i18n/provider";
 import type { Line, LineOccurrence } from "@prisma/client";
 import { LineReservationSettings } from "./LineReservationSettings";
@@ -125,7 +117,6 @@ export function LineDetailPage({ line, venueId }: LineDetailPageProps) {
           </CardContent>
         </Card>
       </div>
-
 
       {/* Floor Plan & Seating Arrangement */}
       <div className="space-y-4">

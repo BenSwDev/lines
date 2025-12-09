@@ -2,203 +2,203 @@
 
 ```yaml
 - generic:
-  - generic:
     - generic:
-      - generic:
         - generic:
-          - generic:
             - generic:
-              - generic:
                 - generic:
-                  - generic: L
-                - generic:
-                  - heading [level=1]: Lines
-                  - paragraph: ניהול אירועים
-            - generic:
-              - generic:
-                - generic: מקום נוכחי
-                - generic:
-                  - button:
                     - generic:
-                      - img
-                      - text: Test Venue E2E
-                    - img
-              - generic:
-                - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e
-                        - img
-                        - generic: סקירה כללית
-              - generic:
-                - generic: מידע והגדרות
-                - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/info
-                        - img
-                        - generic: מידע כללי
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/lines
-                        - img
-                        - generic: ליינים
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/structure
-                        - img
-                        - generic: מפה כללית
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/roles
-                        - img
-                        - generic: תפקידים והיררכיה
-              - generic:
-                - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/calendar
-                        - img
-                        - generic: לוח שנה
-                        - generic: חדש
-              - generic:
-                - generic: הגדרות מקום
-                - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/reservations
-                        - img
-                        - generic: הזמנות
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/tickets
-                        - img
-                        - generic: כרטיסים
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/menus
-                        - img
-                        - generic: תפריטים
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/team
-                        - img
-                        - generic: צוות יחסי ציבור
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/inventory
-                        - img
-                        - generic: מלאי
-            - generic:
-              - button:
-                - generic:
-                  - generic: D
-                - generic:
-                  - generic: Demo User
-                  - generic: demo@lines.app
-                - img
-      - main:
-        - generic:
-          - generic:
-            - generic:
-              - button:
-                - img
-                - generic: Toggle Sidebar
-              - generic:
-                - img
-                - heading [level=2]: Test Venue E2E
-            - generic:
-              - button:
-                - img
-                - img
-                - generic: Toggle theme
-              - button: EN
-        - generic:
-          - generic:
-            - generic:
-              - heading [level=1]: Roles & Hierarchy
-              - paragraph: Manage roles and organizational structure
-            - generic:
-              - generic:
-                - generic:
-                  - generic:
-                    - generic:
-                      - heading [level=2]: תפקידים
-                      - button:
-                        - img
-                        - text: הוסף
-                    - paragraph: 0 תפקידים
-                  - generic:
-                    - generic:
-                      - generic:
                         - generic:
-                          - generic:
-                            - img
-                            - paragraph: אין תפקידים עדיין
+                            - generic:
+                                - generic:
+                                    - generic: L
+                                - generic:
+                                    - heading [level=1]: Lines
+                                    - paragraph: ניהול אירועים
+                        - generic:
+                            - generic:
+                                - generic: מקום נוכחי
+                                - generic:
+                                    - button:
+                                        - generic:
+                                            - img
+                                            - text: Test Venue E2E
+                                        - img
+                            - generic:
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e
+                                                - img
+                                                - generic: סקירה כללית
+                            - generic:
+                                - generic: מידע והגדרות
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/info
+                                                - img
+                                                - generic: מידע כללי
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/lines
+                                                - img
+                                                - generic: ליינים
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/structure
+                                                - img
+                                                - generic: מפה כללית
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/roles
+                                                - img
+                                                - generic: תפקידים והיררכיה
+                            - generic:
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/calendar
+                                                - img
+                                                - generic: לוח שנה
+                                                - generic: חדש
+                            - generic:
+                                - generic: הגדרות מקום
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/reservations
+                                                - img
+                                                - generic: הזמנות
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/tickets
+                                                - img
+                                                - generic: כרטיסים
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/menus
+                                                - img
+                                                - generic: תפריטים
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/team
+                                                - img
+                                                - generic: צוות יחסי ציבור
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/inventory
+                                                - img
+                                                - generic: מלאי
+                        - generic:
                             - button:
-                              - img
-                              - text: צור תפקיד ראשון
-              - generic:
+                                - generic:
+                                    - generic: D
+                                - generic:
+                                    - generic: Demo User
+                                    - generic: demo@lines.app
+                                - img
+            - main:
                 - generic:
-                  - img:
                     - generic:
-                      - generic:
                         - generic:
-                          - generic: 👑
-                        - generic: Demo User
-  - list
-  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
-    - img [ref=e7]
-  - alert
-  - dialog "יצירת תפקיד חדש" [ref=e11]:
-    - generic [ref=e12]:
-      - heading "יצירת תפקיד חדש" [level=2] [ref=e13]
-      - paragraph [ref=e14]: הגדר תפקיד חדש בארגון
-    - generic [ref=e15]:
-      - generic [ref=e16]:
-        - generic [ref=e17]:
-          - generic [ref=e18]: שם התפקיד *
-          - textbox "שם התפקיד *" [active] [ref=e19]:
-            - /placeholder: "לדוגמה: שף, ברמן, מנהל"
-        - generic [ref=e20]:
-          - text: תיאור (אופציונלי)
-          - textbox "תיאור (אופציונלי)" [ref=e21]:
-            - /placeholder: הוסף תיאור קצר לתפקיד
-        - generic [ref=e22]:
-          - generic [ref=e23]:
-            - text: צבע
-            - combobox [ref=e24] [cursor=pointer]:
-              - generic [ref=e27]: Blue
-              - img [ref=e28]
-            - combobox [ref=e30]
-          - generic [ref=e31]:
-            - text: אייקון
-            - combobox [ref=e32] [cursor=pointer]:
-              - generic [ref=e33]:
-                - generic [ref=e34]: 👨‍🍳
-                - generic [ref=e35]: מטבח
-              - img [ref=e36]
-            - combobox [ref=e38]
-        - generic [ref=e39]:
-          - checkbox "תפקיד זה דורש קבוצת ניהול" [ref=e40] [cursor=pointer]
-          - checkbox
-          - generic [ref=e41] [cursor=pointer]: תפקיד זה דורש קבוצת ניהול
-        - generic [ref=e42]:
-          - checkbox "תפקיד זה דורש סידור עבודה" [ref=e43] [cursor=pointer]
-          - checkbox
-          - generic [ref=e44] [cursor=pointer]: תפקיד זה דורש סידור עבודה
-        - generic [ref=e45]:
-          - checkbox "תפקיד זה יכול לנהל תפקידים אחרים" [ref=e46] [cursor=pointer]
-          - checkbox
-          - generic [ref=e47] [cursor=pointer]: תפקיד זה יכול לנהל תפקידים אחרים
-      - generic [ref=e48]:
-        - button "ביטול" [ref=e49] [cursor=pointer]
-        - button "צור תפקיד" [disabled]
-    - button "Close" [ref=e50] [cursor=pointer]:
-      - img [ref=e51]
-      - generic [ref=e54]: Close
+                            - button:
+                                - img
+                                - generic: Toggle Sidebar
+                            - generic:
+                                - img
+                                - heading [level=2]: Test Venue E2E
+                        - generic:
+                            - button:
+                                - img
+                                - img
+                                - generic: Toggle theme
+                            - button: EN
+                - generic:
+                    - generic:
+                        - generic:
+                            - heading [level=1]: Roles & Hierarchy
+                            - paragraph: Manage roles and organizational structure
+                        - generic:
+                            - generic:
+                                - generic:
+                                    - generic:
+                                        - generic:
+                                            - heading [level=2]: תפקידים
+                                            - button:
+                                                - img
+                                                - text: הוסף
+                                        - paragraph: 0 תפקידים
+                                    - generic:
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                        - paragraph: אין תפקידים עדיין
+                                                        - button:
+                                                            - img
+                                                            - text: צור תפקיד ראשון
+                            - generic:
+                                - generic:
+                                    - img:
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: 👑
+                                                - generic: Demo User
+    - list
+    - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+    - alert
+    - dialog "יצירת תפקיד חדש" [ref=e11]:
+        - generic [ref=e12]:
+            - heading "יצירת תפקיד חדש" [level=2] [ref=e13]
+            - paragraph [ref=e14]: הגדר תפקיד חדש בארגון
+        - generic [ref=e15]:
+            - generic [ref=e16]:
+                - generic [ref=e17]:
+                    - generic [ref=e18]: שם התפקיד *
+                    - textbox "שם התפקיד *" [active] [ref=e19]:
+                        - /placeholder: "לדוגמה: שף, ברמן, מנהל"
+                - generic [ref=e20]:
+                    - text: תיאור (אופציונלי)
+                    - textbox "תיאור (אופציונלי)" [ref=e21]:
+                        - /placeholder: הוסף תיאור קצר לתפקיד
+                - generic [ref=e22]:
+                    - generic [ref=e23]:
+                        - text: צבע
+                        - combobox [ref=e24] [cursor=pointer]:
+                            - generic [ref=e27]: Blue
+                            - img [ref=e28]
+                        - combobox [ref=e30]
+                    - generic [ref=e31]:
+                        - text: אייקון
+                        - combobox [ref=e32] [cursor=pointer]:
+                            - generic [ref=e33]:
+                                - generic [ref=e34]: 👨‍🍳
+                                - generic [ref=e35]: מטבח
+                            - img [ref=e36]
+                        - combobox [ref=e38]
+                - generic [ref=e39]:
+                    - checkbox "תפקיד זה דורש קבוצת ניהול" [ref=e40] [cursor=pointer]
+                    - checkbox
+                    - generic [ref=e41] [cursor=pointer]: תפקיד זה דורש קבוצת ניהול
+                - generic [ref=e42]:
+                    - checkbox "תפקיד זה דורש סידור עבודה" [ref=e43] [cursor=pointer]
+                    - checkbox
+                    - generic [ref=e44] [cursor=pointer]: תפקיד זה דורש סידור עבודה
+                - generic [ref=e45]:
+                    - checkbox "תפקיד זה יכול לנהל תפקידים אחרים" [ref=e46] [cursor=pointer]
+                    - checkbox
+                    - generic [ref=e47] [cursor=pointer]: תפקיד זה יכול לנהל תפקידים אחרים
+            - generic [ref=e48]:
+                - button "ביטול" [ref=e49] [cursor=pointer]
+                - button "צור תפקיד" [disabled]
+        - button "Close" [ref=e50] [cursor=pointer]:
+            - img [ref=e51]
+            - generic [ref=e54]: Close
 ```

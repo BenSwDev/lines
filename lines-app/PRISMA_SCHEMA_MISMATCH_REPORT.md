@@ -10,10 +10,12 @@
 ### 1. טבלה `floor_plan_lines` קיימת במסד הנתונים אבל לא ב-Prisma Schema
 
 **מצב:**
+
 - ✅ קיימת במסד הנתונים: `floor_plan_lines`
 - ❌ לא מופיעה ב-`prisma/schema.prisma`
 
 **מבנה הטבלה במסד הנתונים:**
+
 ```sql
 CREATE TABLE floor_plan_lines (
   floor_plan_id TEXT NOT NULL,
@@ -24,11 +26,13 @@ CREATE TABLE floor_plan_lines (
 ```
 
 **השפעה:**
+
 - Prisma Client לא מכיר את הטבלה הזו
 - כל ניסיון לעדכן relationships בין FloorPlan ל-Line עלול להיכשל
 - יכול לגרום לשגיאות "column does not exist" כאשר Prisma מנסה לעדכן relationships
 
 **פתרון:**
+
 1. להוסיף את הטבלה ל-Prisma schema כ-implicit many-to-many
 2. או להסיר את הטבלה אם היא לא בשימוש (לבדוק אם יש foreign keys)
 
@@ -39,6 +43,7 @@ CREATE TABLE floor_plan_lines (
 ### 2. בדיקת כל העמודות במסד הנתונים מול Schema
 
 **טבלאות לבדיקה:**
+
 - `zones` - יש 23 עמודות במסד הנתונים
 - `lines` - יש 11 עמודות במסד הנתונים
 - `tables` - יש 17 עמודות במסד הנתונים
@@ -46,6 +51,7 @@ CREATE TABLE floor_plan_lines (
 - `roles` - יש 17 עמודות במסד הנתונים
 
 **צריך לבדוק:**
+
 - האם כל העמודות במסד הנתונים מופיעות ב-schema עם שמות נכונים (camelCase vs snake_case)
 - האם יש עמודות ב-schema שלא קיימות במסד הנתונים
 
@@ -54,6 +60,7 @@ CREATE TABLE floor_plan_lines (
 ### 3. בדיקת Relationships
 
 **בעיות אפשריות:**
+
 - Relationships ב-schema שלא תואמים למבנה במסד הנתונים
 - Foreign keys במסד הנתונים שלא מופיעים ב-schema
 - Implicit many-to-many tables שלא מוגדרות ב-schema
@@ -63,11 +70,13 @@ CREATE TABLE floor_plan_lines (
 ### 4. בעיית השגיאה "The column `.new` does not exist"
 
 **השערות:**
+
 1. **Prisma מנסה לעדכן relationship בשם `new`** - יכול להיות שמישהו ניסה לעדכן relationship שלא קיים
 2. **בעיה ב-Prisma Client** - אולי יש גרסה לא מסונכרנת של Prisma Client
 3. **בעיה ב-migration** - אולי יש migration שלא רץ או רץ חלקית
 
 **צריך לבדוק:**
+
 - כל השימושים ב-`prisma.zone.update()` ו-`prisma.line.update()`
 - האם יש ניסיונות לעדכן relationships שלא קיימים
 - האם יש שדות ב-data object שלא קיימים ב-schema
@@ -79,15 +88,16 @@ CREATE TABLE floor_plan_lines (
 ### שלב 1: סנכרון Prisma Schema עם מסד הנתונים
 
 1. **להוסיף את `floor_plan_lines` ל-schema:**
+
    ```prisma
    model FloorPlanLine {
      floorPlanId String   @map("floor_plan_id")
      lineId      String   @map("line_id")
      createdAt   DateTime @default(now()) @map("created_at")
-     
+
      floorPlan FloorPlan @relation(fields: [floorPlanId], references: [id], onDelete: Cascade)
      line      Line      @relation(fields: [lineId], references: [id], onDelete: Cascade)
-     
+
      @@id([floorPlanId, lineId])
      @@map("floor_plan_lines")
    }
@@ -100,6 +110,7 @@ CREATE TABLE floor_plan_lines (
 ### שלב 2: בדיקת כל העמודות
 
 1. להריץ migration check:
+
    ```bash
    pnpm prisma migrate dev --create-only --name sync_schema
    ```
@@ -130,10 +141,12 @@ CREATE TABLE floor_plan_lines (
 **מיקום:** `lines-app/src/modules/floor-plan-editor/services/floorPlanService.ts`
 
 **קוד בעייתי:**
+
 - השירות משתמש ב-`prisma.line.updateMany()` כדי לעדכן `floorPlanId` ישירות
 - אבל יש גם טבלת `floor_plan_lines` שמצביעה על many-to-many relationship
 
 **צריך להחליט:**
+
 - האם ה-relationship הוא 1:1 (Line -> FloorPlan) או Many-to-Many?
 - אם זה 1:1, צריך להסיר את `floor_plan_lines`
 - אם זה Many-to-Many, צריך לעדכן את ה-schema והקוד
@@ -162,14 +175,17 @@ CREATE TABLE floor_plan_lines (
 ### בעיה: אי-התאמה בין Schema למסד הנתונים - Line ↔ FloorPlan
 
 **מצב נוכחי:**
+
 - ב-Schema: `Line` יש `floorPlanId` (1:1 relationship)
 - במסד הנתונים: יש גם `floor_plan_id` ב-`lines` וגם טבלת `floor_plan_lines` (many-to-many)
 
 **זה אומר:**
+
 - יש שני מנגנונים שונים ל-linking בין Line ל-FloorPlan
 - זה יכול לגרום לבלבול ולשגיאות
 
 **צריך להחליט:**
+
 1. אם זה 1:1 - להסיר את `floor_plan_lines`
 2. אם זה Many-to-Many - להסיר את `floorPlanId` מ-`Line` ולהוסיף את `floor_plan_lines` ל-schema
 
@@ -190,6 +206,7 @@ CREATE TABLE floor_plan_lines (
 **החלטה:** להסיר את `floor_plan_lines` כי היא לא בשימוש (0 שורות, הקוד משתמש ב-`floorPlanId` ישירות)
 
 1. **להסיר את הטבלה `floor_plan_lines` מהמסד הנתונים:**
+
    ```sql
    DROP TABLE IF EXISTS floor_plan_lines CASCADE;
    ```
@@ -203,6 +220,7 @@ CREATE TABLE floor_plan_lines (
 **החלטה:** ✅ 1:1 (Line → FloorPlan) - הקוד משתמש ב-`floorPlanId` ישירות
 
 **פעולות:**
+
 - ✅ להסיר את `floor_plan_lines` (לא בשימוש)
 - ✅ להשאיר רק `floorPlanId` ב-`Line` (כפי שזה עכשיו)
 
@@ -211,6 +229,7 @@ CREATE TABLE floor_plan_lines (
 **מצב:** הקוד כבר משתמש ב-`floorPlanId` ישירות (1:1) - אין צורך בשינויים בקוד
 
 **פעולות:**
+
 - ✅ הקוד כבר נכון - משתמש ב-`prisma.line.updateMany()` עם `floorPlanId`
 - ✅ אין צורך בשינויים בקוד
 
@@ -239,19 +258,21 @@ CREATE TABLE floor_plan_lines (
 ## 🎯 סיכום סופי
 
 ### בעיות שזוהו:
+
 1. ✅ **טבלה `floor_plan_lines` קיימת במסד הנתונים אבל לא ב-schema ולא בשימוש**
    - הטבלה ריקה (0 שורות)
    - הקוד משתמש ב-`floorPlanId` ישירות (1:1)
    - זה יכול לגרום לבעיות כאשר Prisma מנסה לעדכן relationships
 
 ### פתרון:
+
 1. **להסיר את `floor_plan_lines` מהמסד הנתונים** - זה הפתרון הנכון כי היא לא בשימוש
 2. **לרוץ `pnpm prisma generate`** - לרענן את Prisma Client
 3. **לבדוק שאין שגיאות Prisma** - לבדוק שהכל עובד
 
 ### הערה על השגיאה "The column `.new` does not exist":
+
 - השגיאה יכולה להיות קשורה ל-Prisma relationships
 - Prisma משתמש ב-`.new` פנימית לעדכון relationships
 - אם יש טבלאות במסד הנתונים שלא מופיעות ב-schema, זה יכול לגרום לבעיות
 - הסרת `floor_plan_lines` אמורה לפתור את הבעיה
-

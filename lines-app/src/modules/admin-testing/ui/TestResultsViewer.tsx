@@ -45,7 +45,7 @@ export function TestResultsViewer({ results }: TestResultsViewerProps) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "הורדה",
       description: "קובץ התוצאות הורד"
@@ -116,11 +116,7 @@ export function TestResultsViewer({ results }: TestResultsViewerProps) {
           <CardTitle>תוצאות (Markdown)</CardTitle>
         </CardHeader>
         <CardContent>
-          <Textarea
-            value={results.markdown}
-            readOnly
-            className="font-mono text-sm min-h-[400px]"
-          />
+          <Textarea value={results.markdown} readOnly className="font-mono text-sm min-h-[400px]" />
         </CardContent>
       </Card>
 
@@ -139,9 +135,7 @@ export function TestResultsViewer({ results }: TestResultsViewerProps) {
                     <span className="font-semibold">{test.testName}</span>
                     <Badge variant="destructive">נכשל</Badge>
                   </div>
-                  <div className="text-sm text-muted-foreground mb-1">
-                    {test.testFile}
-                  </div>
+                  <div className="text-sm text-muted-foreground mb-1">{test.testFile}</div>
                   {test.error && (
                     <div className="mt-2 space-y-1">
                       <div className="text-sm">
@@ -170,4 +164,3 @@ export function TestResultsViewer({ results }: TestResultsViewerProps) {
     </div>
   );
 }
-

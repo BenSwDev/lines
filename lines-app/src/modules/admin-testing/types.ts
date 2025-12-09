@@ -44,4 +44,3 @@ export interface TestSuiteResult {
 export interface TestRunRequest {
   testType: TestType;
 }
-

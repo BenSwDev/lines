@@ -7,10 +7,10 @@ test.describe("Create Line E2E", () => {
   test.beforeEach(async ({ page }) => {
     // Authenticate first
     await loginAsUser(page);
-    
+
     // Get test venue ID
     venueId = await getTestVenueId();
-    
+
     // Navigate to lines page
     await navigateToVenue(page, venueId);
     await page.goto(`/venues/${venueId}/lines`);

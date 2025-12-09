@@ -2,53 +2,53 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - generic [ref=e6]:
-    - generic [ref=e7]:
-      - link "L" [ref=e8] [cursor=pointer]:
-        - /url: /
-        - generic [ref=e12]: L
-      - heading "ברוכים הבאים חזרה" [level=1] [ref=e13]
-      - paragraph [ref=e14]: התחבר לחשבון שלך
-    - generic [ref=e15]:
-      - generic [ref=e17]:
-        - generic [ref=e18]:
-          - img [ref=e20]
-          - text: התחברות
-        - generic [ref=e23]: הזן את פרטי ההתחברות שלך כדי להמשיך
-      - generic [ref=e24]:
-        - generic [ref=e25]:
-          - generic [ref=e26]:
-            - text: אימייל
-            - textbox "אימייל" [ref=e27]:
-              - /placeholder: your@email.com
-          - generic [ref=e28]:
-            - text: סיסמה
-            - textbox "סיסמה" [ref=e29]:
-              - /placeholder: ••••••••
-        - generic [ref=e30]:
-          - button "התחבר" [ref=e31] [cursor=pointer]:
-            - text: התחבר
-            - img
-          - paragraph [ref=e32]:
-            - text: אין לך חשבון?
-            - link "הרשם כאן" [ref=e33] [cursor=pointer]:
-              - /url: /auth/register
-    - generic [ref=e34]:
-      - generic [ref=e37]:
-        - generic [ref=e38]: 🎭
-        - text: חשבון דמו
-      - generic [ref=e39]:
-        - generic [ref=e40]:
-          - generic [ref=e41]: "אימייל:"
-          - code [ref=e42]: demo@lines.app
-        - generic [ref=e43]:
-          - generic [ref=e44]: "סיסמה:"
-          - code [ref=e45]: demo123
-    - link "← חזרה לדף הבית" [ref=e47] [cursor=pointer]:
-      - /url: /
-  - region "Notifications (F8)":
-    - list
-  - button "Open Next.js Dev Tools" [ref=e53] [cursor=pointer]:
-    - img [ref=e54]
-  - alert [ref=e57]
+    - generic [ref=e6]:
+        - generic [ref=e7]:
+            - link "L" [ref=e8] [cursor=pointer]:
+                - /url: /
+                - generic [ref=e12]: L
+            - heading "ברוכים הבאים חזרה" [level=1] [ref=e13]
+            - paragraph [ref=e14]: התחבר לחשבון שלך
+        - generic [ref=e15]:
+            - generic [ref=e17]:
+                - generic [ref=e18]:
+                    - img [ref=e20]
+                    - text: התחברות
+                - generic [ref=e23]: הזן את פרטי ההתחברות שלך כדי להמשיך
+            - generic [ref=e24]:
+                - generic [ref=e25]:
+                    - generic [ref=e26]:
+                        - text: אימייל
+                        - textbox "אימייל" [ref=e27]:
+                            - /placeholder: your@email.com
+                    - generic [ref=e28]:
+                        - text: סיסמה
+                        - textbox "סיסמה" [ref=e29]:
+                            - /placeholder: ••••••••
+                - generic [ref=e30]:
+                    - button "התחבר" [ref=e31] [cursor=pointer]:
+                        - text: התחבר
+                        - img
+                    - paragraph [ref=e32]:
+                        - text: אין לך חשבון?
+                        - link "הרשם כאן" [ref=e33] [cursor=pointer]:
+                            - /url: /auth/register
+        - generic [ref=e34]:
+            - generic [ref=e37]:
+                - generic [ref=e38]: 🎭
+                - text: חשבון דמו
+            - generic [ref=e39]:
+                - generic [ref=e40]:
+                    - generic [ref=e41]: "אימייל:"
+                    - code [ref=e42]: demo@lines.app
+                - generic [ref=e43]:
+                    - generic [ref=e44]: "סיסמה:"
+                    - code [ref=e45]: demo123
+        - link "← חזרה לדף הבית" [ref=e47] [cursor=pointer]:
+            - /url: /
+    - region "Notifications (F8)":
+        - list
+    - button "Open Next.js Dev Tools" [ref=e53] [cursor=pointer]:
+        - img [ref=e54]
+    - alert [ref=e57]
 ```

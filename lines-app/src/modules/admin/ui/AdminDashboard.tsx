@@ -4,13 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Users,
-  Building2,
-  Shield,
-  TrendingUp,
-  TestTube
-} from "lucide-react";
+import { Users, Building2, Shield, TrendingUp, TestTube } from "lucide-react";
 import { getUserStats } from "../actions/adminActions";
 import { UsersManagement } from "./UsersManagement";
 import { VenuesManagement } from "./VenuesManagement";
@@ -151,4 +145,3 @@ export function AdminDashboard() {
     </div>
   );
 }
-

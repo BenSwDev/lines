@@ -11,6 +11,7 @@
 ## 🔍 Our Goal: Find Real Bugs
 
 ### What We DO:
+
 1. ✅ Write tests that simulate real user behavior
 2. ✅ Test actual functionality as users would use it
 3. ✅ If a test fails → **FIX THE PLATFORM**, not the test
@@ -19,6 +20,7 @@
 6. ✅ Test error handling for real error scenarios
 
 ### What We DON'T Do:
+
 1. ❌ Modify tests to skip failing assertions
 2. ❌ Add conditional logic to make tests pass
 3. ❌ Ignore failures because "it's expected"
@@ -43,7 +45,7 @@ test("should prevent creating overlapping lines", async ({ page }) => {
   await page.getByLabel(/שעת סיום/i).fill("22:00");
   await page.getByRole("button", { name: /שמור/i }).click();
   await expect(page.getByText(/נוצר בהצלחה/i)).toBeVisible({ timeout: 5000 });
-  
+
   // Try to create overlapping line
   await page.getByRole("button", { name: /צור ליין חדש/i }).click();
   await page.getByLabel(/שם הליין/i).fill("Overlapping Line");
@@ -51,7 +53,7 @@ test("should prevent creating overlapping lines", async ({ page }) => {
   await page.getByLabel(/שעת התחלה/i).fill("19:00"); // Overlaps
   await page.getByLabel(/שעת סיום/i).fill("23:00");
   await page.getByRole("button", { name: /שמור/i }).click();
-  
+
   // If this fails, there's a bug in collision detection!
   await expect(page.getByText(/התנגשות|collision/i)).toBeVisible({ timeout: 5000 });
 });
@@ -63,7 +65,7 @@ test("should prevent creating overlapping lines", async ({ page }) => {
 // ❌ BAD: Makes test pass even if feature is broken
 test("should prevent creating overlapping lines", async ({ page }) => {
   // ... create lines ...
-  
+
   // BAD: Conditional assertion
   const errorVisible = await page.getByText(/התנגשות/i).isVisible();
   if (errorVisible) {
@@ -75,7 +77,6 @@ test("should prevent creating overlapping lines", async ({ page }) => {
 // ❌ BAD: Ignores failures
 test("should validate input", async ({ page }) => {
   // ... fill form ...
-  
   // BAD: Comments out failing assertion
   // await expect(page.getByText(/נדרש/i)).toBeVisible(); // Sometimes doesn't work
 });
@@ -83,7 +84,7 @@ test("should validate input", async ({ page }) => {
 // ❌ BAD: Changes expectation to match broken behavior
 test("should show error", async ({ page }) => {
   // ... trigger error ...
-  
+
   // BAD: Accepts wrong error message because platform shows wrong message
   await expect(page.getByText(/some wrong message/i)).toBeVisible();
 });
@@ -94,6 +95,7 @@ test("should show error", async ({ page }) => {
 ## 🐛 When Tests Fail
 
 ### Process:
+
 1. **Run the test** - See what fails
 2. **Investigate** - Check if it's a test issue or platform bug
 3. **Fix the platform** - If it's a real bug, fix it in the codebase
@@ -143,40 +145,45 @@ The tests are our quality gate. They should catch bugs, not hide them.
 ### Example 1: Collision Detection Bug
 
 **Test Failure:**
+
 ```
 Expected: Collision error message
 Actual: Line created successfully (with overlapping time)
 ```
 
 **Action:**
+
 - ✅ Fix: Update `checkCollisions.ts` to properly detect overlaps
 - ❌ Wrong: Modify test to accept success
 
 ### Example 2: Validation Bug
 
 **Test Failure:**
+
 ```
 Expected: "נדרש שם" error
 Actual: No error shown, form submits
 ```
 
 **Action:**
+
 - ✅ Fix: Add validation in `CreateLineDialog.tsx`
 - ❌ Wrong: Remove assertion from test
 
 ### Example 3: UI State Bug
 
 **Test Failure:**
+
 ```
 Expected: Dialog closes after save
 Actual: Dialog stays open, no feedback
 ```
 
 **Action:**
+
 - ✅ Fix: Update dialog close logic in component
 - ❌ Wrong: Test for dialog being open after save
 
 ---
 
 **Remember: Tests that always pass are useless. Tests that catch bugs are valuable.**
-

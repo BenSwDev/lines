@@ -2,124 +2,124 @@
 
 ```yaml
 - generic [active] [ref=e1]:
-  - generic [ref=e3]:
-    - generic [ref=e6]:
-      - generic [ref=e8]:
-        - generic [ref=e10]: L
-        - generic [ref=e11]:
-          - heading "Lines" [level=1] [ref=e12]
-          - paragraph [ref=e13]: ניהול אירועים
-      - generic [ref=e14]:
-        - generic [ref=e15]:
-          - generic [ref=e16]: מקום נוכחי
-          - button "Test Venue E2E" [ref=e18] [cursor=pointer]:
-            - generic [ref=e19]:
-              - img
-              - text: Test Venue E2E
-            - img
-        - list [ref=e22]:
-          - listitem [ref=e23]:
-            - link "סקירה כללית" [ref=e24] [cursor=pointer]:
-              - /url: /venues/test-venue-e2e
-              - img [ref=e25]
-              - generic [ref=e28]: סקירה כללית
-        - generic [ref=e29]:
-          - generic [ref=e30]: מידע והגדרות
-          - list [ref=e32]:
-            - listitem [ref=e33]:
-              - link "מידע כללי" [ref=e34] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/info
-                - img [ref=e35]
-                - generic [ref=e37]: מידע כללי
-            - listitem [ref=e38]:
-              - link "ליינים" [ref=e39] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/lines
-                - img [ref=e40]
-                - generic [ref=e41]: ליינים
-            - listitem [ref=e42]:
-              - link "מפה כללית" [ref=e43] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/structure
-                - img [ref=e44]
-                - generic [ref=e48]: מפה כללית
-            - listitem [ref=e49]:
-              - link "תפקידים והיררכיה" [ref=e50] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/roles
-                - img [ref=e51]
-                - generic [ref=e56]: תפקידים והיררכיה
-        - list [ref=e59]:
-          - listitem [ref=e60]:
-            - link "לוח שנה חדש" [ref=e61] [cursor=pointer]:
-              - /url: /venues/test-venue-e2e/calendar
-              - img [ref=e62]
-              - generic [ref=e64]: לוח שנה
-              - generic [ref=e65]: חדש
-        - generic [ref=e66]:
-          - generic [ref=e67]: הגדרות מקום
-          - list [ref=e69]:
-            - listitem [ref=e70]:
-              - link "הזמנות" [ref=e71] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/reservations
-                - img [ref=e72]
-                - generic [ref=e74]: הזמנות
-            - listitem [ref=e75]:
-              - link "כרטיסים" [ref=e76] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/tickets
-                - img [ref=e77]
-                - generic [ref=e79]: כרטיסים
-            - listitem [ref=e80]:
-              - link "תפריטים" [ref=e81] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/menus
-                - img [ref=e82]
-                - generic [ref=e85]: תפריטים
-            - listitem [ref=e86]:
-              - link "צוות יחסי ציבור" [ref=e87] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/team
-                - img [ref=e88]
-                - generic [ref=e93]: צוות יחסי ציבור
-            - listitem [ref=e94]:
-              - link "מלאי" [ref=e95] [cursor=pointer]:
-                - /url: /venues/test-venue-e2e/settings/inventory
-                - img [ref=e96]
-                - generic [ref=e100]: מלאי
-      - button "D Demo User demo@lines.app" [ref=e102] [cursor=pointer]:
-        - generic [ref=e104]: D
-        - generic [ref=e105]:
-          - generic [ref=e106]: Demo User
-          - generic [ref=e107]: demo@lines.app
-        - img
-    - main [ref=e108]:
-      - generic [ref=e110]:
-        - generic [ref=e111]:
-          - button "Toggle Sidebar" [ref=e112] [cursor=pointer]:
-            - img
-            - generic [ref=e113]: Toggle Sidebar
-          - generic [ref=e114]:
-            - img [ref=e115]
-            - heading "Test Venue E2E" [level=2] [ref=e119]
-        - generic [ref=e120]:
-          - button "Toggle theme" [ref=e121] [cursor=pointer]:
-            - img
-            - img
-            - generic [ref=e122]: Toggle theme
-          - button "Switch to English" [ref=e123] [cursor=pointer]: EN
-      - generic [ref=e126]:
-        - generic [ref=e127]:
-          - generic [ref=e128]:
-            - heading "תכנון מקום" [level=2] [ref=e129]
-            - paragraph [ref=e130]: תיאור
-          - button "יצירת מפה חדשה" [ref=e131] [cursor=pointer]:
-            - img
-            - text: יצירת מפה חדשה
-        - generic [ref=e133]:
-          - img [ref=e135]
-          - heading "noFloorPlans" [level=3] [ref=e137]
-          - paragraph [ref=e138]: noFloorPlansDescription
-          - button "createFirstFloorPlan" [ref=e139] [cursor=pointer]:
-            - img
-            - text: createFirstFloorPlan
-  - region "Notifications (F8)":
-    - list
-  - button "Open Next.js Dev Tools" [ref=e145] [cursor=pointer]:
-    - img [ref=e146]
-  - alert [ref=e149]
+    - generic [ref=e3]:
+        - generic [ref=e6]:
+            - generic [ref=e8]:
+                - generic [ref=e10]: L
+                - generic [ref=e11]:
+                    - heading "Lines" [level=1] [ref=e12]
+                    - paragraph [ref=e13]: ניהול אירועים
+            - generic [ref=e14]:
+                - generic [ref=e15]:
+                    - generic [ref=e16]: מקום נוכחי
+                    - button "Test Venue E2E" [ref=e18] [cursor=pointer]:
+                        - generic [ref=e19]:
+                            - img
+                            - text: Test Venue E2E
+                        - img
+                - list [ref=e22]:
+                    - listitem [ref=e23]:
+                        - link "סקירה כללית" [ref=e24] [cursor=pointer]:
+                            - /url: /venues/test-venue-e2e
+                            - img [ref=e25]
+                            - generic [ref=e28]: סקירה כללית
+                - generic [ref=e29]:
+                    - generic [ref=e30]: מידע והגדרות
+                    - list [ref=e32]:
+                        - listitem [ref=e33]:
+                            - link "מידע כללי" [ref=e34] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/info
+                                - img [ref=e35]
+                                - generic [ref=e37]: מידע כללי
+                        - listitem [ref=e38]:
+                            - link "ליינים" [ref=e39] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/lines
+                                - img [ref=e40]
+                                - generic [ref=e41]: ליינים
+                        - listitem [ref=e42]:
+                            - link "מפה כללית" [ref=e43] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/structure
+                                - img [ref=e44]
+                                - generic [ref=e48]: מפה כללית
+                        - listitem [ref=e49]:
+                            - link "תפקידים והיררכיה" [ref=e50] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/roles
+                                - img [ref=e51]
+                                - generic [ref=e56]: תפקידים והיררכיה
+                - list [ref=e59]:
+                    - listitem [ref=e60]:
+                        - link "לוח שנה חדש" [ref=e61] [cursor=pointer]:
+                            - /url: /venues/test-venue-e2e/calendar
+                            - img [ref=e62]
+                            - generic [ref=e64]: לוח שנה
+                            - generic [ref=e65]: חדש
+                - generic [ref=e66]:
+                    - generic [ref=e67]: הגדרות מקום
+                    - list [ref=e69]:
+                        - listitem [ref=e70]:
+                            - link "הזמנות" [ref=e71] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/reservations
+                                - img [ref=e72]
+                                - generic [ref=e74]: הזמנות
+                        - listitem [ref=e75]:
+                            - link "כרטיסים" [ref=e76] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/tickets
+                                - img [ref=e77]
+                                - generic [ref=e79]: כרטיסים
+                        - listitem [ref=e80]:
+                            - link "תפריטים" [ref=e81] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/menus
+                                - img [ref=e82]
+                                - generic [ref=e85]: תפריטים
+                        - listitem [ref=e86]:
+                            - link "צוות יחסי ציבור" [ref=e87] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/team
+                                - img [ref=e88]
+                                - generic [ref=e93]: צוות יחסי ציבור
+                        - listitem [ref=e94]:
+                            - link "מלאי" [ref=e95] [cursor=pointer]:
+                                - /url: /venues/test-venue-e2e/settings/inventory
+                                - img [ref=e96]
+                                - generic [ref=e100]: מלאי
+            - button "D Demo User demo@lines.app" [ref=e102] [cursor=pointer]:
+                - generic [ref=e104]: D
+                - generic [ref=e105]:
+                    - generic [ref=e106]: Demo User
+                    - generic [ref=e107]: demo@lines.app
+                - img
+        - main [ref=e108]:
+            - generic [ref=e110]:
+                - generic [ref=e111]:
+                    - button "Toggle Sidebar" [ref=e112] [cursor=pointer]:
+                        - img
+                        - generic [ref=e113]: Toggle Sidebar
+                    - generic [ref=e114]:
+                        - img [ref=e115]
+                        - heading "Test Venue E2E" [level=2] [ref=e119]
+                - generic [ref=e120]:
+                    - button "Toggle theme" [ref=e121] [cursor=pointer]:
+                        - img
+                        - img
+                        - generic [ref=e122]: Toggle theme
+                    - button "Switch to English" [ref=e123] [cursor=pointer]: EN
+            - generic [ref=e126]:
+                - generic [ref=e127]:
+                    - generic [ref=e128]:
+                        - heading "תכנון מקום" [level=2] [ref=e129]
+                        - paragraph [ref=e130]: תיאור
+                    - button "יצירת מפה חדשה" [ref=e131] [cursor=pointer]:
+                        - img
+                        - text: יצירת מפה חדשה
+                - generic [ref=e133]:
+                    - img [ref=e135]
+                    - heading "noFloorPlans" [level=3] [ref=e137]
+                    - paragraph [ref=e138]: noFloorPlansDescription
+                    - button "createFirstFloorPlan" [ref=e139] [cursor=pointer]:
+                        - img
+                        - text: createFirstFloorPlan
+    - region "Notifications (F8)":
+        - list
+    - button "Open Next.js Dev Tools" [ref=e145] [cursor=pointer]:
+        - img [ref=e146]
+    - alert [ref=e149]
 ```

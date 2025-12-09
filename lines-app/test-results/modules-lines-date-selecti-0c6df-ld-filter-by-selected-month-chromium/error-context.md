@@ -2,288 +2,288 @@
 
 ```yaml
 - generic:
-  - generic:
     - generic:
-      - generic:
         - generic:
-          - generic:
             - generic:
-              - generic:
                 - generic:
-                  - generic: L
-                - generic:
-                  - heading [level=1]: Lines
-                  - paragraph: ניהול אירועים
-            - generic:
-              - generic:
-                - generic: מקום נוכחי
-                - generic:
-                  - button:
                     - generic:
-                      - img
-                      - text: Test Venue E2E
-                    - img
-              - generic:
+                        - generic:
+                            - generic:
+                                - generic:
+                                    - generic: L
+                                - generic:
+                                    - heading [level=1]: Lines
+                                    - paragraph: ניהול אירועים
+                        - generic:
+                            - generic:
+                                - generic: מקום נוכחי
+                                - generic:
+                                    - button:
+                                        - generic:
+                                            - img
+                                            - text: Test Venue E2E
+                                        - img
+                            - generic:
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e
+                                                - img
+                                                - generic: סקירה כללית
+                            - generic:
+                                - generic: מידע והגדרות
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/info
+                                                - img
+                                                - generic: מידע כללי
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/lines
+                                                - img
+                                                - generic: ליינים
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/structure
+                                                - img
+                                                - generic: מפה כללית
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/roles
+                                                - img
+                                                - generic: תפקידים והיררכיה
+                            - generic:
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/calendar
+                                                - img
+                                                - generic: לוח שנה
+                                                - generic: חדש
+                            - generic:
+                                - generic: הגדרות מקום
+                                - generic:
+                                    - list:
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/reservations
+                                                - img
+                                                - generic: הזמנות
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/tickets
+                                                - img
+                                                - generic: כרטיסים
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/menus
+                                                - img
+                                                - generic: תפריטים
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/team
+                                                - img
+                                                - generic: צוות יחסי ציבור
+                                        - listitem:
+                                            - link:
+                                                - /url: /venues/test-venue-e2e/settings/inventory
+                                                - img
+                                                - generic: מלאי
+                        - generic:
+                            - button:
+                                - generic:
+                                    - generic: D
+                                - generic:
+                                    - generic: Demo User
+                                    - generic: demo@lines.app
+                                - img
+            - main:
                 - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e
-                        - img
-                        - generic: סקירה כללית
-              - generic:
-                - generic: מידע והגדרות
+                    - generic:
+                        - generic:
+                            - button:
+                                - img
+                                - generic: Toggle Sidebar
+                            - generic:
+                                - img
+                                - heading [level=2]: Test Venue E2E
+                        - generic:
+                            - button:
+                                - img
+                                - img
+                                - generic: Toggle theme
+                            - button: EN
                 - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/info
-                        - img
-                        - generic: מידע כללי
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/lines
-                        - img
-                        - generic: ליינים
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/structure
-                        - img
-                        - generic: מפה כללית
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/roles
-                        - img
-                        - generic: תפקידים והיררכיה
-              - generic:
-                - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/calendar
-                        - img
-                        - generic: לוח שנה
-                        - generic: חדש
-              - generic:
-                - generic: הגדרות מקום
-                - generic:
-                  - list:
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/reservations
-                        - img
-                        - generic: הזמנות
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/tickets
-                        - img
-                        - generic: כרטיסים
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/menus
-                        - img
-                        - generic: תפריטים
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/team
-                        - img
-                        - generic: צוות יחסי ציבור
-                    - listitem:
-                      - link:
-                        - /url: /venues/test-venue-e2e/settings/inventory
-                        - img
-                        - generic: מלאי
-            - generic:
-              - button:
-                - generic:
-                  - generic: D
-                - generic:
-                  - generic: Demo User
-                  - generic: demo@lines.app
-                - img
-      - main:
-        - generic:
-          - generic:
-            - generic:
-              - button:
-                - img
-                - generic: Toggle Sidebar
-              - generic:
-                - img
-                - heading [level=2]: Test Venue E2E
-            - generic:
-              - button:
-                - img
-                - img
-                - generic: Toggle theme
-              - button: EN
-        - generic:
-          - generic:
-            - generic:
-              - generic:
-                - generic:
-                  - generic:
                     - generic:
-                      - generic:
-                        - img
-                      - generic:
-                        - heading [level=1]: ליינים
                         - generic:
-                          - generic: 0 ליינים
-                  - generic:
-                    - generic:
-                      - img
-                      - textbox:
-                        - /placeholder: חפש ליינים...
-                    - button:
-                      - img
-                      - text: צור ליין חדש
-            - generic:
-              - generic:
-                - generic:
-                  - generic:
-                    - heading [level=2]: מערכת שעות שבועית
-                    - paragraph: צפה בכל הליינים הפעילים לפי ימי השבוע
-                  - generic:
-                    - generic:
-                      - generic:
+                            - generic:
+                                - generic:
+                                    - generic:
+                                        - generic:
+                                            - generic:
+                                                - img
+                                            - generic:
+                                                - heading [level=1]: ליינים
+                                                - generic:
+                                                    - generic: 0 ליינים
+                                    - generic:
+                                        - generic:
+                                            - img
+                                            - textbox:
+                                                - /placeholder: חפש ליינים...
+                                        - button:
+                                            - img
+                                            - text: צור ליין חדש
                         - generic:
-                          - generic: א
-                          - generic: Sun
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-                    - generic:
-                      - generic:
-                        - generic:
-                          - generic: ב
-                          - generic: Mon
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-                    - generic:
-                      - generic:
-                        - generic:
-                          - generic: ג
-                          - generic: Tue
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-                    - generic:
-                      - generic:
-                        - generic:
-                          - generic: ד
-                          - generic: Wed
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-                    - generic:
-                      - generic:
-                        - generic:
-                          - generic: ה
-                          - generic: Thu
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-                    - generic:
-                      - generic:
-                        - generic:
-                          - generic: ו
-                          - generic: Fri
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-                    - generic:
-                      - generic:
-                        - generic:
-                          - generic: ש
-                          - generic: Sat
-                      - generic:
-                        - generic:
-                          - generic:
-                            - img
-                          - paragraph: אין ליינים
-  - list
-  - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
-    - img [ref=e7]
-  - alert
-  - dialog "ליין חדש" [ref=e11]:
-    - generic [ref=e14]:
-      - img [ref=e16]
-      - generic [ref=e17]:
-        - heading "ליין חדש" [level=2] [ref=e18]
-        - paragraph [ref=e19]: צור ליין חדש
-    - generic [ref=e20]:
-      - generic [ref=e21]:
-        - generic [ref=e22]:
-          - text: שם הליין *
-          - textbox "שם הליין *" [active] [ref=e23]:
-            - /placeholder: "לדוגמה: ערב ג'אז"
-            - text: Month Filter
-        - generic [ref=e24]:
-          - text: ימים בשבוע *
-          - generic [ref=e25]:
-            - button "א" [ref=e26] [cursor=pointer]
-            - button "ב" [ref=e27] [cursor=pointer]
-            - button "ג" [ref=e28] [cursor=pointer]
-            - button "ד" [ref=e29] [cursor=pointer]
-            - button "ה" [ref=e30] [cursor=pointer]
-            - button "ו" [ref=e31] [cursor=pointer]
-            - button "ש" [ref=e32] [cursor=pointer]
-          - paragraph [ref=e33]: יש לבחור לפחות יום אחד
-        - generic [ref=e34]:
-          - generic [ref=e35]:
-            - img [ref=e36]
-            - text: שעות פעילות
-          - generic [ref=e39]:
-            - generic [ref=e40]:
-              - text: התחלה
-              - textbox "התחלה" [ref=e41]: 18:00
-            - generic [ref=e42]:
-              - text: סיום
-              - textbox "סיום" [ref=e43]: 22:00
-        - generic [ref=e44]:
-          - text: תדירות
-          - combobox "תדירות" [ref=e45] [cursor=pointer]:
-            - generic: שבועי
-            - img [ref=e46]
-          - combobox [ref=e48]
-        - generic [ref=e49]:
-          - generic [ref=e50]:
-            - img [ref=e51]
-            - text: צבע
-          - generic [ref=e57]:
-            - button [ref=e58] [cursor=pointer]
-            - button [ref=e59] [cursor=pointer]
-            - button [ref=e60] [cursor=pointer]
-            - button [ref=e61] [cursor=pointer]
-            - button [ref=e62] [cursor=pointer]
-            - button [ref=e63] [cursor=pointer]
-            - button [ref=e64] [cursor=pointer]
-            - button [ref=e65] [cursor=pointer]
-            - button [ref=e66] [cursor=pointer]
-            - button [ref=e67] [cursor=pointer]
-            - button [ref=e68] [cursor=pointer]
-            - button [ref=e69] [cursor=pointer]
-            - button [ref=e70] [cursor=pointer]
-            - button [ref=e71] [cursor=pointer]
-            - button [ref=e72] [cursor=pointer]
-      - generic [ref=e73]:
-        - button "ביטול" [ref=e74] [cursor=pointer]
-        - button "צור ליין" [disabled]
-    - button "Close" [ref=e75] [cursor=pointer]:
-      - img [ref=e76]
-      - generic [ref=e79]: Close
+                            - generic:
+                                - generic:
+                                    - generic:
+                                        - heading [level=2]: מערכת שעות שבועית
+                                        - paragraph: צפה בכל הליינים הפעילים לפי ימי השבוע
+                                    - generic:
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: א
+                                                    - generic: Sun
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: ב
+                                                    - generic: Mon
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: ג
+                                                    - generic: Tue
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: ד
+                                                    - generic: Wed
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: ה
+                                                    - generic: Thu
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: ו
+                                                    - generic: Fri
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+                                        - generic:
+                                            - generic:
+                                                - generic:
+                                                    - generic: ש
+                                                    - generic: Sat
+                                            - generic:
+                                                - generic:
+                                                    - generic:
+                                                        - img
+                                                    - paragraph: אין ליינים
+    - list
+    - button "Open Next.js Dev Tools" [ref=e6] [cursor=pointer]:
+        - img [ref=e7]
+    - alert
+    - dialog "ליין חדש" [ref=e11]:
+        - generic [ref=e14]:
+            - img [ref=e16]
+            - generic [ref=e17]:
+                - heading "ליין חדש" [level=2] [ref=e18]
+                - paragraph [ref=e19]: צור ליין חדש
+        - generic [ref=e20]:
+            - generic [ref=e21]:
+                - generic [ref=e22]:
+                    - text: שם הליין *
+                    - textbox "שם הליין *" [active] [ref=e23]:
+                        - /placeholder: "לדוגמה: ערב ג'אז"
+                        - text: Month Filter
+                - generic [ref=e24]:
+                    - text: ימים בשבוע *
+                    - generic [ref=e25]:
+                        - button "א" [ref=e26] [cursor=pointer]
+                        - button "ב" [ref=e27] [cursor=pointer]
+                        - button "ג" [ref=e28] [cursor=pointer]
+                        - button "ד" [ref=e29] [cursor=pointer]
+                        - button "ה" [ref=e30] [cursor=pointer]
+                        - button "ו" [ref=e31] [cursor=pointer]
+                        - button "ש" [ref=e32] [cursor=pointer]
+                    - paragraph [ref=e33]: יש לבחור לפחות יום אחד
+                - generic [ref=e34]:
+                    - generic [ref=e35]:
+                        - img [ref=e36]
+                        - text: שעות פעילות
+                    - generic [ref=e39]:
+                        - generic [ref=e40]:
+                            - text: התחלה
+                            - textbox "התחלה" [ref=e41]: 18:00
+                        - generic [ref=e42]:
+                            - text: סיום
+                            - textbox "סיום" [ref=e43]: 22:00
+                - generic [ref=e44]:
+                    - text: תדירות
+                    - combobox "תדירות" [ref=e45] [cursor=pointer]:
+                        - generic: שבועי
+                        - img [ref=e46]
+                    - combobox [ref=e48]
+                - generic [ref=e49]:
+                    - generic [ref=e50]:
+                        - img [ref=e51]
+                        - text: צבע
+                    - generic [ref=e57]:
+                        - button [ref=e58] [cursor=pointer]
+                        - button [ref=e59] [cursor=pointer]
+                        - button [ref=e60] [cursor=pointer]
+                        - button [ref=e61] [cursor=pointer]
+                        - button [ref=e62] [cursor=pointer]
+                        - button [ref=e63] [cursor=pointer]
+                        - button [ref=e64] [cursor=pointer]
+                        - button [ref=e65] [cursor=pointer]
+                        - button [ref=e66] [cursor=pointer]
+                        - button [ref=e67] [cursor=pointer]
+                        - button [ref=e68] [cursor=pointer]
+                        - button [ref=e69] [cursor=pointer]
+                        - button [ref=e70] [cursor=pointer]
+                        - button [ref=e71] [cursor=pointer]
+                        - button [ref=e72] [cursor=pointer]
+            - generic [ref=e73]:
+                - button "ביטול" [ref=e74] [cursor=pointer]
+                - button "צור ליין" [disabled]
+        - button "Close" [ref=e75] [cursor=pointer]:
+            - img [ref=e76]
+            - generic [ref=e79]: Close
 ```

@@ -18,7 +18,10 @@ export async function requestPasswordReset(input: unknown) {
 
     // Always return success (security best practice - don't reveal if email exists)
     if (!user) {
-      return { success: true, message: "If this email exists, a password reset link has been sent" };
+      return {
+        success: true,
+        message: "If this email exists, a password reset link has been sent"
+      };
     }
 
     // Generate a simple reset token (in production, use crypto.randomBytes)
@@ -46,10 +49,7 @@ export async function requestPasswordReset(input: unknown) {
   }
 }
 
-export async function resetPasswordWithToken(input: {
-  token: string;
-  newPassword: string;
-}) {
+export async function resetPasswordWithToken(input: { token: string; newPassword: string }) {
   try {
     // In production, verify token from database
     // For now, accept any token (mock)
@@ -73,10 +73,7 @@ export async function resetPasswordWithToken(input: {
 }
 
 // Allow users to change their password directly (always available)
-export async function changePassword(input: {
-  currentPassword: string;
-  newPassword: string;
-}) {
+export async function changePassword(input: { currentPassword: string; newPassword: string }) {
   try {
     const { getCurrentUser } = await import("@/core/auth/session");
     const user = await getCurrentUser();
@@ -119,4 +116,3 @@ export async function changePassword(input: {
     return { success: false, error: "Failed to change password" };
   }
 }
-

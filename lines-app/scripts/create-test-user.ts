@@ -7,10 +7,10 @@ async function main() {
   console.log("Creating test user...");
 
   const userPassword = await bcrypt.hash("demo123", 10);
-  
+
   // Delete existing user if exists
   await prisma.user.deleteMany({ where: { email: "demo@lines.app" } });
-  
+
   // Create user
   const user = await prisma.user.create({
     data: {
@@ -62,4 +62,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

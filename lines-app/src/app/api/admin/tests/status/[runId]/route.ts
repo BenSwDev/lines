@@ -12,19 +12,13 @@ export async function GET(
     const { runId } = await params;
 
     if (!runId) {
-      return NextResponse.json(
-        { success: false, error: "Run ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Run ID is required" }, { status: 400 });
     }
 
     const result = await getTestRunStatus(runId);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: result.error }, { status: 404 });
     }
 
     return NextResponse.json({
@@ -35,10 +29,6 @@ export async function GET(
   } catch (error: unknown) {
     console.error("Error getting test run status:", error);
     const errorMessage = error instanceof Error ? error.message : "Failed to get test run status";
-    return NextResponse.json(
-      { success: false, error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
-

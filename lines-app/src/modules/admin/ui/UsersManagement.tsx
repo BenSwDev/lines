@@ -106,12 +106,12 @@ export function UsersManagement() {
         await updateSession({
           impersonate: result.data
         });
-        
+
         toast({
           title: "התחברת בהתחזות",
           description: `אתה רואה את המערכת כפי ש-${result.data.impersonatedUserEmail} רואה אותה`
         });
-        
+
         // Refresh to update UI
         router.refresh();
         router.push("/dashboard");
@@ -220,4 +220,3 @@ export function UsersManagement() {
     </Card>
   );
 }
-

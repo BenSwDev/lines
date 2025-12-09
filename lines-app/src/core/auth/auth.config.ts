@@ -76,12 +76,12 @@ export const authConfig: NextAuthConfig = {
             impersonatedUserEmail: string;
             impersonatedUserName: string | null;
           };
-          
+
           // Store original user info
           token.originalUserId = impersonateData.originalUserId;
           token.originalUserEmail = impersonateData.originalUserEmail;
           token.originalUserName = impersonateData.originalUserName;
-          
+
           // Switch to impersonated user
           token.id = impersonateData.impersonatedUserId;
           token.impersonating = true;
@@ -103,7 +103,7 @@ export const authConfig: NextAuthConfig = {
       if (token && session.user) {
         session.user.id = token.id as string;
         (session.user as { role?: string }).role = token.role as string;
-        
+
         // Add impersonation info if active
         type SessionUserWithImpersonation = typeof session.user & {
           isImpersonating?: boolean;

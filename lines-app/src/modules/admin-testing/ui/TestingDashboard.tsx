@@ -5,7 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TestRunCard } from "./TestRunCard";
 import { TestResultsViewer } from "./TestResultsViewer";
-import { startTestRun, getTestRunStatus, getTestRunResults, getTestRunHistory } from "../actions/testActions";
+import {
+  startTestRun,
+  getTestRunStatus,
+  getTestRunResults,
+  getTestRunHistory
+} from "../actions/testActions";
 import { useToast } from "@/hooks/use-toast";
 import type { TestType, TestSuiteResult } from "../types";
 import { Loader2, History } from "lucide-react";
@@ -13,20 +18,24 @@ import { Loader2, History } from "lucide-react";
 export function TestingDashboard() {
   const { toast } = useToast();
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
-  const [currentRunStatus, setCurrentRunStatus] = useState<"queued" | "running" | "completed" | "failed" | null>(null);
+  const [currentRunStatus, setCurrentRunStatus] = useState<
+    "queued" | "running" | "completed" | "failed" | null
+  >(null);
   const [currentRunProgress, setCurrentRunProgress] = useState(0);
   const [currentResults, setCurrentResults] = useState<TestSuiteResult | null>(null);
   const [runningTestType, setRunningTestType] = useState<TestType | null>(null);
-  const [history, setHistory] = useState<Array<{
-    runId: string;
-    testType: TestType;
-    status: string;
-    startedAt: Date;
-    completedAt?: Date;
-    total: number;
-    passed: number;
-    failed: number;
-  }>>([]);
+  const [history, setHistory] = useState<
+    Array<{
+      runId: string;
+      testType: TestType;
+      status: string;
+      startedAt: Date;
+      completedAt?: Date;
+      total: number;
+      passed: number;
+      failed: number;
+    }>
+  >([]);
 
   useEffect(() => {
     loadHistory();
@@ -109,9 +118,7 @@ export function TestingDashboard() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold tracking-tight">הרצת טסטים</h2>
-        <p className="text-muted-foreground mt-1">
-          הרץ טסטים על פרודקשן וצפה בתוצאות
-        </p>
+        <p className="text-muted-foreground mt-1">הרץ טסטים על פרודקשן וצפה בתוצאות</p>
       </div>
 
       {/* Test Run Cards */}
@@ -216,4 +223,3 @@ export function TestingDashboard() {
     </div>
   );
 }
-

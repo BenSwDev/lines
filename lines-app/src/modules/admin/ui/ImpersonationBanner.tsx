@@ -43,7 +43,7 @@ export function ImpersonationBanner() {
       await updateSession({
         stopImpersonation: true
       });
-      
+
       // Refresh to update UI
       router.refresh();
     } catch {
@@ -57,9 +57,7 @@ export function ImpersonationBanner() {
         <div className="flex items-center gap-3">
           <AlertCircle className="h-5 w-5 text-amber-500" />
           <div>
-            <p className="font-semibold text-amber-900 dark:text-amber-100">
-              אתה מחובר בהתחזות
-            </p>
+            <p className="font-semibold text-amber-900 dark:text-amber-100">אתה מחובר בהתחזות</p>
             <p className="text-sm text-amber-700 dark:text-amber-300">
               אתה רואה את המערכת כפי ש-{currentUserEmail} רואה אותה
             </p>

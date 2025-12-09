@@ -6,7 +6,7 @@ import { prisma } from "@/core/integrations/prisma/client";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  
+
   if (!session?.user) {
     redirect("/auth/login");
   }
@@ -19,7 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Use role from DB if available, otherwise fall back to session
   const userRole = dbUser?.role || (session.user as { role?: string }).role;
-  
+
   // Debug: log the role check
   console.log("[AdminLayout] Role check:", {
     email: session.user.email,
@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     finalRole: userRole,
     isAdmin: userRole === "admin"
   });
-  
+
   if (userRole !== "admin") {
     console.log("[AdminLayout] Redirecting to /dashboard - user is not admin");
     redirect("/dashboard");
@@ -50,4 +50,3 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     </DashboardLayout>
   );
 }
-

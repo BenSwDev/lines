@@ -13,7 +13,7 @@ export async function startImpersonation(input: unknown) {
 
   try {
     const validated = impersonateUserSchema.parse(input);
-    
+
     // Prevent impersonating yourself
     if (validated.userId === admin.id) {
       return { success: false, error: "Cannot impersonate yourself" };
@@ -62,4 +62,3 @@ export async function stopImpersonation() {
   // For now, just return success - the actual logic will be in the auth callback
   return { success: true };
 }
-

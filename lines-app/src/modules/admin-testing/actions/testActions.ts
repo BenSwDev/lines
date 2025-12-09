@@ -1,24 +1,29 @@
 "use server";
 
 import { requireAdmin } from "@/core/auth/session";
-import { runVitestTests } from "../services/testRunnerService";
-import { runPlaywrightTests } from "../services/playwrightRunnerService";
-import { formatTestResultsAsMarkdown } from "../services/testResultFormatter";
-import type { TestType, TestSuiteResult, TestResult } from "../types";
+import { triggerWorkflow } from "../services/githubActionsService";
+import {
+  saveTestRun,
+  getTestRun,
+  getTestRunHistory as getTestRunHistoryFromRedis
+} from "../services/redisTestStorage";
+import type { TestType, TestSuiteResult } from "../types";
 import { randomUUID } from "crypto";
 
-// In-memory storage for test runs (in production, use Redis or database)
-const testRuns = new Map<string, TestSuiteResult>();
-
-export async function startTestRun(testType: TestType): Promise<{ success: boolean; runId?: string; error?: string }> {
+/**
+ * Start a test run by triggering GitHub Actions workflow
+ */
+export async function startTestRun(
+  testType: TestType
+): Promise<{ success: boolean; runId?: string; error?: string }> {
   try {
     await requireAdmin();
 
     const runId = randomUUID();
     const startedAt = new Date();
 
-    // Initialize test run
-    testRuns.set(runId, {
+    // Initialize test run in Redis (status: queued)
+    const initialRun: TestSuiteResult = {
       runId,
       testType,
       status: "queued",
@@ -30,17 +35,34 @@ export async function startTestRun(testType: TestType): Promise<{ success: boole
       duration: 0,
       results: [],
       markdown: ""
-    });
+    };
 
-    // Run tests asynchronously
-    runTestsAsync(runId, testType).catch((error: unknown) => {
-      console.error(`Test run ${runId} failed:`, error);
-      const run = testRuns.get(runId);
-      if (run) {
-        run.status = "failed";
-        run.error = error instanceof Error ? error.message : "Test execution failed";
-      }
-    });
+    await saveTestRun(runId, initialRun);
+
+    // Trigger GitHub Actions workflow
+    const triggerResult = await triggerWorkflow(testType, runId);
+
+    if (!triggerResult.success) {
+      // Update status to failed
+      const failedRun: TestSuiteResult = {
+        ...initialRun,
+        status: "failed",
+        error: triggerResult.error || "Failed to trigger workflow"
+      };
+      await saveTestRun(runId, failedRun);
+
+      return {
+        success: false,
+        error: triggerResult.error || "Failed to trigger GitHub Actions workflow"
+      };
+    }
+
+    // Update status to running
+    const runningRun: TestSuiteResult = {
+      ...initialRun,
+      status: "running"
+    };
+    await saveTestRun(runId, runningRun);
 
     return { success: true, runId };
   } catch (error: unknown) {
@@ -49,70 +71,9 @@ export async function startTestRun(testType: TestType): Promise<{ success: boole
   }
 }
 
-async function runTestsAsync(runId: string, testType: TestType) {
-  const run = testRuns.get(runId);
-  if (!run) return;
-
-  run.status = "running";
-
-  try {
-    let results: {
-      total: number;
-      passed: number;
-      failed: number;
-      skipped: number;
-      results: TestResult[];
-      duration: number;
-    };
-
-    if (testType === "unit" || testType === "integration") {
-      results = await runVitestTests(testType);
-    } else if (testType === "e2e") {
-      results = await runPlaywrightTests();
-    } else {
-      // Run all tests
-      const [unitResults, integrationResults, e2eResults] = await Promise.all([
-        runVitestTests("unit"),
-        runVitestTests("integration"),
-        runPlaywrightTests()
-      ]);
-
-      results = {
-        total: unitResults.total + integrationResults.total + e2eResults.total,
-        passed: unitResults.passed + integrationResults.passed + e2eResults.passed,
-        failed: unitResults.failed + integrationResults.failed + e2eResults.failed,
-        skipped: unitResults.skipped + integrationResults.skipped + e2eResults.skipped,
-        results: [...unitResults.results, ...integrationResults.results, ...e2eResults.results],
-        duration: unitResults.duration + integrationResults.duration + e2eResults.duration
-      };
-    }
-
-    const completedAt = new Date();
-    const suiteResult: TestSuiteResult = {
-      runId,
-      testType,
-      status: results.failed > 0 ? "failed" : "completed",
-      startedAt: run.startedAt,
-      completedAt,
-      total: results.total,
-      passed: results.passed,
-      failed: results.failed,
-      skipped: results.skipped,
-      duration: results.duration,
-      results: results.results,
-      markdown: ""
-    };
-
-    suiteResult.markdown = formatTestResultsAsMarkdown(suiteResult);
-
-    testRuns.set(runId, suiteResult);
-  } catch (error: unknown) {
-    run.status = "failed";
-    run.error = error instanceof Error ? error.message : "Test execution failed";
-    testRuns.set(runId, run);
-  }
-}
-
+/**
+ * Get the status of a test run
+ */
 export async function getTestRunStatus(runId: string): Promise<{
   success: boolean;
   status?: string;
@@ -122,15 +83,22 @@ export async function getTestRunStatus(runId: string): Promise<{
   try {
     await requireAdmin();
 
-    const run = testRuns.get(runId);
+    const run = await getTestRun(runId);
     if (!run) {
       return { success: false, error: "Test run not found" };
     }
 
+    // Determine progress based on status
+    let progress = 0;
+    if (run.status === "queued") progress = 10;
+    else if (run.status === "running") progress = 50;
+    else if (run.status === "completed") progress = 100;
+    else if (run.status === "failed") progress = 0;
+
     return {
       success: true,
       status: run.status,
-      progress: run.status === "running" ? 50 : run.status === "completed" ? 100 : 0
+      progress
     };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Failed to get test run status";
@@ -138,6 +106,9 @@ export async function getTestRunStatus(runId: string): Promise<{
   }
 }
 
+/**
+ * Get the results of a completed test run
+ */
 export async function getTestRunResults(runId: string): Promise<{
   success: boolean;
   results?: TestSuiteResult;
@@ -146,7 +117,7 @@ export async function getTestRunResults(runId: string): Promise<{
   try {
     await requireAdmin();
 
-    const run = testRuns.get(runId);
+    const run = await getTestRun(runId);
     if (!run) {
       return { success: false, error: "Test run not found" };
     }
@@ -157,7 +128,7 @@ export async function getTestRunResults(runId: string): Promise<{
 
     return {
       success: true,
-      results: run as TestSuiteResult
+      results: run
     };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Failed to get test run results";
@@ -165,6 +136,9 @@ export async function getTestRunResults(runId: string): Promise<{
   }
 }
 
+/**
+ * Get test run history (last N runs)
+ */
 export async function getTestRunHistory(): Promise<{
   success: boolean;
   runs?: Array<{
@@ -182,19 +156,7 @@ export async function getTestRunHistory(): Promise<{
   try {
     await requireAdmin();
 
-    const runs = Array.from(testRuns.values())
-      .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
-      .slice(0, 20) // Last 20 runs
-      .map((run) => ({
-        runId: run.runId,
-        testType: run.testType,
-        status: run.status,
-        startedAt: run.startedAt,
-        completedAt: run.completedAt,
-        total: run.total,
-        passed: run.passed,
-        failed: run.failed
-      }));
+    const runs = await getTestRunHistoryFromRedis();
 
     return { success: true, runs };
   } catch (error: unknown) {
@@ -202,4 +164,3 @@ export async function getTestRunHistory(): Promise<{
     return { success: false, error: errorMessage };
   }
 }
-

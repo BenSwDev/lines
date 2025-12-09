@@ -31,10 +31,11 @@ export async function runPlaywrightTests(): Promise<{
   duration: number;
 }> {
   const startTime = Date.now();
-  
-  const baseURL = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
+
+  const baseURL =
+    process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000";
 
   // Set environment variables for production testing
   const env: NodeJS.ProcessEnv = {
@@ -45,9 +46,22 @@ export async function runPlaywrightTests(): Promise<{
   };
 
   try {
+    // In Vercel, we need to use the direct path to node_modules/.bin
+    const isVercel = !!process.env.VERCEL;
+    let playwrightCommand: string;
+
+    if (isVercel) {
+      // In Vercel, try to use node_modules/.bin directly
+      playwrightCommand = "node node_modules/@playwright/test/cli.js";
+    } else {
+      // Local development - use pnpm
+      playwrightCommand =
+        process.platform === "win32" ? "pnpm exec playwright" : "pnpm exec playwright";
+    }
+
     // Run playwright with JSON reporter
     const { stdout } = await execAsync(
-      `pnpm exec playwright test --config playwright.config.production.ts --reporter=json`,
+      `${playwrightCommand} test --config playwright.config.production.ts --reporter=json`,
       {
         cwd: process.cwd(),
         env,
@@ -58,7 +72,7 @@ export async function runPlaywrightTests(): Promise<{
 
     // Parse JSON output
     let jsonOutput: PlaywrightResult | null = null;
-    
+
     try {
       // Playwright JSON reporter outputs to a file, but we can try to parse from stdout
       const jsonMatch = stdout.match(/\{[\s\S]*"status"[\s\S]*\}/);
@@ -74,10 +88,11 @@ export async function runPlaywrightTests(): Promise<{
       const passedMatch = stdout.match(/(\d+) passed/);
       const failedMatch = stdout.match(/(\d+) failed/);
       const skippedMatch = stdout.match(/(\d+) skipped/);
-      
-      const total = (passedMatch ? parseInt(passedMatch[1]) : 0) + 
-                   (failedMatch ? parseInt(failedMatch[1]) : 0) + 
-                   (skippedMatch ? parseInt(skippedMatch[1]) : 0);
+
+      const total =
+        (passedMatch ? parseInt(passedMatch[1]) : 0) +
+        (failedMatch ? parseInt(failedMatch[1]) : 0) +
+        (skippedMatch ? parseInt(skippedMatch[1]) : 0);
 
       return {
         total,
@@ -97,10 +112,12 @@ export async function runPlaywrightTests(): Promise<{
       testName: test.title,
       status: test.status,
       duration: test.duration,
-      error: test.error ? {
-        message: test.error.message,
-        stack: test.error.stack
-      } : undefined
+      error: test.error
+        ? {
+            message: test.error.message,
+            stack: test.error.stack
+          }
+        : undefined
     }));
 
     const passed = results.filter((r) => r.status === "passed").length;
@@ -117,28 +134,37 @@ export async function runPlaywrightTests(): Promise<{
     };
   } catch (error: unknown) {
     const duration = Date.now() - startTime;
-    
+
     // If tests failed, try to parse the error
-    const execError = error as { stdout?: string; stderr?: string; message?: string; stack?: string };
+    const execError = error as {
+      stdout?: string;
+      stderr?: string;
+      message?: string;
+      stack?: string;
+    };
     if (execError.stdout || execError.stderr) {
       const output = execError.stdout || execError.stderr || "";
       const failedMatch = output.match(/(\d+) failed/);
       const passedMatch = output.match(/(\d+) passed/);
-      
+
       return {
-        total: (failedMatch ? parseInt(failedMatch[1]) : 0) + (passedMatch ? parseInt(passedMatch[1]) : 0),
+        total:
+          (failedMatch ? parseInt(failedMatch[1]) : 0) +
+          (passedMatch ? parseInt(passedMatch[1]) : 0),
         passed: passedMatch ? parseInt(passedMatch[1]) : 0,
         failed: failedMatch ? parseInt(failedMatch[1]) : 0,
         skipped: 0,
-        results: [{
-          testFile: "unknown",
-          testName: "Test execution failed",
-          status: "failed",
-          error: {
-            message: execError.message || "Test execution failed",
-            stack: execError.stack
+        results: [
+          {
+            testFile: "unknown",
+            testName: "Test execution failed",
+            status: "failed",
+            error: {
+              message: execError.message || "Test execution failed",
+              stack: execError.stack
+            }
           }
-        }],
+        ],
         duration
       };
     }
@@ -146,4 +172,3 @@ export async function runPlaywrightTests(): Promise<{
     throw error;
   }
 }
-

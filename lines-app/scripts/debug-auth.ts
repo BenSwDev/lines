@@ -49,7 +49,7 @@ async function debugAuth() {
       data: { password: newHash }
     });
     console.log("✅ Password updated");
-    
+
     // Test again
     const updatedUser = await prisma.user.findUnique({
       where: { email }
@@ -62,4 +62,3 @@ async function debugAuth() {
 debugAuth()
   .catch(console.error)
   .finally(() => prisma.$disconnect());
-

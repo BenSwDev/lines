@@ -10,10 +10,7 @@ export async function POST(request: NextRequest) {
     const { testType } = body;
 
     if (!testType || !["unit", "integration", "e2e", "all"].includes(testType)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid test type" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Invalid test type" }, { status: 400 });
     }
 
     // Check if there's already a running test
@@ -23,10 +20,7 @@ export async function POST(request: NextRequest) {
     const result = await startTestRun(testType);
 
     if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 500 }
-      );
+      return NextResponse.json({ success: false, error: result.error }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -37,10 +31,6 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error("Error starting test run:", error);
     const errorMessage = error instanceof Error ? error.message : "Failed to start test run";
-    return NextResponse.json(
-      { success: false, error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: errorMessage }, { status: 500 });
   }
 }
-

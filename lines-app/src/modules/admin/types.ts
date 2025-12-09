@@ -19,4 +19,3 @@ export type ImpersonationState = {
   impersonatedUserEmail: string;
   impersonatedUserName: string | null;
 };
-

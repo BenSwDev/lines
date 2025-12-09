@@ -36,8 +36,7 @@ export default function ResetPasswordPage() {
         setIsSuccess(true);
         toast({
           title: "בקשת איפוס סיסמה נשלחה",
-          description:
-            "אם האימייל קיים במערכת, קישור לאיפוס סיסמה נשלח. (בפיתוח: זהו מצב מדומה)"
+          description: "אם האימייל קיים במערכת, קישור לאיפוס סיסמה נשלח. (בפיתוח: זהו מצב מדומה)"
         });
       } else {
         toast({
@@ -158,4 +157,3 @@ export default function ResetPasswordPage() {
     </div>
   );
 }
-

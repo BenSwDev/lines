@@ -281,9 +281,7 @@ export function CalendarTab() {
           view={view === "list" ? "month" : view}
           currentDate={currentDate}
           events={calendarEvents}
-          onEventClick={(event) =>
-            router.push(`/venues/${venueId}/lines/${event.lineId}`)
-          }
+          onEventClick={(event) => router.push(`/venues/${venueId}/lines/${event.lineId}`)}
           compressed={compressed}
         />
       )}

@@ -204,4 +204,3 @@ test.describe("Floor Plan Viewer & Mode Switching - Comprehensive E2E Tests", ()
     });
   });
 });
-

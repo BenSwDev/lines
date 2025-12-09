@@ -42,9 +42,7 @@ export function TestRunCard({
       <CardContent className="space-y-4">
         {lastRun && (
           <div className="flex items-center gap-2">
-            <Badge
-              variant={lastRun.status === "completed" ? "default" : "destructive"}
-            >
+            <Badge variant={lastRun.status === "completed" ? "default" : "destructive"}>
               {lastRun.status === "completed" ? (
                 <CheckCircle2 className="h-3 w-3 mr-1" />
               ) : (
@@ -56,9 +54,7 @@ export function TestRunCard({
               {lastRun.passed}/{lastRun.total} עברו
             </span>
             {lastRun.failed > 0 && (
-              <span className="text-sm text-red-500">
-                {lastRun.failed} נכשלו
-              </span>
+              <span className="text-sm text-red-500">{lastRun.failed} נכשלו</span>
             )}
           </div>
         )}
@@ -85,4 +81,3 @@ export function TestRunCard({
     </Card>
   );
 }
-

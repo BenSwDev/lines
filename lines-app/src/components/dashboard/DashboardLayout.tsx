@@ -434,9 +434,7 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
           </div>
           <div className="flex-1 overflow-auto">
             <ImpersonationBanner />
-            <div className="container mx-auto px-6 py-6 max-w-7xl">
-              {children}
-            </div>
+            <div className="container mx-auto px-6 py-6 max-w-7xl">{children}</div>
           </div>
         </main>
       </div>

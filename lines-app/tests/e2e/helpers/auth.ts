@@ -11,21 +11,22 @@ export async function loginAsUser(
   password: string = "demo123"
 ) {
   // Get base URL from environment or use default
-  const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 
-                  process.env.NEXT_PUBLIC_APP_URL || 
-                  process.env.TEST_BASE_URL || 
-                  "http://localhost:3000";
-  
+  const baseURL =
+    process.env.PLAYWRIGHT_TEST_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.TEST_BASE_URL ||
+    "http://localhost:3000";
+
   // Navigate to login page
   await page.goto(`${baseURL}/auth/login`);
   await page.waitForLoadState("networkidle");
 
   // Fill login form - use IDs directly
-  const emailInput = page.locator('#email');
+  const emailInput = page.locator("#email");
   await emailInput.waitFor({ state: "visible", timeout: 5000 });
   await emailInput.fill(email);
 
-  const passwordInput = page.locator('#password');
+  const passwordInput = page.locator("#password");
   await passwordInput.waitFor({ state: "visible", timeout: 5000 });
   await passwordInput.fill(password);
 
@@ -46,10 +47,11 @@ export async function loginAsUser(
  * Assumes user is already authenticated
  */
 export async function navigateToVenue(page: Page, venueId: string) {
-  const baseURL = process.env.PLAYWRIGHT_TEST_BASE_URL || 
-                  process.env.NEXT_PUBLIC_APP_URL || 
-                  process.env.TEST_BASE_URL || 
-                  "http://localhost:3000";
+  const baseURL =
+    process.env.PLAYWRIGHT_TEST_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.TEST_BASE_URL ||
+    "http://localhost:3000";
   await page.goto(`${baseURL}/venues/${venueId}`);
   await page.waitForLoadState("networkidle");
 }
