@@ -30,14 +30,19 @@ export interface WorkflowRunStatus {
  * Get GitHub repository owner and name from environment
  */
 function getGitHubRepo(): GitHubRepo | null {
-  const repoString = process.env.GITHUB_REPO?.trim();
+  const repoString = process.env.GITHUB_REPO;
   if (!repoString) {
     console.warn("GITHUB_REPO environment variable is not set");
     return null;
   }
 
-  // Remove quotes if present (in case it was set with quotes)
-  const cleaned = repoString.replace(/^["']|["']$/g, "").trim();
+  // Remove quotes, whitespace, and line breaks
+  const cleaned = repoString.replace(/^["']|["']$/g, "").replace(/\r\n|\r|\n/g, "").trim();
+  
+  if (!cleaned) {
+    console.warn("GITHUB_REPO environment variable is empty after cleaning");
+    return null;
+  }
   
   const parts = cleaned.split("/");
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
@@ -46,8 +51,8 @@ function getGitHubRepo(): GitHubRepo | null {
   }
 
   return {
-    owner: parts[0],
-    repo: parts[1]
+    owner: parts[0].trim(),
+    repo: parts[1].trim()
   };
 }
 
@@ -55,7 +60,22 @@ function getGitHubRepo(): GitHubRepo | null {
  * Check if GitHub is configured
  */
 export function isGitHubConfigured(): boolean {
-  return !!(process.env.GITHUB_TOKEN && process.env.GITHUB_REPO);
+  const token = process.env.GITHUB_TOKEN?.trim().replace(/\r\n|\r|\n/g, "");
+  const repo = process.env.GITHUB_REPO?.trim().replace(/\r\n|\r|\n/g, "");
+  
+  const isConfigured = !!(token && repo);
+  
+  // Log in development to help debug
+  if (process.env.NODE_ENV === "development") {
+    console.log("GitHub configuration check:", {
+      hasToken: !!token,
+      hasRepo: !!repo,
+      repoValue: repo || "undefined",
+      isConfigured
+    });
+  }
+  
+  return isConfigured;
 }
 
 /**
@@ -66,7 +86,10 @@ async function githubRequest(
   options: RequestInit = {},
   retries: number = MAX_RETRIES
 ): Promise<Response> {
-  const token = process.env.GITHUB_TOKEN;
+  // Clean token - remove quotes, whitespace, and line breaks
+  const rawToken = process.env.GITHUB_TOKEN;
+  const token = rawToken?.trim().replace(/^["']|["']$/g, "").replace(/\r\n|\r|\n/g, "").trim();
+  
   if (!token) {
     throw new Error("GITHUB_TOKEN environment variable is not set");
   }
@@ -127,23 +150,36 @@ export async function triggerWorkflow(
   ref: string = "main"
 ): Promise<TriggerWorkflowResponse> {
   try {
+    // Get raw values for validation
+    const rawToken = process.env.GITHUB_TOKEN;
+    const rawRepo = process.env.GITHUB_REPO;
+    const token = rawToken?.trim().replace(/\r\n|\r|\n/g, "");
+    const repo = rawRepo?.trim().replace(/\r\n|\r|\n/g, "");
+    
     // Early validation - check if GitHub is configured
-    if (!isGitHubConfigured()) {
+    if (!token || !repo) {
       const missing: string[] = [];
-      if (!process.env.GITHUB_TOKEN) missing.push("GITHUB_TOKEN");
-      if (!process.env.GITHUB_REPO) missing.push("GITHUB_REPO");
+      if (!token) missing.push("GITHUB_TOKEN");
+      if (!repo) missing.push("GITHUB_REPO");
+      
+      console.error("GitHub integration validation failed:", {
+        hasToken: !!token,
+        hasRepo: !!repo,
+        repoValue: repo || rawRepo || "undefined",
+        tokenLength: token?.length || 0
+      });
       
       return {
         success: false,
-        error: `GitHub integration is not configured. Missing environment variables: ${missing.join(", ")}. Please set them in Vercel environment variables.`
+        error: `GitHub integration is not configured. Missing environment variables: ${missing.join(", ")}. Please set them in Vercel environment variables (Settings > Environment Variables > Production).`
       };
     }
 
-    const repo = getGitHubRepo();
-    if (!repo) {
+    const repoInfo = getGitHubRepo();
+    if (!repoInfo) {
       return {
         success: false,
-        error: `GITHUB_REPO environment variable is not set or has invalid format. Current value: "${process.env.GITHUB_REPO || "undefined"}". Expected format: owner/repo (e.g., BenSwDev/lines)`
+        error: `GITHUB_REPO environment variable has invalid format. Current value: "${rawRepo || "undefined"}". Expected format: owner/repo (e.g., BenSwDev/lines)`
       };
     }
 
