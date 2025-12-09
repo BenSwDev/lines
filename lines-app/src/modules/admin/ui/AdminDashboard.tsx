@@ -119,9 +119,15 @@ export function AdminDashboard() {
 
       {/* Management Tabs */}
       <Tabs defaultValue="users" className="w-full">
-        <TabsList>
-          <TabsTrigger value="users">ניהול משתמשים</TabsTrigger>
-          <TabsTrigger value="venues">ניהול מקומות</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="users" className="gap-2">
+            <Users className="h-4 w-4" />
+            ניהול משתמשים
+          </TabsTrigger>
+          <TabsTrigger value="venues" className="gap-2">
+            <Building2 className="h-4 w-4" />
+            ניהול מקומות
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="mt-6">

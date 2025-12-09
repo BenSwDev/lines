@@ -360,17 +360,17 @@ export function CreateLineDialog({
       <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-md">
                 <List className="h-5 w-5 text-primary-foreground" />
-              </div>
+            </div>
               <div>
                 <SheetTitle className="text-xl font-bold">
                   {existingLine ? "עריכת ליין" : "ליין חדש"}
-                </SheetTitle>
+              </SheetTitle>
                 <SheetDescription className="text-sm">
                   {existingLine ? "ערוך את פרטי הליין" : "צור ליין חדש"}
-                </SheetDescription>
+              </SheetDescription>
               </div>
             </div>
             {existingLine && (

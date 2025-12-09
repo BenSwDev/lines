@@ -86,6 +86,31 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
           </SidebarHeader>
 
           <SidebarContent>
+            {/* Admin Section - Always visible for admins */}
+            {user.role === "admin" && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-primary font-semibold">
+                  ניהול מערכת
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === "/admin"}
+                        className="bg-primary/10 text-primary font-semibold hover:bg-primary/20"
+                      >
+                        <Link href="/admin">
+                          <Shield className="h-4 w-4" />
+                          <span>Admin Dashboard</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+
             {/* Venue Switcher */}
             {currentVenue ? (
               <>
@@ -390,6 +415,18 @@ export function DashboardLayout({ children, user, venues, currentVenue }: Dashbo
                 )}
               </div>
               <div className="flex items-center gap-2">
+                {user.role === "admin" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push("/admin")}
+                    className="gap-2 border-primary/50 bg-primary/5 hover:bg-primary/10"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span className="hidden sm:inline">ניהול מערכת</span>
+                    <span className="sm:hidden">Admin</span>
+                  </Button>
+                )}
                 <ThemeToggle />
                 <LanguageSwitcher />
               </div>
