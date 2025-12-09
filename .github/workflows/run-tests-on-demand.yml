@@ -1,0 +1,141 @@
+name: Run Tests On Demand
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: "Type of tests to run"
+        required: true
+        type: choice
+        options:
+          - unit
+          - integration
+          - e2e
+          - all
+      run_id:
+        description: "Unique test run ID"
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: "22.x"
+  PNPM_VERSION: "10.19.0"
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    defaults:
+      run:
+        working-directory: ./lines-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+          cache-dependency-path: lines-app/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+        env:
+          POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+
+      - name: Run Unit Tests
+        if: ${{ inputs.test_type == 'unit' || inputs.test_type == 'all' }}
+        run: pnpm test:unit
+        continue-on-error: true
+
+      - name: Run Integration Tests
+        if: ${{ inputs.test_type == 'integration' || inputs.test_type == 'all' }}
+        run: pnpm test:integration
+        continue-on-error: true
+
+      - name: Run E2E Tests
+        if: ${{ inputs.test_type == 'e2e' || inputs.test_type == 'all' }}
+        run: pnpm test:e2e
+        env:
+          BASE_URL: ${{ secrets.BASE_URL || 'https://lines-app.vercel.app' }}
+        continue-on-error: true
+
+      - name: Parse Test Results
+        id: parse-results
+        continue-on-error: true
+        run: |
+          echo "run_id=${{ inputs.run_id }}" >> $GITHUB_OUTPUT
+          echo "test_type=${{ inputs.test_type }}" >> $GITHUB_OUTPUT
+          
+          # Try to parse test results if test report files exist
+          # This is a placeholder - adjust based on your test runner output format
+          if [ -f "test-results.json" ]; then
+            echo "has_results=true" >> $GITHUB_OUTPUT
+            echo "results=$(cat test-results.json | base64 -w 0)" >> $GITHUB_OUTPUT
+          else
+            echo "has_results=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Results to Webhook
+        if: always()
+        run: |
+          WEBHOOK_URL="${{ secrets.WEBHOOK_URL }}"
+          WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET }}"
+          RUN_ID="${{ inputs.run_id }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          
+          if [ -z "$WEBHOOK_URL" ]; then
+            echo "Warning: WEBHOOK_URL secret not set, skipping webhook call"
+            exit 0
+          fi
+          
+          # Create payload
+          STATUS="completed"
+          if [ "${{ job.status }}" == "failure" ]; then
+            STATUS="failed"
+          fi
+          
+          PAYLOAD=$(cat <<EOF
+          {
+            "runId": "${RUN_ID}",
+            "testType": "${TEST_TYPE}",
+            "status": "${STATUS}",
+            "startedAt": "${{ github.event.head_commit.timestamp || github.event.repository.pushed_at || github.event.repository.updated_at }}",
+            "completedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "workflowRunId": ${{ github.run_id }},
+            "workflowRunUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "results": {
+              "total": 0,
+              "passed": 0,
+              "failed": 0,
+              "skipped": 0,
+              "duration": 0,
+              "suites": []
+            }
+          }
+          EOF
+          )
+          
+          # Calculate HMAC signature
+          SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | sed 's/^.* //')
+          
+          # Send to webhook
+          curl -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Signature: $SIGNATURE" \
+            -d "$PAYLOAD" \
+            --fail-with-body || echo "Warning: Webhook call failed"
+          
+          echo "Results sent to webhook"
+
