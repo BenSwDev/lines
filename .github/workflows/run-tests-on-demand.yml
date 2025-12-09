@@ -44,6 +44,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
+          cache-dependency-path: ./lines-app/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -62,7 +63,18 @@ jobs:
         id: run_unit_tests
         continue-on-error: true
         run: |
-          pnpm test:unit --reporter=json --outputFile=test-results-unit.json || true
+          # Run tests with JSON reporter (outputs to stdout)
+          pnpm test:unit --reporter=json --reporter=verbose > test-results-unit.json 2>&1 || TEST_EXIT_CODE=$?
+          
+          # Check if JSON file was created (vitest json reporter writes to file when outputFile is set)
+          # If not, try to parse from stdout or create empty
+          if [ ! -f test-results-unit.json ] || ! jq empty test-results-unit.json 2>/dev/null; then
+            echo '{"testResults":[]}' > test-results-unit.json
+          fi
+          
+          # Show test output for debugging
+          cat test-results-unit.json | head -50 || true
+          exit ${TEST_EXIT_CODE:-0}
         env:
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
 
@@ -71,7 +83,17 @@ jobs:
         id: run_integration_tests
         continue-on-error: true
         run: |
-          pnpm test:integration --reporter=json --outputFile=test-results-integration.json || true
+          # Run tests with JSON reporter (outputs to stdout)
+          pnpm test:integration --reporter=json --reporter=verbose > test-results-integration.json 2>&1 || TEST_EXIT_CODE=$?
+          
+          # Check if JSON file was created
+          if [ ! -f test-results-integration.json ] || ! jq empty test-results-integration.json 2>/dev/null; then
+            echo '{"testResults":[]}' > test-results-integration.json
+          fi
+          
+          # Show test output for debugging
+          cat test-results-integration.json | head -50 || true
+          exit ${TEST_EXIT_CODE:-0}
         env:
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
 
@@ -80,7 +102,20 @@ jobs:
         id: run_e2e_tests
         continue-on-error: true
         run: |
-          pnpm test:e2e:production --reporter=json || true
+          # Run Playwright tests - JSON reporter creates playwright-report/results.json
+          pnpm test:e2e:production --reporter=json --reporter=list 2>&1 || TEST_EXIT_CODE=$?
+          
+          # Ensure playwright-report directory exists
+          mkdir -p playwright-report
+          
+          # Check if results.json exists and is valid JSON
+          if [ ! -f playwright-report/results.json ] || ! jq empty playwright-report/results.json 2>/dev/null; then
+            echo '{"suites":[]}' > playwright-report/results.json
+          fi
+          
+          # Show first part of results for debugging
+          cat playwright-report/results.json | head -20 || true
+          exit ${TEST_EXIT_CODE:-0}
         env:
           NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://lines-app.vercel.app' }}
 
@@ -93,6 +128,122 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
+          // Robust JSON extraction function that handles mixed output
+          function extractJSON(content) {
+            if (!content || typeof content !== 'string') {
+              return null;
+            }
+
+            // First, try to parse the entire content as JSON (best case)
+            try {
+              const parsed = JSON.parse(content.trim());
+              if (parsed && typeof parsed === 'object') {
+                return parsed;
+              }
+            } catch (e) {
+              // Not pure JSON, continue to extraction
+            }
+
+            // Find JSON object by matching balanced braces
+            // Look for the pattern: { ... "testResults" ... }
+            let braceCount = 0;
+            let startIndex = -1;
+            let inString = false;
+            let escapeNext = false;
+
+            for (let i = 0; i < content.length; i++) {
+              const char = content[i];
+
+              if (escapeNext) {
+                escapeNext = false;
+                continue;
+              }
+
+              if (char === '\\') {
+                escapeNext = true;
+                continue;
+              }
+
+              if (char === '"' && !escapeNext) {
+                inString = !inString;
+                continue;
+              }
+
+              if (inString) {
+                continue;
+              }
+
+              if (char === '{') {
+                if (braceCount === 0) {
+                  startIndex = i;
+                }
+                braceCount++;
+              } else if (char === '}') {
+                braceCount--;
+                if (braceCount === 0 && startIndex !== -1) {
+                  // Found a complete object, check if it contains "testResults"
+                  const candidate = content.substring(startIndex, i + 1);
+                  if (candidate.includes('"testResults"')) {
+                    try {
+                      const parsed = JSON.parse(candidate);
+                      if (parsed && typeof parsed === 'object' && parsed.testResults) {
+                        return parsed;
+                      }
+                    } catch (e) {
+                      // Invalid JSON, continue searching
+                    }
+                  }
+                  startIndex = -1;
+                }
+              }
+            }
+
+            // Fallback: try to find JSON using a more precise regex (non-greedy)
+            // Look for the smallest JSON object containing "testResults"
+            const regex = /\{[^{}]*"testResults"[^{}]*\}/;
+            let match = content.match(regex);
+            if (!match) {
+              // Try with nested braces using a more sophisticated approach
+              const lines = content.split('\n');
+              let jsonStart = -1;
+              let jsonEnd = -1;
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].trim().startsWith('{') && lines[i].includes('"testResults"')) {
+                  jsonStart = i;
+                  // Find the matching closing brace
+                  let braceCount = 0;
+                  for (let j = i; j < lines.length; j++) {
+                    for (const char of lines[j]) {
+                      if (char === '{') braceCount++;
+                      if (char === '}') braceCount--;
+                      if (braceCount === 0 && jsonStart !== -1) {
+                        jsonEnd = j;
+                        break;
+                      }
+                    }
+                    if (jsonEnd !== -1) break;
+                  }
+                  if (jsonEnd !== -1) {
+                    const candidate = lines.slice(jsonStart, jsonEnd + 1).join('\n');
+                    try {
+                      return JSON.parse(candidate);
+                    } catch (e) {
+                      // Continue searching
+                    }
+                  }
+                }
+              }
+            } else {
+              try {
+                return JSON.parse(match[0]);
+              } catch (e) {
+                // Invalid JSON
+              }
+            }
+
+            return null;
+          }
+
           const testType = process.env.TEST_TYPE;
           let allResults = [];
           let total = 0;
@@ -101,69 +252,81 @@ jobs:
           let skipped = 0;
           let totalDuration = 0;
 
-          // Parse unit tests
+          // Parse unit tests (Vitest JSON format)
           if (testType === 'unit' || testType === 'all') {
             try {
               const unitFile = path.join(process.cwd(), 'test-results-unit.json');
               if (fs.existsSync(unitFile)) {
-                const unitData = JSON.parse(fs.readFileSync(unitFile, 'utf8'));
-                if (unitData.testResults) {
+                const content = fs.readFileSync(unitFile, 'utf8');
+                const unitData = extractJSON(content);
+                if (unitData && unitData.testResults && Array.isArray(unitData.testResults)) {
                   unitData.testResults.forEach(file => {
-                    file.assertionResults?.forEach(test => {
-                      allResults.push({
-                        testFile: file.name,
-                        testName: test.fullName || test.title,
-                        status: test.status === 'passed' ? 'passed' : test.status === 'failed' ? 'failed' : 'skipped',
-                        duration: test.duration,
-                        error: test.failureMessages && test.failureMessages.length > 0 ? {
-                          message: test.failureMessages[0],
-                          stack: test.failureMessages.join('\n')
-                        } : undefined
+                    if (file.assertionResults && Array.isArray(file.assertionResults)) {
+                      file.assertionResults.forEach(test => {
+                        allResults.push({
+                          testFile: file.name || 'unknown',
+                          testName: test.fullName || test.title || 'unknown',
+                          status: test.status === 'passed' ? 'passed' : test.status === 'failed' ? 'failed' : 'skipped',
+                          duration: test.duration || 0,
+                          error: test.failureMessages && test.failureMessages.length > 0 ? {
+                            message: test.failureMessages[0],
+                            stack: test.failureMessages.join('\n')
+                          } : undefined
+                        });
+                        total++;
+                        if (test.status === 'passed') passed++;
+                        else if (test.status === 'failed') failed++;
+                        else skipped++;
+                        if (test.duration) totalDuration += test.duration;
                       });
-                      total++;
-                      if (test.status === 'passed') passed++;
-                      else if (test.status === 'failed') failed++;
-                      else skipped++;
-                      if (test.duration) totalDuration += test.duration;
-                    });
+                    }
                   });
+                } else {
+                  console.warn('Warning: Could not extract valid JSON from unit test results file');
                 }
               }
             } catch (e) {
-              console.error('Error parsing unit tests:', e);
+              console.error('Error parsing unit tests:', e.message);
+              console.error('Stack:', e.stack);
             }
           }
 
-          // Parse integration tests
+          // Parse integration tests (Vitest JSON format)
           if (testType === 'integration' || testType === 'all') {
             try {
               const intFile = path.join(process.cwd(), 'test-results-integration.json');
               if (fs.existsSync(intFile)) {
-                const intData = JSON.parse(fs.readFileSync(intFile, 'utf8'));
-                if (intData.testResults) {
+                const content = fs.readFileSync(intFile, 'utf8');
+                const intData = extractJSON(content);
+                if (intData && intData.testResults && Array.isArray(intData.testResults)) {
                   intData.testResults.forEach(file => {
-                    file.assertionResults?.forEach(test => {
-                      allResults.push({
-                        testFile: file.name,
-                        testName: test.fullName || test.title,
-                        status: test.status === 'passed' ? 'passed' : test.status === 'failed' ? 'failed' : 'skipped',
-                        duration: test.duration,
-                        error: test.failureMessages && test.failureMessages.length > 0 ? {
-                          message: test.failureMessages[0],
-                          stack: test.failureMessages.join('\n')
-                        } : undefined
+                    if (file.assertionResults && Array.isArray(file.assertionResults)) {
+                      file.assertionResults.forEach(test => {
+                        allResults.push({
+                          testFile: file.name || 'unknown',
+                          testName: test.fullName || test.title || 'unknown',
+                          status: test.status === 'passed' ? 'passed' : test.status === 'failed' ? 'failed' : 'skipped',
+                          duration: test.duration || 0,
+                          error: test.failureMessages && test.failureMessages.length > 0 ? {
+                            message: test.failureMessages[0],
+                            stack: test.failureMessages.join('\n')
+                          } : undefined
+                        });
+                        total++;
+                        if (test.status === 'passed') passed++;
+                        else if (test.status === 'failed') failed++;
+                        else skipped++;
+                        if (test.duration) totalDuration += test.duration;
                       });
-                      total++;
-                      if (test.status === 'passed') passed++;
-                      else if (test.status === 'failed') failed++;
-                      else skipped++;
-                      if (test.duration) totalDuration += test.duration;
-                    });
+                    }
                   });
+                } else {
+                  console.warn('Warning: Could not extract valid JSON from integration test results file');
                 }
               }
             } catch (e) {
-              console.error('Error parsing integration tests:', e);
+              console.error('Error parsing integration tests:', e.message);
+              console.error('Stack:', e.stack);
             }
           }
 
@@ -173,34 +336,39 @@ jobs:
               const e2eFile = path.join(process.cwd(), 'playwright-report', 'results.json');
               if (fs.existsSync(e2eFile)) {
                 const e2eData = JSON.parse(fs.readFileSync(e2eFile, 'utf8'));
-                if (e2eData.suites) {
+                // Playwright JSON format has different structure
+                if (e2eData.suites && Array.isArray(e2eData.suites)) {
                   e2eData.suites.forEach(suite => {
-                    suite.specs?.forEach(spec => {
-                      spec.tests?.forEach(test => {
-                        const results = test.results || [];
-                        const lastResult = results[results.length - 1];
-                        allResults.push({
-                          testFile: spec.file || 'unknown',
-                          testName: spec.title || test.title,
-                          status: lastResult?.status === 'passed' ? 'passed' : lastResult?.status === 'failed' ? 'failed' : 'skipped',
-                          duration: lastResult?.duration,
-                          error: lastResult?.error ? {
-                            message: lastResult.error.message,
-                            stack: lastResult.error.stack
-                          } : undefined
-                        });
-                        total++;
-                        if (lastResult?.status === 'passed') passed++;
-                        else if (lastResult?.status === 'failed') failed++;
-                        else skipped++;
-                        if (lastResult?.duration) totalDuration += lastResult.duration;
+                    if (suite.specs && Array.isArray(suite.specs)) {
+                      suite.specs.forEach(spec => {
+                        if (spec.tests && Array.isArray(spec.tests)) {
+                          spec.tests.forEach(test => {
+                            const results = test.results || [];
+                            const lastResult = results[results.length - 1];
+                            allResults.push({
+                              testFile: spec.file || 'unknown',
+                              testName: spec.title || test.title || 'unknown',
+                              status: lastResult?.status === 'passed' ? 'passed' : lastResult?.status === 'failed' ? 'failed' : 'skipped',
+                              duration: lastResult?.duration || 0,
+                              error: lastResult?.error ? {
+                                message: lastResult.error.message,
+                                stack: lastResult.error.stack
+                              } : undefined
+                            });
+                            total++;
+                            if (lastResult?.status === 'passed') passed++;
+                            else if (lastResult?.status === 'failed') failed++;
+                            else skipped++;
+                            if (lastResult?.duration) totalDuration += lastResult.duration;
+                          });
+                        }
                       });
-                    });
+                    }
                   });
                 }
               }
             } catch (e) {
-              console.error('Error parsing E2E tests:', e);
+              console.error('Error parsing E2E tests:', e.message);
             }
           }
 
@@ -214,14 +382,17 @@ jobs:
           };
 
           fs.writeFileSync('parsed-test-results.json', JSON.stringify(results, null, 2));
-          console.log('Parsed test results:', JSON.stringify(results));
+          console.log('Parsed test results:', JSON.stringify(results, null, 2));
 
-          // Set GitHub outputs
-          console.log(`::set-output name=total::${total}`);
-          console.log(`::set-output name=passed::${passed}`);
-          console.log(`::set-output name=failed::${failed}`);
-          console.log(`::set-output name=skipped::${skipped}`);
-          console.log(`::set-output name=duration::${Math.round(totalDuration)}`);
+          // Write to GITHUB_OUTPUT (new format, not deprecated)
+          const outputPath = process.env.GITHUB_OUTPUT;
+          if (outputPath) {
+            fs.appendFileSync(outputPath, `total=${total}\n`);
+            fs.appendFileSync(outputPath, `passed=${passed}\n`);
+            fs.appendFileSync(outputPath, `failed=${failed}\n`);
+            fs.appendFileSync(outputPath, `skipped=${skipped}\n`);
+            fs.appendFileSync(outputPath, `duration=${Math.round(totalDuration)}\n`);
+          }
           EOF
         env:
           TEST_TYPE: ${{ inputs.test_type }}
@@ -267,7 +438,7 @@ jobs:
           STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
           COMPLETED_AT=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
-          RESULTS_JSON='{}'
+          RESULTS_JSON='{"total":0,"passed":0,"failed":0,"skipped":0,"duration":0,"results":[]}'
           if [ -f parsed-test-results.json ]; then
             RESULTS_JSON=$(cat parsed-test-results.json)
           fi
@@ -277,7 +448,7 @@ jobs:
           FAILED=$(echo "$RESULTS_JSON" | jq -r '.failed // 0')
           SKIPPED=$(echo "$RESULTS_JSON" | jq -r '.skipped // 0')
           DURATION=$(echo "$RESULTS_JSON" | jq -r '.duration // 0')
-          TEST_RESULTS=$(echo "$RESULTS_JSON" | jq -r '.results // []')
+          TEST_RESULTS=$(echo "$RESULTS_JSON" | jq -c '.results // []')
 
           PAYLOAD=$(cat <<EOF
           {
@@ -300,7 +471,19 @@ jobs:
           EOF
           )
 
-          curl -X POST "$WEBHOOK_URL" \
+          echo "Sending webhook payload:"
+          echo "$PAYLOAD" | jq '.' || echo "$PAYLOAD"
+
+          HTTP_CODE=$(curl -s -o /tmp/webhook-response.json -w "%{http_code}" \
+            -X POST "$WEBHOOK_URL" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $WEBHOOK_SECRET" \
-            -d "$PAYLOAD" || echo "Warning: Webhook call failed"
+            -d "$PAYLOAD")
+          
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✓ Webhook called successfully (HTTP $HTTP_CODE)"
+            cat /tmp/webhook-response.json | jq '.' || cat /tmp/webhook-response.json
+          else
+            echo "⚠ Warning: Webhook call returned HTTP $HTTP_CODE"
+            cat /tmp/webhook-response.json || echo "No response body"
+          fi
