@@ -72,16 +72,32 @@ export default auth(async (req) => {
   if (isLoggedIn && isAdminRoute && !isInDemoMode) {
     // Fetch user from DB to ensure we have the latest role
     const userEmail = req.auth?.user?.email;
-    if (userEmail) {
+    if (!userEmail) {
+      return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
+    }
+    
+    try {
       const dbUser = await prisma.user.findUnique({
         where: { email: userEmail },
         select: { role: true }
       });
+      
       const userRole = dbUser?.role || (req.auth?.user as { role?: string })?.role;
+      
+      // Debug: log the role check
+      console.log("[Middleware] Admin check:", {
+        email: userEmail,
+        dbRole: dbUser?.role,
+        sessionRole: (req.auth?.user as { role?: string })?.role,
+        finalRole: userRole,
+        isAdmin: userRole === "admin"
+      });
+      
       if (userRole !== "admin") {
         return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
       }
-    } else {
+    } catch (error) {
+      console.error("[Middleware] Error checking admin role:", error);
       return NextResponse.redirect(new URL("/dashboard", nextUrl.origin));
     }
   }
