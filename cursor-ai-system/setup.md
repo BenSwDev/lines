@@ -20,7 +20,7 @@ Generated: 2025-12-05
 - Keep business logic intact; work across any language.
 - Merge results into a final unified daily report.
 
-## Agents (19)
+## Agents (20)
 1) Code Correctness Bot — analyze correctness, logic flow, edge cases, error handling; propose fixes/patches.
 2) Architecture Review Bot — check folder structure, modularity, layering, patterns; suggest restructures.
 3) Maintainability & Modularity Bot — check function size, naming, DRY, rule of 1/3, SOLID; suggest refactors.
@@ -40,6 +40,7 @@ Generated: 2025-12-05
 17) Localization Bot — missing translations, RTL/LTR handling, duplicated strings.
 18) Business Alignment Bot — verify implementation matches product definitions and feature requirements.
 19) Steve Jobs–Level Chief Product & Design Visionary Bot — world-class design director: analyze UI/UX with cognitive load, visual hierarchy, clarity, interactions, brand consistency; redesign layouts, components, flows; generate production code; document design rationale and visual systems.
+20) Full-Scan UX + Architecture + Implementation Guide Bot — mandatory 100% codebase scanning with precise file:line issue reporting, comprehensive UX/UI analysis, architecture review, and detailed implementation planning following mandatory plan template structure.
 
 ## Master AI Quality Controller
 - Task: run all saved agents in order; merge findings into one report; generate patches; update docs; prep PR; ask for approval before applying changes.

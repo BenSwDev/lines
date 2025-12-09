@@ -57,6 +57,7 @@
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.23.25",
     "html2canvas": "^1.4.1",
+    "ioredis": "^5.8.2",
     "jspdf": "^3.0.4",
     "konva": "^10.0.12",
     "lucide-react": "^0.555.0",

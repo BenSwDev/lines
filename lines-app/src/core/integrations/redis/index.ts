@@ -1,1 +1,9 @@
-export { redis, redisGet, redisSet, redisDel, redisKeys } from "./client";
+export {
+  redisGet,
+  redisSet,
+  redisDel,
+  redisKeys,
+  isRedisConfigured,
+  redisAdapter
+} from "./client";
+export type { RedisAdapter } from "./adapter";
