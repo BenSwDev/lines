@@ -4,6 +4,7 @@ import { listVenues } from "@/modules/venues/actions/listVenues";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { redirect } from "next/navigation";
 import { isDemoUserId, isDemoVenueId, validateDemoAccess } from "@/core/auth/demo";
+import { prisma } from "@/core/integrations/prisma/client";
 
 export default async function VenueLayout({
   children,
@@ -59,12 +60,21 @@ export default async function VenueLayout({
 
   const venues = venuesResult.success && "data" in venuesResult ? venuesResult.data || [] : [];
 
+  // Fetch user from DB to ensure we have the latest role
+  const dbUser = await prisma.user.findUnique({
+    where: { email: session.user.email! },
+    select: { role: true }
+  });
+
+  // Use role from DB if available, otherwise fall back to session
+  const userRole = dbUser?.role || (session.user as { role?: string }).role;
+
   return (
     <DashboardLayout
       user={{
         name: session.user.name || null,
         email: session.user.email!,
-        role: (session.user as { role?: string }).role
+        role: userRole
       }}
       venues={venues}
       currentVenue={venueResult.data}
